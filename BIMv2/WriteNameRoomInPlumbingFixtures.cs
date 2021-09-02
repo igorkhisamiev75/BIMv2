@@ -28,7 +28,7 @@ namespace BIMv2
             {
                 t.Start("Select all plumbing fixtures");
                 WriteNameRoomInElementMethod(uiApp);
-                TaskDialog.Show("У тебя получилось", "Ты красавчик!☺☺☺");
+                TaskDialog.Show("У тебя получилось", "Complite!!!☺☺☺");
                 t.Commit();
                 t.Start();
                 var res = t.Commit();
@@ -68,9 +68,10 @@ namespace BIMv2
                         var room = FindRoom(linkDocument, targetPoint);
                         if (room != null)
                         {
-                           
+                            string[] subs = room.Name.Split(' ');
+
                             e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
-                                .Set(room.Name);
+                                .Set(room.Number+" "+ subs[0]);
                         }
                         else
                         {
