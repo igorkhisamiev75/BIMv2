@@ -27,17 +27,31 @@ namespace BIMv2Buttons
             string thisAssemblyPath = Assembly.GetExecutingAssembly().Location;
 
             // create push button for CurveTotalLength  //namespace и класс
-            PushButtonData b1Data = new PushButtonData("cmdWriteNameRoomInPlumbingFixtures", "Записать" + Environment.NewLine + "в элементы", thisAssemblyPath, "BIMv2.WriteNameRoomInPlumbingFixtures");
+            PushButtonData b1Data = new PushButtonData("cmdWriteNameRoomInPlumbingFixtures", "Помещения" 
+                + Environment.NewLine + "в элементы", thisAssemblyPath, "BIMv2.WriteNameRoomInPlumbingFixtures");
 
             PushButton pb1 = ribbonPanel.AddItem(b1Data) as PushButton;
-            pb1.ToolTip = "Transfer number and name to elements";
+            pb1.ToolTip = "Переписывает номера и имена в ADSK_Зона для сантехники, обобщенных моделей, спец.оборудование, мебель";
 
             BitmapImage pb1Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/transferNameRoom.png"));
             pb1.LargeImage = pb1Image;
             
             //попробуем создать еще одну кнопку
             ribbonPanel.AddSeparator(); //разделитель между кнопками
-            
+
+            // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData b2Data = new PushButtonData("cmdSumAllLightingFixtureInRoom", "Посчитать" 
+                + Environment.NewLine + "светильники", thisAssemblyPath, "BIMv2.SumAllLightingFixtureInRoom");
+
+            PushButton pb2 = ribbonPanel.AddItem(b2Data) as PushButton;
+            pb2.ToolTip = "Подсчет количества светильников в помещении и запись в марку ADSK_Количество светильников";
+
+            BitmapImage pb2Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/countLampInRoom.png"));
+            pb2.LargeImage = pb2Image;
+
+            //попробуем создать еще одну кнопку
+            ribbonPanel.AddSeparator(); //разделитель между кнопками
+
         }
 
         public Result OnShutdown(UIControlledApplication application)

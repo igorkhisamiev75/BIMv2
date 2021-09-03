@@ -117,39 +117,7 @@ namespace BIMv2
                 svet.get_Parameter(new Guid("bd940efd-bae8-43c6-a839-454b44ff6baa"))
                     .Set(countSvet.ToString());
             }
-
-            //группируем по помещениям 
-            //var allElements2 = from el in listLightFixtturel
-            //    group el by el.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5")).AsString()
-            //    into g
-            //    select new { Name = g.Key, Count = g.Count() };
-
-
-            //foreach (var VARIABLE in allElements2)
-            //{
-            //    //TaskDialog.Show("I", $"{VARIABLE.Name}:{VARIABLE.Count}");
-            //}
-
-            //получаем значение для каждого свтильника
-            //var dParameter = v[0].get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5")).AsString();
-
-            //var allElemnts2 = from element in allElements
-            //    group element by element.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5")).AsString())
             
-
-            //var lightGroupsByRooms = allElements.GroupBy(p =>
-            //    p.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5")).AsString());
-
-            //foreach (var VARIABLE in lightGroupsByRooms)
-            //{
-            //    TaskDialog.Show("dev", $"{VARIABLE} + {lightGroupsByRooms.Count()}");
-            //}
-
-
-            //var sPar = v[0].LookupParameter("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5");
-            //var gPar = v[0].GetParameters("ADSK_Зона");
-
-            //TaskDialog.Show("dev", $"{dParameter}");
         }
 
         public string getFamilyName(Element e)
