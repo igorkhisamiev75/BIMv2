@@ -29,7 +29,7 @@ namespace BIMv2
                 t.Start("Select all lighting fixtures");
                 WriteNameRoomInElementMethod(uiApp);
                 SumAllLightningFixInRoom();
-                TaskDialog.Show("У тебя получилось", "Complite!!!☺☺☺");
+                TaskDialog.Show("У тебя получилось!", "Complite!  ☺☺☺");
                 t.Commit();
                 t.Start();
                 var res = t.Commit();
@@ -39,21 +39,31 @@ namespace BIMv2
         public void WriteNameRoomInElementMethod(UIApplication uiApp)
         {
             var allElements = GetAllElements(); 
-
             
             //проставляем помещения в светильниках
             foreach (var e in allElements)
             {
+
+                //var rrr = e.get_Parameter(BuiltInCategory.OST_IOSRoomCalculationPoint)
+
+                //if (e.get_Parameter(HasSpatialElementCalculationPoint) == true)
+                //{
+
+                //
+
                 var loc = e.Location;
                 var locPoint = (LocationPoint)loc;
                 var pointPF = locPoint.Point;
+
+                //e.SpatialElementCalculationPoint
+                //    SpatialElementCalculationPoint pppppCalculationPoint=e.Location.
                 var myRoom = FindRoom(_doc, pointPF);
                 var nameRoom = "";
 
                 if (myRoom != null)
                 {
                     nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
-                                   myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+                               myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
 
                     e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
                         .Set(nameRoom);
@@ -86,9 +96,6 @@ namespace BIMv2
                     }
                 }
             }
-
-
-
         }
 
         public void SumAllLightningFixInRoom()
