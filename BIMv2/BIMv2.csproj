@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="GetRoomNameForSelectElement.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SumAllLightingFixtureInRoom.cs" />
     <Compile Include="Test.cs" />
     <Compile Include="WriteNameRoomInPlumbingFixtures.cs" />
   </ItemGroup>

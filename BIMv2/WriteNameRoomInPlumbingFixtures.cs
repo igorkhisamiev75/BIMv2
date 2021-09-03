@@ -42,7 +42,6 @@ namespace BIMv2
             foreach (var e in allElements)
             {
                 var loc = e.Location;
-
                 var locPoint = (LocationPoint)loc;
                 var pointPF = locPoint.Point;
                 var myRoom = FindRoom(_doc, pointPF);
@@ -51,11 +50,11 @@ namespace BIMv2
                 if (myRoom != null)
                 {
                     nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
-                               myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+                                   myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
 
                     e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
                         .Set(nameRoom);
-                      
+
                 }
                 else
                 {
@@ -71,56 +70,16 @@ namespace BIMv2
                         {
                             string[] subs = room.Name.Split(' ');
 
-                        var linkType = egElement as RevitLinkType;
-                        var linkName = string.Concat(linkType.Name.Reverse().Skip(4).Reverse());
-                        //Room myRoom2;
+                            e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
+                                .Set(room.Number + " " + subs[0]);
+                        }
+                        else
+                        {
+                            nameRoom = "It's not in Room";
+                            e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
+                                .Set(nameRoom);
+                        }
 
-                        foreach (Document linkedDoc in uiApp.Application.Documents)
-                            if (linkedDoc.Title.Equals(linkName))
-                            {
-                               var myRoom2 = linkedDoc.GetRoomAtPoint(pointPF);
-                               if (myRoom2 != null){
-                                   nameRoom = myRoom2.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
-                                              myRoom2.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
-                               } else
-                               {
-                                   nameRoom = "It's not in Room";
-                                   e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
-                                       .Set(nameRoom).ToString();
-                               }
-                               linkDocId = egElement.Id;
-                               var collLinked = new FilteredElementCollector(linkedDoc);
-                               var linkedRooms = collLinked
-                                   .OfClass(typeof(SpatialElement)).ToElements();
-                               if (linkedRooms != null)
-                                   foreach (var l in linkedRooms)
-                                       roomids.Add(l.Id);
-                               //return linkedDoc;
-                            }
-
-                        //var myRoom2 = doc2[0].Document.GetRoomAtPoint(pointPF); //return main doc
-                        
-                        
-                                              myRoom2.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
-                               } else
-                               {
-                                   nameRoom = "It's not in Room";
-                                   e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
-                                       .Set(nameRoom).ToString();
-                               }
-                               linkDocId = egElement.Id;
-                               var collLinked = new FilteredElementCollector(linkedDoc);
-                               var linkedRooms = collLinked
-                                   .OfClass(typeof(SpatialElement)).ToElements();
-                               if (linkedRooms != null)
-                                   foreach (var l in linkedRooms)
-                                       roomids.Add(l.Id);
-                               //return linkedDoc;
-                            }
-
-                        //var myRoom2 = doc2[0].Document.GetRoomAtPoint(pointPF); //return main doc
-                        
-                        
                     }
                 }
             }
@@ -145,16 +104,16 @@ namespace BIMv2
             var fCollector = new FilteredElementCollector(_doc).OfClass(typeof(FamilyInstance));
             fCollector.OfCategory(BuiltInCategory.OST_Furniture);
             var plFixList4 = fCollector.ToElements();
-        public IList<Element> AllLinkedFiles()
+            foreach (var VARIABLE in plFixList4) plFixList.Add(VARIABLE);
+            return plFixList;
+        }
+        private IEnumerable<RevitLinkInstance> FindLinkedInstances()
         {
-            var coll = new FilteredElementCollector(_doc);
-            var elems = coll
-                .OfCategory(BuiltInCategory.OST_RvtLinks)
-                .OfClass(typeof(RevitLinkType))
-                .ToElements();
-            var rvtLinked = elems;
-
-            return rvtLinked;
+            var collector = new FilteredElementCollector(_doc);
+            return collector
+                .OfClass(typeof(RevitLinkInstance))
+                .Cast<RevitLinkInstance>()
+                .ToList();
         }
         private static Room FindRoom(Document document, XYZ point)
         {
@@ -165,16 +124,6 @@ namespace BIMv2
                 .FirstOrDefault(x => x != null);
         }
 
-        public IList<Element> AllLinkedFiles()
-        {
-            var coll = new FilteredElementCollector(_doc);
-            var elems = coll
-                .OfCategory(BuiltInCategory.OST_RvtLinks)
-                .OfClass(typeof(RevitLinkType))
-                .ToElements();
-            var rvtLinked = elems;
 
-            return rvtLinked;
-        }
     }
 }

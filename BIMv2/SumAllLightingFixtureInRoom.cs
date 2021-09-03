@@ -28,6 +28,7 @@ namespace BIMv2
             {
                 t.Start("Select all lighting fixtures");
                 WriteNameRoomInElementMethod(uiApp);
+                SumAllLightningFixInRoom();
                 TaskDialog.Show("У тебя получилось", "Complite!!!☺☺☺");
                 t.Commit();
                 t.Start();
@@ -37,8 +38,10 @@ namespace BIMv2
         }
         public void WriteNameRoomInElementMethod(UIApplication uiApp)
         {
-            var allElements = GetAllElements();
+            var allElements = GetAllElements(); 
 
+            
+            //проставляем помещения в светильниках
             foreach (var e in allElements)
             {
                 var loc = e.Location;
@@ -83,6 +86,79 @@ namespace BIMv2
                     }
                 }
             }
+
+
+
+        }
+
+        public void SumAllLightningFixInRoom()
+        {
+            //все светильники в которые прописали ADSK_Зона bd940efd-bae8-43c6-a839-454b44ff6baa
+
+            var listLightFixtturel = GetAllElements();
+            string sharedGUIDZONA = "c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5";
+            string sharedGUIDCOUNTLIGHTFIX = "bd940efd-bae8-43c6-a839-454b44ff6baa";
+
+
+            foreach (var svet in listLightFixtturel)
+            {
+                int countSvet = 0;
+
+                foreach (var element in listLightFixtturel)
+                {
+                    if (svet.get_Parameter(new Guid(sharedGUIDZONA)).AsString() ==
+                        element.get_Parameter(new Guid(sharedGUIDZONA)).AsString() &&
+                        getFamilyName(svet) == getFamilyName(element))
+                    {
+                        countSvet++;
+                    }
+                }
+
+                svet.get_Parameter(new Guid("bd940efd-bae8-43c6-a839-454b44ff6baa"))
+                    .Set(countSvet.ToString());
+            }
+
+            //группируем по помещениям 
+            //var allElements2 = from el in listLightFixtturel
+            //    group el by el.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5")).AsString()
+            //    into g
+            //    select new { Name = g.Key, Count = g.Count() };
+
+
+            //foreach (var VARIABLE in allElements2)
+            //{
+            //    //TaskDialog.Show("I", $"{VARIABLE.Name}:{VARIABLE.Count}");
+            //}
+
+            //получаем значение для каждого свтильника
+            //var dParameter = v[0].get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5")).AsString();
+
+            //var allElemnts2 = from element in allElements
+            //    group element by element.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5")).AsString())
+            
+
+            //var lightGroupsByRooms = allElements.GroupBy(p =>
+            //    p.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5")).AsString());
+
+            //foreach (var VARIABLE in lightGroupsByRooms)
+            //{
+            //    TaskDialog.Show("dev", $"{VARIABLE} + {lightGroupsByRooms.Count()}");
+            //}
+
+
+            //var sPar = v[0].LookupParameter("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5");
+            //var gPar = v[0].GetParameters("ADSK_Зона");
+
+            //TaskDialog.Show("dev", $"{dParameter}");
+        }
+
+        public string getFamilyName(Element e)
+        {
+            ElementId eId = e.GetTypeId(); 
+            ElementType elementType = (ElementType)
+                _doc.GetElement(eId) as ElementType; 
+            string familyName = elementType.FamilyName;
+            return familyName;
         }
         public IList<Element> GetAllElements()
         {
@@ -109,7 +185,6 @@ namespace BIMv2
                 .Select(x => document.GetRoomAtPoint(point, x))
                 .FirstOrDefault(x => x != null);
         }
-
 
     }
 }
