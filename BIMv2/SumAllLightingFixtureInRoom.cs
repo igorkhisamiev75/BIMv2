@@ -107,8 +107,17 @@ namespace BIMv2
             string sharedGUIDCOUNTLIGHTFIX = "bd940efd-bae8-43c6-a839-454b44ff6baa";
 
             //получить параметр и присвоить ему значение
-            var ad = listLightFixtturel[0].get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS);
-            ad.Set("0.ToString()");
+            //var ad = listLightFixtturel[0].get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS);
+            //ad.Set("0.ToString()");
+
+            //var ad2 = listLightFixtturel[0].get_Parameter(BuiltInParameter.ROOM_CALCULATION_POINT);
+
+
+            var ad3 = (FamilyInstance)listLightFixtturel[0];
+
+            XYZ speCalculationPoint=ad3.GetSpatialElementCalculationPoint();
+            
+
 
             foreach (var svet in listLightFixtturel)
             {
