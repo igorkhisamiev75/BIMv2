@@ -29,7 +29,7 @@ namespace BIMv2
                 t.Start("Select all lighting fixtures");
                 WriteNameRoomInElementMethod(uiApp);
                 SumAllLightningFixInRoom();
-                TaskDialog.Show("У тебя получилось!", "Complite!  ☺☺☺");
+                TaskDialog.Show("Complite!", "Complite!  ☺☺☺");
                 t.Commit();
                 t.Start();
                 var res = t.Commit();
@@ -38,25 +38,15 @@ namespace BIMv2
         }
         public void WriteNameRoomInElementMethod(UIApplication uiApp)
         {
-            var allElements = GetAllElements(); 
+            var allElements = GetAllElements(); //get all lighting
             
             //проставляем помещения в светильниках
             foreach (var e in allElements)
             {
-
-                //var rrr = e.get_Parameter(BuiltInCategory.OST_IOSRoomCalculationPoint)
-
-                //if (e.get_Parameter(HasSpatialElementCalculationPoint) == true)
-                //{
-
-                //
-
                 var loc = e.Location;
                 var locPoint = (LocationPoint)loc;
                 var pointPF = locPoint.Point;
 
-                //e.SpatialElementCalculationPoint
-                //    SpatialElementCalculationPoint pppppCalculationPoint=e.Location.
                 var myRoom = FindRoom(_doc, pointPF);
                 var nameRoom = "";
 
@@ -71,7 +61,7 @@ namespace BIMv2
                 }
                 else
                 {
-                    var linkedInstances = FindLinkedInstances();
+                    var linkedInstances = FindLinkedInstances(); //get all linked files
                     foreach (var linkInstance in linkedInstances)
                     {
                         var transform = linkInstance.GetTotalTransform().Inverse;
@@ -88,9 +78,25 @@ namespace BIMv2
                         }
                         else
                         {
-                            nameRoom = "It's not in Room";
-                            e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
-                                .Set(nameRoom);
+                            var fi = (FamilyInstance)e;
+                            XYZ scp = fi.GetSpatialElementCalculationPoint();
+                            myRoom = FindRoom(_doc, scp);
+
+                            if (myRoom != null)
+                            {
+                                string[] subs = myRoom.Name.Split(' ');
+
+                                e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
+                                    .Set(myRoom.Number + " " + subs[0]);
+                            }
+                            else
+                            {
+                                nameRoom = "It's not in Room";
+                                e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
+                                    .Set(nameRoom);
+                            }
+
+                            
                         }
 
                     }
