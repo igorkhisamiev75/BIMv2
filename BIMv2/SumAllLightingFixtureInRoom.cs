@@ -1,14 +1,16 @@
 ﻿#region Namespace
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
+
 #endregion
+
 namespace BIMv2
 {
     [Transaction(TransactionMode.Manual)]
@@ -18,6 +20,7 @@ namespace BIMv2
         private Document _doc;
         public ElementId linkDocId = new ElementId(BuiltInCategory.OST_RvtLinks);
         public List<ElementId> roomids = new List<ElementId>();
+
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             var uiApp = commandData.Application;
@@ -34,13 +37,14 @@ namespace BIMv2
                 t.Start();
                 var res = t.Commit();
             }
+
             return Result.Succeeded;
         }
-        public void WriteNameRoomInElementMethod(UIApplication uiApp)
+
+        public void WriteNameRoomInElementMethod(UIApplication uiApp) //проставляем помещения в светильники
         {
             var allElements = GetAllElements(); //get all lighting
             
-            //проставляем помещения в светильниках
             foreach (var e in allElements)
             {
                 var loc = e.Location;
@@ -57,8 +61,8 @@ namespace BIMv2
 
                     e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
                         .Set(nameRoom);
-
                 }
+
                 else
                 {
                     var linkedInstances = FindLinkedInstances(); //get all linked files
@@ -71,34 +75,42 @@ namespace BIMv2
                         var room = FindRoom(linkDocument, targetPoint);
                         if (room != null)
                         {
-                            string[] subs = room.Name.Split(' ');
+                            var subs = room.Name.Split(' ');
 
                             e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
                                 .Set(room.Number + " " + subs[0]);
                         }
                         else
                         {
-                            var fi = (FamilyInstance)e;
-                            XYZ scp = fi.GetSpatialElementCalculationPoint();
-                            myRoom = FindRoom(_doc, scp);
-
-                            if (myRoom != null)
+                            var familyInstance = (FamilyInstance)e;
+                            if (familyInstance.HasSpatialElementCalculationPoint)
                             {
-                                string[] subs = myRoom.Name.Split(' ');
+                                var scp = familyInstance.GetSpatialElementCalculationPoint();
 
-                                e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
-                                    .Set(myRoom.Number + " " + subs[0]);
+                                myRoom = FindRoom(_doc, scp);
+
+                                if (myRoom != null)
+                                {
+                                    var subs = myRoom.Name.Split(' ');
+
+                                    e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
+                                        .Set(myRoom.Number + " " + subs[0]);
+                                }
+                                else
+                                {
+                                    nameRoom = "It's not in Room";
+                                    e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
+                                        .Set(nameRoom);
+                                }
                             }
+
                             else
                             {
                                 nameRoom = "It's not in Room";
                                 e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
                                     .Set(nameRoom);
                             }
-
-                            
                         }
-
                     }
                 }
             }
@@ -109,8 +121,8 @@ namespace BIMv2
             //все светильники в которые прописали ADSK_Зона bd940efd-bae8-43c6-a839-454b44ff6baa
 
             var listLightFixtturel = GetAllElements();
-            string sharedGUIDZONA = "c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5";
-            string sharedGUIDCOUNTLIGHTFIX = "bd940efd-bae8-43c6-a839-454b44ff6baa";
+            var sharedGUIDZONA = "c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5";
+            var sharedGUIDCOUNTLIGHTFIX = "bd940efd-bae8-43c6-a839-454b44ff6baa";
 
             //получить параметр и присвоить ему значение
             //var ad = listLightFixtturel[0].get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS);
@@ -119,51 +131,45 @@ namespace BIMv2
             //var ad2 = listLightFixtturel[0].get_Parameter(BuiltInParameter.ROOM_CALCULATION_POINT);
 
 
-            var ad3 = (FamilyInstance)listLightFixtturel[0];
+            //var ad3 = (FamilyInstance)listLightFixtturel[0];
 
-            XYZ speCalculationPoint=ad3.GetSpatialElementCalculationPoint();
-            
+            //XYZ speCalculationPoint=ad3.GetSpatialElementCalculationPoint();
 
 
             foreach (var svet in listLightFixtturel)
             {
-                
-
-                int countSvet = 0;
+                var countSvet = 0;
 
                 foreach (var element in listLightFixtturel)
-                {
                     if (svet.get_Parameter(new Guid(sharedGUIDZONA)).AsString() ==
                         element.get_Parameter(new Guid(sharedGUIDZONA)).AsString() &&
                         getFamilyName(svet) == getFamilyName(element))
-                    {
                         countSvet++;
-                    }
-                }
 
                 svet.get_Parameter(new Guid(sharedGUIDCOUNTLIGHTFIX))
                     .Set(countSvet.ToString());
             }
-            
         }
 
         public string getFamilyName(Element e)
         {
-            ElementId eId = e.GetTypeId(); 
-            ElementType elementType = (ElementType)
-                _doc.GetElement(eId) as ElementType; 
-            string familyName = elementType.FamilyName;
+            var eId = e.GetTypeId();
+            var elementType = (ElementType)
+                _doc.GetElement(eId);
+            var familyName = elementType.FamilyName;
             return familyName;
         }
+
         public IList<Element> GetAllElements()
         {
             // List all lighting fixtures
             var lightingFixCollector = new FilteredElementCollector(_doc).OfClass(typeof(FamilyInstance));
             lightingFixCollector.OfCategory(BuiltInCategory.OST_LightingFixtures);
             var plFixList = lightingFixCollector.ToElements();
-            
+
             return plFixList;
         }
+
         private IEnumerable<RevitLinkInstance> FindLinkedInstances()
         {
             var collector = new FilteredElementCollector(_doc);
@@ -172,6 +178,7 @@ namespace BIMv2
                 .Cast<RevitLinkInstance>()
                 .ToList();
         }
+
         private static Room FindRoom(Document document, XYZ point)
         {
             return document
@@ -180,6 +187,5 @@ namespace BIMv2
                 .Select(x => document.GetRoomAtPoint(point, x))
                 .FirstOrDefault(x => x != null);
         }
-
     }
 }
