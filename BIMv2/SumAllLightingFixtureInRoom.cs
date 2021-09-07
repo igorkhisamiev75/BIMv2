@@ -106,9 +106,14 @@ namespace BIMv2
             string sharedGUIDZONA = "c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5";
             string sharedGUIDCOUNTLIGHTFIX = "bd940efd-bae8-43c6-a839-454b44ff6baa";
 
+            //получить параметр и присвоить ему значение
+            var ad = listLightFixtturel[0].get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS);
+            ad.Set("0.ToString()");
 
             foreach (var svet in listLightFixtturel)
             {
+                
+
                 int countSvet = 0;
 
                 foreach (var element in listLightFixtturel)
@@ -121,7 +126,7 @@ namespace BIMv2
                     }
                 }
 
-                svet.get_Parameter(new Guid("bd940efd-bae8-43c6-a839-454b44ff6baa"))
+                svet.get_Parameter(new Guid(sharedGUIDCOUNTLIGHTFIX))
                     .Set(countSvet.ToString());
             }
             
