@@ -44,66 +44,44 @@ namespace BIMv2
         public void WriteNameRoomInElementMethod(UIApplication uiApp) //проставляем помещения в светильники
         {
             var allElements = GetAllElements(); //get all lighting
-            
+
             foreach (var e in allElements)
             {
-                var loc = e.Location;
-                var locPoint = (LocationPoint)loc;
-                var pointPF = locPoint.Point;
-
-                var myRoom = FindRoom(_doc, pointPF);
+                Room myRoom;
                 var nameRoom = "";
+                var familyInstance = (FamilyInstance)e;
 
-                if (myRoom != null)
+                if (familyInstance.HasSpatialElementCalculationPoint) // if calculation point == true
                 {
-                    nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
-                               myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+                    var scp = familyInstance.GetSpatialElementCalculationPoint();
+                    myRoom = FindRoom(_doc, scp);
 
-                    e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
-                        .Set(nameRoom);
-                }
-
-                else
-                {
-                    var linkedInstances = FindLinkedInstances(); //get all linked files
-                    foreach (var linkInstance in linkedInstances)
+                    if (myRoom != null)
                     {
-                        var transform = linkInstance.GetTotalTransform().Inverse;
-                        var targetPoint = transform.OfPoint(pointPF);
-                        var linkDocument = linkInstance.GetLinkDocument();
+                        nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
+                                   myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
 
-                        var room = FindRoom(linkDocument, targetPoint);
-                        if (room != null)
-                        {
-                            var subs = room.Name.Split(' ');
+                        e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
+                            .Set(nameRoom);
+                    }
 
-                            e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
-                                .Set(room.Number + " " + subs[0]);
-                        }
-                        else
+                    else
+                    {
+                        var linkedInstances = FindLinkedInstances(); //get all linked files
+                        foreach (var linkInstance in linkedInstances)
                         {
-                            var familyInstance = (FamilyInstance)e;
-                            if (familyInstance.HasSpatialElementCalculationPoint)
+                            var transform = linkInstance.GetTotalTransform().Inverse;
+                            var targetPoint = transform.OfPoint(scp);
+                            var linkDocument = linkInstance.GetLinkDocument();
+
+                            var room = FindRoom(linkDocument, targetPoint);
+                            if (room != null)
                             {
-                                var scp = familyInstance.GetSpatialElementCalculationPoint();
+                                var subs = room.Name.Split(' ');
 
-                                myRoom = FindRoom(_doc, scp);
-
-                                if (myRoom != null)
-                                {
-                                    var subs = myRoom.Name.Split(' ');
-
-                                    e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
-                                        .Set(myRoom.Number + " " + subs[0]);
-                                }
-                                else
-                                {
-                                    nameRoom = "It's not in Room";
-                                    e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
-                                        .Set(nameRoom);
-                                }
+                                e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
+                                    .Set(room.Number + " " + subs[0]);
                             }
-
                             else
                             {
                                 nameRoom = "It's not in Room";
@@ -112,11 +90,150 @@ namespace BIMv2
                             }
                         }
                     }
+
                 }
+
+                else
+                {
+                    var loc = e.Location;
+                    var locPoint = (LocationPoint)loc;
+                    var pointPF = locPoint.Point;
+
+                    myRoom = FindRoom(_doc, pointPF);
+                    if (myRoom != null)
+                    {
+                        nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
+                                   myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+
+                        e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
+                            .Set(nameRoom);
+                    }
+
+                    else
+                    {
+                        var linkedInstances = FindLinkedInstances(); //get all linked files
+                        foreach (var linkInstance in linkedInstances)
+                        {
+                            var transform = linkInstance.GetTotalTransform().Inverse;
+                            var targetPoint = transform.OfPoint(pointPF);
+                            var linkDocument = linkInstance.GetLinkDocument();
+
+                            var room = FindRoom(linkDocument, targetPoint);
+                            if (room != null)
+                            {
+                                var subs = room.Name.Split(' ');
+
+                                e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
+                                    .Set(room.Number + " " + subs[0]);
+                            }
+                            else
+                            {
+                                nameRoom = "It's not in Room";
+                                e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
+                                    .Set(nameRoom);
+                            }
+                        }
+
+                    }
+                }
+
+                
+                
+
+                
+
+                //else
+                //{
+                    
+                    
+                        
+
+                //        if (myRoom != null)
+                //        {
+                //            nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
+                //                       myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+
+                //            e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
+                //                .Set(nameRoom);
+                //        }
+                //        else
+                //        {
+                //            nameRoom = "It's not in Room Current Model";
+                //            e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
+                //                .Set(nameRoom);
+                //        }
+
+                    
+
+                   
+
+                //}
+
+
+
+                //else
+                //{
+                //    
+                //        else
+                //        {
+                //            var familyInstance = (FamilyInstance)e;
+                //            if (familyInstance.HasSpatialElementCalculationPoint)
+                //            {
+
+                //                var scp = familyInstance.GetSpatialElementCalculationPoint();
+                //                targetPoint = transform.OfPoint(scp);
+
+                //                room = FindRoom(linkDocument, targetPoint);
+
+                //                if (room != null)
+                //                {
+                //                    var subs = room.Name.Split(' ');
+
+                //                    e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
+                //                        .Set(room.Number + " " + subs[0]);
+                //                }
+                //                else
+                //                {
+                //                    nameRoom = "It's not in Room";
+                //                    e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
+                //                        .Set(nameRoom);
+                //                }
+
+                //myRoom = FindRoom(_doc, scp);
+
+                //if (myRoom != null)
+                //{
+                //    var subs = myRoom.Name.Split(' ');
+
+                //    e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
+                //        .Set(myRoom.Number + " " + subs[0]);
+                //}
+                //else
+                //{
+                //    nameRoom = "It's not in Room";
+                //    e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
+                //        .Set(nameRoom);
+                //}
+                //                }
+
+
+
+                //            }
+
+
+
+                //        }
+                //    }
+
+
+
+
+
+                //}
             }
         }
 
-        public void SumAllLightningFixInRoom()
+        public void SumAllLightningFixInRoom() // sum and set count lightning
         {
             //все светильники в которые прописали ADSK_Зона bd940efd-bae8-43c6-a839-454b44ff6baa
 
