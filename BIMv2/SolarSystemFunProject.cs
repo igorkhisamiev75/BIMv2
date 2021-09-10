@@ -30,29 +30,21 @@ namespace BIMv2
             {
                 t.Start("Select all plumbing fixtures");
 
-                // (1) select an object on a screen. (We'll come back to the selection in the UI Lab later.)
-                Reference r = uiDoc.Selection.PickObject(ObjectType.Element, "Pick an element");
+                string earthId = "54d88471-fd75-4915-9c1b-f310666605a7-00001353";
 
-                // We have picked something.
-                Element e = uiDoc.Document.GetElement(r);
-
-                //LocationPoint elementLocation = e.Location as LocationPoint;
-                //XYZ oldPlace = elementLocation.Point;
+                Element e = _doc.GetElement(earthId);
 
                 XYZ point1 = new XYZ(0, 0, 0);
                 XYZ point2 = new XYZ(0, 0, 10);
+                
 
-                //XYZ newPlace = new XYZ(oldPlace.X-2, oldPlace.Y - 2, oldPlace.Z-20);
-
-                //ElementTransformUtils.MoveElement(_doc, e.Id, newPlace);
-
-                ElementTransformUtils.RotateElement(_doc, e.Id, Line.CreateBound(point1, point2), Math.PI / 2.0);
-
+                ElementTransformUtils.RotateElement(_doc, e.Id, Line.CreateBound(point1, point2), Math.PI/182.5);
+                
                 //MoveColumn(_doc, e);
 
-                TaskDialog.Show("У тебя получилось", "Complite!!!☺☺☺");
+                //TaskDialog.Show("У тебя получилось", "Complite!!!☺☺☺");
                 t.Commit();
-                
+
             }
             return Result.Succeeded;
         }
