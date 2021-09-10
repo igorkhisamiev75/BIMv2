@@ -49,6 +49,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CreateModelText.cs" />
     <Compile Include="GetRoomNameForSelectElement.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SolarSystemFunProject.cs" />
