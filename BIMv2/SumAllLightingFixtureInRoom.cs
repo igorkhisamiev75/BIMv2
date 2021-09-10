@@ -137,10 +137,8 @@ namespace BIMv2
                     }
                 }
 
-                
-                
 
-                
+
 
                 //else
                 //{
@@ -298,11 +296,16 @@ namespace BIMv2
 
         private static Room FindRoom(Document document, XYZ point)
         {
-            return document
-                .Phases
-                .Cast<Phase>()
-                .Select(x => document.GetRoomAtPoint(point, x))
-                .FirstOrDefault(x => x != null);
+            if (document != null)
+            {
+                return document
+                    .Phases
+                    .Cast<Phase>()
+                    .Select(x => document.GetRoomAtPoint(point, x))
+                    .FirstOrDefault(x => x != null);
+            }
+
+            return null;
         }
     }
 }
