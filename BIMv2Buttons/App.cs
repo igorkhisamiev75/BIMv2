@@ -51,6 +51,20 @@ namespace BIMv2Buttons
 
             //попробуем создать еще одну кнопку
             ribbonPanel.AddSeparator(); //разделитель между кнопками
+            
+
+            // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData b3Data = new PushButtonData("cmdCreateModelText.cs", "Создать"
+                + Environment.NewLine + "текст модели", thisAssemblyPath, "BIMv2.CreateModelText");
+
+            PushButton pb3 = ribbonPanel.AddItem(b3Data) as PushButton;
+            pb3.ToolTip = "Создать текст модели на основе .ТХТ файла с диска С";
+
+            BitmapImage pb3Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/creteModelText.png"));
+            pb3.LargeImage = pb3Image;
+
+            //попробуем создать еще одну кнопку
+            ribbonPanel.AddSeparator(); //разделитель между кнопками
 
         }
 

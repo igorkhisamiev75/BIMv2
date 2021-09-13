@@ -6,6 +6,7 @@ using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using Autodesk.Revit.UI.Selection;
 
 #endregion
 namespace BIMv2
@@ -27,31 +28,43 @@ namespace BIMv2
             using (var t = new Transaction(_doc))
             {
                 t.Start("Run");
-                CreateModelTextMethod();
-                TaskDialog.Show("У тебя получилось", "Complite!!!☺☺☺");
+                uiApp = commandData.Application;
+                uiDoc = uiApp.ActiveUIDocument;
+                Reference r = uiDoc.Selection.PickObject(ObjectType.Element, "Выбрать текст модели");
+
+                CreateModelTextMethod(r, uiDoc);
+                TaskDialog.Show("Готово", "Complite!!!☺☺☺");
                 t.Commit();
 
             }
             return Result.Succeeded;
         }
 
-        public void CreateModelTextMethod()
+        public void CreateModelTextMethod(Reference r, UIDocument uiDocument)
         {
             //reed txt file
             string path = @"C:\text.txt";
-            string[] arStr = File.ReadAllLines(path, Encoding.Default);
+            string[] arStr = File.ReadAllLines(path, Encoding.GetEncoding(1251));
 
             //UniqueId элемента
-            string earthId = "c30ec930-30e2-4f3a-8f98-7767e782e4c8-0005496f";
-            Element e = _doc.GetElement(earthId);
+            //string earthId = "c30ec930-30e2-4f3a-8f98-7767e782e4c8-0005496f";
+
+
+            //Element e = _doc.GetElement(earthId);
+
+            // (1) select an object on a screen. (We'll come back to the selection in the UI Lab later.)
+           
+            // We have picked something.
+            Element e = uiDocument.Document.GetElement(r);
+
             XYZ point1 = new XYZ(0, -10, 0);
 
 
             foreach (var s in arStr)
             {
                 //create copy element
-                ICollection<ElementId> newElement = ElementTransformUtils.CopyElement(_doc, e.Id, point1);
                 e.get_Parameter(BuiltInParameter.TEXT_TEXT).Set(s);
+                ICollection<ElementId> newElement = ElementTransformUtils.CopyElement(_doc, e.Id, point1);
 
                 e = _doc.GetElement(new ElementId(GetId(newElement)));
 
