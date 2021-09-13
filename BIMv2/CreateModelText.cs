@@ -48,13 +48,9 @@ namespace BIMv2
 
             //UniqueId элемента
             //string earthId = "c30ec930-30e2-4f3a-8f98-7767e782e4c8-0005496f";
-
-
             //Element e = _doc.GetElement(earthId);
 
-            // (1) select an object on a screen. (We'll come back to the selection in the UI Lab later.)
-           
-            // We have picked something.
+           // We have picked something.
             Element e = uiDocument.Document.GetElement(r);
 
             XYZ point1 = new XYZ(0, -10, 0);
