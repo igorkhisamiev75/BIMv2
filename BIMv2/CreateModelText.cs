@@ -1,13 +1,10 @@
 ﻿#region Namespace
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-
+using System.Text;
 using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
-using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
 
 #endregion
@@ -40,30 +37,61 @@ namespace BIMv2
 
         public void CreateModelTextMethod()
         {
-            //string path = @"C:\text.txt";
-            //string[] arStr = File.ReadAllLines(path);
+            //reed txt file
+            string path = @"C:\text.txt";
+            string[] arStr = File.ReadAllLines(path, Encoding.Default);
 
             //UniqueId элемента
             string earthId = "c30ec930-30e2-4f3a-8f98-7767e782e4c8-0005496f";
             Element e = _doc.GetElement(earthId);
-
             XYZ point1 = new XYZ(0, -10, 0);
+
+
+            foreach (var s in arStr)
+            {
+                //create copy element
+                ICollection<ElementId> newElement = ElementTransformUtils.CopyElement(_doc, e.Id, point1);
+                e.get_Parameter(BuiltInParameter.TEXT_TEXT).Set(s);
+
+                e = _doc.GetElement(new ElementId(GetId(newElement)));
+
+            }
+
+            
+
+           
 
             //e.get_Parameter(BuiltInParameter.TEXT_TEXT).Set("123");
 
             //string f=e.get_Parameter(BuiltInParameter.TEXT_TEXT).AsString();
 
-            //create copy element
-            ICollection<ElementId> newElement = ElementTransformUtils.CopyElement(_doc, e.Id, point1);
+            
 
-            newElement.
+           //string g= newElement.GetEnumerator().Current.IntegerValue.ToString();
+
+           //int g = GetId(newElement);
+
+           //Element gg = _doc.GetElement(new ElementId(g));
+
+           //gg.get_Parameter(BuiltInParameter.TEXT_TEXT).Set("123");
+
+           // ICollection<ElementId> newElement2 = ElementTransformUtils.CopyElement(_doc, gg.Id, point1);
+
+            //TaskDialog.Show("1", g.ToString());
 
 
+        }
 
+        public int GetId(ICollection<ElementId> newElement)
+        {
+            int a=0;
 
-            //TaskDialog.Show("1", f);
+            foreach (var VARIABLE in newElement)
+            {
+                a=VARIABLE.IntegerValue;
+            }
 
-
+            return a;
         }
         
     }
