@@ -33,12 +33,11 @@ namespace FunProjectSolarSun
             try
             {
                 var dlg = new SolarSunPlayerForm();
-                //_doc.Regenerate();
-
+                
                 
                 DateTime now = DateTime.Now;
                 
-                DateTime time2 = now.AddSeconds(8);
+                DateTime time2 = now.AddSeconds(4);
 
                 DateTime now2 = DateTime.Now;
 
@@ -56,7 +55,7 @@ namespace FunProjectSolarSun
                     //tran.Commit();
 
 
-                } while (now2.ToString("s") !=time2.ToString("s"));
+                } while (now2.ToString("ss") !=time2.ToString("ss"));
 
                 return Result.Succeeded;
 
@@ -93,7 +92,7 @@ namespace FunProjectSolarSun
             Move(document, marsId);
             Move(document, upiterId);
             Move2(document, saturnId);
-            Move2(document, uranId);
+            Move3(document, uranId);
             Move3(document, neptunId);
 
             //_doc.Regenerate();
