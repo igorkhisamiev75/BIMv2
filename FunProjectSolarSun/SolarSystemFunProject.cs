@@ -38,7 +38,7 @@ namespace FunProjectSolarSun
                 
                 DateTime now = DateTime.Now;
                 
-                DateTime time2 = now.AddSeconds(4);
+                DateTime time2 = now.AddSeconds(8);
 
                 DateTime now2 = DateTime.Now;
 
@@ -50,8 +50,9 @@ namespace FunProjectSolarSun
                     
                     now2 = DateTime.Now;
                     MovePlanets(_doc, uiDoc);
-                   
 
+                    uiDoc.RefreshActiveView();
+                    
                     //tran.Commit();
 
 
@@ -77,23 +78,61 @@ namespace FunProjectSolarSun
             Transaction tran = new Transaction(document, "Solar Sun Fun");
             tran.Start("Start");
 
-            string earthId = "54d88471-fd75-4915-9c1b-f310666605a7-00001353";
+            string mercuriiId = "026dd368-736e-4cbb-9868-dea3f9ec68d3-0000226f";
+            string veneraId = "026dd368-736e-4cbb-9868-dea3f9ec68d3-00002aac";
+            string earthId = "026dd368-736e-4cbb-9868-dea3f9ec68d3-00002ab0";
+            string marsId = "026dd368-736e-4cbb-9868-dea3f9ec68d3-00002abf";
+            string upiterId = "026dd368-736e-4cbb-9868-dea3f9ec68d3-00002ac2";
+            string saturnId = "026dd368-736e-4cbb-9868-dea3f9ec68d3-00002ac5";
+            string uranId = "026dd368-736e-4cbb-9868-dea3f9ec68d3-00002ac8";
+            string neptunId = "026dd368-736e-4cbb-9868-dea3f9ec68d3-00002acb";
 
-            Element e = document.GetElement(earthId);
+            Move(document, mercuriiId);
+            Move(document, veneraId);
+            Move(document, earthId);
+            Move(document, marsId);
+            Move(document, upiterId);
+            Move2(document, saturnId);
+            Move2(document, uranId);
+            Move3(document, neptunId);
 
-            XYZ point1 = new XYZ(0, 0, 0);
-            XYZ point2 = new XYZ(0, 0, 10);
-            
-            ElementTransformUtils.RotateElement(_doc, e.Id, Line.CreateBound(point1, point2), Math.PI / 182.5);
-            _doc.Regenerate();
-            uiDoc.RefreshActiveView();
+            //_doc.Regenerate();
+            //uiDoc.RefreshActiveView();
             //object p = _doc.IsModified(true);
 
             tran.Commit();
             
-            
-            //return Result.Succeeded;
+        }
 
+        public void Move(Document document, string id)
+        {
+
+            Element e = document.GetElement(id);
+
+            XYZ point1 = new XYZ(0, 0, 0);
+            XYZ point2 = new XYZ(0, 0, 10);
+
+            ElementTransformUtils.RotateElement(_doc, e.Id, Line.CreateBound(point1, point2), Math.PI / 182.5);
+        }
+        public void Move2(Document document, string id)
+        {
+
+            Element e = document.GetElement(id);
+
+            XYZ point1 = new XYZ(0, 0, 0);
+            XYZ point2 = new XYZ(0, 0, 100);
+
+            ElementTransformUtils.RotateElement(_doc, e.Id, Line.CreateBound(point1, point2), -Math.PI / 302.5);
+        }
+        public void Move3(Document document, string id)
+        {
+
+            Element e = document.GetElement(id);
+
+            XYZ point1 = new XYZ(0, 0, 0);
+            XYZ point2 = new XYZ(0, 0, 100);
+
+            ElementTransformUtils.RotateElement(_doc, e.Id, Line.CreateBound(point1, point2), Math.PI / 900);
         }
     }
 }
