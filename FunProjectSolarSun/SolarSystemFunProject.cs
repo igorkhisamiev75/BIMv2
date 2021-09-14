@@ -29,20 +29,18 @@ namespace FunProjectSolarSun
             var uiDoc = uiApp.ActiveUIDocument;
             _app = uiApp.Application;
             _doc = uiDoc.Document;
-
-            //_doc.IsModified(true);
-
+            
             try
             {
                 var dlg = new SolarSunPlayerForm();
-                _doc.Regenerate();
+                //_doc.Regenerate();
 
                 
                 DateTime now = DateTime.Now;
                 
                 DateTime time2 = now.AddSeconds(4);
 
-                DateTime now2;
+                DateTime now2 = DateTime.Now;
 
                 do
                 {
@@ -51,8 +49,8 @@ namespace FunProjectSolarSun
                     //tran.Start("Start");
                     
                     now2 = DateTime.Now;
-                    MovePlanets(_doc);
-                    _doc.Regenerate();
+                    MovePlanets(_doc, uiDoc);
+                   
 
                     //tran.Commit();
 
@@ -72,8 +70,10 @@ namespace FunProjectSolarSun
         }
 
        
-        public Result MovePlanets(Document document)
+        public void MovePlanets(Document document, UIDocument uiDoc)
         {
+            
+
             Transaction tran = new Transaction(document, "Solar Sun Fun");
             tran.Start("Start");
 
@@ -85,13 +85,14 @@ namespace FunProjectSolarSun
             XYZ point2 = new XYZ(0, 0, 10);
             
             ElementTransformUtils.RotateElement(_doc, e.Id, Line.CreateBound(point1, point2), Math.PI / 182.5);
-            
+            _doc.Regenerate();
+            uiDoc.RefreshActiveView();
             //object p = _doc.IsModified(true);
 
             tran.Commit();
             
             
-            return Result.Succeeded;
+            //return Result.Succeeded;
 
         }
     }
