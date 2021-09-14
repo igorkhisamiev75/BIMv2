@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BIMv2", "BIMv2\BIMv2.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BIMv2Buttons", "BIMv2Buttons\BIMv2Buttons.csproj", "{80DEC13F-D466-4868-9BE3-B7E83ED2EDE3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FunProjectSolarSun", "FunProjectSolarSun\FunProjectSolarSun.csproj", "{B37376E9-F7E9-4FC7-B4D6-819EF2DF8CB2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{80DEC13F-D466-4868-9BE3-B7E83ED2EDE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{80DEC13F-D466-4868-9BE3-B7E83ED2EDE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{80DEC13F-D466-4868-9BE3-B7E83ED2EDE3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B37376E9-F7E9-4FC7-B4D6-819EF2DF8CB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B37376E9-F7E9-4FC7-B4D6-819EF2DF8CB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B37376E9-F7E9-4FC7-B4D6-819EF2DF8CB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B37376E9-F7E9-4FC7-B4D6-819EF2DF8CB2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
