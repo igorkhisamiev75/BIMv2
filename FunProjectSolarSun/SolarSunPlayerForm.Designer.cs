@@ -36,6 +36,7 @@ namespace FunProjectSolarSun
             // 
             // btnPlay
             // 
+            this.btnPlay.DialogResult = System.Windows.Forms.DialogResult.OK;
             this.btnPlay.Location = new System.Drawing.Point(142, 147);
             this.btnPlay.Name = "btnPlay";
             this.btnPlay.Size = new System.Drawing.Size(162, 109);
@@ -45,6 +46,7 @@ namespace FunProjectSolarSun
             // 
             // btnStop
             // 
+            this.btnStop.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.btnStop.Location = new System.Drawing.Point(436, 147);
             this.btnStop.Name = "btnStop";
             this.btnStop.Size = new System.Drawing.Size(192, 109);

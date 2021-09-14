@@ -29,40 +29,28 @@ namespace FunProjectSolarSun
             _app = uiApp.Application;
             _doc = uiDoc.Document;
 
-            var tran = new Transaction(commandData.Application.ActiveUIDocument.Document, "Solar Sun Fun");
-            tran.Start("Start");
-
             try
             {
-                if (null == commandData) throw new ArgumentNullException("commandData");
-
                 var dlg = new SolarSunPlayerForm();
-                if (dlg.ShowDialog() == DialogResult.OK)
+
+                while (dlg.ShowDialog() == DialogResult.OK)
                 {
+                    var tran = new Transaction(commandData.Application.ActiveUIDocument.Document, "Solar Sun Fun");
+                    tran.Start("Start");
                     MoveColumn(_doc);
                     tran.Commit();
-                    return Result.Succeeded;
                 }
 
-                tran.RollBack();
-                return Result.Cancelled;
+                return Result.Succeeded;
+
+                //if (null == commandData) throw new ArgumentNullException("commandData");
             }
             catch (Exception exp)
             {
-                message = exp.Message;
-                tran.RollBack();
-                return Result.Failed;
+               return Result.Succeeded;
             }
-
-
-
-            //MoveColumn(_doc, e);
-
-            //TaskDialog.Show("У тебя получилось", "Complite!!!☺☺☺");
-            //t.Commit();
-
-
-
+            
+            
         }
 
 
@@ -78,116 +66,7 @@ namespace FunProjectSolarSun
 
 
             ElementTransformUtils.RotateElement(_doc, e.Id, Line.CreateBound(point1, point2), Math.PI / 182.5);
-
-
-            // get the column current location
-            //LocationPoint elementLocation = element.Location as LocationPoint;
-
-            //XYZ oldPlace = elementLocation.Point;
-
-            // Move the column to new location.
-            //XYZ newPlace = new XYZ(0, 0, 2);
-
-            //ElementTransformUtils.MoveElement(document, element.Id, newPlace);
-
-            // now get the column's new location
-            //elementLocation = element.Location as LocationPoint;
-            //XYZ newActual = elementLocation.Point;
-
-            //string info = "Original Z location: " + oldPlace.Z +
-            //              "\nNew Z location: " + newActual.Z;
-
-            //TaskDialog.Show("Revit", info);
+            
         }
     }
 }
-
-
-//public void WriteNameRoomInElementMethod(UIApplication uiApp)
-        //{
-        //    var allElements = GetAllElements();
-
-        //    foreach (var e in allElements)
-        //    {
-        //        var loc = e.Location;
-        //        var locPoint = (LocationPoint)loc;
-        //        var pointPF = locPoint.Point;
-        //        var myRoom = FindRoom(_doc, pointPF);
-        //        var nameRoom = "";
-
-        //        if (myRoom != null)
-        //        {
-        //            nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
-        //                           myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
-
-        //            e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
-        //                .Set(nameRoom);
-
-        //        }
-        //        else
-        //        {
-        //            var linkedInstances = FindLinkedInstances();
-        //            foreach (var linkInstance in linkedInstances)
-        //            {
-        //                var transform = linkInstance.GetTotalTransform().Inverse;
-        //                var targetPoint = transform.OfPoint(pointPF);
-        //                var linkDocument = linkInstance.GetLinkDocument();
-
-        //                var room = FindRoom(linkDocument, targetPoint);
-        //                if (room != null)
-        //                {
-        //                    string[] subs = room.Name.Split(' ');
-
-        //                    e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
-        //                        .Set(room.Number + " " + subs[0]);
-        //                }
-        //                else
-        //                {
-        //                    nameRoom = "It's not in Room";
-        //                    e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
-        //                        .Set(nameRoom);
-        //                }
-
-        //            }
-        //        }
-        //    }
-        //}
-        //public IList<Element> GetAllElements()
-        //{
-        //    // List all plumbing fixtures
-        //    var plumbingFixCollector = new FilteredElementCollector(_doc).OfClass(typeof(FamilyInstance));
-        //    plumbingFixCollector.OfCategory(BuiltInCategory.OST_PlumbingFixtures);
-        //    var plFixList = plumbingFixCollector.ToElements();
-        //    // List all generic
-        //    var genericCollector = new FilteredElementCollector(_doc).OfClass(typeof(FamilyInstance));
-        //    genericCollector.OfCategory(BuiltInCategory.OST_GenericModel);
-        //    var plFixList2 = genericCollector.ToElements();
-        //    foreach (var VARIABLE in plFixList2) plFixList.Add(VARIABLE);
-        //    // List all SE
-        //    var seCollector = new FilteredElementCollector(_doc).OfClass(typeof(FamilyInstance));
-        //    seCollector.OfCategory(BuiltInCategory.OST_SpecialityEquipment);
-        //    var plFixList3 = seCollector.ToElements();
-        //    foreach (var VARIABLE in plFixList3) plFixList.Add(VARIABLE);
-        //    // List all furniture
-        //    var fCollector = new FilteredElementCollector(_doc).OfClass(typeof(FamilyInstance));
-        //    fCollector.OfCategory(BuiltInCategory.OST_Furniture);
-        //    var plFixList4 = fCollector.ToElements();
-        //    foreach (var VARIABLE in plFixList4) plFixList.Add(VARIABLE);
-        //    return plFixList;
-        //}
-        //private IEnumerable<RevitLinkInstance> FindLinkedInstances()
-        //{
-        //    var collector = new FilteredElementCollector(_doc);
-        //    return collector
-        //        .OfClass(typeof(RevitLinkInstance))
-        //        .Cast<RevitLinkInstance>()
-        //        .ToList();
-        //}
-        //private static Room FindRoom(Document document, XYZ point)
-        //{
-        //    return document
-        //        .Phases
-        //        .Cast<Phase>()
-        //        .Select(x => document.GetRoomAtPoint(point, x))
-        //        .FirstOrDefault(x => x != null);
-        //}
