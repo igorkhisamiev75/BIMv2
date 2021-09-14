@@ -19,8 +19,9 @@ namespace FunProjectSolarSun
     [Journaling(JournalingMode.NoCommandData)]
     public class SolarSystemFunProject : IExternalCommand
     {
-        private Application _app;
-        private Document _doc;
+         Application _app;
+         Document _doc;
+        
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -29,33 +30,52 @@ namespace FunProjectSolarSun
             _app = uiApp.Application;
             _doc = uiDoc.Document;
 
+            //_doc.IsModified(true);
+
             try
             {
                 var dlg = new SolarSunPlayerForm();
+                _doc.Regenerate();
 
-                while (dlg.ShowDialog() == DialogResult.OK)
+                
+                DateTime now = DateTime.Now;
+                
+                DateTime time2 = now.AddSeconds(4);
+
+                DateTime now2;
+
+                do
                 {
-                    var tran = new Transaction(commandData.Application.ActiveUIDocument.Document, "Solar Sun Fun");
-                    tran.Start("Start");
-                    MoveColumn(_doc);
-                    tran.Commit();
-                }
+                    //Transaction tran = new Transaction(_doc, "Solar Sun Fun");
+                    
+                    //tran.Start("Start");
+                    
+                    now2 = DateTime.Now;
+                    MovePlanets(_doc);
+                    _doc.Regenerate();
+
+                    //tran.Commit();
+
+
+                } while (now2.ToString("s") !=time2.ToString("s"));
 
                 return Result.Succeeded;
 
-                //if (null == commandData) throw new ArgumentNullException("commandData");
             }
             catch (Exception exp)
             {
-               return Result.Succeeded;
+                message = exp.Message;
+                return Result.Failed;
             }
             
             
         }
 
-
-        public void MoveColumn(Document document)
+       
+        public Result MovePlanets(Document document)
         {
+            Transaction tran = new Transaction(document, "Solar Sun Fun");
+            tran.Start("Start");
 
             string earthId = "54d88471-fd75-4915-9c1b-f310666605a7-00001353";
 
@@ -63,10 +83,16 @@ namespace FunProjectSolarSun
 
             XYZ point1 = new XYZ(0, 0, 0);
             XYZ point2 = new XYZ(0, 0, 10);
-
-
+            
             ElementTransformUtils.RotateElement(_doc, e.Id, Line.CreateBound(point1, point2), Math.PI / 182.5);
             
+            //object p = _doc.IsModified(true);
+
+            tran.Commit();
+            
+            
+            return Result.Succeeded;
+
         }
     }
 }

@@ -67,11 +67,13 @@ namespace FunProjectSolarSun
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(11F, 24F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(764, 523);
             this.Controls.Add(this.btnInfo);
             this.Controls.Add(this.btnStop);
             this.Controls.Add(this.btnPlay);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Name = "SolarSunPlayerForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "SolarSunPlayerForm";
             this.ResumeLayout(false);
 
