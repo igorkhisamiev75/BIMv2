@@ -69,8 +69,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BIMStandart.cs" />
     <Compile Include="CreateModelText.cs" />
     <Compile Include="GetRoomNameForSelectElement.cs" />
+    <Compile Include="HelpBIM.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SolarSystemFunProject.cs" />
     <Compile Include="SumAllLightingFixtureInRoom.cs" />

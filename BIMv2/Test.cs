@@ -20,7 +20,7 @@ namespace BIMv2
             try
             {
                 System.Diagnostics.Process.Start(
-                    "https://docs.google.com/document/d/1RsZPgiTs4nRGBuE5QLrPcAl8irX_CnGdLxYQ_pAfrrI/edit?usp=sharing");
+                    "https://wa.me/79218720713?text=У%20меня%20проблемы%20с%20Revit%20помоги!");
                 return Result.Succeeded;
             }
 

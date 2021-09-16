@@ -65,9 +65,33 @@ namespace BIMv2Buttons
 
             //попробуем создать еще одну кнопку
             ribbonPanel.AddSeparator(); //разделитель между кнопками
+           
+            // Add a new ribbon panel
+            RibbonPanel ribbonPanel2 = application.CreateRibbonPanel(tabName, "BIM Standart and HELP"); //подпись под кнопками
 
+            // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData b4Data = new PushButtonData("cmdBIMStandart.cs", "Почитать"
+                + Environment.NewLine + "BIM стандарт", thisAssemblyPath, "BIMv2.BIMStandart");
 
+            PushButton pb4 = ribbonPanel2.AddItem(b4Data) as PushButton;
+            pb4.ToolTip = "Открой хотя бы раз";
 
+            BitmapImage pb4Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-book-32.png"));
+            pb4.LargeImage = pb4Image;
+
+            ribbonPanel.AddSeparator(); //разделитель между кнопками
+
+            // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData b5Data = new PushButtonData("cmdHelpBIM.cs", "Написать"
+                + Environment.NewLine + "в тех поддержку", thisAssemblyPath, "BIMv2.HelpBIM");
+
+            PushButton pb5 = ribbonPanel2.AddItem(b5Data) as PushButton;
+            pb5.ToolTip = "Можно написать, но лучше поискать самим";
+
+            BitmapImage pb5Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-whatsapp-32.png"));
+            pb5.LargeImage = pb5Image;
+
+            ribbonPanel.AddSeparator(); //разделитель между кнопками
 
         }
 
