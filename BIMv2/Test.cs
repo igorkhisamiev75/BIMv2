@@ -1,5 +1,6 @@
 ﻿#region Namespace
 
+using System;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
@@ -9,55 +10,25 @@ using Autodesk.Revit.UI;
 namespace BIMv2
 {
     [Transaction(TransactionMode.Manual)]
+    [Regeneration(RegenerationOption.Manual)]
     public class Test : IExternalCommand
 
     {
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
 
         {
-            var uiApp = commandData.Application;
-            var doc = uiApp.ActiveUIDocument.Document;
-
-            var collector = new FilteredElementCollector(doc);
-
-            var elems = collector
-                .OfCategory(BuiltInCategory.OST_RvtLinks)
-                .OfClass(typeof(RevitLinkType))
-                .ToElements();
-
-
-            foreach (var e in elems)
-
+            try
             {
-                var linkType = e as RevitLinkType;
-
-                var s = string.Empty;
-
-
-                foreach (Document linkedDoc in uiApp.Application.Documents)
-                    if (linkedDoc.Title.Equals(linkType.Name))
-
-                    {
-                        var collLinked = new FilteredElementCollector(linkedDoc);
-
-                        var linkedWalls =
-                            collLinked.OfClass(typeof(Wall)).ToElements();
-
-
-                        foreach (var eleWall in linkedWalls)
-
-                        {
-                            var wall = eleWall as Wall;
-
-                            s = s + "\n" + eleWall.Name;
-                        }
-
-
-                        TaskDialog.Show("Wall Level", linkedDoc.PathName + " : " + s);
-                    }
+                System.Diagnostics.Process.Start(
+                    "https://docs.google.com/document/d/1RsZPgiTs4nRGBuE5QLrPcAl8irX_CnGdLxYQ_pAfrrI/edit?usp=sharing");
+                return Result.Succeeded;
             }
 
-            return Result.Succeeded;
+            catch(Exception ex)
+            {
+                return Result.Failed;
+            }
+
         }
     }
 }

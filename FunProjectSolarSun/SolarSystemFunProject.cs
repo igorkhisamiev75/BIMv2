@@ -37,7 +37,7 @@ namespace FunProjectSolarSun
                 
                 DateTime now = DateTime.Now;
                 
-                DateTime time2 = now.AddSeconds(4);
+                DateTime time2 = now.AddSeconds(40);
 
                 DateTime now2 = DateTime.Now;
 
@@ -68,8 +68,7 @@ namespace FunProjectSolarSun
             
             
         }
-
-       
+        
         public void MovePlanets(Document document, UIDocument uiDoc)
         {
             

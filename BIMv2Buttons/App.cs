@@ -66,6 +66,9 @@ namespace BIMv2Buttons
             //попробуем создать еще одну кнопку
             ribbonPanel.AddSeparator(); //разделитель между кнопками
 
+
+
+
         }
 
         public Result OnShutdown(UIControlledApplication application)
