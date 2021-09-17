@@ -34,7 +34,7 @@ namespace BIMv2
                 t.Start("Create");
                 CreateLightingFixtreInRooms();
 
-                //TaskDialog.Show("Complite!", "Complite!  ☺☺☺");
+                TaskDialog.Show("Complite!", "Complite!  ☺☺☺");
                 t.Commit();
                
             }
@@ -60,9 +60,9 @@ namespace BIMv2
 
             //var h = b / a;
 
-            string lightFixFamilyName = "СТ_Светильник_HB LED 2x150 D80";
-            string lightFixTypeName = "Основной";
-            string lightFamilyAndTypeName = lightFixFamilyName + ": " + lightFixTypeName;
+            //string lightFixFamilyName = "СТ_Светильник_HB LED 2x150 D80";
+            //string lightFixTypeName = "Основной";
+            //string lightFamilyAndTypeName = lightFixFamilyName + ": " + lightFixTypeName;
 
             //FamilySymbol familySymbol=(FamilySymbol)
 
@@ -79,8 +79,14 @@ namespace BIMv2
 
                 var level = elementRoom.LevelId;
 
+                Level level1 = GetLevelFromRoom(level);
 
-                //var l2 = level.GetParameters("Level");
+                //Level g = elementRoom.LookupParameter("Level").AsValueString();
+
+                //TaskDialog.Show("Complite!", $"{elementRoom.get_Parameter(BuiltInParameter.ROOM_LEVEL_ID)}");
+
+
+
 
                 LocationPoint lpPoint = (LocationPoint)elementRoom.Location;
 
@@ -88,11 +94,10 @@ namespace BIMv2
 
                 XYZ placeXyzPoint = new XYZ(pointFoLigh.X, pointFoLigh.Y, h);
 
-                FamilyInstance instLight 
-                    = _doc.Create.NewFamilyInstance(
-                        placeXyzPoint, symbol, StructuralType.NonStructural);
+                FamilyInstance instLight = _doc.Create.NewFamilyInstance(
+                        placeXyzPoint, symbol, level1, StructuralType.NonStructural) ;
 
-                TaskDialog.Show("Complite!", $"{lpPoint.Point}");
+                //TaskDialog.Show("Complite!", $"{lpPoint.Point}");
 
 
 
@@ -100,7 +105,23 @@ namespace BIMv2
         }
 
 
+        private Level GetLevelFromRoom(ElementId elementId)
+        {
+            FilteredElementCollector lvlCollector = new FilteredElementCollector(_doc);
+            ICollection<Element> lvlCollection = lvlCollector.OfClass(typeof(Level)).ToElements();
 
+            foreach(Element l in lvlCollection)
+            {
+                if (l.Id == elementId)
+                {
+                    return (Level)l;
+                }
+                                    
+            }
+
+            return null;
+
+        }
         public void WriteNameRoomInElementMethod(UIApplication uiApp) //проставляем помещения в светильники
         {
             var allElements = GetAllElements(); //get all lighting
