@@ -8,6 +8,7 @@ using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
+using Autodesk.Revit.DB.Structure;
 using Autodesk.Revit.UI;
 
 #endregion
@@ -43,6 +44,13 @@ namespace BIMv2
 
         private void CreateLightingFixtreInRooms()
         {
+            FilteredElementCollector collector= new FilteredElementCollector(_doc);
+            List<ElementId> _added_element_ids= new List<ElementId>();
+            collector.OfCategory(BuiltInCategory.OST_LightingFixtures);
+            collector.OfClass(typeof(FamilySymbol));
+
+            FamilySymbol symbol = collector.FirstElement() as FamilySymbol;
+
             //List<Element> Rooms = new FilteredElementCollector(_doc)
             //    .OfClass(typeof(SpatialElement)).WhereElementIsNotElementType()
             //    .Where(room => room.GetType() == typeof(Room)).ToList();
@@ -52,7 +60,15 @@ namespace BIMv2
 
             //var h = b / a;
 
-           
+            string lightFixFamilyName = "СТ_Светильник_HB LED 2x150 D80";
+            string lightFixTypeName = "Основной";
+            string lightFamilyAndTypeName = lightFixFamilyName + ": " + lightFixTypeName;
+
+            //FamilySymbol familySymbol=(FamilySymbol)
+
+            //FilteredElementCollector collector = new FilteredElementCollector(_doc);
+            //ICollection<Element> elements = collector.OfClass(typeof(Family)).ToElements();
+            
 
             var _rooms=GetAllRooms();
             foreach (var elementRoom in _rooms)
@@ -61,11 +77,20 @@ namespace BIMv2
                 var b = elementRoom.get_Parameter(BuiltInParameter.ROOM_VOLUME).AsDouble();
                 var h = b / a;
 
+                var level = elementRoom.LevelId;
+
+
+                //var l2 = level.GetParameters("Level");
+
                 LocationPoint lpPoint = (LocationPoint)elementRoom.Location;
 
                 XYZ pointFoLigh = lpPoint.Point;
 
+                XYZ placeXyzPoint = new XYZ(pointFoLigh.X, pointFoLigh.Y, h);
 
+                FamilyInstance instLight 
+                    = _doc.Create.NewFamilyInstance(
+                        placeXyzPoint, symbol, StructuralType.NonStructural);
 
                 TaskDialog.Show("Complite!", $"{lpPoint.Point}");
 
@@ -332,7 +357,10 @@ namespace BIMv2
             return allRooms;
         }
 
-
+        public void allLightFix()
+        {
+            
+        }
 
         private IEnumerable<RevitLinkInstance> FindLinkedInstances()
         {
