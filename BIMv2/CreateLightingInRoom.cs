@@ -22,7 +22,7 @@ namespace BIMv2
         private Document _doc;
         public ElementId linkDocId = new ElementId(BuiltInCategory.OST_RvtLinks);
         public List<ElementId> roomids = new List<ElementId>();
-        //private List<Room> projectRooms;
+        public List<Room> projectRooms=new List<Room>();
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -97,18 +97,22 @@ namespace BIMv2
                         var b = elementRoom.get_Parameter(BuiltInParameter.ROOM_VOLUME).AsDouble();
                         var h = b / a;
 
-                        var level = elementRoom.LevelId;
+                        if (a != 0)
+                        {
+                            var level = elementRoom.LevelId;
 
-                        Level level1 = GetLevelFromRoom(level);
+                            Level level1 = GetLevelFromRoom(level);
 
-                        LocationPoint lpPoint = (LocationPoint)elementRoom.Location;
+                            LocationPoint lpPoint = (LocationPoint)elementRoom.Location;
 
-                        XYZ pointFoLigh = lpPoint.Point;
+                            XYZ pointFoLigh = lpPoint.Point;
 
-                        XYZ placeXyzPoint = new XYZ(pointFoLigh.X, pointFoLigh.Y, h);
+                            XYZ placeXyzPoint = new XYZ(pointFoLigh.X, pointFoLigh.Y, h);
 
-                        FamilyInstance instLight = _doc.Create.NewFamilyInstance(
-                                placeXyzPoint, symbol, level1, StructuralType.NonStructural);
+                            FamilyInstance instLight = _doc.Create.NewFamilyInstance(
+                                    placeXyzPoint, symbol, level1, StructuralType.NonStructural);
+                        }
+                        
 
                     }
                 }
@@ -153,7 +157,7 @@ namespace BIMv2
 
         public List<Room> GetAllRoomsLinked(Document document)
         {
-            List<Room> projectRooms=null;
+            
             FilteredElementCollector roomCollect = new FilteredElementCollector(document);
             roomCollect.OfCategory(BuiltInCategory.OST_Rooms);
             Room room = null;
