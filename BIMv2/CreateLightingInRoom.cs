@@ -16,7 +16,7 @@ using Autodesk.Revit.UI;
 namespace BIMv2
 {
     [Transaction(TransactionMode.Manual)]
-    public class CreateLightingInRoom : IExternalCommand
+    public class CreateAnyElementsInRooms : IExternalCommand
     {
         private Application _app;
         private Document _doc;
