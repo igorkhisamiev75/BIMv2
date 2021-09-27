@@ -56,7 +56,6 @@ namespace BIMv2
             FamilyInstance familyInstance = elem as FamilyInstance;
             FamilySymbol familySymbol = familyInstance.Symbol;
 
-
             var Rooms = GetAllRooms();
 
             if (Rooms != null)
@@ -68,19 +67,23 @@ namespace BIMv2
                     var volumeRoom = room.get_Parameter(BuiltInParameter.ROOM_VOLUME).AsDouble();
                     var heighRoom = volumeRoom / areaRoom;
 
-                    var level = room.LevelId;
+                    if (areaRoom != 0)
+                    {
+                        var level = room.LevelId;
 
-                    Level level1 = GetLevelFromRoom(level);
+                        Level level1 = GetLevelFromRoom(level);
 
-                    LocationPoint lpPoint = (LocationPoint)room.Location;
+                        LocationPoint lpPoint = (LocationPoint)room.Location;
 
-                    XYZ pointFoLigh = lpPoint.Point;
+                        XYZ pointFoLigh = lpPoint.Point;
 
-                    XYZ placeXyzPoint = new XYZ(pointFoLigh.X, pointFoLigh.Y, heighRoom);
+                        XYZ placeXyzPoint = new XYZ(pointFoLigh.X, pointFoLigh.Y, heighRoom);
 
-                    FamilyInstance instLight = _doc.Create.NewFamilyInstance(
-                            placeXyzPoint, familySymbol, level1, StructuralType.NonStructural);
-                    i++;
+                        FamilyInstance instLight = _doc.Create.NewFamilyInstance(
+                                placeXyzPoint, familySymbol, level1, StructuralType.NonStructural);
+                        i++;
+                    }
+                        
                 }
 
                 countlightComplite = i;
