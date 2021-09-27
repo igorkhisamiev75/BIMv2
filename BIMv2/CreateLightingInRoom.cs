@@ -37,7 +37,7 @@ namespace BIMv2
             { 
                 t.Start("Create");
 
-                //CreateLightingFixtreInRooms();
+                CreateLightingFixtreInRooms();
                 CreateLightingInLinkedFiles();
 
                 TaskDialog.Show("Complite!", $"Размещено {countlightComplite} светильника");
@@ -85,8 +85,8 @@ namespace BIMv2
 
         private void CreateLightingInLinkedFiles()
         {
-            IList<Element> roomsLink = null;
-            Transform transform=null;
+            //List<Room> roomsLink = null;
+            //Transform transform=null;
 
             FamilySymbol symbol = GetLightingFixtures(); //светильник для размещения
 
@@ -97,56 +97,53 @@ namespace BIMv2
                 int j = 0;
                 foreach (var linkInstance in linkedInstances)
                 {
-                    var linkDocument = linkInstance.GetLinkDocument();
-                    transform = linkInstance.GetTotalTransform();
+                    Document linkDocument = linkInstance.GetLinkDocument();
+                    var transform = linkInstance.GetTotalTransform();
                     //var targetPoint = transform.OfPoint(pointPF);
 
                     //create room's from linked files
-                    roomsLink = (IList<Element>)GetAllRoomsLinked(linkDocument);
+                    var roomsLink = GetAllRoomsLinked(linkDocument);
 
-                }
-
-                if (roomsLink != null)
-                {
-                    foreach (var room in roomsLink)
+                    if (roomsLink != null)
                     {
-
-                        var areaRoom = room.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble();
-                        var volumeRoom = room.get_Parameter(BuiltInParameter.ROOM_VOLUME).AsDouble();
-                        var heightRoom = volumeRoom / areaRoom;
-
-                        if (areaRoom != 0)
+                        foreach (var room in roomsLink)
                         {
-                            var level = room.LevelId;
 
-                            Level level1 = GetLevelFromRoomById(level);
+                            var areaRoom = room.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble();
+                            var volumeRoom = room.get_Parameter(BuiltInParameter.ROOM_VOLUME).AsDouble();
+                            var heightRoom = volumeRoom / areaRoom;
 
-                            if (level1 == null)
+                            if (areaRoom != 0)
                             {
-                                level1 = GetLevelFromRoomByName((Room)room);
+                                var level = room.LevelId;
+
+                                Level level1 = GetLevelFromRoomById(level);
+
+                                if (level1 == null)
+                                {
+                                    level1 = GetLevelFromRoomByName(room);
+                                }
+
+                                LocationPoint lpPoint = (LocationPoint)room.Location;
+
+                                XYZ pointFoLigh = lpPoint.Point;
+
+                                XYZ targetPoint = transform.OfPoint(pointFoLigh);
+
+                                XYZ placeXyzPoint = new XYZ(targetPoint.X, targetPoint.Y, heightRoom);
+
+                                FamilyInstance instLight = _doc.Create.NewFamilyInstance(
+                                        placeXyzPoint, symbol, level1, StructuralType.NonStructural);
+                                j++;
                             }
 
-                            LocationPoint lpPoint = (LocationPoint)room.Location;
-
-                            XYZ pointFoLigh = lpPoint.Point;
-
-                            XYZ targetPoint = transform.OfPoint(pointFoLigh);
-
-                            XYZ placeXyzPoint = new XYZ(targetPoint.X, targetPoint.Y, heightRoom);
-
-                            FamilyInstance instLight = _doc.Create.NewFamilyInstance(
-                                    placeXyzPoint, symbol, level1, StructuralType.NonStructural);
-                            j++;
                         }
-
-
                     }
+
                 }
+
                 countlightComplite += j;
-
             }
-
-
 
         }
 
@@ -213,9 +210,8 @@ namespace BIMv2
             FilteredElementCollector roomCollect = new FilteredElementCollector(document);
             roomCollect.OfCategory(BuiltInCategory.OST_Rooms);
             Room room = null;
+            projectRooms = new List<Room>();
 
-            if (projectRooms.Count == 0)
-            {
                 foreach (Element elem in roomCollect)
                 {
                     room = elem as Room;
@@ -224,9 +220,7 @@ namespace BIMv2
                         projectRooms.Add(room);
                     }
                 }
-            }
-
-            
+           
             return projectRooms;
         }
 

@@ -39,9 +39,9 @@ namespace BIMv2
                 t.Start("Create");
                 Reference r = uiDoc.Selection.PickObject(ObjectType.Element, "Выбрать элемент для размещения во всех помещениях");
                 Element elem = uiDoc.Document.GetElement(r);
-                
-               CreateAnyElementInRooms(elem);
-               CreateAnyElementInLinkedFiles(elem);
+
+                CreateAnyElementInRooms(elem);
+                CreateAnyElementInLinkedFiles(elem);
 
                 TaskDialog.Show("Complite!", $"Размещено {countlightComplite} элементов");
                 t.Commit();
@@ -92,17 +92,16 @@ namespace BIMv2
         {
             FamilyInstance familyInstance = elem as FamilyInstance;
             FamilySymbol familySymbol = familyInstance.Symbol;
-            
-            var linkedInstances = FindLinkedInstances();
+
+            IEnumerable<RevitLinkInstance> linkedInstances = FindLinkedInstances();
 
             if (linkedInstances != null)
             {
                 int j = 0;
                 foreach (var linkInstance in linkedInstances)
                 {
-                    var linkDocument = linkInstance.GetLinkDocument();
-                    var transform = linkInstance.GetTotalTransform();
-                    
+                    Document linkDocument = linkInstance.GetLinkDocument();
+                    Transform transform = linkInstance.GetTotalTransform();
 
                     var roomsLink = GetAllRoomsLinked(linkDocument);
 
@@ -142,9 +141,10 @@ namespace BIMv2
 
                         }
                     }
-                    countlightComplite += j;
+
 
                 }
+                countlightComplite += j;
             }
 
         }
@@ -205,6 +205,7 @@ namespace BIMv2
             FilteredElementCollector roomCollect = new FilteredElementCollector(document);
             roomCollect.OfCategory(BuiltInCategory.OST_Rooms);
             Room room = null;
+            projectRooms = new List<Room>();
 
             foreach (Element elem in roomCollect)
             {

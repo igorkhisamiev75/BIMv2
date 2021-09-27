@@ -63,23 +63,19 @@ namespace BIMv2
                     var volumeRoom = room.get_Parameter(BuiltInParameter.ROOM_VOLUME).AsDouble();
                     var heighRoom = volumeRoom / areaRoom;
 
-                    if (areaRoom != 0)
-                    {
-                        var level = room.LevelId;
+                    var level = room.LevelId;
 
-                        Level level1 = GetLevelFromRoom(level);
+                    Level level1 = GetLevelFromRoomById(level);
 
-                        LocationPoint lpPoint = (LocationPoint)room.Location;
+                    LocationPoint lpPoint = (LocationPoint)room.Location;
 
-                        XYZ pointFoLigh = lpPoint.Point;
+                    XYZ pointFoLigh = lpPoint.Point;
 
-                        XYZ placeXyzPoint = new XYZ(pointFoLigh.X, pointFoLigh.Y, heighRoom);
+                    XYZ placeXyzPoint = new XYZ(pointFoLigh.X, pointFoLigh.Y, heighRoom);
 
-                        FamilyInstance instLight = _doc.Create.NewFamilyInstance(
-                                placeXyzPoint, symbol, level1, StructuralType.NonStructural);
-                        i++;
-                    }
-                        
+                    FamilyInstance instLight = _doc.Create.NewFamilyInstance(
+                            placeXyzPoint, symbol, level1, StructuralType.NonStructural);
+                    i++;
                 }
 
                 countlightComplite = i;
@@ -89,23 +85,23 @@ namespace BIMv2
 
         private void CreateLightingInLinkedFiles()
         {
-            FamilySymbol symbol = GetLightingFixtures();
+            //List<Room> roomsLink = null;
+            //Transform transform=null;
 
-            var linkedInstances = FindLinkedInstances();
+            FamilySymbol symbol = GetLightingFixtures(); //светильник для размещения
 
-
-
+            IEnumerable<RevitLinkInstance> linkedInstances = FindLinkedInstances(); //список линкованных файлов
 
             if (linkedInstances != null)
             {
                 int j = 0;
                 foreach (var linkInstance in linkedInstances)
                 {
-
-                    var linkDocument = linkInstance.GetLinkDocument();
+                    Document linkDocument = linkInstance.GetLinkDocument();
                     var transform = linkInstance.GetTotalTransform();
-                    
+                    //var targetPoint = transform.OfPoint(pointPF);
 
+                    //create room's from linked files
                     var roomsLink = GetAllRoomsLinked(linkDocument);
 
                     if (roomsLink != null)
@@ -121,8 +117,7 @@ namespace BIMv2
                             {
                                 var level = room.LevelId;
 
-
-                                Level level1 = GetLevelFromRoom(level);
+                                Level level1 = GetLevelFromRoomById(level);
 
                                 if (level1 == null)
                                 {
@@ -133,7 +128,7 @@ namespace BIMv2
 
                                 XYZ pointFoLigh = lpPoint.Point;
 
-                                var targetPoint = transform.OfPoint(pointFoLigh);
+                                XYZ targetPoint = transform.OfPoint(pointFoLigh);
 
                                 XYZ placeXyzPoint = new XYZ(targetPoint.X, targetPoint.Y, heightRoom);
 
@@ -142,12 +137,12 @@ namespace BIMv2
                                 j++;
                             }
 
-
                         }
                     }
-                    countlightComplite += j;
 
                 }
+
+                countlightComplite += j;
             }
 
         }
@@ -163,7 +158,7 @@ namespace BIMv2
             return symbol;
         }
 
-        private Level GetLevelFromRoom(ElementId elementId)
+        public Level GetLevelFromRoomById(ElementId elementId)
         {
             FilteredElementCollector lvlCollector = new FilteredElementCollector(_doc);
             ICollection<Element> lvlCollection = lvlCollector.OfClass(typeof(Level)).ToElements();
@@ -180,7 +175,7 @@ namespace BIMv2
 
         }
 
-        private Level GetLevelFromRoomByName(Room room)
+        public Level GetLevelFromRoomByName(Room room)
         {
             FilteredElementCollector lvlCollector = new FilteredElementCollector(_doc);
             ICollection<Element> lvlCollection = lvlCollector.OfClass(typeof(Level)).ToElements();
@@ -198,7 +193,6 @@ namespace BIMv2
         }
 
 
-
         public IList<Element> GetAllRooms()
         {
             // List all Room's
@@ -211,13 +205,12 @@ namespace BIMv2
             return allRooms;
         }
 
-
         public List<Room> GetAllRoomsLinked(Document document)
         {
-
             FilteredElementCollector roomCollect = new FilteredElementCollector(document);
             roomCollect.OfCategory(BuiltInCategory.OST_Rooms);
             Room room = null;
+            projectRooms = new List<Room>();
 
             foreach (Element elem in roomCollect)
             {
@@ -227,6 +220,7 @@ namespace BIMv2
                     projectRooms.Add(room);
                 }
             }
+
             return projectRooms;
         }
 
