@@ -63,19 +63,23 @@ namespace BIMv2
                     var volumeRoom = room.get_Parameter(BuiltInParameter.ROOM_VOLUME).AsDouble();
                     var heighRoom = volumeRoom / areaRoom;
 
-                    var level = room.LevelId;
+                    if (areaRoom != 0)
+                    {
+                        var level = room.LevelId;
 
-                    Level level1 = GetLevelFromRoom(level);
+                        Level level1 = GetLevelFromRoom(level);
 
-                    LocationPoint lpPoint = (LocationPoint)room.Location;
+                        LocationPoint lpPoint = (LocationPoint)room.Location;
 
-                    XYZ pointFoLigh = lpPoint.Point;
+                        XYZ pointFoLigh = lpPoint.Point;
 
-                    XYZ placeXyzPoint = new XYZ(pointFoLigh.X, pointFoLigh.Y, heighRoom);
+                        XYZ placeXyzPoint = new XYZ(pointFoLigh.X, pointFoLigh.Y, heighRoom);
 
-                    FamilyInstance instLight = _doc.Create.NewFamilyInstance(
-                            placeXyzPoint, symbol, level1, StructuralType.NonStructural);
-                    i++;
+                        FamilyInstance instLight = _doc.Create.NewFamilyInstance(
+                                placeXyzPoint, symbol, level1, StructuralType.NonStructural);
+                        i++;
+                    }
+                        
                 }
 
                 countlightComplite = i;
@@ -101,6 +105,7 @@ namespace BIMv2
                     var linkDocument = linkInstance.GetLinkDocument();
                     var transform = linkInstance.GetTotalTransform();
                     
+
                     var roomsLink = GetAllRoomsLinked(linkDocument);
 
                     if (roomsLink != null)
@@ -116,7 +121,13 @@ namespace BIMv2
                             {
                                 var level = room.LevelId;
 
+
                                 Level level1 = GetLevelFromRoom(level);
+
+                                if (level1 == null)
+                                {
+                                    level1 = GetLevelFromRoomByName(room);
+                                }
 
                                 LocationPoint lpPoint = (LocationPoint)room.Location;
 
@@ -165,7 +176,23 @@ namespace BIMv2
                 }
 
             }
+            return null;
 
+        }
+
+        private Level GetLevelFromRoomByName(Room room)
+        {
+            FilteredElementCollector lvlCollector = new FilteredElementCollector(_doc);
+            ICollection<Element> lvlCollection = lvlCollector.OfClass(typeof(Level)).ToElements();
+
+            foreach (Element l in lvlCollection)
+            {
+                if (l.Name == room.Level.Name)
+                {
+                    return (Level)l;
+                }
+
+            }
             return null;
 
         }

@@ -54,6 +54,7 @@
   <ItemGroup>
     <Compile Include="App.cs" />
     <Compile Include="BIMStandart\BIMStandart.cs" />
+    <Compile Include="CreateAnyElementsInRooms\CreateAnyElementsInRooms.cs" />
     <Compile Include="CreateLightingInRoom\CreateLightingInRoom.cs" />
     <Compile Include="CreateModelText\CreateModelText.cs" />
     <Compile Include="HelpBIM\HelpBIM.cs" />
@@ -79,6 +80,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\icons8-oil-lamp-32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\icons8-crane-machine-32.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

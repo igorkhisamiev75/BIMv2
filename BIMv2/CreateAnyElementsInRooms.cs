@@ -17,7 +17,7 @@ using Autodesk.Revit.UI.Selection;
 namespace BIMv2
 {
     [Transaction(TransactionMode.Manual)]
-    public class CreateAnyElementsInRooms2 : IExternalCommand
+    public class CreateAnyElementsInRooms : IExternalCommand
     {
         private Application _app;
         private Document _doc;
@@ -40,7 +40,7 @@ namespace BIMv2
                 Reference r = uiDoc.Selection.PickObject(ObjectType.Element, "Выбрать элемент для размещения во всех помещениях");
                 Element elem = uiDoc.Document.GetElement(r);
                 
-                CreateAnyElementInRooms(elem);
+               CreateAnyElementInRooms(elem);
                CreateAnyElementInLinkedFiles(elem);
 
                 TaskDialog.Show("Complite!", $"Размещено {countlightComplite} элементов");
@@ -121,6 +121,11 @@ namespace BIMv2
 
                                 Level level1 = GetLevelFromRoom(level);
 
+                                if (level1 == null)
+                                {
+                                    level1 = GetLevelFromRoomByName(room);
+                                }
+
                                 LocationPoint lpPoint = (LocationPoint)room.Location;
 
                                 XYZ pointFoLigh = lpPoint.Point;
@@ -158,6 +163,23 @@ namespace BIMv2
 
             }
 
+            return null;
+
+        }
+
+        private Level GetLevelFromRoomByName(Room room)
+        {
+            FilteredElementCollector lvlCollector = new FilteredElementCollector(_doc);
+            ICollection<Element> lvlCollection = lvlCollector.OfClass(typeof(Level)).ToElements();
+
+            foreach (Element l in lvlCollection)
+            {
+                if (l.Name == room.Level.Name)
+                {
+                    return (Level)l;
+                }
+
+            }
             return null;
 
         }

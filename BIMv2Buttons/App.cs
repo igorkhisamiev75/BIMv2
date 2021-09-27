@@ -98,7 +98,7 @@ namespace BIMv2Buttons
             ribbonPanel3.AddSeparator(); //разделитель между кнопками
 
             // create push button for CurveTotalLength  //namespace и класс
-            PushButtonData b6Data = new PushButtonData("cmdCreateLightingInRoom", "Раскидать"
+            PushButtonData b6Data = new PushButtonData("cmdCreateLightingInRoom", "Расставить"
                 + Environment.NewLine + "светильники в помещениях", thisAssemblyPath, "BIMv2.CreateLightingInRoom");
 
             PushButton pb6 = ribbonPanel3.AddItem(b6Data) as PushButton;
@@ -107,8 +107,22 @@ namespace BIMv2Buttons
             BitmapImage pb6Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-oil-lamp-32.png"));
             pb6.LargeImage = pb6Image;
 
+
+            // Add a new ribbon panel
+            RibbonPanel ribbonPanel4 = application.CreateRibbonPanel(tabName, "Надстройки для всех"); //подпись под кнопками
+
+            // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData b7Data = new PushButtonData("cmdCreateAnyElementsInRooms", "Расставить"
+                + Environment.NewLine + "элементы в помещениях", thisAssemblyPath, "BIMv2.CreateAnyElementsInRooms");
+
+            PushButton pb7 = ribbonPanel4.AddItem(b7Data) as PushButton;
+            pb7.ToolTip = "Расставить выбранное семейство в помещениях";
+
+            BitmapImage pb7Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-crane-machine-32.png"));
+            pb7.LargeImage = pb7Image;
+
             //попробуем создать еще одну кнопку
-            ribbonPanel3.AddSeparator(); //разделитель между кнопками
+            ribbonPanel4.AddSeparator(); //разделитель между кнопками
 
 
 
