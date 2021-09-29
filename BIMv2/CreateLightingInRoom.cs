@@ -85,9 +85,6 @@ namespace BIMv2
 
         private void CreateLightingInLinkedFiles()
         {
-            //List<Room> roomsLink = null;
-            //Transform transform=null;
-
             FamilySymbol symbol = GetLightingFixtures(); //светильник для размещения
 
             IEnumerable<RevitLinkInstance> linkedInstances = FindLinkedInstances(); //список линкованных файлов
