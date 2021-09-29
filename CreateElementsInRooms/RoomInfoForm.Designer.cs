@@ -39,6 +39,8 @@ namespace CreateElementsInRooms
             // 
             // dataGridView1
             // 
+            this.dataGridView1.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.dataGridView1.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedCells;
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridView1.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.Column1,
@@ -73,14 +75,13 @@ namespace CreateElementsInRooms
             this.Column1.HeaderText = "Room Name";
             this.Column1.MinimumWidth = 9;
             this.Column1.Name = "Column1";
-            this.Column1.Width = 500;
+            this.Column1.ReadOnly = true;
             // 
             // Column2
             // 
             this.Column2.HeaderText = "Select Rooms";
             this.Column2.MinimumWidth = 9;
             this.Column2.Name = "Column2";
-            this.Column2.Width = 175;
             // 
             // roomsInformationForm
             // 
@@ -92,6 +93,10 @@ namespace CreateElementsInRooms
             this.Controls.Add(this.dataGridView1);
             this.Name = "roomsInformationForm";
             this.Text = "RoomInfoForm";
+            this.Load += new System.EventHandler(this.roomsInformationForm_Load);
+            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.roomsInformationForm_MouseDown);
+            this.MouseEnter += new System.EventHandler(this.roomsInformationForm_MouseEnter);
+            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.roomsInformationForm_MouseMove);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.ResumeLayout(false);
 
@@ -100,9 +105,9 @@ namespace CreateElementsInRooms
         #endregion
 
         private System.Windows.Forms.DataGridView dataGridView1;
-        private System.Windows.Forms.DataGridViewTextBoxColumn Column1;
-        private System.Windows.Forms.DataGridViewCheckBoxColumn Column2;
         private System.Windows.Forms.Button btnSelected;
         private System.Windows.Forms.Button btnExit;
+        private System.Windows.Forms.DataGridViewTextBoxColumn Column1;
+        private System.Windows.Forms.DataGridViewCheckBoxColumn Column2;
     }
 }

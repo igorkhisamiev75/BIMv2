@@ -17,21 +17,28 @@ namespace CreateElementsInRooms
         private UIApplication m_revit;
         List<Room> m_rooms = new List<Room>();
 
+        public ReadOnlyCollection<Room> Rooms
+        {
+            get
+            {
+                return new ReadOnlyCollection<Room>(m_rooms);
+            }
+        }
         public RoomsData(ExternalCommandData commandData)
         {
             m_revit = commandData.Application;
 
             // get all the rooms 
-            GetAllRoomsLinked(commandData.Application.ActiveUIDocument.Document);
+            GetAllRoomsLinked(m_revit.ActiveUIDocument.Document);
 
         }
 
-        private void GetAllRooms()
-        {
-            // get the active document 
-            Document document = m_revit.ActiveUIDocument.Document;
-            RoomFilter roomFilter = new RoomFilter();
-        }
+        //private void GetAllRooms()
+        //{
+        //    // get the active document 
+        //    Document document = m_revit.ActiveUIDocument.Document;
+        //    RoomFilter roomFilter = new RoomFilter();
+        //}
         
         public List<Room> GetAllRoomsLinked(Document document)
         {
