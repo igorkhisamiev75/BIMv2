@@ -23,6 +23,9 @@ namespace BIMv2
                 System.Diagnostics.Process.Start(
                     "https://chat.whatsapp.com/KHpWyVsfYQE3fVIdBS2XDe?text=У%20меня%20проблемы%20с%20Revit,%20_помоги!");
                 return Result.Succeeded;
+                //System.Diagnostics.Process.Start(
+                //    "https://wa.me/79218720713?text=У%20меня%20проблемы%20с%20Revit%20помоги!");
+                return Result.Succeeded;
             }
 
             catch (Exception ex)
