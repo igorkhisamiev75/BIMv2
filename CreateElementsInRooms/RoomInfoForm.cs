@@ -30,7 +30,6 @@ namespace CreateElementsInRooms
         {
             //Document document = m_commandData.Application.ActiveUIDocument.Document;
 
-
         }
 
         private void roomsInformationForm_Load(object sender, EventArgs e)
@@ -40,29 +39,30 @@ namespace CreateElementsInRooms
 
         private void DisplayRooms(ReadOnlyCollection<Room> roomList)
         {
-            Document document = m_commandData.Application.ActiveUIDocument.Document;
+            //Document document = m_commandData.Application.ActiveUIDocument.Document;
             int i = 1;
 
-            foreach (Room tmpRoom in roomList)
+            List<string> roomName = new List<string>(){};
+
+            foreach(var r in roomList)
             {
-                // make sure the room has Level, that's it locates at level.
-                if (tmpRoom.Document.GetElement(tmpRoom.LevelId) == null)
-                {
-                    continue;
-                }
+                string fullname = r.Name.ToString();
+                string justname = fullname.Substring(0, fullname.IndexOf(r));
+                //string[] subs = r.Name.Split(' ');
+                roomName.Add(justname);
+            }
 
-                // create a list view Item
+            List<string> noRepeatRoom = roomName.Distinct().ToList();
+
+            foreach (var tmpRoom in noRepeatRoom)
+            {
                 ListViewItem tmpItem = new ListViewItem();
-                
-                tmpItem.SubItems.Add(tmpRoom.Name);       //display room name.
 
-                dataGridView1.Rows.Add((tmpRoom.Document.GetElement(tmpRoom.LevelId) as Level).Name);
-                dataGridView1.Rows[i - 1].Cells[1].Value = tmpRoom.Name;
-                
+                tmpItem.SubItems.Add(tmpRoom);       //display room name.
 
-                i++;
-
-
+                dataGridView1.Rows.Add(tmpRoom);
+                //dataGridView1.Rows[i - 1].Cells[1].Value = tmpRoom.Name;
+               
             }
         }
 

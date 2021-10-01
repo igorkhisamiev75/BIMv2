@@ -49,7 +49,7 @@ namespace CreateElementsInRooms
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.RowHeadersWidth = 72;
             this.dataGridView1.RowTemplate.Height = 31;
-            this.dataGridView1.Size = new System.Drawing.Size(873, 674);
+            this.dataGridView1.Size = new System.Drawing.Size(855, 1256);
             this.dataGridView1.TabIndex = 0;
             // 
             // Column1
@@ -87,7 +87,7 @@ namespace CreateElementsInRooms
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(11F, 24F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1335, 901);
+            this.ClientSize = new System.Drawing.Size(1383, 1514);
             this.Controls.Add(this.btnExit);
             this.Controls.Add(this.btnSelected);
             this.Controls.Add(this.dataGridView1);
