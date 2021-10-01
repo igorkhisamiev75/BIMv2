@@ -35,10 +35,10 @@ namespace CreateElementsInRooms
 
         private void roomsInformationForm_Load(object sender, EventArgs e)
         {
-            this.DisplayRooms2(m_data.Rooms);
+            this.DisplayRooms(m_data.Rooms);
         }
 
-        private void DisplayRooms2(ReadOnlyCollection<Room> roomList)
+        private void DisplayRooms(ReadOnlyCollection<Room> roomList)
         {
             Document document = m_commandData.Application.ActiveUIDocument.Document;
             int i = 1;

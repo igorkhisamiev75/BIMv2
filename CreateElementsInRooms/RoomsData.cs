@@ -9,6 +9,7 @@ using Autodesk.Revit;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.DB.Architecture;
+using System.Linq;
 
 namespace CreateElementsInRooms
 {
@@ -42,21 +43,44 @@ namespace CreateElementsInRooms
         
         public List<Room> GetAllRoomsLinked(Document document)
         {
-            FilteredElementCollector roomCollect = new FilteredElementCollector(document);
-            roomCollect.OfCategory(BuiltInCategory.OST_Rooms);
-            Room room = null;
-            m_rooms = new List<Room>();
+            IEnumerable<RevitLinkInstance> linkedInstances = FindLinkedInstances(document);
 
-            foreach (Element elem in roomCollect)
+            if (linkedInstances != null)
             {
-                room = elem as Room;
-                if (room != null)
+                foreach (var linkInstance in linkedInstances)
                 {
-                    m_rooms.Add(room);
+                    Document linkDocument = linkInstance.GetLinkDocument();
+                    Transform transform = linkInstance.GetTotalTransform();
+
+                    FilteredElementCollector roomCollect = new FilteredElementCollector(linkDocument);
+                    roomCollect.OfCategory(BuiltInCategory.OST_Rooms);
+                    Room room = null;
+                    m_rooms = new List<Room>();
+
+                    foreach (Element elem in roomCollect)
+                    {
+                        room = elem as Room;
+                        if (room != null)
+                        {
+                            m_rooms.Add(room);
+                        }
+                    }
+
                 }
             }
 
+                
+
             return m_rooms;
+        }
+
+        private IEnumerable<RevitLinkInstance> FindLinkedInstances(Document document)
+        {
+            var collector = new FilteredElementCollector(document);
+            return collector
+                .OfClass(typeof(RevitLinkInstance))
+                .Cast<RevitLinkInstance>()
+                .ToList();
         }
     }
 }

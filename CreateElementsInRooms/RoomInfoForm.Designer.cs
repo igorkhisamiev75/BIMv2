@@ -30,10 +30,10 @@ namespace CreateElementsInRooms
         private void InitializeComponent()
         {
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
-            this.btnSelected = new System.Windows.Forms.Button();
-            this.btnExit = new System.Windows.Forms.Button();
             this.Column1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Column2 = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.btnSelected = new System.Windows.Forms.Button();
+            this.btnExit = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -52,24 +52,6 @@ namespace CreateElementsInRooms
             this.dataGridView1.Size = new System.Drawing.Size(873, 674);
             this.dataGridView1.TabIndex = 0;
             // 
-            // btnSelected
-            // 
-            this.btnSelected.Location = new System.Drawing.Point(1066, 50);
-            this.btnSelected.Name = "btnSelected";
-            this.btnSelected.Size = new System.Drawing.Size(214, 87);
-            this.btnSelected.TabIndex = 1;
-            this.btnSelected.Text = "SELECTED";
-            this.btnSelected.UseVisualStyleBackColor = true;
-            // 
-            // btnExit
-            // 
-            this.btnExit.Location = new System.Drawing.Point(1066, 167);
-            this.btnExit.Name = "btnExit";
-            this.btnExit.Size = new System.Drawing.Size(214, 94);
-            this.btnExit.TabIndex = 2;
-            this.btnExit.Text = "EXIT";
-            this.btnExit.UseVisualStyleBackColor = true;
-            // 
             // Column1
             // 
             this.Column1.HeaderText = "Room Name";
@@ -82,6 +64,24 @@ namespace CreateElementsInRooms
             this.Column2.HeaderText = "Select Rooms";
             this.Column2.MinimumWidth = 9;
             this.Column2.Name = "Column2";
+            // 
+            // btnSelected
+            // 
+            this.btnSelected.Location = new System.Drawing.Point(1066, 50);
+            this.btnSelected.Name = "btnSelected";
+            this.btnSelected.Size = new System.Drawing.Size(214, 87);
+            this.btnSelected.TabIndex = 1;
+            this.btnSelected.Text = "SELECTED";
+            this.btnSelected.UseVisualStyleBackColor = true;
+            // 
+            // btnExit
+            // 
+            this.btnExit.Location = new System.Drawing.Point(1066, 630);
+            this.btnExit.Name = "btnExit";
+            this.btnExit.Size = new System.Drawing.Size(214, 94);
+            this.btnExit.TabIndex = 2;
+            this.btnExit.Text = "EXIT";
+            this.btnExit.UseVisualStyleBackColor = true;
             // 
             // roomsInformationForm
             // 
