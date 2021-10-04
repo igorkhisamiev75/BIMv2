@@ -105,8 +105,8 @@ namespace BIMv2
                 {
                     Document linkDocument = linkInstance.GetLinkDocument();
                     Transform transform = linkInstance.GetTotalTransform();
-                    
-                    var roomsLink = GetAllRoomsLinked(linkDocument);
+
+                    List<Room> roomsLink = GetAllRoomsLinked(linkDocument);
 
                     if (roomsLink != null)
                     {

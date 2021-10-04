@@ -10,12 +10,20 @@ using Autodesk.Revit.UI;
 using System.Collections.Generic;
 using System.Linq;
 using Form = System.Windows.Forms.Form;
+using Autodesk.Revit.UI.Selection;
 
 namespace CreateElementsInRooms
 {
     public partial class roomsInformationForm : Form
     {
         RoomsData m_data; // Room's data for current active document
+        private Application _app;
+        private Document _doc;
+        private int i = 0;
+        //var uiApp = m_commandData.Application;
+        //var uiDoc = uiApp.ActiveUIDocument;
+        ////_app = uiApp.Application;
+        //_doc = uiDoc.Document;
 
         private ExternalCommandData m_commandData;
         public roomsInformationForm(RoomsData data, ExternalCommandData commandData)
@@ -50,7 +58,7 @@ namespace CreateElementsInRooms
                 string justname = "";
                 for (int i = 0; i < fullname.Length; i++)
                 {
-                    if (!Char.IsDigit(fullname[i])&& !(fullname[i]).Equals('.') && !(fullname[i]).Equals(','))
+                    if (!Char.IsDigit(fullname[i]) && !(fullname[i]).Equals('.') && !(fullname[i]).Equals(','))
                                        
                     {
                         justname += fullname[i];
@@ -93,6 +101,34 @@ namespace CreateElementsInRooms
         private void roomsInformationForm_MouseEnter(object sender, EventArgs e)
         {
 
+        }
+
+        private void btnExit_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
+        private void btnCeiling_Click(object sender, EventArgs e)
+        {
+            //Transaction tran = new Transaction(_doc, "Create element on ceiling");
+            //tran.Start("Create");
+
+            //Reference r = uiDoc.Selection.PickObject(ObjectType.Element, "Выбрать элемент для размещения во всех помещениях");
+            //Element elem = uiDoc.Document.GetElement(r);
+
+            TaskDialog.Show("Complite", $"Размещено {i} элементов");
+            this.Close();
+            //tran.Commit();
+
+            //return Result.Succeeded;
+            //create element in current room
+            //сообщение размещено много элементов автоматов
+
+        }
+
+        private void btnFloor_Click(object sender, EventArgs e)
+        {
+            //аналогично с потолком
         }
     }
 }

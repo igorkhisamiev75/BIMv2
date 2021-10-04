@@ -32,8 +32,9 @@ namespace CreateElementsInRooms
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.Column1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Column2 = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-            this.btnSelected = new System.Windows.Forms.Button();
+            this.btnCeiling = new System.Windows.Forms.Button();
             this.btnExit = new System.Windows.Forms.Button();
+            this.btnFloor = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -65,31 +66,44 @@ namespace CreateElementsInRooms
             this.Column2.MinimumWidth = 9;
             this.Column2.Name = "Column2";
             // 
-            // btnSelected
+            // btnCeiling
             // 
-            this.btnSelected.Location = new System.Drawing.Point(1066, 50);
-            this.btnSelected.Name = "btnSelected";
-            this.btnSelected.Size = new System.Drawing.Size(214, 87);
-            this.btnSelected.TabIndex = 1;
-            this.btnSelected.Text = "SELECTED";
-            this.btnSelected.UseVisualStyleBackColor = true;
+            this.btnCeiling.Location = new System.Drawing.Point(1019, 50);
+            this.btnCeiling.Name = "btnCeiling";
+            this.btnCeiling.Size = new System.Drawing.Size(214, 87);
+            this.btnCeiling.TabIndex = 1;
+            this.btnCeiling.Text = "CEILING";
+            this.btnCeiling.UseVisualStyleBackColor = true;
+            this.btnCeiling.Click += new System.EventHandler(this.btnCeiling_Click);
             // 
             // btnExit
             // 
-            this.btnExit.Location = new System.Drawing.Point(1066, 630);
+            this.btnExit.Location = new System.Drawing.Point(1019, 385);
             this.btnExit.Name = "btnExit";
             this.btnExit.Size = new System.Drawing.Size(214, 94);
             this.btnExit.TabIndex = 2;
             this.btnExit.Text = "EXIT";
             this.btnExit.UseVisualStyleBackColor = true;
+            this.btnExit.Click += new System.EventHandler(this.btnExit_Click);
+            // 
+            // btnFloor
+            // 
+            this.btnFloor.Location = new System.Drawing.Point(1019, 217);
+            this.btnFloor.Name = "btnFloor";
+            this.btnFloor.Size = new System.Drawing.Size(214, 88);
+            this.btnFloor.TabIndex = 3;
+            this.btnFloor.Text = "FLOOR";
+            this.btnFloor.UseVisualStyleBackColor = true;
+            this.btnFloor.Click += new System.EventHandler(this.btnFloor_Click);
             // 
             // roomsInformationForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(11F, 24F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1383, 1514);
+            this.ClientSize = new System.Drawing.Size(1287, 1505);
+            this.Controls.Add(this.btnFloor);
             this.Controls.Add(this.btnExit);
-            this.Controls.Add(this.btnSelected);
+            this.Controls.Add(this.btnCeiling);
             this.Controls.Add(this.dataGridView1);
             this.Name = "roomsInformationForm";
             this.Text = "RoomInfoForm";
@@ -105,9 +119,10 @@ namespace CreateElementsInRooms
         #endregion
 
         private System.Windows.Forms.DataGridView dataGridView1;
-        private System.Windows.Forms.Button btnSelected;
+        private System.Windows.Forms.Button btnCeiling;
         private System.Windows.Forms.Button btnExit;
         private System.Windows.Forms.DataGridViewTextBoxColumn Column1;
         private System.Windows.Forms.DataGridViewCheckBoxColumn Column2;
+        private System.Windows.Forms.Button btnFloor;
     }
 }
