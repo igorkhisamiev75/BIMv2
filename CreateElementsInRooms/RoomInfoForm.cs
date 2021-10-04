@@ -40,14 +40,23 @@ namespace CreateElementsInRooms
         private void DisplayRooms(ReadOnlyCollection<Room> roomList)
         {
             //Document document = m_commandData.Application.ActiveUIDocument.Document;
-            int i = 1;
+            //int i = 1;
 
             List<string> roomName = new List<string>(){};
 
             foreach(var r in roomList)
             {
                 string fullname = r.Name.ToString();
-                string justname = fullname.Substring(0, fullname.IndexOf(r));
+                string justname = "";
+                for (int i = 0; i < fullname.Length; i++)
+                {
+                    if (!Char.IsDigit(fullname[i])&& !(fullname[i]).Equals('.') && !(fullname[i]).Equals(','))
+                                       
+                    {
+                        justname += fullname[i];
+                    }
+                }
+                //string justname = fullname.Substring(0, fullname.IndexOf(r.Name));
                 //string[] subs = r.Name.Split(' ');
                 roomName.Add(justname);
             }
