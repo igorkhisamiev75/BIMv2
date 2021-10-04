@@ -36,7 +36,7 @@ namespace CreateElementsInRooms
 
         private void Initialize()
         {
-            //Document document = m_commandData.Application.ActiveUIDocument.Document;
+            Document document = m_commandData.Application.ActiveUIDocument.Document;
 
         }
 
@@ -110,20 +110,32 @@ namespace CreateElementsInRooms
 
         private void btnCeiling_Click(object sender, EventArgs e)
         {
-            //Transaction tran = new Transaction(_doc, "Create element on ceiling");
-            //tran.Start("Create");
-
-            //Reference r = uiDoc.Selection.PickObject(ObjectType.Element, "Выбрать элемент для размещения во всех помещениях");
-            //Element elem = uiDoc.Document.GetElement(r);
-
-            TaskDialog.Show("Complite", $"Размещено {i} элементов");
             this.Close();
-            //tran.Commit();
+            
+            var uiApp = m_commandData.Application;
+            var uiDoc = uiApp.ActiveUIDocument;
+            _doc = uiDoc.Document;
 
-            //return Result.Succeeded;
-            //create element in current room
-            //сообщение размещено много элементов автоматов
+            try
+            {
+                var earthId = "942456a3-5e8a-4c24-a195-e6a26edf8b8d-00000d81";
 
+                var elem = _doc.GetElement(earthId);
+
+                //Reference r = uiDoc.Selection.PickObject(ObjectType.Element, "Выбрать элемент для размещения во всех помещениях");
+                //Element elem = uiDoc.Document.GetElement(r);
+
+                m_data.CreateAnyElementInLinkedFiles(elem, _doc);
+
+                TaskDialog.Show("Complite", $"Размещено {i} элементов");
+                //t.Commit();
+                //this.Close();
+            }
+
+            catch (Exception ex)
+            {
+                TaskDialog.Show("Revit", ex.Message);
+            }
         }
 
         private void btnFloor_Click(object sender, EventArgs e)
