@@ -40,8 +40,8 @@ namespace BIMv2
                 Reference r = uiDoc.Selection.PickObject(ObjectType.Element, "Выбрать элемент для размещения во всех помещениях");
                 Element elem = uiDoc.Document.GetElement(r);
                 
-               CreateAnyElementInRooms(elem);
-               CreateAnyElementInLinkedFiles(elem);
+                CreateAnyElementInRooms(elem);
+                CreateAnyElementInLinkedFiles(elem);
 
                 TaskDialog.Show("Complite!", $"Размещено {countlightComplite} элементов");
                 t.Commit();

@@ -73,8 +73,9 @@ namespace CreateElementsInRooms
 
         public void CreateAnyElementInLinkedFiles(Element elem, Document document)
         {
-            _doc = document;
+            _doc = elem.Document;
             FamilyInstance familyInstance = elem as FamilyInstance;
+            
             FamilySymbol familySymbol = familyInstance.Symbol;
 
             IEnumerable<RevitLinkInstance> linkedInstances = FindLinkedInstances();
