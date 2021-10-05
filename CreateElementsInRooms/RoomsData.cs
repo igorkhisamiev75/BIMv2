@@ -76,7 +76,7 @@ namespace CreateElementsInRooms
         {
             using (SubTransaction subTransaction = new SubTransaction(m_revit.ActiveUIDocument.Document))
             {
-                subTransaction.Start();
+                
 
                 Document document = m_revit.ActiveUIDocument.Document;
                 string earthId = "942456a3-5e8a-4c24-a195-e6a26edf8b8d-00000d81";
@@ -101,6 +101,7 @@ namespace CreateElementsInRooms
                         {
                             foreach (var room in roomsLink)
                             {
+                                subTransaction.Start();
                                 var areaRoom = room.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble();
                                 var volumeRoom = room.get_Parameter(BuiltInParameter.ROOM_VOLUME).AsDouble();
                                 var heightRoom = volumeRoom / areaRoom;
@@ -127,17 +128,20 @@ namespace CreateElementsInRooms
                                     FamilyInstance instLight = document.Create.NewFamilyInstance(
                                             placeXyzPoint, familySymbol, level1, StructuralType.NonStructural);
                                     j++;
+                                    subTransaction.Commit();
                                 }
                             }
 
                         }
                     }
                 }
-
+                
                 TaskDialog.Show("Размещено", $"{j} элементов");
-                subTransaction.Commit();
+
+                
+                document.Regenerate();
             }
-            //SubTransaction subTransaction = new SubTransaction(m_revit.ActiveUIDocument.Document);
+            
             
         }
 

@@ -24,26 +24,29 @@ namespace CreateElementsInRooms
                 // create a new instance of class RoomsData
                 RoomsData data = new RoomsData(commandData);
 
-               DialogResult result;
+               //DialogResult result;
 
                 // create a form to display the information of rooms
-                using (roomsInformationForm infoForm = new roomsInformationForm(data, commandData))
-                {
-                    result=infoForm.ShowDialog();
-                }
-
-                if (result == DialogResult.OK)
-                {
+                roomsInformationForm infoForm = new roomsInformationForm(data, commandData);
+                
+                    //result=
+                    infoForm.ShowDialog();
                     tran.Commit();
                     return Result.Succeeded;
-                }
-                else
-                {
-                    tran.RollBack();
-                    return Result.Cancelled;
-                }
+
+                //if (result == DialogResult.OK)
+                //{
+                //    tran.Commit();
+                //    return Result.Succeeded;
+                //}
+                //else
+                //{
+                //    tran.RollBack();
+                //    return Result.Cancelled;
+                //}
 
             }
+
             catch (Exception ex)
             {
                 // If there are something wrong, give error information and return failed
