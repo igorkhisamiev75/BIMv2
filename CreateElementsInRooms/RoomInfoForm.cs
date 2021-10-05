@@ -113,11 +113,25 @@ namespace CreateElementsInRooms
         private void btnCeiling_Click(object sender, EventArgs e)
         {
             //this.Close();
+            var kk = this.dataGridView1.Rows.Count;
+
+            List<int> chekRoom = new List<int>();
+            List<int> chekRoom2 = new List<int>();
+
+            for (var j = 0; j < kk; j++)
+            {
+                var chek = (bool)dataGridView1.Rows[j].Cells[1].Value;
+                if (chek) chekRoom.Add(j);
+            }
+
+
+
+            //var kk = chekRoom;
 
             //тут нам нужно получить room with selected
-           
+
             //var elem = m_revit.ActiveUIDocument.Document.GetElement(earthId);
-            
+
             m_data.CreateAnyElementInLinkedFiles();
 
             //TaskDialog.Show("R", "разместили");

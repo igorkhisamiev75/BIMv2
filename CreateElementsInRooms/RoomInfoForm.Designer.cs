@@ -29,17 +29,20 @@ namespace CreateElementsInRooms
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(roomsInformationForm));
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
-            this.Column1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Column2 = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.btnCeiling = new System.Windows.Forms.Button();
             this.btnExit = new System.Windows.Forms.Button();
             this.btnFloor = new System.Windows.Forms.Button();
+            this.Column1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Column2 = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
             // dataGridView1
             // 
+            this.dataGridView1.AllowUserToAddRows = false;
+            this.dataGridView1.AllowUserToDeleteRows = false;
             this.dataGridView1.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
             this.dataGridView1.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.DisplayedCells;
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
@@ -52,19 +55,6 @@ namespace CreateElementsInRooms
             this.dataGridView1.RowTemplate.Height = 31;
             this.dataGridView1.Size = new System.Drawing.Size(855, 1256);
             this.dataGridView1.TabIndex = 0;
-            // 
-            // Column1
-            // 
-            this.Column1.HeaderText = "Room Name";
-            this.Column1.MinimumWidth = 9;
-            this.Column1.Name = "Column1";
-            this.Column1.ReadOnly = true;
-            // 
-            // Column2
-            // 
-            this.Column2.HeaderText = "Select Rooms";
-            this.Column2.MinimumWidth = 9;
-            this.Column2.Name = "Column2";
             // 
             // btnCeiling
             // 
@@ -96,6 +86,21 @@ namespace CreateElementsInRooms
             this.btnFloor.UseVisualStyleBackColor = true;
             this.btnFloor.Click += new System.EventHandler(this.btnFloor_Click);
             // 
+            // Column1
+            // 
+            this.Column1.HeaderText = "Room Name";
+            this.Column1.MinimumWidth = 9;
+            this.Column1.Name = "Column1";
+            this.Column1.ReadOnly = true;
+            // 
+            // Column2
+            // 
+            this.Column2.FalseValue = "0";
+            this.Column2.HeaderText = "Select Rooms";
+            this.Column2.MinimumWidth = 9;
+            this.Column2.Name = "Column2";
+            this.Column2.TrueValue = "1";
+            // 
             // roomsInformationForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(11F, 24F);
@@ -105,6 +110,7 @@ namespace CreateElementsInRooms
             this.Controls.Add(this.btnExit);
             this.Controls.Add(this.btnCeiling);
             this.Controls.Add(this.dataGridView1);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "roomsInformationForm";
             this.Text = "RoomInfoForm";
             this.Load += new System.EventHandler(this.roomsInformationForm_Load);
@@ -121,8 +127,8 @@ namespace CreateElementsInRooms
         private System.Windows.Forms.DataGridView dataGridView1;
         private System.Windows.Forms.Button btnCeiling;
         private System.Windows.Forms.Button btnExit;
+        private System.Windows.Forms.Button btnFloor;
         private System.Windows.Forms.DataGridViewTextBoxColumn Column1;
         private System.Windows.Forms.DataGridViewCheckBoxColumn Column2;
-        private System.Windows.Forms.Button btnFloor;
     }
 }
