@@ -113,12 +113,12 @@ namespace CreateElementsInRooms
         private void btnCeiling_Click(object sender, EventArgs e)
         {
             //this.Close();
-            var kk = dataGridView1.Rows.Count;
+            var rowsCount = dataGridView1.Rows.Count;
 
             List<int> chekRoom = new List<int>();
             
 
-            for (int j = 0; j < kk; j++)
+            for (int j = 0; j < rowsCount; j++)
             {
                 var chek = dataGridView1.Rows[j].Cells[1].Value;
 
@@ -131,7 +131,18 @@ namespace CreateElementsInRooms
                 }
                 
             }
+
+            List<string> checListRoom = new List<string>();
+
+            foreach (var index in chekRoom)
+            {
+                string nameRoomsValue = dataGridView1.Rows[index].Cells[0].Value.ToString();
+
+                checListRoom.Add(nameRoomsValue);
+            }
             
+
+
             m_data.CreateAnyElementInLinkedFiles();
 
             //TaskDialog.Show("R", "разместили");
