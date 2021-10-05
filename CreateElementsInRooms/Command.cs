@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace CreateElementsInRooms
 {
@@ -17,20 +18,31 @@ namespace CreateElementsInRooms
         {
             try
             {
-
+                //Create a transaction
                 Transaction tran = new Transaction(commandData.Application.ActiveUIDocument.Document, "Rooms");
                 tran.Start();
-                // create a new instance of class data
+                // create a new instance of class RoomsData
                 RoomsData data = new RoomsData(commandData);
-                                
+
+               DialogResult result;
+
                 // create a form to display the information of rooms
                 using (roomsInformationForm infoForm = new roomsInformationForm(data, commandData))
                 {
-                    infoForm.ShowDialog();
+                    result=infoForm.ShowDialog();
                 }
 
-                tran.Commit();
-                return Result.Succeeded;
+                if (result == DialogResult.OK)
+                {
+                    tran.Commit();
+                    return Result.Succeeded;
+                }
+                else
+                {
+                    tran.RollBack();
+                    return Result.Cancelled;
+                }
+
             }
             catch (Exception ex)
             {

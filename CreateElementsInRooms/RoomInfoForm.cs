@@ -16,9 +16,10 @@ namespace CreateElementsInRooms
 {
     public partial class roomsInformationForm : Form
     {
+        UIApplication m_revit;
         RoomsData m_data; // Room's data for current active document
-        private Application _app;
-        private Document _doc;
+        //private Application _app;
+        //private Document _doc;
         private int i = 0;
         //var uiApp = m_commandData.Application;
         //var uiDoc = uiApp.ActiveUIDocument;
@@ -28,6 +29,7 @@ namespace CreateElementsInRooms
         private ExternalCommandData m_commandData;
         public roomsInformationForm(RoomsData data, ExternalCommandData commandData)
         {
+            m_revit = commandData.Application;
             m_data = data;
             m_commandData = commandData;
             InitializeComponent();
@@ -110,33 +112,19 @@ namespace CreateElementsInRooms
 
         private void btnCeiling_Click(object sender, EventArgs e)
         {
-            this.Close();
+            //this.Close();
+
+            //тут нам нужно получить room with selected
+           
+            //var elem = m_revit.ActiveUIDocument.Document.GetElement(earthId);
             
-            var uiApp = m_commandData.Application;
-            var uiDoc = uiApp.ActiveUIDocument;
-            _doc = uiDoc.Document;
+            m_data.CreateAnyElementInLinkedFiles();
 
-            try
-            {
-                var earthId = "942456a3-5e8a-4c24-a195-e6a26edf8b8d-00000d81";
+            //TaskDialog.Show("R", "разместили");
+            this.Close();
 
-                var elem = _doc.GetElement(earthId);
-
-                //Reference r = uiDoc.Selection.PickObject(ObjectType.Element, "Выбрать элемент для размещения во всех помещениях");
-                //Element elem = uiDoc.Document.GetElement(r);
-
-                m_data.CreateAnyElementInLinkedFiles(elem, _doc);
-
-                TaskDialog.Show("Complite", $"Размещено {i} элементов");
-                //t.Commit();
-                //this.Close();
-            }
-
-            catch (Exception ex)
-            {
-                TaskDialog.Show("Revit", ex.Message);
-            }
         }
+
 
         private void btnFloor_Click(object sender, EventArgs e)
         {
