@@ -97,6 +97,7 @@ namespace CreateElementsInRooms
             // 
             this.Column2.FalseValue = "0";
             this.Column2.HeaderText = "Select Rooms";
+            this.Column2.IndeterminateValue = "";
             this.Column2.MinimumWidth = 9;
             this.Column2.Name = "Column2";
             this.Column2.TrueValue = "1";
