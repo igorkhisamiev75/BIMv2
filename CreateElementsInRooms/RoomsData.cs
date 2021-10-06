@@ -1,4 +1,5 @@
-﻿using Autodesk.Revit.DB;
+﻿using System;
+using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.DB.Structure;
 using Autodesk.Revit.UI;
@@ -72,12 +73,10 @@ namespace CreateElementsInRooms
                 .ToList();
         }
 
-        public void CreateAnyElementInLinkedFiles()
+        public void CreateAnyElementInLinkedFiles(List<string> checListRoom)
         {
             using (SubTransaction subTransaction = new SubTransaction(m_revit.ActiveUIDocument.Document))
             {
-                
-
                 Document document = m_revit.ActiveUIDocument.Document;
                 string earthId = "942456a3-5e8a-4c24-a195-e6a26edf8b8d-00000d81";
                 var elem = document.GetElement(earthId);
@@ -101,35 +100,55 @@ namespace CreateElementsInRooms
                         {
                             foreach (var room in roomsLink)
                             {
-                                subTransaction.Start();
-                                var areaRoom = room.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble();
-                                var volumeRoom = room.get_Parameter(BuiltInParameter.ROOM_VOLUME).AsDouble();
-                                var heightRoom = volumeRoom / areaRoom;
+                                string roomName = room.Name;
 
-                                if (areaRoom != 0)
+                                string justname = "";
+                                for (int i = 0; i < roomName.Length; i++)
                                 {
-                                    var level = room.LevelId;
+                                    if (!Char.IsDigit(roomName[i]) && !(roomName[i]).Equals('.') && !(roomName[i]).Equals(','))
 
-                                    Level level1 = GetLevelFromRoom(level, room);
-
-                                    if (level1 == null)
                                     {
-                                        level1 = GetLevelFromRoomByName(room);
+                                        justname += roomName[i];
                                     }
-
-                                    LocationPoint lpPoint = (LocationPoint)room.Location;
-
-                                    XYZ pointFoLigh = lpPoint.Point;
-
-                                    var targetPoint = transform.OfPoint(pointFoLigh);
-
-                                    XYZ placeXyzPoint = new XYZ(targetPoint.X, targetPoint.Y, heightRoom);
-
-                                    FamilyInstance instLight = document.Create.NewFamilyInstance(
-                                            placeXyzPoint, familySymbol, level1, StructuralType.NonStructural);
-                                    j++;
-                                    subTransaction.Commit();
                                 }
+
+                                string FindRoom = checListRoom.Find(item => item == justname);
+
+                                if (FindRoom != null)
+                                {
+                                    subTransaction.Start();
+                                    var areaRoom = room.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble();
+                                    var volumeRoom = room.get_Parameter(BuiltInParameter.ROOM_VOLUME).AsDouble();
+                                    var heightRoom = volumeRoom / areaRoom;
+
+                                    if (areaRoom != 0)
+                                    {
+                                        var level = room.LevelId;
+
+                                        Level level1 = GetLevelFromRoom(level, room);
+
+                                        if (level1 == null)
+                                        {
+                                            level1 = GetLevelFromRoomByName(room);
+                                        }
+
+                                        LocationPoint lpPoint = (LocationPoint)room.Location;
+
+                                        XYZ pointFoLigh = lpPoint.Point;
+
+                                        var targetPoint = transform.OfPoint(pointFoLigh);
+
+                                        XYZ placeXyzPoint = new XYZ(targetPoint.X, targetPoint.Y, heightRoom);
+
+                                        FamilyInstance instLight = document.Create.NewFamilyInstance(
+                                            placeXyzPoint, familySymbol, level1, StructuralType.NonStructural);
+                                        j++;
+                                        subTransaction.Commit();
+                                    }
+                                }
+
+
+                                
                             }
 
                         }

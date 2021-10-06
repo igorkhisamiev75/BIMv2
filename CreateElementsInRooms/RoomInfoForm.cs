@@ -56,7 +56,7 @@ namespace CreateElementsInRooms
 
             foreach(var r in roomList)
             {
-                string fullname = r.Name.ToString();
+                string fullname = r.Name;
                 string justname = "";
                 for (int i = 0; i < fullname.Length; i++)
                 {
@@ -143,7 +143,7 @@ namespace CreateElementsInRooms
             
 
 
-            m_data.CreateAnyElementInLinkedFiles();
+            m_data.CreateAnyElementInLinkedFiles(checListRoom);
 
             //TaskDialog.Show("R", "разместили");
             this.Close();
