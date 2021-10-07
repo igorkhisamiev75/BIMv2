@@ -1,23 +1,23 @@
 ﻿using System;
-using System.Data;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows.Forms;
-using System.Drawing;
-using Autodesk.Revit;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
-using System.Collections.Generic;
-using System.Linq;
-using Form = System.Windows.Forms.Form;
 using Autodesk.Revit.UI.Selection;
+using Form = System.Windows.Forms.Form;
+using Point = System.Drawing.Point;
 
 namespace CreateElementsInRooms
 {
     public partial class roomsInformationForm : Form
     {
-        UIApplication m_revit;
-        RoomsData m_data; // Room's data for current active document
+        private UIApplication m_revit;
+
+        private readonly RoomsData m_data; // Room's data for current active document
+
         //private Application _app;
         //private Document _doc;
         private int i = 0;
@@ -26,7 +26,8 @@ namespace CreateElementsInRooms
         ////_app = uiApp.Application;
         //_doc = uiDoc.Document;
 
-        private ExternalCommandData m_commandData;
+        private readonly ExternalCommandData m_commandData;
+
         public roomsInformationForm(RoomsData data, ExternalCommandData commandData)
         {
             m_revit = commandData.Application;
@@ -38,13 +39,12 @@ namespace CreateElementsInRooms
 
         private void Initialize()
         {
-            Document document = m_commandData.Application.ActiveUIDocument.Document;
-
+            var document = m_commandData.Application.ActiveUIDocument.Document;
         }
 
         private void roomsInformationForm_Load(object sender, EventArgs e)
         {
-            this.DisplayRooms(m_data.Rooms);
+            DisplayRooms(m_data.Rooms);
         }
 
         private void DisplayRooms(ReadOnlyCollection<Room> roomList)
@@ -52,108 +52,115 @@ namespace CreateElementsInRooms
             //Document document = m_commandData.Application.ActiveUIDocument.Document;
             //int i = 1;
 
-            List<string> roomName = new List<string>(){};
+            var roomName = new List<string>();
 
-            foreach(var r in roomList)
+            foreach (var r in roomList)
             {
-                string fullname = r.Name;
-                string justname = "";
-                for (int i = 0; i < fullname.Length; i++)
-                {
-                    if (!Char.IsDigit(fullname[i]) && !(fullname[i]).Equals('.') && !(fullname[i]).Equals(','))
-                                       
-                    {
+                var fullname = r.Name;
+                var justname = "";
+                for (var i = 0; i < fullname.Length; i++)
+                    if (!char.IsDigit(fullname[i]) && !fullname[i].Equals('.') && !fullname[i].Equals(','))
                         justname += fullname[i];
-                    }
-                }
                 //string justname = fullname.Substring(0, fullname.IndexOf(r.Name));
                 //string[] subs = r.Name.Split(' ');
                 roomName.Add(justname);
             }
 
-            List<string> noRepeatRoom = roomName.Distinct().ToList();
+            var noRepeatRoom = roomName.Distinct().ToList();
 
             foreach (var tmpRoom in noRepeatRoom)
             {
-                ListViewItem tmpItem = new ListViewItem();
+                var tmpItem = new ListViewItem();
 
-                tmpItem.SubItems.Add(tmpRoom);       //display room name.
+                tmpItem.SubItems.Add(tmpRoom); //display room name.
 
                 dataGridView1.Rows.Add(tmpRoom);
                 //dataGridView1.Rows[i - 1].Cells[1].Value = tmpRoom.Name;
-               
             }
         }
 
-        System.Drawing.Point lastPoint;
+        private Point lastPoint;
+
         private void roomsInformationForm_MouseMove(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
             {
-                this.Left += e.X - lastPoint.X;
-                this.Top += e.Y - lastPoint.Y;
+                Left += e.X - lastPoint.X;
+                Top += e.Y - lastPoint.Y;
             }
         }
 
         private void roomsInformationForm_MouseDown(object sender, MouseEventArgs e)
         {
-            lastPoint = new System.Drawing.Point(e.X, e.Y);
+            lastPoint = new Point(e.X, e.Y);
         }
 
         private void roomsInformationForm_MouseEnter(object sender, EventArgs e)
         {
-
         }
 
         private void btnExit_Click(object sender, EventArgs e)
         {
-            this.Close();
+            Close();
         }
 
         private void btnCeiling_Click(object sender, EventArgs e)
         {
-            //this.Close();
-            var rowsCount = dataGridView1.Rows.Count;
-
-            List<int> chekRoom = new List<int>();
+            //ActiveForm.Enabled = false;
             
 
-            for (int j = 0; j < rowsCount; j++)
+            //ActiveForm.Show();
+
+            //ActiveForm.Close();
+
+            //Transaction transaction1 = new Transaction(m_revit.ActiveUIDocument.Document, Guid.NewGuid().GetHashCode().ToString());
+            //transaction1.Start();
+            //var uiDoc = m_revit.ActiveUIDocument;
+            //Reference r = uiDoc.Selection.PickObject(ObjectType.Element, "Выбрать элемент для размещения во всех помещениях");
+            //var elem = uiDoc.Document.GetElement(r);
+            ////TaskDialog.Show("Complite!", $"Выбран {elem}");
+            //transaction1.Commit();
+
+
+            //Close();
+            var rowsCount = dataGridView1.Rows.Count;
+
+            var chekRoom = new List<int>();
+            
+            for (var j = 0; j < rowsCount; j++)
             {
                 var chek = dataGridView1.Rows[j].Cells[1].Value;
 
                 if (chek != null)
-                {
                     if (chek == "1")
-                    {
                         chekRoom.Add(j);
-                    }
-                }
-                
             }
 
-            List<string> checListRoom = new List<string>();
+            var checListRoom = new List<string>();
 
             foreach (var index in chekRoom)
             {
-                string nameRoomsValue = dataGridView1.Rows[index].Cells[0].Value.ToString();
+                var nameRoomsValue = dataGridView1.Rows[index].Cells[0].Value.ToString();
 
                 checListRoom.Add(nameRoomsValue);
             }
-            
 
-
+            //this.Hide();
             m_data.CreateAnyElementInLinkedFiles(checListRoom);
 
             //TaskDialog.Show("R", "разместили");
-            this.Close();
-
+            //this.Close();
         }
 
 
         private void btnFloor_Click(object sender, EventArgs e)
         {
             //аналогично с потолком
+        }
+
+        private void dataGridView1_MultiSelectChanged(object sender, EventArgs e)
+        {
+           
         }
     }
 }

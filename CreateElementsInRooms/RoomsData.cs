@@ -1,28 +1,24 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.DB.Structure;
 using Autodesk.Revit.UI;
+using Autodesk.Revit.UI.Selection;
 
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
 
 namespace CreateElementsInRooms
 {
     public class RoomsData
     {
-        private UIApplication m_revit;
+        private readonly UIApplication m_revit;
         private List<Room> m_rooms = new List<Room>();
-        
+        //Element elem;
 
-        public ReadOnlyCollection<Room> Rooms
-        {
-            get
-            {
-                return new ReadOnlyCollection<Room>(m_rooms);
-            }
-        }
+        public ReadOnlyCollection<Room> Rooms => new ReadOnlyCollection<Room>(m_rooms);
 
         public RoomsData(ExternalCommandData commandData) // Get all the rooms in the current document
         {
@@ -32,34 +28,29 @@ namespace CreateElementsInRooms
             GetAllRoomsLinked();
         }
 
-      
+
         public List<Room> GetAllRoomsLinked()
         {
-            Document document = m_revit.ActiveUIDocument.Document;
-            IEnumerable<RevitLinkInstance> linkedInstances = FindLinkedInstances(document);
+            var document = m_revit.ActiveUIDocument.Document;
+            var linkedInstances = FindLinkedInstances(document);
 
             if (linkedInstances != null)
-            {
                 foreach (var linkInstance in linkedInstances)
                 {
-                    Document linkDocument = linkInstance.GetLinkDocument();
-                    Transform transform = linkInstance.GetTotalTransform();
+                    var linkDocument = linkInstance.GetLinkDocument();
+                    var transform = linkInstance.GetTotalTransform();
 
-                    FilteredElementCollector roomCollect = new FilteredElementCollector(linkDocument);
+                    var roomCollect = new FilteredElementCollector(linkDocument);
                     roomCollect.OfCategory(BuiltInCategory.OST_Rooms);
                     Room room = null;
                     m_rooms = new List<Room>();
 
-                    foreach (Element elem in roomCollect)
+                    foreach (var elem in roomCollect)
                     {
                         room = elem as Room;
-                        if (room != null)
-                        {
-                            m_rooms.Add(room);
-                        }
+                        if (room != null) m_rooms.Add(room);
                     }
                 }
-            }
 
             return m_rooms;
         }
@@ -75,124 +66,113 @@ namespace CreateElementsInRooms
 
         public void CreateAnyElementInLinkedFiles(List<string> checListRoom)
         {
-            using (SubTransaction subTransaction = new SubTransaction(m_revit.ActiveUIDocument.Document))
+
+            using (Transaction transaction = new Transaction(m_revit.ActiveUIDocument.Document, Guid.NewGuid().GetHashCode().ToString()))
             {
-                Document document = m_revit.ActiveUIDocument.Document;
-                string earthId = "942456a3-5e8a-4c24-a195-e6a26edf8b8d-00000d81";
-                var elem = document.GetElement(earthId);
-
-                FamilyInstance familyInstance = elem as FamilyInstance;
-                FamilySymbol familySymbol = familyInstance.Symbol;
-
-                IEnumerable<RevitLinkInstance> linkedInstances = FindLinkedInstances();
-                int j = 0;
-
-                if (linkedInstances != null)
+                try
                 {
-                    foreach (var linkInstance in linkedInstances)
-                    {
-                        Document linkDocument = linkInstance.GetLinkDocument();
-                        Transform transform = linkInstance.GetTotalTransform();
+                    transaction.Start("First");
 
-                        List<Room> roomsLink = m_rooms;
+                    Document document = m_revit.ActiveUIDocument.Document;
+                    //var earthId = "942456a3-5e8a-4c24-a195-e6a26edf8b8d-00000d81";
+                    var elem = SelectedElement(document);
 
-                        if (roomsLink != null)
+                    var familyInstance = elem as FamilyInstance;
+                    var familySymbol = familyInstance.Symbol;
+
+                    var linkedInstances = FindLinkedInstances();
+                    var j = 0;
+
+                    if (linkedInstances != null)
+                        foreach (var linkInstance in linkedInstances)
                         {
-                            foreach (var room in roomsLink)
-                            {
-                                string roomName = room.Name;
+                            var linkDocument = linkInstance.GetLinkDocument();
+                            var transform = linkInstance.GetTotalTransform();
 
-                                string justname = "";
-                                for (int i = 0; i < roomName.Length; i++)
+                            var roomsLink = m_rooms;
+
+                            if (roomsLink != null)
+                                foreach (var room in roomsLink)
                                 {
-                                    if (!Char.IsDigit(roomName[i]) && !(roomName[i]).Equals('.') && !(roomName[i]).Equals(','))
+                                    var roomName = room.Name;
 
+                                    var justname = "";
+                                    for (var i = 0; i < roomName.Length; i++)
+                                        if (!char.IsDigit(roomName[i]) && !roomName[i].Equals('.') &&
+                                            !roomName[i].Equals(','))
+                                            justname += roomName[i];
+
+                                    var FindRoom = checListRoom.Find(item => item == justname);
+
+                                    if (FindRoom != null)
                                     {
-                                        justname += roomName[i];
-                                    }
-                                }
 
-                                string FindRoom = checListRoom.Find(item => item == justname);
+                                        var areaRoom = room.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble();
+                                        var volumeRoom = room.get_Parameter(BuiltInParameter.ROOM_VOLUME).AsDouble();
+                                        var heightRoom = volumeRoom / areaRoom;
 
-                                if (FindRoom != null)
-                                {
-                                    subTransaction.Start();
-                                    var areaRoom = room.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble();
-                                    var volumeRoom = room.get_Parameter(BuiltInParameter.ROOM_VOLUME).AsDouble();
-                                    var heightRoom = volumeRoom / areaRoom;
-
-                                    if (areaRoom != 0)
-                                    {
-                                        var level = room.LevelId;
-
-                                        Level level1 = GetLevelFromRoom(level, room);
-
-                                        if (level1 == null)
+                                        if (areaRoom != 0)
                                         {
-                                            level1 = GetLevelFromRoomByName(room);
+                                            var level = room.LevelId;
+
+                                            var level1 = GetLevelFromRoom(level, room);
+
+                                            if (level1 == null) level1 = GetLevelFromRoomByName(room);
+
+                                            var lpPoint = (LocationPoint)room.Location;
+
+                                            var pointFoLigh = lpPoint.Point;
+
+                                            var targetPoint = transform.OfPoint(pointFoLigh);
+
+                                            var placeXyzPoint = new XYZ(targetPoint.X, targetPoint.Y, heightRoom);
+
+                                            var instLight = document.Create.NewFamilyInstance(
+                                                placeXyzPoint, familySymbol, level1, StructuralType.NonStructural);
+                                            j++;
+
                                         }
-
-                                        LocationPoint lpPoint = (LocationPoint)room.Location;
-
-                                        XYZ pointFoLigh = lpPoint.Point;
-
-                                        var targetPoint = transform.OfPoint(pointFoLigh);
-
-                                        XYZ placeXyzPoint = new XYZ(targetPoint.X, targetPoint.Y, heightRoom);
-
-                                        FamilyInstance instLight = document.Create.NewFamilyInstance(
-                                            placeXyzPoint, familySymbol, level1, StructuralType.NonStructural);
-                                        j++;
-                                        subTransaction.Commit();
                                     }
                                 }
-
-
-                                
-                            }
 
                         }
-                    }
-                }
-                
-                TaskDialog.Show("Размещено", $"{j} элементов");
 
-                
-                document.Regenerate();
+                    TaskDialog.Show("Размещено", $"{j} элементов");
+
+                    transaction.Commit();
+                }
+
+                catch
+                {
+                    transaction.RollBack();
+                }
+
             }
             
-            
+                //document.Regenerate();
         }
 
         private Level GetLevelFromRoom(ElementId elementId, Room room)
         {
-            var _doc = m_revit.ActiveUIDocument.Document; 
-            FilteredElementCollector lvlCollector = new FilteredElementCollector(_doc);
+            var _doc = m_revit.ActiveUIDocument.Document;
+            var lvlCollector = new FilteredElementCollector(_doc);
             ICollection<Element> lvlCollection = lvlCollector.OfClass(typeof(Level)).ToElements();
 
-            foreach (Element l in lvlCollection)
-            {
+            foreach (var l in lvlCollection)
                 if (l.Id == elementId)
-                {
                     return (Level)l;
-                }
-            }
 
             return null;
         }
 
         private Level GetLevelFromRoomByName(Room room)
         {
-            FilteredElementCollector lvlCollector = new FilteredElementCollector(m_revit.ActiveUIDocument.Document);
+            var lvlCollector = new FilteredElementCollector(m_revit.ActiveUIDocument.Document);
             ICollection<Element> lvlCollection = lvlCollector.OfClass(typeof(Level)).ToElements();
 
-            foreach (Element l in lvlCollection)
-            {
+            foreach (var l in lvlCollection)
                 if (l.Name == room.Level.Name)
-                {
                     return (Level)l;
-                }
-            }
             return null;
         }
 
@@ -203,6 +183,54 @@ namespace CreateElementsInRooms
                 .OfClass(typeof(RevitLinkInstance))
                 .Cast<RevitLinkInstance>()
                 .ToList();
+        }
+
+        public Element SelectedElement(Document sDocument)
+        {
+            //var document = m_revit.ActiveUIDocument.Document;
+            //var earthId = "942456a3-5e8a-4c24-a195-e6a26edf8b8d-00000d81";
+            //var elem = document.GetElement(earthId);
+            //uiDoc = m_revit.ActiveUIDocument;
+
+            using (SubTransaction subTransaction = new SubTransaction(sDocument))
+            {
+                //subTransaction.Start();
+                try
+                {
+                    if (subTransaction.Start() == TransactionStatus.Started)
+                        //if (subTransaction.Start() == TransactionStatus.Started)
+                    {
+
+                        var uiDoc = m_revit.ActiveUIDocument;
+                        //uiDoc.ActiveView;
+
+                        UIDocument uidoc = new UIDocument(sDocument);
+
+                        sDocument.Regenerate();
+
+                        var r = uidoc.Selection.PickObject(ObjectType.Element,
+                            "Выбрать элемент для размещения во всех помещениях");
+                        var elem = uidoc.Document.GetElement(r);
+
+                        if (subTransaction.Commit() == TransactionStatus.Committed)
+                        {
+                            return elem;
+                        }
+                    }
+                }
+
+                catch(Exception ex)
+                {
+                    TaskDialog.Show("Revit", "Exception" + ex.Message);
+                    subTransaction.RollBack();
+                    return null;
+                }
+            
+                
+            }
+
+            return null;
+
         }
     }
 }
