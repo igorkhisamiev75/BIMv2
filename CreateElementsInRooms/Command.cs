@@ -37,9 +37,7 @@ namespace CreateElementsInRooms
                 message = ex.Message;
                 return Result.Failed;
             }
-
             
-
         }
     }
     

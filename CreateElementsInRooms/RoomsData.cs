@@ -69,6 +69,7 @@ namespace CreateElementsInRooms
 
             using (Transaction transaction = new Transaction(m_revit.ActiveUIDocument.Document, Guid.NewGuid().GetHashCode().ToString()))
             {
+
                 try
                 {
                     transaction.Start("First");
@@ -191,7 +192,7 @@ namespace CreateElementsInRooms
             //var earthId = "942456a3-5e8a-4c24-a195-e6a26edf8b8d-00000d81";
             //var elem = document.GetElement(earthId);
             //uiDoc = m_revit.ActiveUIDocument;
-
+            
             using (SubTransaction subTransaction = new SubTransaction(sDocument))
             {
                 //subTransaction.Start();
@@ -206,11 +207,16 @@ namespace CreateElementsInRooms
 
                         UIDocument uidoc = new UIDocument(sDocument);
 
-                        sDocument.Regenerate();
+                        //sDocument.Regenerate();
 
-                        var r = uidoc.Selection.PickObject(ObjectType.Element,
-                            "Выбрать элемент для размещения во всех помещениях");
-                        var elem = uidoc.Document.GetElement(r);
+                        //var r = uidoc.Selection.PickObject(ObjectType.Element,
+                        //    "Выбрать элемент для размещения во всех помещениях");
+                        //var elem = uidoc.Document.GetElement(r);
+                        //TaskDialog.Show("Revit", "Exception" + elem);
+
+                        var earthId = "942456a3-5e8a-4c24-a195-e6a26edf8b8d-00000d81";
+                        var elem = sDocument.GetElement(earthId);
+
 
                         if (subTransaction.Commit() == TransactionStatus.Committed)
                         {

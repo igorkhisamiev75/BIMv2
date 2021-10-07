@@ -16,7 +16,7 @@ namespace CreateElementsInRooms
     {
         private UIApplication m_revit;
 
-        private readonly RoomsData m_data; // Room's data for current active document
+        public readonly RoomsData m_data; // Room's data for current active document
 
         //private Application _app;
         //private Document _doc;
@@ -106,23 +106,8 @@ namespace CreateElementsInRooms
 
         private void btnCeiling_Click(object sender, EventArgs e)
         {
-            //ActiveForm.Enabled = false;
-            
+            Close();
 
-            //ActiveForm.Show();
-
-            //ActiveForm.Close();
-
-            //Transaction transaction1 = new Transaction(m_revit.ActiveUIDocument.Document, Guid.NewGuid().GetHashCode().ToString());
-            //transaction1.Start();
-            //var uiDoc = m_revit.ActiveUIDocument;
-            //Reference r = uiDoc.Selection.PickObject(ObjectType.Element, "Выбрать элемент для размещения во всех помещениях");
-            //var elem = uiDoc.Document.GetElement(r);
-            ////TaskDialog.Show("Complite!", $"Выбран {elem}");
-            //transaction1.Commit();
-
-
-            //Close();
             var rowsCount = dataGridView1.Rows.Count;
 
             var chekRoom = new List<int>();
@@ -149,7 +134,7 @@ namespace CreateElementsInRooms
             m_data.CreateAnyElementInLinkedFiles(checListRoom);
 
             //TaskDialog.Show("R", "разместили");
-            //this.Close();
+            this.Close();
         }
 
 
