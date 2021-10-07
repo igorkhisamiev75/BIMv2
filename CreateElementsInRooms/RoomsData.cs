@@ -209,13 +209,13 @@ namespace CreateElementsInRooms
 
                         //sDocument.Regenerate();
 
-                        //var r = uidoc.Selection.PickObject(ObjectType.Element,
-                        //    "Выбрать элемент для размещения во всех помещениях");
-                        //var elem = uidoc.Document.GetElement(r);
+                        var r = uidoc.Selection.PickObject(ObjectType.Element,
+                            "Выбрать элемент для размещения во всех помещениях");
+                        var elem = uidoc.Document.GetElement(r);
                         //TaskDialog.Show("Revit", "Exception" + elem);
 
-                        var earthId = "942456a3-5e8a-4c24-a195-e6a26edf8b8d-00000d81";
-                        var elem = sDocument.GetElement(earthId);
+                        //var earthId = "942456a3-5e8a-4c24-a195-e6a26edf8b8d-00000d81";
+                        //var elem = sDocument.GetElement(earthId);
 
 
                         if (subTransaction.Commit() == TransactionStatus.Committed)
