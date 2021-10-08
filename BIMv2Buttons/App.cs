@@ -112,8 +112,11 @@ namespace BIMv2Buttons
             RibbonPanel ribbonPanel4 = application.CreateRibbonPanel(tabName, "Надстройки для всех"); //подпись под кнопками
 
             // create push button for CurveTotalLength  //namespace и класс
-            PushButtonData b7Data = new PushButtonData("cmdCreateAnyElementsInRooms", "Расставить"
-                + Environment.NewLine + "элементы в помещениях", thisAssemblyPath, "BIMv2.CreateAnyElementsInRooms");
+            //PushButtonData b7Data = new PushButtonData("cmdCreateAnyElementsInRooms", "Расставить"
+            //    + Environment.NewLine + "элементы в помещениях", thisAssemblyPath, "BIMv2.CreateAnyElementsInRooms");
+
+            PushButtonData b7Data = new PushButtonData("cmdCreateElementsInRooms", "Расставить"
+                + Environment.NewLine + "элементы в помещениях", thisAssemblyPath, "BIMv2.CreateElementsInRooms");
 
             PushButton pb7 = ribbonPanel4.AddItem(b7Data) as PushButton;
             pb7.ToolTip = "Расставить выбранное семейство в помещениях";
