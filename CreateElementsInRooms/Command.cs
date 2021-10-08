@@ -1,6 +1,7 @@
 ﻿using Autodesk.Revit.UI;
 using Autodesk.Revit.DB;
 using System;
+using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;
 
 
@@ -14,7 +15,9 @@ namespace CreateElementsInRooms
     {
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
+
             TransactionGroup transactionGroup = new TransactionGroup(commandData.Application.ActiveUIDocument.Document);
+           
             try
             {
                 //Create a transaction
@@ -25,7 +28,7 @@ namespace CreateElementsInRooms
 
                 // create a form to display the information of rooms
                 roomsInformationForm infoForm = new roomsInformationForm(data, commandData);
-                infoForm.ShowDialog();
+                infoForm.Show();
                 transactionGroup.Commit();
                 return Result.Succeeded;
             }

@@ -106,14 +106,16 @@ namespace CreateElementsInRooms
 
         private void btnCeiling_Click(object sender, EventArgs e)
         {
+            
+            //this.Dispose();
             UIDocument uidoc = m_commandData.Application.ActiveUIDocument;
 
             Document doc = uidoc.Document;
             Selection sel = uidoc.Selection;
-            this.Hide();
-            IList<Reference> refs = sel.PickObjects(ObjectType.Element, "Please select some elements");
-            TaskDialog.Show("R", $"{refs}");
-            this.Show();
+            
+            //IList<Reference> refs = sel.PickObjects(ObjectType.Element, "Please select some elements");
+            //TaskDialog.Show("R", $"{refs}");
+            //this.Show();
 
             var rowsCount = dataGridView1.Rows.Count;
 
@@ -137,6 +139,7 @@ namespace CreateElementsInRooms
                 checListRoom.Add(nameRoomsValue);
             }
 
+            this.Close();
             //this.Hide();
             m_data.CreateAnyElementInLinkedFiles(checListRoom);
 

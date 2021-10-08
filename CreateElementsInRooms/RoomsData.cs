@@ -2,13 +2,11 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.DB.Structure;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Selection;
-
 
 namespace CreateElementsInRooms
 {
@@ -16,9 +14,6 @@ namespace CreateElementsInRooms
     {
         private readonly UIApplication m_revit;
         private List<Room> m_rooms = new List<Room>();
-        //Element elem;
-
-        public ReadOnlyCollection<Room> Rooms => new ReadOnlyCollection<Room>(m_rooms);
 
         public RoomsData(ExternalCommandData commandData) // Get all the rooms in the current document
         {
@@ -27,6 +22,9 @@ namespace CreateElementsInRooms
             // get all the rooms
             GetAllRoomsLinked();
         }
+        //Element elem;
+
+        public ReadOnlyCollection<Room> Rooms => new ReadOnlyCollection<Room>(m_rooms);
 
 
         public List<Room> GetAllRoomsLinked()
@@ -66,23 +64,23 @@ namespace CreateElementsInRooms
 
         public void CreateAnyElementInLinkedFiles(List<string> checListRoom)
         {
+            var document = m_revit.ActiveUIDocument.Document;
 
-            using (Transaction transaction = new Transaction(m_revit.ActiveUIDocument.Document, Guid.NewGuid().GetHashCode().ToString()))
+            var elem = SelectedElement(document); //select element
+
+            var familyInstance = elem as FamilyInstance;
+            var familySymbol = familyInstance.Symbol;
+
+            //create new family in rooms
+
+            //using (Transaction transaction = new Transaction(document, "Create"))
+
             {
-
                 try
                 {
-                    transaction.Start("First");
-
-                    Document document = m_revit.ActiveUIDocument.Document;
-                    //var earthId = "942456a3-5e8a-4c24-a195-e6a26edf8b8d-00000d81";
-                    var elem = SelectedElement(document);
-
-                    var familyInstance = elem as FamilyInstance;
-                    var familySymbol = familyInstance.Symbol;
-
+                    //transaction.Start();
                     var linkedInstances = FindLinkedInstances();
-                    var j = 0;
+                    int j = 0;
 
                     if (linkedInstances != null)
                         foreach (var linkInstance in linkedInstances)
@@ -107,7 +105,6 @@ namespace CreateElementsInRooms
 
                                     if (FindRoom != null)
                                     {
-
                                         var areaRoom = room.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble();
                                         var volumeRoom = room.get_Parameter(BuiltInParameter.ROOM_VOLUME).AsDouble();
                                         var heightRoom = volumeRoom / areaRoom;
@@ -128,29 +125,29 @@ namespace CreateElementsInRooms
 
                                             var placeXyzPoint = new XYZ(targetPoint.X, targetPoint.Y, heightRoom);
 
-                                            var instLight = document.Create.NewFamilyInstance(
+
+                                            var newFamilyInstance = document.Create.NewFamilyInstance(
                                                 placeXyzPoint, familySymbol, level1, StructuralType.NonStructural);
                                             j++;
-
+                                            //document.Regenerate();
                                         }
                                     }
                                 }
-
                         }
 
                     TaskDialog.Show("Размещено", $"{j} элементов");
 
-                    transaction.Commit();
+                    //transaction.Commit();
                 }
 
-                catch
+                catch (Exception ex)
                 {
-                    transaction.RollBack();
+                    //transaction.RollBack();
+                    TaskDialog.Show("Revit", "Exception" + ex.Message);
                 }
 
             }
-            
-                //document.Regenerate();
+        
         }
 
         private Level GetLevelFromRoom(ElementId elementId, Room room)
@@ -192,51 +189,51 @@ namespace CreateElementsInRooms
             //var earthId = "942456a3-5e8a-4c24-a195-e6a26edf8b8d-00000d81";
             //var elem = document.GetElement(earthId);
             //uiDoc = m_revit.ActiveUIDocument;
-            
-            using (SubTransaction subTransaction = new SubTransaction(sDocument))
+            //using (Transaction subTransaction = new Transaction(sDocument, Guid.NewGuid().GetHashCode().ToString()))
+            //using (SubTransaction subTransaction = new SubTransaction(sDocument))
+            //{
+            //subTransaction.Start();
+            try
             {
-                //subTransaction.Start();
-                try
-                {
-                    if (subTransaction.Start() == TransactionStatus.Started)
-                        //if (subTransaction.Start() == TransactionStatus.Started)
-                    {
+                /*if (*/
+                //subTransaction.Start("sdf");/* == TransactionStatus.Started)*/
+                //if (subTransaction.Start() == TransactionStatus.Started)
+                //if (subTransaction.Start() == TransactionStatus.Started)
+                //{
 
-                        var uiDoc = m_revit.ActiveUIDocument;
-                        //uiDoc.ActiveView;
+                var uiDoc = m_revit.ActiveUIDocument;
+                //uiDoc.ActiveView;
 
-                        UIDocument uidoc = new UIDocument(sDocument);
+                var uidoc = new UIDocument(sDocument);
 
-                        //sDocument.Regenerate();
+                //sDocument.Regenerate();
 
-                        var r = uidoc.Selection.PickObject(ObjectType.Element,
-                            "Выбрать элемент для размещения во всех помещениях");
-                        var elem = uidoc.Document.GetElement(r);
-                        //TaskDialog.Show("Revit", "Exception" + elem);
+                var r = uidoc.Selection.PickObject(ObjectType.Element,
+                    "Выбрать элемент для размещения");
+                var elem = uidoc.Document.GetElement(r);
+                return elem;
+                //TaskDialog.Show("Revit", "Exception" + elem);
 
-                        //var earthId = "942456a3-5e8a-4c24-a195-e6a26edf8b8d-00000d81";
-                        //var elem = sDocument.GetElement(earthId);
+                //var earthId = "942456a3-5e8a-4c24-a195-e6a26edf8b8d-00000d81";
+                //var elem = sDocument.GetElement(earthId);
 
 
-                        if (subTransaction.Commit() == TransactionStatus.Committed)
-                        {
-                            return elem;
-                        }
-                    }
-                }
-
-                catch(Exception ex)
-                {
-                    TaskDialog.Show("Revit", "Exception" + ex.Message);
-                    subTransaction.RollBack();
-                    return null;
-                }
-            
-                
+                //if (subTransaction.Commit() == TransactionStatus.Committed)
+                //{
+                //    return elem;
+                //}
+                //}
             }
 
-            return null;
+            catch (Exception ex)
+            {
+                TaskDialog.Show("Revit", "Exception" + ex.Message);
+                //subTransaction.RollBack();
+                return null;
+            }
 
+
+            //}
         }
     }
 }
