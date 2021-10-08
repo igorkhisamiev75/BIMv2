@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.DB.Structure;
@@ -10,11 +11,11 @@ using Autodesk.Revit.UI.Selection;
 
 namespace CreateElementsInRooms
 {
-    public class RoomsData
+   public class RoomsData
     {
-        private readonly UIApplication m_revit;
+        public UIApplication m_revit;
         private List<Room> m_rooms = new List<Room>();
-
+        private ExternalCommandData commandData;
         public RoomsData(ExternalCommandData commandData) // Get all the rooms in the current document
         {
             m_revit = commandData.Application;
@@ -62,9 +63,9 @@ namespace CreateElementsInRooms
                 .ToList();
         }
 
-        public void CreateAnyElementInLinkedFiles(List<string> checListRoom)
+        public void CreateAnyElementInLinkedFiles(List<string> checListRoom, ExternalCommandData m_commandData)
         {
-            var document = m_revit.ActiveUIDocument.Document;
+           var document = m_revit.ActiveUIDocument.Document;
 
             var elem = SelectedElement(document); //select element
 
@@ -73,12 +74,12 @@ namespace CreateElementsInRooms
 
             //create new family in rooms
 
-            //using (Transaction transaction = new Transaction(document, "Create"))
+            using (Transaction transaction = new Transaction(m_commandData.Application.ActiveUIDocument.Document/*, Guid.NewGuid().GetHashCode().ToString()*/))
 
             {
                 try
                 {
-                    //transaction.Start();
+                    transaction.Start("Create");
                     var linkedInstances = FindLinkedInstances();
                     int j = 0;
 
@@ -137,13 +138,13 @@ namespace CreateElementsInRooms
 
                     TaskDialog.Show("Размещено", $"{j} элементов");
 
-                    //transaction.Commit();
+                    transaction.Commit();
                 }
 
                 catch (Exception ex)
                 {
-                    //transaction.RollBack();
-                    TaskDialog.Show("Revit", "Exception" + ex.Message);
+                    transaction.RollBack();
+                    TaskDialog.Show("Revit", "Exception " + ex.Message);
                 }
 
             }

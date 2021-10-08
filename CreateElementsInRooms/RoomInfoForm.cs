@@ -141,7 +141,7 @@ namespace CreateElementsInRooms
 
             this.Close();
             //this.Hide();
-            m_data.CreateAnyElementInLinkedFiles(checListRoom);
+            m_data.CreateAnyElementInLinkedFiles(checListRoom, m_commandData);
 
             //TaskDialog.Show("R", "разместили");
             this.Close();
