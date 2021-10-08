@@ -28,31 +28,7 @@ namespace CreateElementsInRooms
         public ReadOnlyCollection<Room> Rooms => new ReadOnlyCollection<Room>(m_rooms);
 
 
-        public List<Room> GetAllRoomsLinked()
-        {
-            var document = m_revit.ActiveUIDocument.Document;
-            var linkedInstances = FindLinkedInstances(document);
-
-            if (linkedInstances != null)
-                foreach (var linkInstance in linkedInstances)
-                {
-                    var linkDocument = linkInstance.GetLinkDocument();
-                    var transform = linkInstance.GetTotalTransform();
-
-                    var roomCollect = new FilteredElementCollector(linkDocument);
-                    roomCollect.OfCategory(BuiltInCategory.OST_Rooms);
-                    Room room = null;
-                    m_rooms = new List<Room>();
-
-                    foreach (var elem in roomCollect)
-                    {
-                        room = elem as Room;
-                        if (room != null) m_rooms.Add(room);
-                    }
-                }
-
-            return m_rooms;
-        }
+        
 
         private IEnumerable<RevitLinkInstance> FindLinkedInstances(Document document)
         {
@@ -63,93 +39,93 @@ namespace CreateElementsInRooms
                 .ToList();
         }
 
-        public void CreateAnyElementInLinkedFiles(List<string> checListRoom, ExternalCommandData m_commandData)
-        {
-           var document = m_revit.ActiveUIDocument.Document;
+        //public void CreateAnyElementInLinkedFiles(List<string> checListRoom)
+        //{
+        //   var document = m_revit.ActiveUIDocument.Document;
 
-            var elem = SelectedElement(document); //select element
+        //    var elem = SelectedElement(document); //select element
 
-            var familyInstance = elem as FamilyInstance;
-            var familySymbol = familyInstance.Symbol;
+        //    var familyInstance = elem as FamilyInstance;
+        //    var familySymbol = familyInstance.Symbol;
 
-            //create new family in rooms
+        //    //create new family in rooms
 
-            using (Transaction transaction = new Transaction(m_commandData.Application.ActiveUIDocument.Document/*, Guid.NewGuid().GetHashCode().ToString()*/))
+        //    using (Transaction transaction = new Transaction(/*, Guid.NewGuid().GetHashCode().ToString()*/))
 
-            {
-                try
-                {
-                    transaction.Start("Create");
-                    var linkedInstances = FindLinkedInstances();
-                    int j = 0;
+        //    {
+        //        try
+        //        {
+        //            transaction.Start("Create");
+        //            var linkedInstances = FindLinkedInstances();
+        //            int j = 0;
 
-                    if (linkedInstances != null)
-                        foreach (var linkInstance in linkedInstances)
-                        {
-                            var linkDocument = linkInstance.GetLinkDocument();
-                            var transform = linkInstance.GetTotalTransform();
+        //            if (linkedInstances != null)
+        //                foreach (var linkInstance in linkedInstances)
+        //                {
+        //                    var linkDocument = linkInstance.GetLinkDocument();
+        //                    var transform = linkInstance.GetTotalTransform();
 
-                            var roomsLink = m_rooms;
+        //                    var roomsLink = m_rooms;
 
-                            if (roomsLink != null)
-                                foreach (var room in roomsLink)
-                                {
-                                    var roomName = room.Name;
+        //                    if (roomsLink != null)
+        //                        foreach (var room in roomsLink)
+        //                        {
+        //                            var roomName = room.Name;
 
-                                    var justname = "";
-                                    for (var i = 0; i < roomName.Length; i++)
-                                        if (!char.IsDigit(roomName[i]) && !roomName[i].Equals('.') &&
-                                            !roomName[i].Equals(','))
-                                            justname += roomName[i];
+        //                            var justname = "";
+        //                            for (var i = 0; i < roomName.Length; i++)
+        //                                if (!char.IsDigit(roomName[i]) && !roomName[i].Equals('.') &&
+        //                                    !roomName[i].Equals(','))
+        //                                    justname += roomName[i];
 
-                                    var FindRoom = checListRoom.Find(item => item == justname);
+        //                            var FindRoom = checListRoom.Find(item => item == justname);
 
-                                    if (FindRoom != null)
-                                    {
-                                        var areaRoom = room.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble();
-                                        var volumeRoom = room.get_Parameter(BuiltInParameter.ROOM_VOLUME).AsDouble();
-                                        var heightRoom = volumeRoom / areaRoom;
+        //                            if (FindRoom != null)
+        //                            {
+        //                                var areaRoom = room.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble();
+        //                                var volumeRoom = room.get_Parameter(BuiltInParameter.ROOM_VOLUME).AsDouble();
+        //                                var heightRoom = volumeRoom / areaRoom;
 
-                                        if (areaRoom != 0)
-                                        {
-                                            var level = room.LevelId;
+        //                                if (areaRoom != 0)
+        //                                {
+        //                                    var level = room.LevelId;
 
-                                            var level1 = GetLevelFromRoom(level, room);
+        //                                    var level1 = GetLevelFromRoom(level, room);
 
-                                            if (level1 == null) level1 = GetLevelFromRoomByName(room);
+        //                                    if (level1 == null) level1 = GetLevelFromRoomByName(room);
 
-                                            var lpPoint = (LocationPoint)room.Location;
+        //                                    var lpPoint = (LocationPoint)room.Location;
 
-                                            var pointFoLigh = lpPoint.Point;
+        //                                    var pointFoLigh = lpPoint.Point;
 
-                                            var targetPoint = transform.OfPoint(pointFoLigh);
+        //                                    var targetPoint = transform.OfPoint(pointFoLigh);
 
-                                            var placeXyzPoint = new XYZ(targetPoint.X, targetPoint.Y, heightRoom);
+        //                                    var placeXyzPoint = new XYZ(targetPoint.X, targetPoint.Y, heightRoom);
 
 
-                                            var newFamilyInstance = document.Create.NewFamilyInstance(
-                                                placeXyzPoint, familySymbol, level1, StructuralType.NonStructural);
-                                            j++;
-                                            //document.Regenerate();
-                                        }
-                                    }
-                                }
-                        }
+        //                                    var newFamilyInstance = document.Create.NewFamilyInstance(
+        //                                        placeXyzPoint, familySymbol, level1, StructuralType.NonStructural);
+        //                                    j++;
+        //                                    //document.Regenerate();
+        //                                }
+        //                            }
+        //                        }
+        //                }
 
-                    TaskDialog.Show("Размещено", $"{j} элементов");
+        //            TaskDialog.Show("Размещено", $"{j} элементов");
 
-                    transaction.Commit();
-                }
+        //            transaction.Commit();
+        //        }
 
-                catch (Exception ex)
-                {
-                    transaction.RollBack();
-                    TaskDialog.Show("Revit", "Exception " + ex.Message);
-                }
+        //        catch (Exception ex)
+        //        {
+        //            transaction.RollBack();
+        //            TaskDialog.Show("Revit", "Exception " + ex.Message);
+        //        }
 
-            }
+        //    }
         
-        }
+        //}
 
         private Level GetLevelFromRoom(ElementId elementId, Room room)
         {
@@ -235,6 +211,32 @@ namespace CreateElementsInRooms
 
 
             //}
+        }
+
+        public List<Room> GetAllRoomsLinked()
+        {
+            var document = m_revit.ActiveUIDocument.Document;
+            var linkedInstances = FindLinkedInstances(document);
+
+            if (linkedInstances != null)
+                foreach (var linkInstance in linkedInstances)
+                {
+                    var linkDocument = linkInstance.GetLinkDocument();
+                    var transform = linkInstance.GetTotalTransform();
+
+                    var roomCollect = new FilteredElementCollector(linkDocument);
+                    roomCollect.OfCategory(BuiltInCategory.OST_Rooms);
+                    Room room = null;
+                    m_rooms = new List<Room>();
+
+                    foreach (var elem in roomCollect)
+                    {
+                        room = elem as Room;
+                        if (room != null) m_rooms.Add(room);
+                    }
+                }
+
+            return m_rooms;
         }
     }
 }
