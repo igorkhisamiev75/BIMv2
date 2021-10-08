@@ -17,16 +17,17 @@ namespace CreateElementsInRooms
         private UIApplication m_revit;
 
         public readonly RoomsData m_data; // Room's data for current active document
+        public List<string> checListRoom;
 
         //private Application _app;
         //private Document _doc;
-        private int i = 0;
+        //private int i = 0;
         //var uiApp = m_commandData.Application;
         //var uiDoc = uiApp.ActiveUIDocument;
         ////_app = uiApp.Application;
         //_doc = uiDoc.Document;
 
-        private readonly ExternalCommandData m_commandData;
+        public ExternalCommandData m_commandData;
 
         public roomsInformationForm(RoomsData data, ExternalCommandData commandData)
         {
@@ -108,10 +109,10 @@ namespace CreateElementsInRooms
         {
             
             //this.Dispose();
-            UIDocument uidoc = m_commandData.Application.ActiveUIDocument;
+            //UIDocument uidoc = m_commandData.Application.ActiveUIDocument;
 
-            Document doc = uidoc.Document;
-            Selection sel = uidoc.Selection;
+            //Document doc = uidoc.Document;
+            //Selection sel = uidoc.Selection;
             
             //IList<Reference> refs = sel.PickObjects(ObjectType.Element, "Please select some elements");
             //TaskDialog.Show("R", $"{refs}");
@@ -130,7 +131,7 @@ namespace CreateElementsInRooms
                         chekRoom.Add(j);
             }
 
-            var checListRoom = new List<string>();
+            checListRoom = new List<string>();
 
             foreach (var index in chekRoom)
             {
@@ -139,12 +140,13 @@ namespace CreateElementsInRooms
                 checListRoom.Add(nameRoomsValue);
             }
 
+            
             this.Close();
             //this.Hide();
-            m_data.CreateAnyElementInLinkedFiles(checListRoom, m_commandData);
+            //m_data.CreateAnyElementInLinkedFiles(checListRoom, m_commandData);
 
             //TaskDialog.Show("R", "разместили");
-            this.Close();
+            //this.Close();
         }
 
 
