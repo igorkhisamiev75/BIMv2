@@ -45,8 +45,11 @@ namespace CreateElementsInRooms
                 //array selected rooms
                 List<string> infoFormChecListRoom = infoForm.checListRoom;
 
-                CreateAnyElementInLinkedFiles(infoFormChecListRoom);
-
+                if(infoFormChecListRoom!=null)
+                {
+                  CreateAnyElementInLinkedFiles(infoFormChecListRoom);
+                }
+                
                 //TaskDialog.Show("выбраны", $"{s}");
 
                 transactionGroup.Commit();

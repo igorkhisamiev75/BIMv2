@@ -37,6 +37,10 @@ namespace CreateElementsInRooms
             this.btnExit = new System.Windows.Forms.Button();
             this.btnFloor = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.btnAllRooms = new System.Windows.Forms.Button();
+            this.btnSelectNone = new System.Windows.Forms.Button();
+            this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.button1 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
@@ -58,6 +62,9 @@ namespace CreateElementsInRooms
             this.dataGridView1.Size = new System.Drawing.Size(855, 1256);
             this.dataGridView1.TabIndex = 0;
             this.dataGridView1.MultiSelectChanged += new System.EventHandler(this.dataGridView1_MultiSelectChanged);
+            this.dataGridView1.CellMouseDown += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.dataGridView1_CellMouseDown);
+            this.dataGridView1.CurrentCellDirtyStateChanged += new System.EventHandler(this.dataGridView1_CurrentCellDirtyStateChanged);
+            this.dataGridView1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.dataGridView1_MouseDown);
             // 
             // Column1
             // 
@@ -107,23 +114,65 @@ namespace CreateElementsInRooms
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.button1);
             this.groupBox1.Controls.Add(this.btnCeiling);
             this.groupBox1.Location = new System.Drawing.Point(935, 38);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(274, 435);
+            this.groupBox1.Size = new System.Drawing.Size(274, 417);
             this.groupBox1.TabIndex = 4;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "placement";
+            // 
+            // btnAllRooms
+            // 
+            this.btnAllRooms.Location = new System.Drawing.Point(971, 658);
+            this.btnAllRooms.Name = "btnAllRooms";
+            this.btnAllRooms.Size = new System.Drawing.Size(214, 88);
+            this.btnAllRooms.TabIndex = 5;
+            this.btnAllRooms.Text = "SELECT ALL";
+            this.btnAllRooms.UseVisualStyleBackColor = true;
+            this.btnAllRooms.Click += new System.EventHandler(this.btnAllRooms_Click);
+            // 
+            // btnSelectNone
+            // 
+            this.btnSelectNone.Location = new System.Drawing.Point(971, 772);
+            this.btnSelectNone.Name = "btnSelectNone";
+            this.btnSelectNone.Size = new System.Drawing.Size(214, 88);
+            this.btnSelectNone.TabIndex = 6;
+            this.btnSelectNone.Text = "SELECT NONE";
+            this.btnSelectNone.UseVisualStyleBackColor = true;
+            this.btnSelectNone.Click += new System.EventHandler(this.btnSelectNone_Click);
+            // 
+            // groupBox2
+            // 
+            this.groupBox2.Location = new System.Drawing.Point(935, 609);
+            this.groupBox2.Name = "groupBox2";
+            this.groupBox2.Size = new System.Drawing.Size(274, 285);
+            this.groupBox2.TabIndex = 7;
+            this.groupBox2.TabStop = false;
+            this.groupBox2.Text = "select";
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(36, 287);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(214, 87);
+            this.button1.TabIndex = 2;
+            this.button1.Text = "WALL";
+            this.button1.UseVisualStyleBackColor = true;
             // 
             // roomsInformationForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(11F, 24F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1235, 1331);
+            this.Controls.Add(this.btnSelectNone);
+            this.Controls.Add(this.btnAllRooms);
             this.Controls.Add(this.btnFloor);
             this.Controls.Add(this.btnExit);
             this.Controls.Add(this.dataGridView1);
             this.Controls.Add(this.groupBox1);
+            this.Controls.Add(this.groupBox2);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "roomsInformationForm";
@@ -147,5 +196,9 @@ namespace CreateElementsInRooms
         private System.Windows.Forms.DataGridViewTextBoxColumn Column1;
         private System.Windows.Forms.DataGridViewCheckBoxColumn Column2;
         private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.Button btnAllRooms;
+        private System.Windows.Forms.Button btnSelectNone;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.GroupBox groupBox2;
     }
 }

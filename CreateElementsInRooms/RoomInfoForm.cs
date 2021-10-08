@@ -14,6 +14,7 @@ namespace CreateElementsInRooms
 {
     public partial class roomsInformationForm : Form
     {
+        
         private UIApplication m_revit;
 
         public readonly RoomsData m_data; // Room's data for current active document
@@ -157,7 +158,54 @@ namespace CreateElementsInRooms
 
         private void dataGridView1_MultiSelectChanged(object sender, EventArgs e)
         {
-           
+            MessageBox.Show("You are in the DataGridView.MultiSelectChanged event.");
+        }
+
+        DataGridViewSelectedRowCollection selected;
+
+        private void dataGridView1_CellMouseDown(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            selected = dataGridView1.SelectedRows;
+        }
+
+        private void dataGridView1_CurrentCellDirtyStateChanged(object sender, EventArgs e)
+        {
+            if (dataGridView1.IsCurrentCellDirty)
+            {
+                dataGridView1.CommitEdit(DataGridViewDataErrorContexts.Commit);
+            }
+        }
+
+
+
+        private void dataGridView1_MouseDown(object sender, MouseEventArgs e)
+        {
+            //var hitTest = this.dataGridView1.HitTest(e.X, e.Y);
+
+            //if (hitTest.Type == DataGridViewHitTestType.Cell && hitTest.ColumnIndex == 1 /* set correct column index */)
+            //{
+            //    foreach (DataGridViewRow row in this.dataGridView1.Rows)
+            //    {
+            //        // Toggle
+            //        row.Cells[1].Value = !((bool)row.Cells[1].Value);
+            //    }
+            //}
+        }
+
+        private void btnAllRooms_Click(object sender, EventArgs e)
+        {
+            for (int i = 0; i < dataGridView1.Rows.Count; i++)
+            {
+                dataGridView1.Rows[i].Cells[1].Value = true;
+            }
+        }
+
+        private void btnSelectNone_Click(object sender, EventArgs e)
+        {
+            for (int i = 0; i < dataGridView1.Rows.Count; i++)
+            {
+                dataGridView1.Rows[i].Cells[1].Value = false;
+            }
         }
     }
 }
