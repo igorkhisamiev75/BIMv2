@@ -106,7 +106,7 @@ namespace CreateElementsInRooms
             Close();
         }
 
-        private void btnCeiling_Click(object sender, EventArgs e)
+        public void btnCeiling_Click(object sender, EventArgs e)
         {
             
             //this.Dispose();
@@ -153,6 +153,28 @@ namespace CreateElementsInRooms
 
         private void btnFloor_Click(object sender, EventArgs e)
         {
+            var rowsCount = dataGridView1.Rows.Count;
+
+            var chekRoom = new List<int>();
+
+            for (var j = 0; j < rowsCount; j++)
+            {
+                var chek = dataGridView1.Rows[j].Cells[1].Value;
+
+                if (chek != null)
+                    if (chek == "1")
+                        chekRoom.Add(j);
+            }
+
+            checListRoom = new List<string>();
+
+            foreach (var index in chekRoom)
+            {
+                var nameRoomsValue = dataGridView1.Rows[index].Cells[0].Value.ToString();
+
+                checListRoom.Add(nameRoomsValue);
+            }
+            this.Close();
             //аналогично с потолком
         }
 
@@ -165,15 +187,15 @@ namespace CreateElementsInRooms
 
         private void dataGridView1_CellMouseDown(object sender, DataGridViewCellMouseEventArgs e)
         {
-            selected = dataGridView1.SelectedRows;
+            //selected = dataGridView1.SelectedRows;
         }
 
         private void dataGridView1_CurrentCellDirtyStateChanged(object sender, EventArgs e)
         {
-            if (dataGridView1.IsCurrentCellDirty)
-            {
-                dataGridView1.CommitEdit(DataGridViewDataErrorContexts.Commit);
-            }
+            //if (dataGridView1.IsCurrentCellDirty)
+            //{
+            //    dataGridView1.CommitEdit(DataGridViewDataErrorContexts.Commit);
+            //}
         }
 
 
@@ -196,16 +218,20 @@ namespace CreateElementsInRooms
         {
             for (int i = 0; i < dataGridView1.Rows.Count; i++)
             {
-                dataGridView1.Rows[i].Cells[1].Value = true;
+                dataGridView1.Rows[i].Cells[1].Value = "1";
+                
             }
+            
         }
 
         private void btnSelectNone_Click(object sender, EventArgs e)
         {
             for (int i = 0; i < dataGridView1.Rows.Count; i++)
             {
-                dataGridView1.Rows[i].Cells[1].Value = false;
+                dataGridView1.Rows[i].Cells[1].Value = "0";
+                
             }
+            
         }
     }
 }

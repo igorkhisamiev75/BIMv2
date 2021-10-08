@@ -20,6 +20,7 @@ namespace CreateElementsInRooms
         private Application _app;
         private Document _doc;
         private List<Room> m_rooms = new List<Room>();
+        private string buttonText = "";
 
         public virtual Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -45,7 +46,11 @@ namespace CreateElementsInRooms
                 //array selected rooms
                 List<string> infoFormChecListRoom = infoForm.checListRoom;
 
-                if(infoFormChecListRoom!=null)
+                buttonText = infoForm.ActiveControl.Text.ToString();
+
+                //TaskDialog.Show("выбраны", $"{txt}");
+
+                if (infoFormChecListRoom!=null)
                 {
                   CreateAnyElementInLinkedFiles(infoFormChecListRoom);
                 }
@@ -106,9 +111,15 @@ namespace CreateElementsInRooms
 
                                     if (FindRoom != null)
                                     {
+                                        double heightRoom = 0;
                                         var areaRoom = room.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble();
                                         var volumeRoom = room.get_Parameter(BuiltInParameter.ROOM_VOLUME).AsDouble();
-                                        var heightRoom = volumeRoom / areaRoom;
+                                        if (buttonText == "CEILING")
+                                        {
+                                            heightRoom = volumeRoom / areaRoom;
+                                        }
+                                        
+                                        
 
                                         if (areaRoom != 0)
                                         {
