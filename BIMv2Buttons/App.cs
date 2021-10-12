@@ -99,13 +99,26 @@ namespace BIMv2Buttons
 
             // create push button for CurveTotalLength  //namespace и класс
             PushButtonData b6Data = new PushButtonData("cmdCreateLightingInRoom", "Расставить"
-                + Environment.NewLine + "светильники в помещениях", thisAssemblyPath, "BIMv2.CreateLightingInRoom");
+                + Environment.NewLine + "светильники", thisAssemblyPath, "BIMv2.CreateLightingInRoom");
 
             PushButton pb6 = ribbonPanel3.AddItem(b6Data) as PushButton;
-            pb2.ToolTip = "Размещает светильники в помещениях";
+            pb6.ToolTip = "Размещает светильники в помещениях";
 
             BitmapImage pb6Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-oil-lamp-32.png"));
             pb6.LargeImage = pb6Image;
+
+            //попробуем создать еще одну кнопку
+            ribbonPanel3.AddSeparator(); //разделитель между кнопками
+
+            // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData b8Data = new PushButtonData("cmdPowerFactorElectrical.cs", "Посчитать"
+                + Environment.NewLine + "cos фи (φ)", thisAssemblyPath, "BIMv2.PowerFactorElectrical");
+
+            PushButton pb8 = ribbonPanel3.AddItem(b8Data) as PushButton;
+            pb8.ToolTip = "Расчет cos фи (φ)";
+
+            BitmapImage pb8Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-cos-32.png"));
+            pb8.LargeImage = pb8Image;
 
 
             // Add a new ribbon panel
