@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 using Autodesk.Revit.ApplicationServices;
@@ -19,34 +20,79 @@ namespace BIMv2
         private Document _doc;
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            var uiApp = commandData.Application;
-            var uiDoc = uiApp.ActiveUIDocument;
+            UIApplication uiApp = commandData.Application;
+            UIDocument uiDoc = uiApp.ActiveUIDocument;
             _app = uiApp.Application;
             _doc = uiDoc.Document;
-            double forFormul = 0.658;
+            double forFormul1 = 0.23;
+            double forFormul3 = 0.692;
+            double k;
             //ADSK_Коэффициент мощности = Активная расчетная мощность/0,658/Ток-расчетный
-            using (var t = new Transaction(_doc))
+            //ADSK_Коэффициент мощности = Активная расчетная мощность/0,22/Ток-расчетный
+            using (Transaction t = new Transaction(_doc))
             {
                 t.Start("Create");
 
-                var listAnnotationList=GetAllGenericAnnotationList();
+                IList<Element> listAnnotationList=GetAllGenericAnnotationList();
                 int i = 0;
+                IFormatProvider formatter = new NumberFormatInfo { NumberDecimalSeparator = "." };
 
                 if (listAnnotationList != null)
                 {
-                   
-                    foreach (var el in listAnnotationList)
+                    foreach (Element el in listAnnotationList)
                     {
-                        var activRatedPower = Convert.ToDouble(el.LookupParameter("Активная мощность - Расчётная").AsString());
-                        var ratedCurrent = Convert.ToDouble(el.LookupParameter("Ток - Расчётный").AsString());
+                        if (el.LookupParameter("Семейство").AsValueString() == "_Силовой щит - Групповая линия (М)"|| el.LookupParameter("Семейство").AsValueString()=="# Reports - Схема - Силовой щит - Данные")
+                        {
+                            var activRatedPower2 = (el.LookupParameter("Активная мощность - Расчётная").AsString());
 
-                        var adskFack = activRatedPower / forFormul/ratedCurrent;
+                            if (el.LookupParameter("Число фаз").AsValueString() == "1")
+                            {
+                                k = forFormul1;
+                            }
 
-                        adskFack = Math.Round(adskFack, 2);
+                            else
+                            {
+                                k = forFormul3;
+                            }
+                            
+                            if (activRatedPower2!="")
+                            {
+                                try
+                                {
+                                    double activRatedPower =
+                                        double.Parse((el.LookupParameter("Активная мощность - Расчётная").AsString()),
+                                            formatter);
+                                    double ratedCurrent =
+                                        double.Parse((el.LookupParameter("Ток - Расчётный").AsString()), formatter);
 
-                        el.LookupParameter("ADSK_Коэффициент мощности").Set(adskFack);
+                                    if (activRatedPower != null)
+                                    {
+                                        double adskFack = activRatedPower / k / ratedCurrent;
+
+                                        adskFack = Math.Round(adskFack, 2);
+
+                                        if (adskFack > 1)
+                                        {
+                                            adskFack = 0.99;
+                                        }
+
+                                        el.LookupParameter("ADSK_Коэффициент мощности").Set(adskFack);
+
+                                        i++;
+                                    }
+                                }
+
+                                catch (Exception ex)
+                                {
+                                    //TaskDialog.Show("Revit", "Exception " + ex.Message);
+                                }
+                                
+                            }
+                            
+                        }
+                       
+
                         
-                        i++;
                     }
 
                     
