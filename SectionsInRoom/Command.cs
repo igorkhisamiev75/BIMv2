@@ -59,6 +59,7 @@ namespace SectionsInRoom
                 //get boundary segment
                 CurveArray roomsCurves = new CurveArray();
                 SpatialElementBoundaryOptions bo = new SpatialElementBoundaryOptions();
+
                 IList<IList<BoundarySegment>> segments2 = r1.GetBoundarySegments(bo);
 
                 CurveArray curveArray = new CurveArray();
@@ -77,6 +78,16 @@ namespace SectionsInRoom
 
                 BoundingBoxXYZ sectionBox = r1.get_BoundingBox(uidoc.ActiveView);
 
+                //BoundingBoxXYZ sectionBox2 = new BoundingBoxXYZ();
+                BoundingBoxXYZ sectionBox2 = new BoundingBoxXYZ();
+
+                XYZ xMin = new XYZ(0, 0, 0);
+                XYZ xMax = new XYZ(2, 2, 2);
+
+                sectionBox2.Min = xMin;
+                sectionBox2.Max = xMax;
+
+
                 ViewFamilyType vft = new FilteredElementCollector(doc)
                     .OfClass(typeof(ViewFamilyType))
                     .Cast<ViewFamilyType>()
@@ -91,8 +102,7 @@ namespace SectionsInRoom
 
                     foreach (var VARIABLE in curveArray)
                     {
-                        //BoundingBoxXYZ sectionBox2=VARIABLE.
-                        ViewSection.CreateSection(doc, vft.Id, sectionBox);
+                        ViewSection.CreateSection(doc, vft.Id, sectionBox2);
                     }
                     
                     
