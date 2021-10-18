@@ -7,21 +7,39 @@ using System.Threading.Tasks;
 using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Selection;
 
 namespace SectionsInRoom
 {
     [Transaction(TransactionMode.Manual)]
+    [Regeneration(RegenerationOption.Manual)]
     public class Command : IExternalCommand
 
     {
+        private const double PRECISION = 0.00000001;
+        private Autodesk.Revit.Creation.Application creApp;
+        private CurveArray profile;
+        // an array of planar lines and arcs that represent the horizontal profile of the floor
+        public CurveArray Profile
+        {
+            get
+            {
+                return profile;
+            }
+            set
+            {
+                profile = value;
+            }
+        }
         //get point for room
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             UIApplication uiapp = commandData.Application;
             UIDocument uidoc = uiapp.ActiveUIDocument;
             Document doc = uidoc.Document;
+            creApp = commandData.Application.Application.Create;
 
             try
             {
@@ -33,14 +51,70 @@ namespace SectionsInRoom
                     ObjectType.Element, new RoomPickFilter(),
                     "Please select room");
 
+                //get Room
+                Element selectedRoom = uidoc.Document.GetElement(pickedRoomReference);
+                
+                Room r1 = (Room)selectedRoom;
+
+                //get boundary segment
+                CurveArray roomsCurves = new CurveArray();
+                SpatialElementBoundaryOptions bo = new SpatialElementBoundaryOptions();
+                IList<IList<BoundarySegment>> segments2 = r1.GetBoundarySegments(bo);
+
+                CurveArray curveArray = new CurveArray();
+
+                if (segments2!=null)
+                {
+                    IList<BoundarySegment> segmentList = segments2[0];
+
+                    foreach (BoundarySegment boundarySegment in segmentList)
+                    {
+                        Curve c = boundarySegment.GetCurve();
+                        curveArray.Append(c);
+                    }
+                    SortCurves(curveArray);
+                }
+
+                BoundingBoxXYZ sectionBox = r1.get_BoundingBox(uidoc.ActiveView);
+
+                ViewFamilyType vft = new FilteredElementCollector(doc)
+                    .OfClass(typeof(ViewFamilyType))
+                    .Cast<ViewFamilyType>()
+                    .FirstOrDefault<ViewFamilyType>(x =>
+                        ViewFamily.Section == x.ViewFamily);
+
+
+
+                using (Transaction tx = new Transaction(doc))
+                {
+                    tx.Start("Create Wall Section View");
+
+                    foreach (var VARIABLE in curveArray)
+                    {
+                        //BoundingBoxXYZ sectionBox2=VARIABLE.
+                        ViewSection.CreateSection(doc, vft.Id, sectionBox);
+                    }
+                    
+                    
+                    tx.Commit();
+
+                }
+
+
+
                 if (null == pickedRoomReference)
                 {
                     return Result.Failed;
                 }
 
-                var g = pickedRoomReference.ElementId.ToString();
+                //get point
+                //var f=pickedRoomReference.GlobalPoint.ToString();
+                
 
-                TaskDialog.Show("Re", $"{g}");
+                //get element id
+                //var g = pickedRoomReference.ElementId.ToString();
+
+                //TaskDialog.Show("Re", $"{f}");
 
 
             }
@@ -55,10 +129,87 @@ namespace SectionsInRoom
         }
 
 
-        //get room
-        //get boundary segment
+
+
         //crate sections 
         //create new sheet and add section 
+
+        public void SortCurves(CurveArray lines)
+        {
+            XYZ pointCurves = lines.get_Item(0).GetEndPoint(1);
+            Curve temCurve = lines.get_Item(0);
+
+            Profile = creApp.NewCurveArray();
+
+            Profile.Append(temCurve);
+
+            while (Profile.Size != lines.Size)
+            {
+
+                temCurve = GetNext(lines, pointCurves, temCurve);
+
+                if (Math.Abs(pointCurves.X - temCurve.GetEndPoint(0).X) < PRECISION
+                 && Math.Abs(pointCurves.Y - temCurve.GetEndPoint(0).Y) < PRECISION)
+                {
+                    pointCurves = temCurve.GetEndPoint(1);
+                }
+                else
+                {
+                    pointCurves = temCurve.GetEndPoint(0);
+                }
+
+                Profile.Append(temCurve);
+            }
+
+        }
+        private Curve GetNext(CurveArray profile, XYZ connected, Curve line)
+        {
+            foreach (Curve c in profile)
+            {
+                if (c.Equals(line))
+                {
+                    continue;
+                }
+                if ((Math.Abs(c.GetEndPoint(0).X - line.GetEndPoint(1).X) < PRECISION &&
+                    Math.Abs(c.GetEndPoint(0).Y - line.GetEndPoint(1).Y) < PRECISION &&
+                    Math.Abs(c.GetEndPoint(0).Z - line.GetEndPoint(1).Z) < PRECISION) &&
+                    (Math.Abs(c.GetEndPoint(1).X - line.GetEndPoint(0).X) < PRECISION &&
+                    Math.Abs(c.GetEndPoint(1).Y - line.GetEndPoint(0).Y) < PRECISION &&
+                    Math.Abs(c.GetEndPoint(1).Z - line.GetEndPoint(0).Z) < PRECISION) &&
+                    2 != profile.Size)
+                {
+                    continue;
+                }
+
+                if (Math.Abs(c.GetEndPoint(0).X - connected.X) < PRECISION &&
+                    Math.Abs(c.GetEndPoint(0).Y - connected.Y) < PRECISION &&
+                    Math.Abs(c.GetEndPoint(0).Z - connected.Z) < PRECISION)
+                {
+                    return c;
+                }
+                else if (Math.Abs(c.GetEndPoint(1).X - connected.X) < PRECISION &&
+                         Math.Abs(c.GetEndPoint(1).Y - connected.Y) < PRECISION &&
+                         Math.Abs(c.GetEndPoint(1).Z - connected.Z) < PRECISION)
+                {
+                    if (c.GetType().Name.Equals("Line"))
+                    {
+                        XYZ start = c.GetEndPoint(1);
+                        XYZ end = c.GetEndPoint(0);
+                        return Line.CreateBound(start, end);
+                    }
+                    else if (c.GetType().Name.Equals("Arc"))
+                    {
+                        int size = c.Tessellate().Count;
+                        XYZ start = c.Tessellate()[0];
+                        XYZ middle = c.Tessellate()[size / 2];
+                        XYZ end = c.Tessellate()[size];
+
+                        return Arc.Create(start, end, middle);
+                    }
+                }
+            }
+            throw new InvalidOperationException("The Room Boundary should be closed.");
+        }
     }
 
     public class RoomPickFilter : ISelectionFilter
@@ -73,4 +224,6 @@ namespace SectionsInRoom
             return false;
         }
     }
+
+    
 }
