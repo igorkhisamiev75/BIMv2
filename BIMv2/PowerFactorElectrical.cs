@@ -25,7 +25,7 @@ namespace BIMv2
             _app = uiApp.Application;
             _doc = uiDoc.Document;
             double forFormul1 = 0.23;
-            double forFormul3 = 0.692;
+            double forFormul3 = 0.66;
             double k;
             //ADSK_Коэффициент мощности = Активная расчетная мощность/0,658/Ток-расчетный
             //ADSK_Коэффициент мощности = Активная расчетная мощность/0,22/Ток-расчетный
@@ -76,7 +76,9 @@ namespace BIMv2
                                             adskFack = 0.99;
                                         }
 
-                                        el.LookupParameter("ADSK_Коэффициент мощности").Set(adskFack);
+                                        string adskFack2 = (Convert.ToString(adskFack)).Replace(",", ".");
+
+                                        el.LookupParameter("ADSK_Коэффициент мощности").Set(adskFack2);
 
                                         i++;
                                     }
