@@ -156,32 +156,27 @@ namespace SectionsInRoom
                 {
                     tx.Start("Create Section for Room");
 
+
                     //foreach (var array in curveArray)
                     //{
                         //var g=curveArray.get_Item(0).GetEndPoint(0);
 
                         //TaskDialog.Show("Re", $"{g}");
 
-                        XYZ p = cvPointCurve.GetEndPoint(0); //first 
-                        XYZ q = cvPointCurve.GetEndPoint(1); //last
-                        XYZ v = q - p; //lenght
+                       // XYZ p = cvPointCurve.GetEndPoint(0); //first 
+                       double lenghtOffset = 2;
+                       var zLength = cvPointCurve.Length;
+                        //XYZ corbelXYZ = new XYZ(1, 1, 1);
+                        //corbelXYZ = firstPoint;
 
-                        double offset = 2;
-                        Transform t = Transform.Identity;
-                        t.Origin = p;
-                        t.BasisX = p;
-                        t.BasisY = p;
-                        t.BasisZ = p.CrossProduct(p);
-                        XYZ corbelXYZ = new XYZ(1, 1, 1);
-                        corbelXYZ = p;
-
-                        Transform rotTransform = Transform.CreateRotationAtPoint(XYZ.BasisY, -Math.PI / 2, corbelXYZ);
+                        Transform rotTransform = Transform.CreateRotationAtPoint(XYZ.BasisY, -Math.PI / 2, firstPoint);
                         
                         BoundingBoxXYZ sectionBox2 = new BoundingBoxXYZ();
                         sectionBox2.Transform = rotTransform;
                         XYZ xMin = new XYZ(0,0,0 );
-                        //xMin = cvPointCurve.GetEndPoint(0);
-                        XYZ xMax = new XYZ(1, 1, 6);
+                        //xMin = firstPoint;
+                        
+                        XYZ xMax = new XYZ(zLength, zLength, lenghtOffset);
                         //xMax = cvPointCurve.GetEndPoint(1);
                         
 
