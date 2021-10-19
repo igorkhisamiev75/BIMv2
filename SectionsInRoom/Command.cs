@@ -51,6 +51,8 @@ namespace SectionsInRoom
                     ObjectType.Element, new RoomPickFilter(),
                     "Please select room");
 
+                XYZ pickedPoint = pickedRoomReference.GlobalPoint;
+
                 //get Room
                 Element selectedRoom = uidoc.Document.GetElement(pickedRoomReference);
                 
@@ -88,10 +90,26 @@ namespace SectionsInRoom
 
                 }
 
+                //search first point 
+                var firstPoint = pointList[0];
+
+                for (int i = 1; i < pointList.Count; i++)
+                {
+                    double lenght1 = Math.Sqrt(Math.Pow((firstPoint.X - pickedPoint.X), 2)
+                                               + Math.Pow((firstPoint.Y - pickedPoint.Y), 2));
+                    double lenght2 = Math.Sqrt(Math.Pow((firstPoint.X - pickedPoint.X), 2) 
+                                               + Math.Pow((firstPoint.Y - pickedPoint.Y), 2));
+
+                }
+
+
+
+
+
                 //TaskDialog.Show("Re", $"{pointList}");
 
 
-                curveArray.get_Item(0).GetEndPoint(0);
+                    curveArray.get_Item(0).GetEndPoint(0);
 
                 //BoundingBoxXYZ sectionBox = r1.get_BoundingBox(uidoc.ActiveView);
 
