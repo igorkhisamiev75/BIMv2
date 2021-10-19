@@ -97,19 +97,23 @@ namespace SectionsInRoom
                 {
                     double lenght1 = Math.Sqrt(Math.Pow((firstPoint.X - pickedPoint.X), 2)
                                                + Math.Pow((firstPoint.Y - pickedPoint.Y), 2));
-                    double lenght2 = Math.Sqrt(Math.Pow((firstPoint.X - pickedPoint.X), 2) 
-                                               + Math.Pow((firstPoint.Y - pickedPoint.Y), 2));
+                    double lenght2 = Math.Sqrt(Math.Pow((pointList[i].X - pickedPoint.X), 2) 
+                                               + Math.Pow((pointList[i].Y - pickedPoint.Y), 2));
+
+                    if (lenght2 < lenght1)
+                    {
+                        firstPoint = pointList[i];
+                    }
 
                 }
 
-
-
-
+                TaskDialog.Show("Первая точка", $"{firstPoint}");
+                
 
                 //TaskDialog.Show("Re", $"{pointList}");
 
 
-                    curveArray.get_Item(0).GetEndPoint(0);
+                curveArray.get_Item(0).GetEndPoint(0);
 
                 //BoundingBoxXYZ sectionBox = r1.get_BoundingBox(uidoc.ActiveView);
 
@@ -133,7 +137,7 @@ namespace SectionsInRoom
                     {
                         var g=curveArray.get_Item(0).GetEndPoint(0);
                         
-                        TaskDialog.Show("Re", $"{g}");
+                        //TaskDialog.Show("Re", $"{g}");
 
                         BoundingBoxXYZ sectionBox2 = new BoundingBoxXYZ();
 
