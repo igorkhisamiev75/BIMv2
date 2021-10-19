@@ -76,16 +76,27 @@ namespace SectionsInRoom
                     SortCurves(curveArray);
                 }
 
-                BoundingBoxXYZ sectionBox = r1.get_BoundingBox(uidoc.ActiveView);
+                var curveArraySize=curveArray.Size;
+
+                var pointList = new List<XYZ>();
+
+                for (int i = 0; i < curveArraySize; i++)
+                {
+                    int g = 0;
+                    var xyzCurve = curveArray.get_Item(i).Tessellate();
+                    pointList.Add(xyzCurve[g]);
+
+                }
+
+                //TaskDialog.Show("Re", $"{pointList}");
+
+
+                curveArray.get_Item(0).GetEndPoint(0);
+
+                //BoundingBoxXYZ sectionBox = r1.get_BoundingBox(uidoc.ActiveView);
 
                 //BoundingBoxXYZ sectionBox2 = new BoundingBoxXYZ();
-                BoundingBoxXYZ sectionBox2 = new BoundingBoxXYZ();
-
-                XYZ xMin = new XYZ(0, 0, 0);
-                XYZ xMax = new XYZ(2, 2, 2);
-
-                sectionBox2.Min = xMin;
-                sectionBox2.Max = xMax;
+                
 
 
                 ViewFamilyType vft = new FilteredElementCollector(doc)
@@ -98,10 +109,22 @@ namespace SectionsInRoom
 
                 using (Transaction tx = new Transaction(doc))
                 {
-                    tx.Start("Create Wall Section View");
+                    tx.Start("Create Section for Room");
 
-                    foreach (var VARIABLE in curveArray)
+                    foreach (var array in curveArray)
                     {
+                        var g=curveArray.get_Item(0).GetEndPoint(0);
+                        
+                        TaskDialog.Show("Re", $"{g}");
+
+                        BoundingBoxXYZ sectionBox2 = new BoundingBoxXYZ();
+
+                        XYZ xMin = new XYZ(0,0,0 );
+                        XYZ xMax = new XYZ(2, 2, 2);
+
+                        sectionBox2.Min = xMin;
+                        sectionBox2.Max = xMax;
+
                         ViewSection.CreateSection(doc, vft.Id, sectionBox2);
                     }
                     
