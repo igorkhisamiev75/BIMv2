@@ -114,9 +114,9 @@ namespace SectionsInRoom
                 //get curve
                 for (int i = 1; i < curveArray.Size; i++)
                 {
-                    var pointCurve = curveArray.get_Item(i).Tessellate()[0];
+                    XYZ pointCurve = curveArray.get_Item(i).Tessellate()[0];
 
-                    if (firstPoint.X == pointCurve.X&& firstPoint.Y == pointCurve.Y)
+                    if (firstPoint.X == pointCurve.X && firstPoint.Y == pointCurve.Y)
                     {
                         //TaskDialog.Show("Curve", $"{i}");
                         cvPointCurve = curveArray.get_Item(i);
@@ -127,7 +127,8 @@ namespace SectionsInRoom
 
 
 
-                TaskDialog.Show("Кривая", $"{cvPointCurve.GetEndPoint(0)}");
+
+                //TaskDialog.Show("Кривая", $"{cvPointCurve.GetEndPoint(0)}");
 
                 //TaskDialog.Show("Первая точка", $"{firstPoint}");
                 
@@ -155,22 +156,41 @@ namespace SectionsInRoom
                 {
                     tx.Start("Create Section for Room");
 
-                    foreach (var array in curveArray)
-                    {
-                        var g=curveArray.get_Item(0).GetEndPoint(0);
-                        
+                    //foreach (var array in curveArray)
+                    //{
+                        //var g=curveArray.get_Item(0).GetEndPoint(0);
+
                         //TaskDialog.Show("Re", $"{g}");
 
-                        BoundingBoxXYZ sectionBox2 = new BoundingBoxXYZ();
+                        XYZ p = cvPointCurve.GetEndPoint(0); //first 
+                        XYZ q = cvPointCurve.GetEndPoint(1); //last
+                        XYZ v = q - p; //lenght
 
+                        double offset = 2;
+                        Transform t = Transform.Identity;
+                        t.Origin = p;
+                        t.BasisX = p;
+                        t.BasisY = p;
+                        t.BasisZ = p.CrossProduct(p);
+                        XYZ corbelXYZ = new XYZ(1, 1, 1);
+                        corbelXYZ = p;
+
+                        Transform rotTransform = Transform.CreateRotationAtPoint(XYZ.BasisY, -Math.PI / 2, corbelXYZ);
+                        
+                        BoundingBoxXYZ sectionBox2 = new BoundingBoxXYZ();
+                        sectionBox2.Transform = rotTransform;
                         XYZ xMin = new XYZ(0,0,0 );
-                        XYZ xMax = new XYZ(2, 2, 2);
+                        //xMin = cvPointCurve.GetEndPoint(0);
+                        XYZ xMax = new XYZ(1, 1, 6);
+                        //xMax = cvPointCurve.GetEndPoint(1);
+                        
 
                         sectionBox2.Min = xMin;
                         sectionBox2.Max = xMax;
+                        //sectionBox2.Transform = t;
 
-                        //ViewSection.CreateSection(doc, vft.Id, sectionBox2);
-                    }
+                        ViewSection.CreateSection(doc, vft.Id, sectionBox2);
+                    //}
                     
                     
                     tx.Commit();
