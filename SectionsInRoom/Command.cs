@@ -91,7 +91,7 @@ namespace SectionsInRoom
                 }
 
                 //search first point 
-                var firstPoint = pointList[0];
+                XYZ firstPoint = pointList[0];
 
                 for (int i = 1; i < pointList.Count; i++)
                 {
@@ -107,7 +107,29 @@ namespace SectionsInRoom
 
                 }
 
-                TaskDialog.Show("Первая точка", $"{firstPoint}");
+                //var l = GetCurveOfPoint(firstPoint, curveArray);
+
+                Curve cvPointCurve = curveArray.get_Item(0);
+
+                //get curve
+                for (int i = 1; i < curveArray.Size; i++)
+                {
+                    var pointCurve = curveArray.get_Item(i).Tessellate()[0];
+
+                    if (firstPoint.X == pointCurve.X&& firstPoint.Y == pointCurve.Y)
+                    {
+                        //TaskDialog.Show("Curve", $"{i}");
+                        cvPointCurve = curveArray.get_Item(i);
+                    }
+
+                }
+
+
+
+
+                TaskDialog.Show("Кривая", $"{cvPointCurve.GetEndPoint(0)}");
+
+                //TaskDialog.Show("Первая точка", $"{firstPoint}");
                 
 
                 //TaskDialog.Show("Re", $"{pointList}");
@@ -147,7 +169,7 @@ namespace SectionsInRoom
                         sectionBox2.Min = xMin;
                         sectionBox2.Max = xMax;
 
-                        ViewSection.CreateSection(doc, vft.Id, sectionBox2);
+                        //ViewSection.CreateSection(doc, vft.Id, sectionBox2);
                     }
                     
                     
@@ -265,6 +287,28 @@ namespace SectionsInRoom
             }
             throw new InvalidOperationException("The Room Boundary should be closed.");
         }
+
+        public Curve GetCurveOfPoint(XYZ point, CurveArray curveArray)
+        {
+            var p = point;
+            
+            //curveOfPoint = curveArray.get_Item(0);
+
+            for (int i = 0; i < curveArray.Size; i++)
+            {
+                Curve cv = curveArray.get_Item(0);
+                if (p == curveArray.get_Item(i).Tessellate())
+                {
+                     cv = curveArray.get_Item(i);
+                     return cv;
+                }
+                
+            }
+
+            return null;
+
+        }
+
     }
 
     public class RoomPickFilter : ISelectionFilter
@@ -279,6 +323,8 @@ namespace SectionsInRoom
             return false;
         }
     }
+
+    
 
     
 }
