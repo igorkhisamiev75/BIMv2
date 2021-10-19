@@ -184,6 +184,7 @@ namespace SectionsInRoom
                         sectionBox2.Max = xMax;
                         //sectionBox2.Transform = t;
 
+                        //crate sections 
                         ViewSection.CreateSection(doc, vft.Id, sectionBox2);
                     //}
                     
@@ -223,7 +224,7 @@ namespace SectionsInRoom
 
 
 
-        //crate sections 
+        
         //create new sheet and add section 
 
         public void SortCurves(CurveArray lines)
