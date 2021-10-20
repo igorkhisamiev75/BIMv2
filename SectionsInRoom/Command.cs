@@ -65,6 +65,8 @@ namespace SectionsInRoom
                 CurveArray roomsCurves = new CurveArray();
                 SpatialElementBoundaryOptions bo = new SpatialElementBoundaryOptions();
 
+                bo.SpatialElementBoundaryLocation = SpatialElementBoundaryLocation.Center;
+
                 IList<IList<BoundarySegment>> segments2 = r1.GetBoundarySegments(bo);
 
                 CurveArray curveArray = new CurveArray();
@@ -215,7 +217,7 @@ namespace SectionsInRoom
                         //sectionBox2.Transform = t;
 
                         //crate sections 
-                        //ViewSection.CreateSection(doc, vft.Id, sectionBox2);
+                        ViewSection.CreateSection(doc, vft.Id, sectionBox2);
                     //}
                     
                     
