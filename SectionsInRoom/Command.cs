@@ -45,7 +45,7 @@ namespace SectionsInRoom
             {
                 Selection selection = uidoc.Selection;
 
-                // Pick a light fixture.
+                // Pick a point in room.
 
                 Reference pickedRoomReference = selection.PickObject(
                     ObjectType.Element, new RoomPickFilter(),
@@ -68,6 +68,8 @@ namespace SectionsInRoom
                 IList<IList<BoundarySegment>> segments2 = r1.GetBoundarySegments(bo);
 
                 CurveArray curveArray = new CurveArray();
+                List<Curve> curves = new List<Curve>();
+                CurveLoop curveLoop = new CurveLoop();
 
                 if (segments2!=null)
                 {
@@ -77,10 +79,35 @@ namespace SectionsInRoom
                     {
                         Curve c = boundarySegment.GetCurve();
                         curveArray.Append(c);
+                        curves.Add(c);
                     }
-                    SortCurves(curveArray);
+                    //SortCurves(curveArray);
                 }
 
+                var f=curves[0].Project(pickedPoint).UVPoint;
+
+                TaskDialog.Show("Curve", $"{curves}");
+
+
+                //foreach (var VARIABLE in curves)
+                //{
+                //    VARIABLE.
+                //}
+
+                //foreach (Curve VARIABLE in curveArray)
+                //{
+                //    var g = VARIABLE.Length.ToString();
+                //    TaskDialog.Show("Curve", $"{g}");
+                //}
+
+
+                //curveArray.ForwardIterator();
+
+                //foreach (Curve VARIABLE in curveArray)
+                //{
+                //    var g = VARIABLE.Length.ToString();
+                //    TaskDialog.Show("Curve", $"{g}");
+                //}
                 var curveArraySize=curveArray.Size;
 
                 var pointList = new List<XYZ>();
@@ -188,7 +215,7 @@ namespace SectionsInRoom
                         //sectionBox2.Transform = t;
 
                         //crate sections 
-                        ViewSection.CreateSection(doc, vft.Id, sectionBox2);
+                        //ViewSection.CreateSection(doc, vft.Id, sectionBox2);
                     //}
                     
                     
