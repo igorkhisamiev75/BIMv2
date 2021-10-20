@@ -57,6 +57,9 @@ namespace SectionsInRoom
                 Element selectedRoom = uidoc.Document.GetElement(pickedRoomReference);
                 
                 Room r1 = (Room)selectedRoom;
+                var areaRoom = r1.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble();
+                var volumeRoom = r1.get_Parameter(BuiltInParameter.ROOM_VOLUME).AsDouble();
+                var heighRoom = volumeRoom / areaRoom;
 
                 //get boundary segment
                 CurveArray roomsCurves = new CurveArray();
@@ -136,7 +139,7 @@ namespace SectionsInRoom
                 //TaskDialog.Show("Re", $"{pointList}");
 
 
-                curveArray.get_Item(0).GetEndPoint(0);
+                //curveArray.get_Item(0).GetEndPoint(0);
 
                 //BoundingBoxXYZ sectionBox = r1.get_BoundingBox(uidoc.ActiveView);
 
@@ -164,7 +167,7 @@ namespace SectionsInRoom
                         //TaskDialog.Show("Re", $"{g}");
 
                        // XYZ p = cvPointCurve.GetEndPoint(0); //first 
-                       double lenghtOffset = 2;
+                       double lenghtOffset = heighRoom;
                        var zLength = cvPointCurve.Length;
                         //XYZ corbelXYZ = new XYZ(1, 1, 1);
                         //corbelXYZ = firstPoint;
@@ -172,15 +175,15 @@ namespace SectionsInRoom
                         Transform rotTransform = Transform.CreateRotationAtPoint(XYZ.BasisY, -Math.PI / 2, firstPoint);
                         
                         BoundingBoxXYZ sectionBox2 = new BoundingBoxXYZ();
-                        sectionBox2.Transform = rotTransform;
+                        
                         XYZ xMin = new XYZ(0,0,0 );
                         //xMin = firstPoint;
                         
                         XYZ xMax = new XYZ(zLength, zLength, lenghtOffset);
-                        //xMax = cvPointCurve.GetEndPoint(1);
-                        
+                    //xMax = cvPointCurve.GetEndPoint(1);
 
-                        sectionBox2.Min = xMin;
+                    sectionBox2.Transform = rotTransform;
+                    sectionBox2.Min = xMin;
                         sectionBox2.Max = xMax;
                         //sectionBox2.Transform = t;
 
