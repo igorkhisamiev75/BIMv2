@@ -88,6 +88,8 @@ namespace SectionsInRoom
                     SortCurves(curveArray);
                 }
 
+                curves.Reverse();
+
                 foreach (Curve curve in curves)
                 {
                     var g = curve.Tessellate(); // get list point
