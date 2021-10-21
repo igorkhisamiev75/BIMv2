@@ -65,17 +65,19 @@ namespace SectionsInRoom
                 CurveArray roomsCurves = new CurveArray();
                 SpatialElementBoundaryOptions bo = new SpatialElementBoundaryOptions();
 
-                bo.SpatialElementBoundaryLocation = SpatialElementBoundaryLocation.Center;
+                //bo.SpatialElementBoundaryLocation = SpatialElementBoundaryLocation.Center;
 
-                IList<IList<BoundarySegment>> segments2 = r1.GetBoundarySegments(bo);
+                IList<IList<BoundarySegment>> loops = r1.GetBoundarySegments(bo);
+
+                int nLoops = loops.Count;
 
                 CurveArray curveArray = new CurveArray();
                 List<Curve> curves = new List<Curve>();
                 CurveLoop curveLoop = new CurveLoop();
 
-                if (segments2!=null)
+                if (loops!=null)
                 {
-                    IList<BoundarySegment> segmentList = segments2[0];
+                    IList<BoundarySegment> segmentList = loops[0]; 
 
                     foreach (BoundarySegment boundarySegment in segmentList)
                     {
@@ -83,8 +85,10 @@ namespace SectionsInRoom
                         curveArray.Append(c);
                         curves.Add(c);
                     }
-                    //SortCurves(curveArray);
+                    SortCurves(curveArray);
                 }
+
+                
 
                 var f=curves[0].Project(pickedPoint).UVPoint;
 
