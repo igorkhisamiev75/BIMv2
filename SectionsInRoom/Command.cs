@@ -88,11 +88,22 @@ namespace SectionsInRoom
                     SortCurves(curveArray);
                 }
 
-                
+                foreach (Curve curve in curves)
+                {
+                    var g = curve.Tessellate();
+
+                    TaskDialog.Show("Curve", $"{curve}");
+
+                    foreach (XYZ pointXyz in g)
+                    {
+                        TaskDialog.Show("Point", $"{pointXyz}");
+                    }
+ 
+                }
 
                 var f=curves[0].Project(pickedPoint).UVPoint;
 
-                TaskDialog.Show("Curve", $"{curves}");
+                //TaskDialog.Show("Curve", $"{curves}");
 
 
                 //foreach (var VARIABLE in curves)
@@ -221,7 +232,7 @@ namespace SectionsInRoom
                         //sectionBox2.Transform = t;
 
                         //crate sections 
-                        ViewSection.CreateSection(doc, vft.Id, sectionBox2);
+                        //ViewSection.CreateSection(doc, vft.Id, sectionBox2);
                     //}
                     
                     
