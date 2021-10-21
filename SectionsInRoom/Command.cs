@@ -90,13 +90,23 @@ namespace SectionsInRoom
 
                 foreach (Curve curve in curves)
                 {
-                    var g = curve.Tessellate();
-
-                    TaskDialog.Show("Curve", $"{curve}");
+                    var g = curve.Tessellate(); // get list point
+                    var k = g.Count; //count point in curve
+                    TaskDialog.Show("Curve", $"{curve.Length}");
 
                     foreach (XYZ pointXyz in g)
                     {
-                        TaskDialog.Show("Point", $"{pointXyz}");
+                        if (g.Count <= 2)
+                        {
+                            TaskDialog.Show("Point", $"{pointXyz}");
+                        }
+                        else
+                        {
+                            TaskDialog.Show("Point", $"{g[0]}");
+                            TaskDialog.Show("Point", $"{g[k-1]}");
+                            break;
+                        }
+                        
                     }
  
                 }
