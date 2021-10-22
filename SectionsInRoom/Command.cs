@@ -56,9 +56,9 @@ namespace SectionsInRoom
                 //get Room
                 Element selectedRoom = uidoc.Document.GetElement(pickedRoomReference);
                 
-                Room r1 = (Room)selectedRoom;
-                var areaRoom = r1.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble();
-                var volumeRoom = r1.get_Parameter(BuiltInParameter.ROOM_VOLUME).AsDouble();
+                Room room = (Room)selectedRoom;
+                var areaRoom = room.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble();
+                var volumeRoom = room.get_Parameter(BuiltInParameter.ROOM_VOLUME).AsDouble();
                 var heighRoom = volumeRoom / areaRoom;
 
                 //get boundary segment
@@ -67,7 +67,7 @@ namespace SectionsInRoom
 
                 //bo.SpatialElementBoundaryLocation = SpatialElementBoundaryLocation.Center;
 
-                IList<IList<BoundarySegment>> loops = r1.GetBoundarySegments(bo);
+                IList<IList<BoundarySegment>> loops = room.GetBoundarySegments(bo);
 
                 int nLoops = loops.Count;
 
@@ -81,6 +81,7 @@ namespace SectionsInRoom
 
                     foreach (BoundarySegment boundarySegment in segmentList)
                     {
+                        
                         Curve c = boundarySegment.GetCurve();
                         curveArray.Append(c);
                         curves.Add(c);
@@ -90,30 +91,31 @@ namespace SectionsInRoom
 
                 curves.Reverse();
 
-                foreach (Curve curve in curves)
-                {
-                    var g = curve.Tessellate(); // get list point
-                    var k = g.Count; //count point in curve
-                    TaskDialog.Show("Curve", $"{curve.Length}");
+                //foreach (Curve curve in curves)
+                //{
+                //    var g = curve.Tessellate(); // get list point
+                    
+                //    var k = g.Count; //count point in curve
+                //    TaskDialog.Show("Curve", $"{curve.Length}");
 
-                    foreach (XYZ pointXyz in g)
-                    {
-                        if (g.Count <= 2)
-                        {
-                            TaskDialog.Show("Point", $"{pointXyz}");
-                        }
-                        else
-                        {
-                            TaskDialog.Show("Point", $"{g[0]}");
-                            TaskDialog.Show("Point", $"{g[k-1]}");
-                            break;
-                        }
+                //    foreach (XYZ pointXyz in g)
+                //    {
+                //        if (g.Count == 2)
+                //        {
+                //            TaskDialog.Show("Point", $"{pointXyz}");
+                //        }
+                //        else
+                //        {
+                //            TaskDialog.Show("Point", $"{g[0]}");
+                //            TaskDialog.Show("Point", $"{g[k-1]}");
+                //            break;
+                //        }
                         
-                    }
+                //    }
  
-                }
+                //}
 
-                var f=curves[0].Project(pickedPoint).UVPoint;
+                //var f=curves[0].Project(pickedPoint).UVPoint;
 
                 //TaskDialog.Show("Curve", $"{curves}");
 
@@ -183,26 +185,6 @@ namespace SectionsInRoom
 
                 }
 
-
-
-
-
-                //TaskDialog.Show("Кривая", $"{cvPointCurve.GetEndPoint(0)}");
-
-                //TaskDialog.Show("Первая точка", $"{firstPoint}");
-                
-
-                //TaskDialog.Show("Re", $"{pointList}");
-
-
-                //curveArray.get_Item(0).GetEndPoint(0);
-
-                //BoundingBoxXYZ sectionBox = r1.get_BoundingBox(uidoc.ActiveView);
-
-                //BoundingBoxXYZ sectionBox2 = new BoundingBoxXYZ();
-                
-
-
                 ViewFamilyType vft = new FilteredElementCollector(doc)
                     .OfClass(typeof(ViewFamilyType))
                     .Cast<ViewFamilyType>()
@@ -215,39 +197,103 @@ namespace SectionsInRoom
                 {
                     tx.Start("Create Section for Room");
 
+                    double ofset = 2; //ofset for sections
 
                     //foreach (var array in curveArray)
                     //{
-                        //var g=curveArray.get_Item(0).GetEndPoint(0);
+                    //var g=curveArray.get_Item(0).GetEndPoint(0);
 
-                        //TaskDialog.Show("Re", $"{g}");
+                    //TaskDialog.Show("Re", $"{g}");
 
-                       // XYZ p = cvPointCurve.GetEndPoint(0); //first 
-                       double lenghtOffset = heighRoom;
-                       var zLength = cvPointCurve.Length;
+                    // XYZ p = cvPointCurve.GetEndPoint(0); //first 
+
+                    double lenghtOffset = heighRoom; //height
+                    var zLength = cvPointCurve.Length;
                         //XYZ corbelXYZ = new XYZ(1, 1, 1);
                         //corbelXYZ = firstPoint;
 
-                        Transform rotTransform = Transform.CreateRotationAtPoint(XYZ.BasisY, -Math.PI / 2, firstPoint);
+                    //Transform rotTransform = Transform.CreateRotationAtPoint(XYZ.BasisY, -Math.PI / 2, firstPoint);
                         
-                        BoundingBoxXYZ sectionBox2 = new BoundingBoxXYZ();
+                    
                         
-                        XYZ xMin = new XYZ(0,0,0 );
+                    XYZ xMin = new XYZ(0,0,0 );
                         //xMin = firstPoint;
                         
-                        XYZ xMax = new XYZ(zLength, zLength, lenghtOffset);
+                    XYZ xMax = new XYZ(zLength, zLength, lenghtOffset);
                     //xMax = cvPointCurve.GetEndPoint(1);
 
-                    sectionBox2.Transform = rotTransform;
-                    sectionBox2.Min = xMin;
-                        sectionBox2.Max = xMax;
-                        //sectionBox2.Transform = t;
+                    //sectionBox.Transform = rotTransform;
+                    //sectionBox.Min = xMin;
+                    //    sectionBox.Max = xMax;
+                    //sectionBox2.Transform = t;
 
-                        //crate sections 
-                        //ViewSection.CreateSection(doc, vft.Id, sectionBox2);
+                    //crate sections 
+                    //ViewSection.CreateSection(doc, vft.Id, sectionBox2);
+
+
                     //}
-                    
-                    
+
+                    foreach (Curve curve in curves)
+                    {
+                        var g = curve.Tessellate(); // get list point
+
+                        
+
+                        var k = g.Count; //count point in curve
+                        TaskDialog.Show("Curve", $"{curve.Length}");
+
+                        foreach (XYZ pointXyz in g)
+                        {
+                            if (g.Count == 2)
+                            {
+                                XYZ p = new XYZ(ofset, g[1].Y, g[1].Z);
+                                XYZ q = new XYZ(-ofset, g[0].Y, heighRoom);
+                                XYZ v = q - p;
+
+                                //BoundingBoxXYZ sectionBox = new BoundingBoxXYZ();
+                                double minZ = (room.Location as LocationPoint).Point.Z;
+                                double maxZ = heighRoom;
+
+                                double w = v.GetLength();
+                                double h = maxZ - minZ;
+                                double d = ofset;
+                                double offset = 0.1 * w;
+
+                                XYZ min = new XYZ(-w, minZ - offset, -offset);
+                                XYZ max = new XYZ(w, maxZ + offset, 0);
+
+                                XYZ midpoint = p + 0.5 * v;
+                                XYZ walldir = v.Normalize();
+
+                                XYZ up = XYZ.BasisZ;
+                                XYZ viewdir = walldir.CrossProduct(up);
+
+                                Transform t = Transform.Identity;
+                                t.Origin = midpoint;
+                                t.BasisX = walldir;
+                                t.BasisY = up;
+                                t.BasisZ = viewdir;
+
+                                BoundingBoxXYZ sectionBox = new BoundingBoxXYZ();
+                                sectionBox.Transform = t;
+                                sectionBox.Min = min;
+                                sectionBox.Max = max;
+
+                                ViewSection.CreateSection(doc, vft.Id, sectionBox);
+                                //break;
+                            }
+                            else
+                            {//if Arc
+                                //TaskDialog.Show("Point", $"{g[0]}");
+                                //TaskDialog.Show("Point", $"{g[k - 1]}");
+                                //break;
+                            }
+
+                        }
+
+                    }
+
+
                     tx.Commit();
 
                 }
