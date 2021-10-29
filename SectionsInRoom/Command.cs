@@ -227,6 +227,7 @@ namespace SectionsInRoom
                     //    sectionBox.Max = xMax;
                     //sectionBox2.Transform = t;
 
+
                     //crate sections 
                     //ViewSection.CreateSection(doc, vft.Id, sectionBox2);
 
