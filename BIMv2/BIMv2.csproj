@@ -58,6 +58,7 @@
     <Compile Include="CreateAnyElementsInRooms.cs" />
     <Compile Include="CreateLightingInRoom.cs" />
     <Compile Include="CreateModelText.cs" />
+    <Compile Include="CreateViewForLevels.cs" />
     <Compile Include="GetRoomNameForSelectElement.cs" />
     <Compile Include="HelpBIM.cs" />
     <Compile Include="PowerFactorElectrical.cs" />
