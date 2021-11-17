@@ -231,7 +231,6 @@ namespace SectionsInRoom
                     //crate sections 
                     //ViewSection.CreateSection(doc, vft.Id, sectionBox2);
 
-
                     //}
 
                     foreach (Curve curve in curves)
