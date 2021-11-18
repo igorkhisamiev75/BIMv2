@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
-using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
-using Autodesk.Revit.UI.Selection;
+
 
 namespace BIMv2
 {
@@ -48,26 +45,29 @@ namespace BIMv2
         }
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            
             var uiApp = commandData.Application;
             var uiDoc = uiApp.ActiveUIDocument;
             _app = uiApp.Application;
             _doc = uiDoc.Document;
+
             XYZ eye = XYZ.Zero;
 
             XYZ forward = VectorFromHorizVertAngles(angleHorizD, angleVertD);
 
-            XYZ up = VectorFromHorizVertAngles(
-                angleHorizD, angleVertD + 90);
+            XYZ up = VectorFromHorizVertAngles(angleHorizD, angleVertD + 90);
 
-            ViewOrientation3D viewOrientation3D
-                = new ViewOrientation3D(eye, up, forward);
+            ViewOrientation3D viewOrientation3D = new ViewOrientation3D(eye, up, forward);
+
+            FilteredElementCollector collector = new FilteredElementCollector(_doc);
+
+            collector.OfClass(typeof(ViewPlan));
+
+            List<ViewPlan> ViewPlans = collector.Cast<ViewPlan>().ToList();
 
             using (var t = new Transaction(_doc))
             {
                 t.Start("Create");
-                ViewFamilyType viewFamilyType3D
-                    = new FilteredElementCollector(_doc)
+                ViewFamilyType viewFamilyType3D = new FilteredElementCollector(_doc)
                         .OfClass(typeof(ViewFamilyType))
                         .Cast<ViewFamilyType>()
                         .FirstOrDefault<ViewFamilyType>(
@@ -78,7 +78,13 @@ namespace BIMv2
 
                 //view3d.SetOrientation(viewOrientation3D);
 
-                TaskDialog.Show("Complite!", "Размещено  элементов");
+                BoundingBoxXYZ b = ViewPlans[0].get_BoundingBox(null);
+
+                ViewPlans[0].CropBox
+
+                view3d.SetSectionBox(b);
+
+                TaskDialog.Show("Complite!", "Созданы 3D виды");
                 t.Commit();
 
             }
