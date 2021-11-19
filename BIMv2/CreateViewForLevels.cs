@@ -14,35 +14,7 @@ namespace BIMv2
     {
         private Application _app;
         private Document _doc;
-        /// <summary>
-        /// The angle in the XY plane (azimuth),
-        /// typically 0 to 360.
-        /// </summary>
-        double angleHorizD;
 
-        /// <summary>
-        /// The vertical tilt (altitude),
-        /// typically -90 to 90.
-        /// </summary>
-        double angleVertD;
-
-        public XYZ VectorFromHorizVertAngles(double angleHorizD, double angleVertD)
-        {
-            // Convert degreess to radians.
-
-            double degToRadian = Math.PI * 2 / 360;
-            double angleHorizR = angleHorizD * degToRadian;
-            double angleVertR = angleVertD * degToRadian;
-
-            // Return unit vector in 3D
-
-            double a = Math.Cos(angleVertR);
-            double b = Math.Cos(angleHorizR);
-            double c = Math.Sin(angleHorizR);
-            double d = Math.Sin(angleVertR);
-
-            return new XYZ(a * b, a * c, d);
-        }
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             var uiApp = commandData.Application;
@@ -50,46 +22,71 @@ namespace BIMv2
             _app = uiApp.Application;
             _doc = uiDoc.Document;
 
-            XYZ eye = XYZ.Zero;
+            // get list of all levels
+            IList<Level> levels = new FilteredElementCollector(_doc).OfClass(typeof(Level)).Cast<Level>()
+                .OrderBy(l => l.Elevation).ToList();
 
-            XYZ forward = VectorFromHorizVertAngles(angleHorizD, angleVertD);
+            // get a ViewFamilyType for a 3D View
+            ViewFamilyType viewFamilyType =
+                (from v in new FilteredElementCollector(_doc).OfClass(typeof(ViewFamilyType)).Cast<ViewFamilyType>()
+                    where v.ViewFamily == ViewFamily.ThreeDimensional
+                    select v).First();
 
-            XYZ up = VectorFromHorizVertAngles(angleHorizD, angleVertD + 90);
-
-            ViewOrientation3D viewOrientation3D = new ViewOrientation3D(eye, up, forward);
-
-            FilteredElementCollector collector = new FilteredElementCollector(_doc);
-
-            collector.OfClass(typeof(ViewPlan));
-
-            List<ViewPlan> ViewPlans = collector.Cast<ViewPlan>().ToList();
-
-            using (var t = new Transaction(_doc))
+            using (Transaction t = new Transaction(_doc, "Create view"))
             {
-                t.Start("Create");
-                ViewFamilyType viewFamilyType3D = new FilteredElementCollector(_doc)
-                        .OfClass(typeof(ViewFamilyType))
-                        .Cast<ViewFamilyType>()
-                        .FirstOrDefault<ViewFamilyType>(
-                            x => ViewFamily.ThreeDimensional
-                                 == x.ViewFamily);
+                int ctr = 0;
+                // loop through all levels
+                foreach (Level level in levels)
+                {
+                    t.Start();
 
-                View3D view3d = View3D.CreateIsometric(_doc, viewFamilyType3D.Id);
+                    // Create the 3d view
+                    View3D view = View3D.CreateIsometric(_doc, viewFamilyType.Id);
 
-                //view3d.SetOrientation(viewOrientation3D);
+                    // Set the name of the view
+                    view.Name = level.Name + " 3D вид";
 
-                BoundingBoxXYZ b = ViewPlans[0].get_BoundingBox(null);
+                    // Set the name of the transaction
+                    // A transaction can be renamed after it has been started
+                    t.SetName("Create view " + view.Name);
 
-                ViewPlans[0].CropBox
+                    // Create a new BoundingBoxXYZ to define a 3D rectangular space
+                    BoundingBoxXYZ boundingBoxXYZ = new BoundingBoxXYZ();
 
-                view3d.SetSectionBox(b);
+                    // Set the lower left bottom corner of the box
+                    // Use the Z of the current level.
+                    // X & Y values have been hardcoded based on this RVT geometry
+                    boundingBoxXYZ.Min = new XYZ(-50, -100, level.Elevation);
 
-                TaskDialog.Show("Complite!", "Созданы 3D виды");
-                t.Commit();
+                    // Determine the height of the bounding box
+                    double zOffset = 0;
+                    // If there is another level above this one, use the elevation of that level
+                    if (levels.Count > ctr + 1)
+                        zOffset = levels.ElementAt(ctr + 1).Elevation;
+                    // If this is the top level, use an offset of 10 feet
+                    else
+                        zOffset = level.Elevation + 10;
+                    boundingBoxXYZ.Max = new XYZ(200, 125, zOffset);
+
+                    // Apply this bouding box to the view's section box
+
+                    view.SetSectionBox(boundingBoxXYZ);
+                    //view.CropBox = boundingBoxXYZ;
+
+                    t.Commit();
+
+                    // Open the just-created view
+                    // There cannot be an open transaction when the active view is set
+                    uiDoc.ActiveView = view;
+
+                    ctr++;
+
+                }
+
+                return Result.Succeeded;
 
             }
-
-            return Result.Succeeded;
         }
     }
 }
+
