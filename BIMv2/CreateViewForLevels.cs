@@ -23,6 +23,7 @@ namespace BIMv2
             _doc = uiDoc.Document;
             ViewSet m_allViews = new ViewSet();
 
+            // get list of all ViewPlan
             FilteredElementCollector collector = new FilteredElementCollector(_doc);
             FilteredElementIterator itor = collector.OfClass(typeof(ViewPlan)).GetElementIterator();
             itor.Reset();
@@ -51,7 +52,7 @@ namespace BIMv2
             }
 
 
-            // get list of all type ViewPlan
+            
 
             var viewTypeView = new FilteredElementCollector(_doc).OfClass(typeof(ViewPlan)).Cast<ViewPlan>()
                 .OrderBy(n=>n.Name).ToList();

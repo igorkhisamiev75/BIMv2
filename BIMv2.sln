@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateElementsInRooms", "Cr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SectionsInRoom", "SectionsInRoom\SectionsInRoom.csproj", "{46514DC1-4AA8-4374-A85F-4ED0BFADFE12}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Create3DViewFromViewPlanWPF", "Create3DViewFromViewPlanWPF\Create3DViewFromViewPlanWPF.csproj", "{35AEE29A-5C8C-4594-B1AE-B83041F83D68}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{46514DC1-4AA8-4374-A85F-4ED0BFADFE12}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{46514DC1-4AA8-4374-A85F-4ED0BFADFE12}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{46514DC1-4AA8-4374-A85F-4ED0BFADFE12}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35AEE29A-5C8C-4594-B1AE-B83041F83D68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35AEE29A-5C8C-4594-B1AE-B83041F83D68}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35AEE29A-5C8C-4594-B1AE-B83041F83D68}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35AEE29A-5C8C-4594-B1AE-B83041F83D68}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

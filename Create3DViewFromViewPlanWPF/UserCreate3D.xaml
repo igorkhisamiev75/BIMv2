@@ -1,0 +1,25 @@
+﻿<Window x:Class="Create3DViewFromViewPlanWPF.UserCreate3D"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Create3DViewFromViewPlanWPF"
+             mc:Ignorable="d" Height="560.571" Width="640.571">
+    <Grid>
+        <RadioButton Content="RadioButton" HorizontalAlignment="Left" Margin="57,389,0,0" VerticalAlignment="Top"/>
+        <DataGrid HorizontalAlignment="Left" 
+                  Height="334" 
+                  Margin="22,30,0,0" 
+                  VerticalAlignment="Top" 
+                  Width="335">
+            <DataGrid.Columns>
+                <DataGridTextColumn Binding="{x:Null}" ClipboardContentBinding="{x:Null}"/>
+                <DataGridCheckBoxColumn Binding="{x:Null}" ClipboardContentBinding="{x:Null}"/>
+            </DataGrid.Columns>
+        </DataGrid>
+        <Button Content="OK" HorizontalAlignment="Left" Margin="409,44,0,0" VerticalAlignment="Top" Width="162" Height="44"/>
+        <Button Content="EXIT" HorizontalAlignment="Left" Margin="409,111,0,0" VerticalAlignment="Top" Width="162" Height="46"/>
+        <RadioButton Content="RadioButton" HorizontalAlignment="Left" Margin="176,389,0,0" VerticalAlignment="Top"/>
+
+    </Grid>
+</Window>
