@@ -21,6 +21,35 @@ namespace BIMv2
             var uiDoc = uiApp.ActiveUIDocument;
             _app = uiApp.Application;
             _doc = uiDoc.Document;
+            ViewSet m_allViews = new ViewSet();
+
+            FilteredElementCollector collector = new FilteredElementCollector(_doc);
+            FilteredElementIterator itor = collector.OfClass(typeof(ViewPlan)).GetElementIterator();
+            itor.Reset();
+            while (itor.MoveNext())
+            {
+                ViewPlan view = itor.Current as ViewPlan;
+                // skip view templates because they're invisible in project browser
+                if (null == view || view.IsTemplate)
+                {
+                    continue;
+                }
+                else
+                {
+                    ElementType objType = _doc.GetElement(view.GetTypeId()) as ElementType;
+                    if (null == objType || objType.Name.Equals("Schedule")
+                                        || objType.Name.Equals("Drawing Sheet"))
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        m_allViews.Insert(view);
+                        //AssortViews(view.Name, objType.Name);
+                    }
+                }
+            }
+
 
             // get list of all type ViewPlan
 
