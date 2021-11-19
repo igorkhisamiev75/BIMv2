@@ -22,6 +22,25 @@ namespace BIMv2
             _app = uiApp.Application;
             _doc = uiDoc.Document;
 
+            // get list of all type ViewPlan
+
+            var viewTypeView = new FilteredElementCollector(_doc).OfClass(typeof(ViewPlan)).Cast<ViewPlan>()
+                .OrderBy(n=>n.Name).ToList();
+
+            FilteredElementCollector filteredElementCollector = new FilteredElementCollector(_doc)
+                    .WhereElementIsNotElementType()
+                    .OfClass(typeof(ViewPlan));
+            IEnumerable<ViewPlan> viewPlans = filteredElementCollector.Where(v => null != v.Name).Cast<ViewPlan>();
+
+
+
+            var elementCollector = new FilteredElementCollector(_doc)
+                .OfCategory(BuiltInCategory.OST_Views)
+                .WhereElementIsNotElementType();
+            IList<ElementId> planIds = elementCollector.ToElementIds() as IList<ElementId>;
+            var viewPlanList = elementCollector.ToElementIds();
+            
+
             // get list of all levels
             IList<Level> levels = new FilteredElementCollector(_doc).OfClass(typeof(Level)).Cast<Level>()
                 .OrderBy(l => l.Elevation).ToList();
