@@ -51,10 +51,11 @@ namespace Create3DViewFromViewPlanWPF
             //get Plan new 
 
             FilteredElementCollector elementCollector = new FilteredElementCollector(doc);
-            ICollection<Element> appPlans =
-                elementCollector.OfClass(typeof(ViewPlan)).WhereElementIsNotElementType().ToElements();
+            ICollection<Element> appPlans = elementCollector.OfCategory(BuiltInCategory.OST_Views)
+                .WhereElementIsNotElementType()
+                .ToElements();
 
-            UserCreate3D userCreate3D = new UserCreate3D();
+            UserCreate3D userCreate3D = new UserCreate3D(appPlans);
             userCreate3D.ShowDialog();
 
 

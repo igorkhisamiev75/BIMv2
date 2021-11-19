@@ -8,17 +8,21 @@
     <Grid>
         <RadioButton Content="RadioButton" HorizontalAlignment="Left" Margin="57,389,0,0" VerticalAlignment="Top"/>
         <DataGrid HorizontalAlignment="Left" 
+                  AutoGenerateColumns="True"
                   Height="334" 
                   Margin="22,30,0,0" 
                   VerticalAlignment="Top" 
                   Width="335">
             <DataGrid.Columns>
-                <DataGridTextColumn Binding="{x:Null}" ClipboardContentBinding="{x:Null}"/>
-                <DataGridCheckBoxColumn Binding="{x:Null}" ClipboardContentBinding="{x:Null}"/>
+                <DataGridTextColumn Header="Plan" 
+                                    Binding="{x:Null}" 
+                                    ClipboardContentBinding="{x:Null}"/>
+                <DataGridCheckBoxColumn Header="Crete 3D View"
+                    Binding="{x:Null}" ClipboardContentBinding="{x:Null}"/>
             </DataGrid.Columns>
         </DataGrid>
         <Button Content="OK" HorizontalAlignment="Left" Margin="409,44,0,0" VerticalAlignment="Top" Width="162" Height="44"/>
-        <Button Content="EXIT" HorizontalAlignment="Left" Margin="409,111,0,0" VerticalAlignment="Top" Width="162" Height="46"/>
+        <Button Content="EXIT" HorizontalAlignment="Left" Margin="409,111,0,0" VerticalAlignment="Top" Width="162" Height="46" Click="Button_Click"/>
         <RadioButton Content="RadioButton" HorizontalAlignment="Left" Margin="176,389,0,0" VerticalAlignment="Top"/>
 
     </Grid>

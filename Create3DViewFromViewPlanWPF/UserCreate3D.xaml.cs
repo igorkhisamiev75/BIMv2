@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Autodesk.Revit.DB;
 
 namespace Create3DViewFromViewPlanWPF
 {
@@ -20,9 +21,16 @@ namespace Create3DViewFromViewPlanWPF
     /// </summary>
     public partial class UserCreate3D : Window
     {
-        public UserCreate3D()
+        private ICollection<Element> allView;
+        public UserCreate3D(ICollection<Element> elements)
         {
             InitializeComponent();
+            allView = elements;
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
         }
     }
 }
