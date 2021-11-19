@@ -21,11 +21,12 @@ namespace Create3DViewFromViewPlanWPF
     /// </summary>
     public partial class UserCreate3D : Window
     {
-        private ICollection<Element> allView;
-        public UserCreate3D(ICollection<Element> elements)
+        private ViewSet allView;
+        public UserCreate3D(ViewSet elements)
         {
             InitializeComponent();
             allView = elements;
+           AllView.
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)

@@ -55,7 +55,7 @@ namespace Create3DViewFromViewPlanWPF
                 .WhereElementIsNotElementType()
                 .ToElements();
 
-            UserCreate3D userCreate3D = new UserCreate3D(appPlans);
+            UserCreate3D userCreate3D = new UserCreate3D(m_allViews);
             userCreate3D.ShowDialog();
 
 

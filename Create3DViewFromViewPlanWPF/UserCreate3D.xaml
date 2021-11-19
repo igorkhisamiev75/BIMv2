@@ -14,11 +14,13 @@
                   VerticalAlignment="Top" 
                   Width="335">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Plan" 
+                <DataGridTextColumn Header="Plans" 
+                                    x:Name="AllView"
                                     Binding="{x:Null}" 
                                     ClipboardContentBinding="{x:Null}"/>
                 <DataGridCheckBoxColumn Header="Crete 3D View"
-                    Binding="{x:Null}" ClipboardContentBinding="{x:Null}"/>
+                                        Binding="{x:Null}" 
+                                        ClipboardContentBinding="{x:Null}"/>
             </DataGrid.Columns>
         </DataGrid>
         <Button Content="OK" HorizontalAlignment="Left" Margin="409,44,0,0" VerticalAlignment="Top" Width="162" Height="44"/>
