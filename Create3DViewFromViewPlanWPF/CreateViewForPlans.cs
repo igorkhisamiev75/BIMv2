@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
@@ -11,11 +12,13 @@ namespace Create3DViewFromViewPlanWPF
 {
     [TransactionAttribute(TransactionMode.Manual)]
     [RegenerationAttribute(RegenerationOption.Manual)]
-    public class CreateViewForPlans : IExternalCommand
+    public class CreateViewForPlans : Window, IExternalCommand
     {
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             Document doc = commandData.Application.ActiveUIDocument.Document;
+
+            IList<ViewPlan> viewPlans = new List<ViewPlan>();
 
             ViewSet m_allViews = new ViewSet();
 
@@ -23,8 +26,10 @@ namespace Create3DViewFromViewPlanWPF
             FilteredElementCollector collector = new FilteredElementCollector(doc);
             FilteredElementIterator itor = collector.OfClass(typeof(ViewPlan)).GetElementIterator();
             itor.Reset();
+            int i = 0;
             while (itor.MoveNext())
             {
+                
                 ViewPlan view = itor.Current as ViewPlan;
                 // skip view templates because they're invisible in project browser
                 if (null == view || view.IsTemplate)
@@ -41,11 +46,15 @@ namespace Create3DViewFromViewPlanWPF
                     }
                     else
                     {
+                        viewPlans.Insert(i, view);
                         m_allViews.Insert(view);
+                        i++;
                         //AssortViews(view.Name, objType.Name);
                     }
                 }
             }
+
+
 
 
             //get Plan new 
@@ -55,7 +64,7 @@ namespace Create3DViewFromViewPlanWPF
                 .WhereElementIsNotElementType()
                 .ToElements();
 
-            UserCreate3D userCreate3D = new UserCreate3D(m_allViews);
+            UserCreate3D userCreate3D = new UserCreate3D(viewPlans);
             userCreate3D.ShowDialog();
 
 

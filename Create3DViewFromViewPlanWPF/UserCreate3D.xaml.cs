@@ -21,12 +21,18 @@ namespace Create3DViewFromViewPlanWPF
     /// </summary>
     public partial class UserCreate3D : Window
     {
-        private ViewSet allView;
-        public UserCreate3D(ViewSet elements)
+        private IList<ViewPlan> allView;
+
+        public UserCreate3D(IList<ViewPlan> elements)
         {
             InitializeComponent();
             allView = elements;
-           AllView.
+
+            //AllView.
+
+
+            DataGrid2.ItemsSource = allView;
+            DataGrid2.DisplayMemberPath = "Name";
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
