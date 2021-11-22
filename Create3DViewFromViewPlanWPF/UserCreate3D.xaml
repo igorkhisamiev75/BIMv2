@@ -8,7 +8,7 @@
              Height="560" Width="640">
 
     <Grid>
-        <RadioButton Content="RadioButton" HorizontalAlignment="Left" Margin="40,490,0,0" VerticalAlignment="Top"/>
+        <RadioButton Content="RadioButton" HorizontalAlignment="Left" Margin="13,507,0,0" VerticalAlignment="Top"/>
         <DataGrid HorizontalAlignment="Left" 
                   AutoGenerateColumns="True"
                   x:Name="DataGrid"
@@ -28,7 +28,7 @@
         </DataGrid>
         <Button Content="OK" HorizontalAlignment="Left" Margin="404,17,0,0" VerticalAlignment="Top" Width="162" Height="44"/>
         <Button Content="EXIT" HorizontalAlignment="Left" Margin="404,84,0,0" VerticalAlignment="Top" Width="162" Height="46" Click="Button_Click"/>
-        <RadioButton Content="RadioButton" HorizontalAlignment="Left" Margin="159,490,0,0" VerticalAlignment="Top"/>
+        <RadioButton Content="RadioButton" HorizontalAlignment="Left" Margin="132,507,0,0" VerticalAlignment="Top"/>
         <DataGrid HorizontalAlignment="Left" 
                   x:Name="DataGrid2"
                   Height="335" 
