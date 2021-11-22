@@ -18,7 +18,7 @@ namespace Create3DViewFromViewPlanWPF
         {
             Document doc = commandData.Application.ActiveUIDocument.Document;
 
-            IList<ViewPlan> viewPlans = new List<ViewPlan>();
+            ICollection<Element> viewPlans = new List<Element>();
 
             ViewSet m_allViews = new ViewSet();
 
@@ -46,7 +46,7 @@ namespace Create3DViewFromViewPlanWPF
                     }
                     else
                     {
-                        viewPlans.Insert(i, view);
+                        viewPlans.Add(view);
                         m_allViews.Insert(view);
                         i++;
                         //AssortViews(view.Name, objType.Name);

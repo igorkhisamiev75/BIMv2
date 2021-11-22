@@ -13,6 +13,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Autodesk.Revit.DB;
+using Autodesk.Revit.Attributes;
+using Autodesk.Revit.UI;
 
 namespace Create3DViewFromViewPlanWPF
 {
@@ -21,17 +23,19 @@ namespace Create3DViewFromViewPlanWPF
     /// </summary>
     public partial class UserCreate3D : Window
     {
-        private IList<ViewPlan> allView;
+        private readonly ICollection<Element> allView;
 
-        public UserCreate3D(IList<ViewPlan> elements)
+        public UserCreate3D(ICollection<Element> elements)
         {
             InitializeComponent();
             allView = elements;
 
-            //AllView.
+            ListBox.ItemsSource = allView;
+            ListBox.DisplayMemberPath = "Name";
 
 
             DataGrid2.ItemsSource = allView;
+            
             DataGrid2.DisplayMemberPath = "Name";
         }
 

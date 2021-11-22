@@ -34,7 +34,12 @@
                   Height="335" 
                   Margin="379,152,0,0" 
                   VerticalAlignment="Top" 
-                  Width="208"/>
+                  Width="106"/>
+        <ListBox HorizontalAlignment="Left" 
+                 x:Name="ListBox"
+                 Height="335" Margin="502,152,0,0" 
+                 VerticalAlignment="Top"
+                 Width="122"/>
 
     </Grid>
 </Window>
