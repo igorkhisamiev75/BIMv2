@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SectionsInRoom", "SectionsI
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Create3DViewFromViewPlanWPF", "Create3DViewFromViewPlanWPF\Create3DViewFromViewPlanWPF.csproj", "{35AEE29A-5C8C-4594-B1AE-B83041F83D68}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DelFiltersWPF", "DelFiltersWPF\DelFiltersWPF.csproj", "{9BDCD677-7651-4509-8C32-89448D74271D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{35AEE29A-5C8C-4594-B1AE-B83041F83D68}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{35AEE29A-5C8C-4594-B1AE-B83041F83D68}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{35AEE29A-5C8C-4594-B1AE-B83041F83D68}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9BDCD677-7651-4509-8C32-89448D74271D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9BDCD677-7651-4509-8C32-89448D74271D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9BDCD677-7651-4509-8C32-89448D74271D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9BDCD677-7651-4509-8C32-89448D74271D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
