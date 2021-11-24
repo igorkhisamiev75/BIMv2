@@ -17,6 +17,14 @@
                 HorizontalAlignment="Left" 
                 Margin="268,52,0,0" 
                 VerticalAlignment="Top" Width="75"/>
+        <DataGrid x:Name="DataGrid"
+                  HorizontalAlignment="Left" 
+                  Height="451" Margin="10,10,0,0" 
+                  VerticalAlignment="Top" 
+                  Width="253">
+            <ListBoxItem x:Name="ListBoxItem"/>
+            <CheckBox/>
+        </DataGrid>
 
     </Grid>
 </Window>

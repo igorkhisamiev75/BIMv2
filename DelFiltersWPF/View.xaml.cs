@@ -18,7 +18,7 @@ namespace DelFiltersWPF
     /// <summary>
     /// Логика взаимодействия для View.xaml
     /// </summary>
-    public partial class View : UserControl
+    public partial class View : Window
     {
         public View()
         {
