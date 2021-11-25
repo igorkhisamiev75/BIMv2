@@ -6,25 +6,38 @@
              xmlns:local="clr-namespace:DelFiltersWPF"
              mc:Ignorable="d" 
              Title="Remove filters"
-             Height="499.714" Width="358.286">
+             Height="500" Width="350">
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="273*"/>
+            <ColumnDefinition Width="95*"/>
+        </Grid.ColumnDefinitions>
         <Button Content="OK" 
                 HorizontalAlignment="Left" 
-                Margin="268,10,0,0" 
+                Margin="9.571,98,0,0" 
                 VerticalAlignment="Top" 
-                Width="75" Height="21"/>
+                Width="75" Height="21" 
+                Grid.Column="1"/>
         <Button Content="CANCEL" 
                 HorizontalAlignment="Left" 
-                Margin="268,52,0,0" 
-                VerticalAlignment="Top" Width="75"/>
-        <DataGrid x:Name="DataGrid"
+                Margin="9.571,132,0,0" 
+                VerticalAlignment="Top" Width="75" 
+                Grid.Column="1"/>
+        <DataGrid Grid.Column="0" 
+                  x:Name="DataGrid"
                   HorizontalAlignment="Left" 
                   Height="451" Margin="10,10,0,0" 
                   VerticalAlignment="Top" 
-                  Width="253">
+                  Width="224">
             <ListBoxItem x:Name="ListBoxItem"/>
             <CheckBox/>
         </DataGrid>
+        <CheckBox Content="Unused"
+                  HorizontalAlignment="Left"
+                  Margin="16.667,10,0,0"
+                  VerticalAlignment="Top" 
+                  Grid.Column="1"/>
+        <TextBox Grid.Column="1" HorizontalAlignment="Left" Height="21" Margin="9.571,45,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="69"/>
 
     </Grid>
 </Window>
