@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Autodesk.Revit.DB;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,13 +17,21 @@ using System.Windows.Shapes;
 namespace DelFiltersWPF
 {
     /// <summary>
-    /// Логика взаимодействия для View.xaml
+    /// Логика взаимодействия для ViewWPF.xaml
     /// </summary>
-    public partial class View : Window
+    public partial class ViewWPF : Window
     {
-        public View()
+        private readonly ICollection<Element> filterCollection;
+        public ViewWPF(ICollection<Element> elements)
         {
             InitializeComponent();
+            filterCollection = elements;
+
+            ListBox.ItemsSource = filterCollection;
+
+
+
+
         }
     }
 }

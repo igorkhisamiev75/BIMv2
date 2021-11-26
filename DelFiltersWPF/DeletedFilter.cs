@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System;
 using System.Collections;
+using System.Windows;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
@@ -14,7 +15,7 @@ using Application = Autodesk.Revit.ApplicationServices.Application;
 namespace DelFiltersWPF
 {
     [Transaction(TransactionMode.Manual)]
-    class DeletedFilter : IExternalCommand
+    class DeletedFilter : Window, IExternalCommand
     {
         private Application _app;
         private Document _doc;
@@ -27,16 +28,36 @@ namespace DelFiltersWPF
             _app = uiApp.Application;
             _doc = uiDoc.Document;
 
-            using (var t = new Transaction(_doc))
+            ICollection<Element> filtersCollection = new List<Element>();
+
+            FilteredElementCollector collector = new FilteredElementCollector(_doc);
+            FilteredElementIterator itor = collector.OfClass(typeof(FilterElement)).GetElementIterator();
+            itor.Reset();
+            
+            while (itor.MoveNext())
             {
-                t.Start("Run");
-                uiApp = commandData.Application;
-                uiDoc = uiApp.ActiveUIDocument;
+                // Get the object
+                FilterElement imp = itor.Current as FilterElement;
 
-                ViewFiltersDelete(_doc);
-                t.Commit();
-
+                filtersCollection.Add(imp);
             }
+
+            ViewWPF vpViewWpf = new ViewWPF(filtersCollection);
+
+            vpViewWpf.ShowDialog();
+
+            //using (var t = new Transaction(_doc))
+            //{
+            //    t.Start("Run");
+            //    uiApp = commandData.Application;
+            //    uiDoc = uiApp.ActiveUIDocument;
+
+
+
+            //    //ViewFiltersDelete(_doc);
+            //    t.Commit();
+
+            //}
 
 
             return Result.Succeeded;
@@ -64,7 +85,7 @@ namespace DelFiltersWPF
             {
                 try
                 {
-                    doc.Delete(oElemID);
+                    //doc.Delete(oElemID);
                 }
                 catch (Exception ex)
                 {

@@ -55,12 +55,12 @@
   <ItemGroup>
     <Compile Include="DeletedFilter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="View.xaml.cs">
-      <DependentUpon>View.xaml</DependentUpon>
+    <Compile Include="ViewWPF.xaml.cs">
+      <DependentUpon>ViewWPF.xaml</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Page Include="View.xaml">
+    <Page Include="ViewWPF.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

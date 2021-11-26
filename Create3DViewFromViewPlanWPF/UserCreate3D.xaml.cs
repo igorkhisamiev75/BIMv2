@@ -33,11 +33,11 @@ namespace Create3DViewFromViewPlanWPF
             ListBox.ItemsSource = allView;
             ListBox.DisplayMemberPath = "Name";
 
-            AllView.
+            //AllView.
 
-            DataGrid2.ItemsSource = allView;
+            //DataGrid2.ItemsSource = allView;
             
-            DataGrid2.DisplayMemberPath = "Name";
+            //DataGrid2.DisplayMemberPath = "Name";
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)

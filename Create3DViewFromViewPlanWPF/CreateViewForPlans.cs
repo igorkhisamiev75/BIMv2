@@ -10,8 +10,8 @@ using Autodesk.Revit.UI;
 
 namespace Create3DViewFromViewPlanWPF
 {
-    [TransactionAttribute(TransactionMode.Manual)]
-    [RegenerationAttribute(RegenerationOption.Manual)]
+    [Transaction(TransactionMode.Manual)]
+    [Regeneration(RegenerationOption.Manual)]
     public class CreateViewForPlans : Window, IExternalCommand
     {
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
