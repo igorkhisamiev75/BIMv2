@@ -30,8 +30,8 @@ namespace Create3DViewFromViewPlanWPF
             InitializeComponent();
             allView = elements;
 
-            ListBox.ItemsSource = allView;
-            ListBox.DisplayMemberPath = "Name";
+            ListBox.ItemsSource = allView;   //принимает массив
+            ListBox.DisplayMemberPath = "Name"; //отображение нужного свойства
 
             //AllView.
 

@@ -29,8 +29,7 @@ namespace DelFiltersWPF
 
             ListBox.ItemsSource = filterCollection;
             ListBox.DisplayMemberPath = "Name";
-
-
+            
 
         }
     }
