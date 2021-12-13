@@ -47,7 +47,9 @@
             HorizontalAlignment="Left" 
             Height="416" 
             Margin="109,10,0,0" 
-            VerticalAlignment="Top" Width="139"/>
+            VerticalAlignment="Top" 
+            Width="139"
+            SelectionMode="Multiple"/>
         <TreeView Name="TreeView"
                   HorizontalAlignment="Left" 
                   Height="269" 

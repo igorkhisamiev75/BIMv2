@@ -31,7 +31,8 @@ namespace DelFiltersWPF
             ListBox.DisplayMemberPath = "Name";
 
             TreeView.SelectedValuePath = filterCollection.ToString();
-
+            TreeView.ItemsSource = filterCollection;
+            TreeView.DisplayMemberPath = "Name";
 
         }
     }
