@@ -27,12 +27,15 @@ namespace DelFiltersWPF
             InitializeComponent();
             filterCollection = elements;
 
+            
+            
+
             ListBox.ItemsSource = filterCollection;
             ListBox.DisplayMemberPath = "Name";
 
-            TreeView.SelectedValuePath = filterCollection.ToString();
-            TreeView.ItemsSource = filterCollection;
-            TreeView.DisplayMemberPath = "Name";
+            //TreeView.SelectedValuePath = filterCollection.ToString();
+            //TreeView.ItemsSource = filterCollection;
+            //TreeView.DisplayMemberPath = "Name";
 
         }
     }
