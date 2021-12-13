@@ -26,7 +26,7 @@
         <DataGrid Grid.Column="0" 
                   x:Name="DataGrid"
                   HorizontalAlignment="Left" 
-                  Height="359" Margin="10,10,0,0" 
+                  Height="103" Margin="10,10,0,0" 
                   VerticalAlignment="Top" 
                   Width="87">
             <ListBoxItem x:Name="ListBoxItem"/>
@@ -48,6 +48,12 @@
             Height="416" 
             Margin="109,10,0,0" 
             VerticalAlignment="Top" Width="139"/>
+        <TreeView Name="TreeView"
+                  HorizontalAlignment="Left" 
+                  Height="269" 
+                  Margin="10,118,0,0" 
+                  VerticalAlignment="Top" 
+                  Width="87"/>
 
     </Grid>
 </Window>
