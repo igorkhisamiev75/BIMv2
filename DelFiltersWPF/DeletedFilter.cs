@@ -56,25 +56,25 @@ namespace DelFiltersWPF
 
             vpViewWpf.ShowDialog();
 
-            //using (var t = new Transaction(_doc))
-            //{
-            //    t.Start("Run");
-            //    uiApp = commandData.Application;
-            //    uiDoc = uiApp.ActiveUIDocument;
+            var checkFilters=vpViewWpf.checkFilters;
 
+            using (var t = new Transaction(_doc))
+            {
+                t.Start("Run");
+                uiApp = commandData.Application;
+                uiDoc = uiApp.ActiveUIDocument;
+                
+                ViewFiltersDelete(_doc, checkFilters);
+                t.Commit();
 
-
-            //    //ViewFiltersDelete(_doc);
-            //    t.Commit();
-
-            //}
+            }
 
 
             return Result.Succeeded;
         }
 
 
-        public void ViewFiltersDelete(Document doc)
+        public void ViewFiltersDelete(Document doc, List<Element> checkFilters)
         {
             ArrayList oViewFiltersToDelete = new ArrayList();
 
@@ -88,18 +88,26 @@ namespace DelFiltersWPF
                 // Get the object
                 FilterElement imp = itor.Current as FilterElement;
 
-                oViewFiltersToDelete.Add(imp.Id);
+                foreach (var VARIABLE in checkFilters)
+                {
+                    if (imp.Name == VARIABLE.Name)
+                    {
+                        oViewFiltersToDelete.Add(imp.Id);
+                    }
+                    
+                }
+                
             }
 
             foreach (ElementId oElemID in oViewFiltersToDelete)
             {
                 try
                 {
-                    //doc.Delete(oElemID);
+                    doc.Delete(oElemID);
                 }
                 catch (Exception ex)
                 {
-                    //MessageBox.Show(ex.Message);
+                    MessageBox.Show(ex.Message);
                 }
             }
         }

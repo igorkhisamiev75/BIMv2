@@ -26,7 +26,7 @@ namespace DelFiltersWPF
     {
 
         //public readonly DeletedFilter m_data_filters;  // Filters data for current active document
-        public List<string> checkFilters=new List<string>();
+        public List<Element> checkFilters=new List<Element>();
 
         private readonly ICollection<Element> filterCollection;
         public ViewWPF(ICollection<Element> elements)
@@ -45,13 +45,14 @@ namespace DelFiltersWPF
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            foreach (var variable2 in filterCollection)
+            foreach (var element in filterCollection)
             {
-                foreach (var VARIABLE in ListBox.SelectedItems)
+                foreach (var variable in ListBox.SelectedItems)
                 {
-                    if (VARIABLE.GetHashCode() == variable2.GetHashCode())
+                    if (variable.GetHashCode() == element.GetHashCode())
                     {
-                        MessageBox.Show("Выбрано" + variable2.Name);
+                        checkFilters.Add(element);
+                        MessageBox.Show("Выбрано" + element.Name);
 
                     }
                 }
@@ -60,9 +61,11 @@ namespace DelFiltersWPF
             //{
             //    //ilterCollection.Contains(VARIABLE)
             //    MessageBox.Show("Выбрано" + VARIABLE.GetHashCode());
-                
+
             //}
             ////MessageBox.Show("Selected filters removed");
+            ///
+            MessageBox.Show("Выбрано " + checkFilters.Count+" фильтров для удаления");
             Close();
         }
 
