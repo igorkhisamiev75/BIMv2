@@ -38,5 +38,16 @@ namespace DelFiltersWPF
             //TreeView.DisplayMemberPath = "Name";
 
         }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Selected filters removed");
+            Close();
+        }
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
     }
 }
