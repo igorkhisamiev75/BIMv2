@@ -26,10 +26,7 @@ namespace DelFiltersWPF
         {
             InitializeComponent();
             filterCollection = elements;
-
             
-            
-
             ListBox.ItemsSource = filterCollection;
             ListBox.DisplayMemberPath = "Name";
 
@@ -41,7 +38,13 @@ namespace DelFiltersWPF
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Selected filters removed");
+            foreach (var VARIABLE in ListBox.SelectedItems)
+            {
+                var n = VARIABLE;
+                
+                MessageBox.Show("Выбрано"+VARIABLE.ToString());
+            }
+            //MessageBox.Show("Selected filters removed");
             Close();
         }
 
