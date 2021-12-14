@@ -52,7 +52,7 @@ namespace DelFiltersWPF
                     if (variable.GetHashCode() == element.GetHashCode())
                     {
                         checkFilters.Add(element);
-                        MessageBox.Show("Выбрано" + element.Name);
+                       // MessageBox.Show("Выбрано" + element.Name);
 
                     }
                 }
