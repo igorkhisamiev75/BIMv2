@@ -15,32 +15,42 @@ using Application = Autodesk.Revit.ApplicationServices.Application;
 namespace DelFiltersWPF
 {
     [Transaction(TransactionMode.Manual)]
-    class DeletedFilter : Window, IExternalCommand
+    public class DeletedFilter : Window, IExternalCommand
     {
         private Application _app;
         private Document _doc;
 
+        public ICollection<Element> filtersCollection = new List<Element>();
+
+        //public DeletedFilter(ExternalCommandData commandData)
+        //{
+        //    GetAllFilters();
+        //}
+
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
+            
             var uiApp = commandData.Application;
             var uiDoc = uiApp.ActiveUIDocument;
 
             _app = uiApp.Application;
             _doc = uiDoc.Document;
 
-            ICollection<Element> filtersCollection = new List<Element>();
+            filtersCollection=GetAllFilters();
 
-            FilteredElementCollector collector = new FilteredElementCollector(_doc);
-            FilteredElementIterator itor = collector.OfClass(typeof(FilterElement)).GetElementIterator();
-            itor.Reset();
-            
-            while (itor.MoveNext())
-            {
-                // Get the object
-                FilterElement imp = itor.Current as FilterElement;
+            //FilteredElementCollector collector = new FilteredElementCollector(_doc);
+            //FilteredElementIterator itor = collector.OfClass(typeof(FilterElement)).GetElementIterator();
+            //itor.Reset();
 
-                filtersCollection.Add(imp);
-            }
+            //while (itor.MoveNext())
+            //{
+            //    Get the object
+            //   FilterElement imp = itor.Current as FilterElement;
+
+            //    filtersCollection.Add(imp);
+            //}
+
+
 
             ViewWPF vpViewWpf = new ViewWPF(filtersCollection);
 
@@ -92,6 +102,23 @@ namespace DelFiltersWPF
                     //MessageBox.Show(ex.Message);
                 }
             }
+        }
+
+        public ICollection<Element> GetAllFilters()
+        {
+            FilteredElementCollector collector = new FilteredElementCollector(_doc);
+            FilteredElementIterator itor = collector.OfClass(typeof(FilterElement)).GetElementIterator();
+            itor.Reset();
+
+            while (itor.MoveNext())
+            {
+                // Get the object
+                FilterElement imp = itor.Current as FilterElement;
+
+                filtersCollection.Add(imp);
+            }
+
+            return filtersCollection;
         }
     }
 

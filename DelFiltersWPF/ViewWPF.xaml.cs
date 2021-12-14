@@ -1,4 +1,7 @@
 ﻿using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Architecture;
+using Autodesk.Revit.UI;
+using Autodesk.Revit.UI.Selection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +24,10 @@ namespace DelFiltersWPF
     /// </summary>
     public partial class ViewWPF : Window
     {
+
+        //public readonly DeletedFilter m_data_filters;  // Filters data for current active document
+        public List<string> checkFilters=new List<string>();
+
         private readonly ICollection<Element> filterCollection;
         public ViewWPF(ICollection<Element> elements)
         {
@@ -38,13 +45,24 @@ namespace DelFiltersWPF
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            foreach (var VARIABLE in ListBox.SelectedItems)
+            foreach (var variable2 in filterCollection)
             {
-                var n = VARIABLE;
-                
-                MessageBox.Show("Выбрано"+VARIABLE.ToString());
+                foreach (var VARIABLE in ListBox.SelectedItems)
+                {
+                    if (VARIABLE.GetHashCode() == variable2.GetHashCode())
+                    {
+                        MessageBox.Show("Выбрано" + variable2.Name);
+
+                    }
+                }
             }
-            //MessageBox.Show("Selected filters removed");
+            //foreach (var VARIABLE in ListBox.SelectedItems)
+            //{
+            //    //ilterCollection.Contains(VARIABLE)
+            //    MessageBox.Show("Выбрано" + VARIABLE.GetHashCode());
+                
+            //}
+            ////MessageBox.Show("Selected filters removed");
             Close();
         }
 
