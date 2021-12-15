@@ -19,6 +19,7 @@ namespace DelFiltersWPF
     {
         private Application _app;
         private Document _doc;
+        private ViewSet m_allViews = new ViewSet();
 
         public ICollection<Element> filtersCollection = new List<Element>();
 
@@ -50,7 +51,7 @@ namespace DelFiltersWPF
             //    filtersCollection.Add(imp);
             //}
 
-
+            var allView = GetAllViews(_doc);
 
             ViewWPF vpViewWpf = new ViewWPF(filtersCollection);
 
@@ -128,6 +129,40 @@ namespace DelFiltersWPF
 
             return filtersCollection;
         }
+
+        //get all view
+        private ViewSet GetAllViews(Document doc)
+        {
+            FilteredElementCollector collector = new FilteredElementCollector(doc);
+            FilteredElementIterator itor = collector.OfClass(typeof(View)).GetElementIterator();
+            itor.Reset();
+            while (itor.MoveNext())
+            {
+                View view = itor.Current as View;
+                // skip view templates because they're invisible in project browser
+                if (null == view || view.IsTemplate)
+                {
+                    continue;
+                }
+                else
+                {
+                    ElementType objType = doc.GetElement(view.GetTypeId()) as ElementType;
+                    if (null == objType || objType.Name.Equals("Schedule")
+                                        || objType.Name.Equals("Drawing Sheet"))
+                    {
+                        continue;
+                    }
+                    else
+                    {
+                        m_allViews.Insert(view);
+                        //AssortViews(view.Name, objType.Name);
+                    }
+                }
+            }
+
+            return m_allViews;
+        }
+
     }
 
 }
