@@ -25,7 +25,7 @@ namespace DelFiltersWPF
 
         public ICollection<Element> filtersCollection = new List<Element>();
 
-        public ICollection<View> filtersCollectionUsedInView = new ICollection<View>();
+        public ICollection<View> filtersCollectionUsedInView = new List<View>();
 
         //public DeletedFilter(ExternalCommandData commandData)
         //{
@@ -47,13 +47,19 @@ namespace DelFiltersWPF
 
            ICollection<View> allView = GetAllViews(_doc);
 
-           foreach (var VARIABLE in allView)
+           foreach (var item in allView)
            {
-               if (VARIABLE.ViewType == ViewType.Legend || VARIABLE.ViewType == ViewType.Schedule)
+               if (item.ViewType == ViewType.FloorPlan 
+                   || item.ViewType != ViewType.ThreeD
+                   || item.ViewType != ViewType.Elevation
+                   || item.ViewType != ViewType.Section)
                {
-                   allView.Remove(VARIABLE);
+                   filtersCollectionUsedInView.Add(item);
                }
            }
+
+           TaskDialog.Show("Report", filtersCollection.Count.ToString());
+
 
             //get all used filters in View's
 
@@ -68,7 +74,7 @@ namespace DelFiltersWPF
             //            //filtersCollectionUsedInView.Add(item.ToString());
             //            TaskDialog.Show("Report", filtersCollection.ToString());
             //        }
-                    
+
             //    }
             //}
 
