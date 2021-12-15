@@ -137,7 +137,8 @@ namespace BIMv2Buttons
 
 
 
-            //
+            //попробуем создать еще одну кнопку
+            ribbonPanel4.AddSeparator(); //разделитель между кнопками
 
             PushButtonData b9Data = new PushButtonData("cmdDeletedFilter", "Удалить"
                 + Environment.NewLine + "фильтры из проекта", thisAssemblyPath, "BIMv2.DeletedFilter");
@@ -153,6 +154,17 @@ namespace BIMv2Buttons
             ribbonPanel4.AddSeparator(); //разделитель между кнопками
 
 
+            PushButtonData b10Data = new PushButtonData("cmdDeletedUnFilter", "Удалить"
+                                        + Environment.NewLine + "неиспользуемые фильтры", thisAssemblyPath, "BIMv2.DeletedUnFilter");
+
+            PushButton pb10 = ribbonPanel4.AddItem(b10Data) as PushButton;
+            pb10.ToolTip = "Удалить только неиспользуемые фильтры";
+
+            BitmapImage pb10Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-clean2-32.png"));
+            pb10.LargeImage = pb10Image;
+
+            //попробуем создать еще одну кнопку
+            ribbonPanel4.AddSeparator(); //разделитель между кнопками
 
         }
 

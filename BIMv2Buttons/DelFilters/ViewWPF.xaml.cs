@@ -37,14 +37,7 @@ namespace BIMv2Buttons.DelFilters
                     }
                 }
             }
-            //foreach (var VARIABLE in ListBox.SelectedItems)
-            //{
-            //    //ilterCollection.Contains(VARIABLE)
-            //    MessageBox.Show("Выбрано" + VARIABLE.GetHashCode());
-
-            //}
-            ////MessageBox.Show("Selected filters removed");
-            ///
+          
             MessageBox.Show("Выбрано " + checkFilters.Count + " фильтров для удаления");
             Close();
         }

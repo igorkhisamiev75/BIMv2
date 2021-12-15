@@ -6,9 +6,10 @@ using System.Windows;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+using BIMv2Buttons.DelFilters;
 using Application = Autodesk.Revit.ApplicationServices.Application;
 
-namespace BIMv2Buttons.DelUnUesdFilters
+namespace BIMv2
 {
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]
