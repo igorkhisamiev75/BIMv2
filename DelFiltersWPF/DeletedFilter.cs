@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System;
 using System.Collections;
 using System.Windows;
 using Autodesk.Revit.Attributes;
@@ -15,6 +12,8 @@ using Application = Autodesk.Revit.ApplicationServices.Application;
 namespace DelFiltersWPF
 {
     [Transaction(TransactionMode.Manual)]
+    [Regeneration(RegenerationOption.Manual)]
+    [Journaling(JournalingMode.NoCommandData)]
     public class DeletedFilter : Window, IExternalCommand
     {
         private Application _app;
@@ -33,11 +32,6 @@ namespace DelFiltersWPF
 
         public ICollection<int> filtersInViewsId = new List<int>();
 
-        //public DeletedFilter(ExternalCommandData commandData)
-        //{
-        //    GetAllFilters();
-        //}
-
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             
@@ -48,8 +42,6 @@ namespace DelFiltersWPF
             _doc = uiDoc.Document;
 
             filtersCollection=GetAllFilters();
-
-           //var allView = GetAllViews(_doc);
 
            ICollection<View> allView = GetAllViews(_doc);
 
@@ -104,37 +96,6 @@ namespace DelFiltersWPF
                 
             }
 
-            //unusedFiltersCollection = unusedFiltersCollection.GroupBy(x => x.GetHashCode()).Select(group =>
-            //    group.OrderBy(x => x.GetHashCode()).First()).ToList();
-
-
-
-            //TaskDialog.Show("Report", items.Count.ToString());
-
-
-
-            //TaskDialog.Show("Report", filtersCollection.Count.ToString());
-
-
-            //get all used filters in View's
-
-            //foreach (var view in allView)
-            //{
-            //    if (view.GetFilters() != null)
-            //    {
-            //        var gg = view.GetFilters();
-
-            //        foreach (var item in gg)
-            //        {
-            //            //onlyViewPlan3DSection.Add(item.ToString());
-            //            TaskDialog.Show("Report", filtersCollection.ToString());
-            //        }
-
-            //    }
-            //}
-
-
-
 
             ViewWPF vpViewWpf = new ViewWPF(filtersCollectionCopy);
 
@@ -153,12 +114,10 @@ namespace DelFiltersWPF
                 t.Commit();
 
             }
-
-
+            
             return Result.Succeeded;
         }
-
-
+        
         public void ViewFiltersDelete(Document doc, List<Element> checkFilters)
         {
             ArrayList oViewFiltersToDelete = new ArrayList();
@@ -239,11 +198,8 @@ namespace DelFiltersWPF
                     }
                     else
                     {
-                        
-                            m_allViews.Insert(view);
-                            viewsInProject.Add(view);
-                            //AssortViews(view.Name, objType.Name);
-
+                        m_allViews.Insert(view);
+                        viewsInProject.Add(view);
                     }
                 }
             }

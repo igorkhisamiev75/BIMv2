@@ -75,6 +75,10 @@
     <Compile Include="DelFilters\ViewWPF.xaml.cs">
       <DependentUpon>ViewWPF.xaml</DependentUpon>
     </Compile>
+    <Compile Include="DelUnUesdFilters\DeletedUnFilter.cs" />
+    <Compile Include="DelUnUesdFilters\ViewWPF.xaml.cs">
+      <DependentUpon>ViewWPF.xaml</DependentUpon>
+    </Compile>
     <Compile Include="HelpBIM\HelpBIM.cs" />
     <Compile Include="LightingFixtures\SumAllLightingFixtureInRoom.cs" />
     <Compile Include="PowerFactorElectrical\PowerFactorElectrical.cs" />
@@ -116,9 +120,14 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="DelUnUesdFilters\ViewWPF.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\icons8-clean-32.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

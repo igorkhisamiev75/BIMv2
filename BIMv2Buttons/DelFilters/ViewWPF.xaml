@@ -32,7 +32,5 @@
             VerticalAlignment="Stretch" 
             SelectionMode="Extended"
             />
-   
-
-    </Grid>
+   </Grid>
 </Window>
