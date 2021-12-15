@@ -21,7 +21,11 @@ namespace DelFiltersWPF
         private Document _doc;
         private ViewSet m_allViews = new ViewSet();
 
+        public ICollection<View> viewsInProject = new List<View>();
+
         public ICollection<Element> filtersCollection = new List<Element>();
+
+        public ICollection<View> filtersCollectionUsedInView = new ICollection<View>();
 
         //public DeletedFilter(ExternalCommandData commandData)
         //{
@@ -39,19 +43,37 @@ namespace DelFiltersWPF
 
             filtersCollection=GetAllFilters();
 
-            //FilteredElementCollector collector = new FilteredElementCollector(_doc);
-            //FilteredElementIterator itor = collector.OfClass(typeof(FilterElement)).GetElementIterator();
-            //itor.Reset();
+           //var allView = GetAllViews(_doc);
 
-            //while (itor.MoveNext())
+           ICollection<View> allView = GetAllViews(_doc);
+
+           foreach (var VARIABLE in allView)
+           {
+               if (VARIABLE.ViewType == ViewType.Legend || VARIABLE.ViewType == ViewType.Schedule)
+               {
+                   allView.Remove(VARIABLE);
+               }
+           }
+
+            //get all used filters in View's
+
+            //foreach (var view in allView)
             //{
-            //    Get the object
-            //   FilterElement imp = itor.Current as FilterElement;
+            //    if (view.GetFilters() != null)
+            //    {
+            //        var gg = view.GetFilters();
 
-            //    filtersCollection.Add(imp);
+            //        foreach (var item in gg)
+            //        {
+            //            //filtersCollectionUsedInView.Add(item.ToString());
+            //            TaskDialog.Show("Report", filtersCollection.ToString());
+            //        }
+                    
+            //    }
             //}
 
-            var allView = GetAllViews(_doc);
+
+
 
             ViewWPF vpViewWpf = new ViewWPF(filtersCollection);
 
@@ -65,6 +87,7 @@ namespace DelFiltersWPF
                 uiApp = commandData.Application;
                 uiDoc = uiApp.ActiveUIDocument;
                 
+                //del filters checked
                 ViewFiltersDelete(_doc, checkFilters);
                 t.Commit();
 
@@ -113,6 +136,7 @@ namespace DelFiltersWPF
             }
         }
 
+        //get all filters
         public ICollection<Element> GetAllFilters()
         {
             FilteredElementCollector collector = new FilteredElementCollector(_doc);
@@ -131,7 +155,7 @@ namespace DelFiltersWPF
         }
 
         //get all view
-        private ViewSet GetAllViews(Document doc)
+        private ICollection<View> GetAllViews(Document doc)
         {
             FilteredElementCollector collector = new FilteredElementCollector(doc);
             FilteredElementIterator itor = collector.OfClass(typeof(View)).GetElementIterator();
@@ -154,13 +178,16 @@ namespace DelFiltersWPF
                     }
                     else
                     {
-                        m_allViews.Insert(view);
-                        //AssortViews(view.Name, objType.Name);
+                        
+                            m_allViews.Insert(view);
+                            viewsInProject.Add(view);
+                            //AssortViews(view.Name, objType.Name);
+
                     }
                 }
             }
 
-            return m_allViews;
+            return viewsInProject;
         }
 
     }

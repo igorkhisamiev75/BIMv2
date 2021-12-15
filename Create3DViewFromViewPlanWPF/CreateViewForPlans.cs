@@ -29,8 +29,7 @@ namespace Create3DViewFromViewPlanWPF
             int i = 0;
             while (itor.MoveNext())
             {
-                
-                ViewPlan view = itor.Current as ViewPlan;
+                View view = itor.Current as View;
                 // skip view templates because they're invisible in project browser
                 if (null == view || view.IsTemplate)
                 {
@@ -39,8 +38,7 @@ namespace Create3DViewFromViewPlanWPF
                 else
                 {
                     ElementType objType = doc.GetElement(view.GetTypeId()) as ElementType;
-                    if (null == objType || objType.Name.Equals("Schedule")
-                                        || objType.Name.Equals("Drawing Sheet"))
+                    if (null == objType || objType.Name.Equals("Schedule")|| objType.Name.Equals("Drawing Sheet"))
                     {
                         continue;
                     }
