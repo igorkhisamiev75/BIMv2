@@ -25,7 +25,13 @@ namespace DelFiltersWPF
 
         public ICollection<Element> filtersCollection = new List<Element>();
 
-        public ICollection<View> filtersCollectionUsedInView = new List<View>();
+        public ICollection<Element> filtersCollectionCopy = new List<Element>();
+
+        public ICollection<Element> unusedFiltersCollection = new List<Element>();
+
+        public ICollection<View> onlyViewPlan3DSection = new List<View>();
+
+        public ICollection<int> filtersInViewsId = new List<int>();
 
         //public DeletedFilter(ExternalCommandData commandData)
         //{
@@ -50,15 +56,64 @@ namespace DelFiltersWPF
            foreach (var item in allView)
            {
                if (item.ViewType == ViewType.FloorPlan 
-                   || item.ViewType != ViewType.ThreeD
-                   || item.ViewType != ViewType.Elevation
-                   || item.ViewType != ViewType.Section)
+                   || item.ViewType == ViewType.ThreeD
+                   || item.ViewType == ViewType.Elevation
+                   || item.ViewType == ViewType.Section)
                {
-                   filtersCollectionUsedInView.Add(item);
+                   onlyViewPlan3DSection.Add(item);
                }
            }
 
-           TaskDialog.Show("Report", filtersCollection.Count.ToString());
+           //get filters ID
+           foreach (var view in onlyViewPlan3DSection)
+           {
+               var f = view.GetOrderedFilters();
+                if (f != null)
+                {
+                    foreach (var item in f)
+                    {
+                        filtersInViewsId.Add(item.GetHashCode());
+                    }
+                }
+
+            }
+
+           filtersInViewsId = filtersInViewsId.GroupBy(x => x.GetHashCode()).Select(group =>
+               group.OrderBy(x => x.GetHashCode()).First()).ToList();
+
+            //clean filters list
+
+            foreach (var VARIABLE in filtersCollection)
+            {
+                filtersCollectionCopy.Add(VARIABLE);
+            }
+
+            foreach (var filterAllfilters in filtersCollection)
+            {
+                
+                var i = filterAllfilters.Id.GetHashCode();
+
+                foreach (var element in filtersInViewsId)
+                {
+                    if (i.ToString() == element.ToString())
+                    {
+                        filtersCollectionCopy.Remove(filterAllfilters);
+                    }
+                    
+                }
+                
+            }
+
+            //unusedFiltersCollection = unusedFiltersCollection.GroupBy(x => x.GetHashCode()).Select(group =>
+            //    group.OrderBy(x => x.GetHashCode()).First()).ToList();
+
+
+
+            //TaskDialog.Show("Report", items.Count.ToString());
+
+
+
+            //TaskDialog.Show("Report", filtersCollection.Count.ToString());
 
 
             //get all used filters in View's
@@ -71,7 +126,7 @@ namespace DelFiltersWPF
 
             //        foreach (var item in gg)
             //        {
-            //            //filtersCollectionUsedInView.Add(item.ToString());
+            //            //onlyViewPlan3DSection.Add(item.ToString());
             //            TaskDialog.Show("Report", filtersCollection.ToString());
             //        }
 
@@ -81,7 +136,7 @@ namespace DelFiltersWPF
 
 
 
-            ViewWPF vpViewWpf = new ViewWPF(filtersCollection);
+            ViewWPF vpViewWpf = new ViewWPF(filtersCollectionCopy);
 
             vpViewWpf.ShowDialog();
 
