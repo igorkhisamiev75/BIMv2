@@ -55,6 +55,10 @@ namespace BIMv2
                 }
             }
 
+            var daf= doc.GetWorksetTable();
+
+            daf.SetActiveWorksetId(newWorkset.Id);
+
             return Result.Succeeded;
         }
     }
