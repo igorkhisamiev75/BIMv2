@@ -36,7 +36,7 @@ namespace BIMv2
             UIDocument uidoc = uiapp.ActiveUIDocument;
             Document doc = uidoc.Document;
 
-            doc.EnableWorksharing("First", "Two");
+            doc.EnableWorksharing("00_Общие уровни и оси", "00_Рабочий набор 1");
 
             Workset newWorkset = null;
             // Worksets can only be created in a document with worksharing enabled
