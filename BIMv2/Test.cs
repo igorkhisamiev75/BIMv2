@@ -36,81 +36,25 @@ namespace BIMv2
             UIDocument uidoc = uiapp.ActiveUIDocument;
             Document doc = uidoc.Document;
 
-            try
+            doc.EnableWorksharing("First", "Two");
+
+            Workset newWorkset = null;
+            // Worksets can only be created in a document with worksharing enabled
+            if (doc.IsWorkshared)
             {
-                Selection selection = uidoc.Selection;
-
-                // Pick a light fixture.
-
-                var pickedLightReference = selection.PickObject(
-                  ObjectType.Element, new LightPickFilter(),
-                  "Please select lighting fixture to place");
-
-                if (null == pickedLightReference)
+                string worksetName = "New Workset";
+                // Workset name must not be in use by another workset
+                if (WorksetTable.IsWorksetNameUnique(doc, worksetName))
                 {
-                    return Result.Failed;
-                }
-
-                // Get Family Instance of the selected light reference.
-
-                FamilyInstance lightFamilyInstance= doc.GetElement(pickedLightReference) as FamilyInstance;
-
-                // Get FamilySymbol of the family instance.
-
-                if (lightFamilyInstance == null)
-                {
-                    return Result.Failed;
-                }
-
-                FamilySymbol lightFamilySymbol= lightFamilyInstance.Symbol;
-
-                // Determine this family's placement type.
-                // This is an important step towards determining
-                // which NewFamilyInstance overload to use to
-                // place new instances of it.
-
-                FamilyPlacementType placementType  = lightFamilySymbol.Family.FamilyPlacementType;
-
-                // Placement type is WorkPlaneBased, so determine
-                // the host face that defines the work plane.
-
-                Reference hostFace = lightFamilyInstance.HostFace;
-
-                // Prompt for placement point of copy.
-
-                XYZ placeXyzPoint = selection.PickPoint(
-                  "Select point to place new light:");
-
-                // The location point gives Z elevation value.
-
-                LocationPoint lp = lightFamilyInstance.Location as LocationPoint;
-
-                // Assuming the ceiling is horizontal, set
-                // the location point Z value for the copy
-                // equal to the original.
-
-                placeXyzPoint = new XYZ(placeXyzPoint.X, placeXyzPoint.Y, lp.Point.Z);
-
-                using (var trans = new Transaction(doc))
-                {
-                    trans.Start("LightArray");
-
-                    FamilyInstance lightFamilyInstance2
-                      = doc.Create.NewFamilyInstance(hostFace, placeXyzPoint, XYZ.BasisX,
-                        lightFamilySymbol);
-
-                    trans.Commit();
+                    using (Transaction worksetTransaction = new Transaction(doc, "Set preview view id"))
+                    {
+                        worksetTransaction.Start();
+                        newWorkset = Workset.Create(doc, worksetName);
+                        worksetTransaction.Commit();
+                    }
                 }
             }
-            catch (OperationCanceledException)
-            {
-                return Result.Cancelled;
-            }
-            catch (Exception ex)
-            {
-                message = ex.Message;
-                return Result.Failed;
-            }
+
             return Result.Succeeded;
         }
     }
