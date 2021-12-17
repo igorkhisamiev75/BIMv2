@@ -64,6 +64,7 @@
     <Compile Include="HelpBIM.cs" />
     <Compile Include="PowerFactorElectrical.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RoomsByFloorFinishType.cs" />
     <Compile Include="SolarSystemFunProject.cs" />
     <Compile Include="SumAllLightingFixtureInRoom.cs" />
     <Compile Include="Test.cs" />
