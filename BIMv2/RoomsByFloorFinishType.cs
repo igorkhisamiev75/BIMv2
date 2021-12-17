@@ -29,33 +29,40 @@ namespace BIMv2
 
             var roomsGroups = allRooms.GroupBy(p => p.LookupParameter("Тип отделки пола").AsValueString());
 
-            //пробегаемся по сгруппированным значениям
 
-            foreach (IGrouping<string, Element> element in roomsGroups)
+            using (Transaction worksetTransaction = new Transaction(doc, "Set preview view id"))
             {
-                IList<string> numroomList = new List<string>();
+                worksetTransaction.Start();
+                //пробегаемся по сгруппированным значениям
 
-                //создаем массив с номерами помещений
-                foreach (var t in element)
+                foreach (IGrouping<string, Element> element in roomsGroups)
                 {
-                    numroomList.Add(t.LookupParameter("Номер").AsString());
+                    IList<string> numroomList = new List<string>();
+
+                    //создаем массив с номерами помещений
+                    foreach (var t in element)
+                    {
+                        numroomList.Add(t.LookupParameter("Номер").AsString());
+                    }
+
+                    string numbersAllRoom = string.Join(", ", numroomList.ToArray());
+
+                    //TaskDialog.Show("Отделка", numbersAllRoom);
+
+                    //и записываем это массив в каждый номер этого массива
+
+                    foreach (var t in element)
+                    {
+                        t.LookupParameter("Комментарии").Set(numbersAllRoom);
+                    }
+
+
                 }
 
-                string numbersAllRoom = string.Join(", ", numroomList.ToArray());
-
-                TaskDialog.Show("Отделка", numbersAllRoom);
-
-                //и записываем это массив в каждый номер этого массива
-
-
-
-
+                worksetTransaction.Commit();
             }
 
-
-
-
-
+                
 
             IEnumerable<IGrouping<string, Element>> roomsGroup=from room in allRooms
                 group room by room.LookupParameter("Тип отделки пола").AsValueString();
