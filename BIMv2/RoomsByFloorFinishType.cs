@@ -27,18 +27,48 @@ namespace BIMv2
             //IList<ElementId> room_eids = room_collector.ToElementIds() as IList<ElementId>;
             IList<Element> allRooms = room_collector.ToElements();
 
-            var roomsGroup=from room in allRooms
+            var roomsGroups = allRooms.GroupBy(p => p.LookupParameter("Тип отделки пола").AsValueString());
+
+            //пробегаемся по сгруппированным значениям
+
+            foreach (IGrouping<string, Element> element in roomsGroups)
+            {
+                IList<string> numroomList = new List<string>();
+
+                //создаем массив с номерами помещений
+                foreach (var t in element)
+                {
+                    numroomList.Add(t.LookupParameter("Номер").AsString());
+                }
+
+                string numbersAllRoom = string.Join(", ", numroomList.ToArray());
+
+                TaskDialog.Show("Отделка", numbersAllRoom);
+
+                //и записываем это массив в каждый номер этого массива
+
+
+
+
+            }
+
+
+
+
+
+
+            IEnumerable<IGrouping<string, Element>> roomsGroup=from room in allRooms
                 group room by room.LookupParameter("Тип отделки пола").AsValueString();
 
 
 
-            foreach (IGrouping<string, Element> element in roomsGroup)
+            foreach (IGrouping<string, Element> element in roomsGroups)
             {
-                TaskDialog.Show("Отделка", element.Key);
+                //TaskDialog.Show("Отделка", element.Key);
 
                 foreach (var t in element)
                 {
-                    TaskDialog.Show("Отделка", t.Name);
+                    //TaskDialog.Show("Отделка", t.LookupParameter("Номер").AsString());
                 }
             }
 
