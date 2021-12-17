@@ -18,7 +18,9 @@ namespace BIMv2
             UIDocument uidoc = uiapp.ActiveUIDocument;
             Document doc = uidoc.Document;
 
-            IList<string> numFinishList = new List<string>();
+            
+
+            IList<string> numroomList = new List<string>();
 
             // List all Room's
             var room_collector = new FilteredElementCollector(doc)
@@ -26,18 +28,22 @@ namespace BIMv2
                 .WhereElementIsNotElementType();
             //IList<ElementId> room_eids = room_collector.ToElementIds() as IList<ElementId>;
             IList<Element> allRooms = room_collector.ToElements();
+            IList<string> numFinishList = new List<string>();
 
-            var roomsGroups = allRooms.GroupBy(p => p.LookupParameter("Тип отделки пола").AsValueString());
+            //группировка по отделке
+            var roomsGroups = allRooms.GroupBy(p => p.LookupParameter("Отделка пола").AsString());
 
 
             using (Transaction worksetTransaction = new Transaction(doc, "Set preview view id"))
             {
                 worksetTransaction.Start();
                 //пробегаемся по сгруппированным значениям
+                
+                
 
                 foreach (IGrouping<string, Element> element in roomsGroups)
                 {
-                    IList<string> numroomList = new List<string>();
+                    numroomList.Clear();
 
                     //создаем массив с номерами помещений
                     foreach (var t in element)
@@ -45,7 +51,10 @@ namespace BIMv2
                         numroomList.Add(t.LookupParameter("Номер").AsString());
                     }
 
-                    string numbersAllRoom = string.Join(", ", numroomList.ToArray());
+                    string numbersAllRoomString = string.Join(", ", numroomList.ToArray());
+
+                    numroomList.Clear();
+                    
 
                     //TaskDialog.Show("Отделка", numbersAllRoom);
 
@@ -53,8 +62,11 @@ namespace BIMv2
 
                     foreach (var t in element)
                     {
-                        t.LookupParameter("Комментарии").Set(numbersAllRoom);
+                        
+                        t.LookupParameter("ADSK_Номера помещений для пола").Set(numbersAllRoomString);
                     }
+
+                    numbersAllRoomString = "";
 
 
                 }
@@ -64,32 +76,32 @@ namespace BIMv2
 
                 
 
-            IEnumerable<IGrouping<string, Element>> roomsGroup=from room in allRooms
-                group room by room.LookupParameter("Тип отделки пола").AsValueString();
+            //IEnumerable<IGrouping<string, Element>> roomsGroup=from room in allRooms
+            //    group room by room.LookupParameter("Тип отделки пола").AsValueString();
 
 
 
-            foreach (IGrouping<string, Element> element in roomsGroups)
-            {
-                //TaskDialog.Show("Отделка", element.Key);
+            //foreach (IGrouping<string, Element> element in roomsGroups)
+            //{
+            //    //TaskDialog.Show("Отделка", element.Key);
 
-                foreach (var t in element)
-                {
-                    //TaskDialog.Show("Отделка", t.LookupParameter("Номер").AsString());
-                }
-            }
+            //    foreach (var t in element)
+            //    {
+            //        //TaskDialog.Show("Отделка", t.LookupParameter("Номер").AsString());
+            //    }
+            //}
 
-            foreach (var room in allRooms)
-            {
-                var g = room.LookupParameter("Тип отделки пола").AsValueString(); //get finishFloor
-                numFinishList.Add(g);
-                //TaskDialog.Show("Отделка", g);
-            }
+            //foreach (var room in allRooms)
+            //{
+            //    var g = room.LookupParameter("Тип отделки пола").AsValueString(); //get finishFloor
+            //    numFinishList.Add(g);
+            //    //TaskDialog.Show("Отделка", g);
+            //}
 
-            numFinishList = numFinishList.GroupBy(x => x.GetHashCode()).Select(group =>
-                group.OrderBy(x => x.GetHashCode()).First()).ToList();
+            //numFinishList = numFinishList.GroupBy(x => x.GetHashCode()).Select(group =>
+            //    group.OrderBy(x => x.GetHashCode()).First()).ToList();
 
-            //TaskDialog.Show("Вариантов отделки", numFinishList.Count.ToString());
+            ////TaskDialog.Show("Вариантов отделки", numFinishList.Count.ToString());
 
 
 
