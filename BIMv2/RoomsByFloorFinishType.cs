@@ -17,10 +17,8 @@ namespace BIMv2
             UIApplication uiapp = commandData.Application;
             UIDocument uidoc = uiapp.ActiveUIDocument;
             Document doc = uidoc.Document;
-
             
-
-            IList<string> numroomList = new List<string>();
+            
 
             // List all Room's
             var room_collector = new FilteredElementCollector(doc)
@@ -31,18 +29,16 @@ namespace BIMv2
             IList<string> numFinishList = new List<string>();
 
             //группировка по отделке
-            var roomsGroups = allRooms.GroupBy(p => p.LookupParameter("Отделка пола").AsString());
-
-
+            var roomsGroups = allRooms.GroupBy(p => p.LookupParameter("Тип отделки пола").AsValueString());
+            
             using (Transaction worksetTransaction = new Transaction(doc, "Set preview view id"))
             {
                 worksetTransaction.Start();
                 //пробегаемся по сгруппированным значениям
                 
-                
-
                 foreach (IGrouping<string, Element> element in roomsGroups)
                 {
+                    IList<string> numroomList = new List<string>();
                     numroomList.Clear();
 
                     //создаем массив с номерами помещений
@@ -50,7 +46,7 @@ namespace BIMv2
                     {
                         numroomList.Add(t.LookupParameter("Номер").AsString());
                     }
-
+                    
                     string numbersAllRoomString = string.Join(", ", numroomList.ToArray());
 
                     numroomList.Clear();
@@ -65,10 +61,7 @@ namespace BIMv2
                         
                         t.LookupParameter("ADSK_Номера помещений для пола").Set(numbersAllRoomString);
                     }
-
-                    numbersAllRoomString = "";
-
-
+                    
                 }
 
                 worksetTransaction.Commit();
