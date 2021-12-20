@@ -29,11 +29,13 @@ namespace BIMv2
                 var allFloors = GetAllFloorElements(doc);
                 
                 TaskDialog.Show("Сделано", "Прописано коментарии в "+$"{allFloors.Count.ToString()}");
-                
+                doc.Regenerate();
+
                 t.Commit();
 
                 t.Start("Stage 2");
 
+                WriteAllRoom(doc);
                 TaskDialog.Show("Сделано", "Объеденить" + $"");
 
                 t.Commit();
@@ -41,6 +43,42 @@ namespace BIMv2
             }
             return Result.Succeeded;
             
+        }
+
+        public void WriteAllRoom(Document doc)
+        {
+            var allFloors = GetAllFloorElements(doc);
+
+            //группировка по отделке
+            var groups = allFloors.GroupBy(p => p.LookupParameter("Type").AsValueString());
+
+            //пробегаемся по сгруппированным значениям
+
+            foreach (IGrouping<string, Element> element in groups)
+            {
+                IList<string> numroomList = new List<string>();
+                numroomList.Clear();
+
+                //создаем массив с номерами помещений
+                foreach (var t in element)
+                {
+                    numroomList.Add(t.LookupParameter("Номер помещения(отделка)").AsString());
+                }
+
+                string numbersAllRoomString = string.Join(", ", numroomList.ToArray());
+
+                numroomList.Clear();
+                
+                //и записываем это массив в каждый номер этого массива
+
+                foreach (var t in element)
+                {
+
+                    t.LookupParameter("Comments").Set(numbersAllRoomString);
+                }
+
+            }
+
         }
 
         public void WriteNumberRoomInFloorsComment(Document doc)
