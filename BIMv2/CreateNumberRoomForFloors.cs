@@ -26,11 +26,18 @@ namespace BIMv2
                 t.Start("WriteNumberRoomInFloorsComment");
 
                 WriteNumberRoomInFloorsComment(doc);
+                var allFloors = GetAllFloorElements(doc);
+                
+                TaskDialog.Show("Сделано", "Прописано коментарии в "+$"{allFloors.Count.ToString()}");
+                
+                t.Commit();
 
-                TaskDialog.Show("Good work", "Good");
+                t.Start("Stage 2");
+
+                TaskDialog.Show("Сделано", "Объеденить" + $"");
 
                 t.Commit();
-                
+
             }
             return Result.Succeeded;
             
