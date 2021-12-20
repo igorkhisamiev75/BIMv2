@@ -14,218 +14,98 @@ namespace BIMv2
     [Transaction(TransactionMode.Manual)]
     class CreateNumberRoomForFloors : IExternalCommand
     {
-        #region Class Variables
-        // Revit application
-        Autodesk.Revit.ApplicationServices.Application m_application;
-        // Current document in Revit
-        Document m_document;
-        
         public List<Element> projectRooms = new List<Element>();
         public List<Element> AllRooms = new List<Element>();
-        #endregion
+
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            UIApplication uiapp = commandData.Application;
-            UIDocument uidoc = uiapp.ActiveUIDocument;
-            Document doc = uidoc.Document;
-            m_document = commandData.Application.ActiveUIDocument.Document;
+            Document doc = commandData.Application.ActiveUIDocument.Document;
 
-           
-
-            try
+            using (var t = new Transaction(doc))
             {
+                t.Start("WriteNumberRoomInFloorsComment");
 
-                    // List all Floor's
-                    var floor_collector = new FilteredElementCollector(doc)
-                .OfCategory(BuiltInCategory.OST_Floors)
-                .WhereElementIsNotElementType();
-            IList<Element> allFloors = floor_collector.ToElements();
+                WriteNumberRoomInFloorsComment(doc);
 
-            //список линкованных файлов
-            IEnumerable<RevitLinkInstance> linkedInstances = FindLinkedInstances(doc);
+                TaskDialog.Show("Good work", "Good");
 
-            if (linkedInstances != null)
-            {
-
-                foreach (var linkInstance in linkedInstances)
-                {
-                    Document linkDocument = linkInstance.GetLinkDocument();
-                    var transform = linkInstance.GetTotalTransform();
-
-                    List<Element> roomsLink = GetAllRoomsLinked(linkDocument);
-
-                    //сделать проверку на подгруженность файла линк
-
-                    if (roomsLink != null)
-                    {
-                        foreach (var room in roomsLink) //may be not element, but room come back
-                        {
-                            var areaRoom = room.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble();
-
-                            if (areaRoom > 0)
-                            {
-                                AllRooms.Add(room);
-                            }
-
-                            
-
-                        }
-
-
-                    }
-
-                    
-                }
-            }
-
-            // Represents the criteria for boundary elements to be considered bounding roofs
-            LogicalOrFilter categoryFilter = new LogicalOrFilter(new ElementCategoryFilter(BuiltInCategory.OST_Floors),
-                new ElementCategoryFilter(BuiltInCategory.OST_FloorsFinish1));
-
-            // Calculator for room/space geometry.
-                SpatialElementGeometryCalculator calculator = new SpatialElementGeometryCalculator(doc);
-
-            // Stores the resulting room->roof relationships
-            Dictionary<Element, List<ElementId>> roomsAndFloors = new Dictionary<Element, List<ElementId>>();
-
-            foreach (var room in AllRooms)
-            {
-                var areaRoom = room.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble();
-
-                if (areaRoom > 0)
-                {
-                    // Get room geometry & boundaries          
-                    var results = calculator.CalculateSpatialElementGeometry((SpatialElement)room);
-
-                    // Get solid geometry so we can examine each face
-                    var geometry = results.GetGeometry();
-
-                    foreach (Face face in geometry.Faces)
-                    {
-                        // Get list of roof boundary subfaces for a given face
-                        var boundaryFaces = results.GetBoundaryFaceInfo(face);
-
-                        foreach (var boundaryFace in boundaryFaces)
-                        {
-                            var pf = boundaryFace.SubfaceType == SubfaceType.Bottom;
-                            
-                            // Get boundary element
-                            var boundaryElementId = boundaryFace.SpatialBoundaryElement;
-
-                            // Only considering local file room bounding elements
-                            var localElementId = boundaryElementId.HostElementId;
-
-                            // Evaluate if element meets criteria using PassesFilter()
-                            if (localElementId != ElementId.InvalidElementId &&
-                                categoryFilter.PassesFilter(m_document, localElementId))
-                            {
-                                // Room already has roofs, add more
-                                if (roomsAndFloors.ContainsKey(room))
-                                {
-                                    var roofs = roomsAndFloors[room];
-                                    if (!roofs.Contains(localElementId))
-                                        roofs.Add(localElementId);
-                                    TaskDialog.Show("First", roofs.Count.ToString());
-                                }
-                                // Room found first roof
-                                else
-                                {
-                                    var roofs = new List<ElementId>();
-                                    roofs.Add(localElementId);
-                                    roomsAndFloors.Add(room, roofs);
-                                    TaskDialog.Show("Second", roofs.Count.ToString());
-                                }
-
-                                break;
-                            }
-                        }
-                    }
-                }
+                t.Commit();
                 
             }
+            return Result.Succeeded;
+            
+        }
 
+        public void WriteNumberRoomInFloorsComment(Document doc)
+        {
+            var allFloors = GetAllFloorElements(doc);
+            
             foreach (var element in allFloors)
             {
+                Room myRoom;
+                var nameRoom = "";
+                
                 var minPoint = element.get_BoundingBox(doc.ActiveView).Min;
                 var maxPoint = element.get_BoundingBox(doc.ActiveView).Max;
                 XYZ zN = new XYZ(0, 0, 2);
 
-                var newSearchPoint = (minPoint + maxPoint)/2+ zN;
-                TaskDialog.Show("Rooms", newSearchPoint.ToString());
+                var newSearchPoint = (minPoint + maxPoint) / 2 + zN;
 
+                myRoom = FindRoom(doc, newSearchPoint);
 
-            }
+                if (myRoom != null)
+                {
+                    nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
+                               myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
 
-            //foreach (var VARIABLE in allFloors)
-            //{
-            //    var bb = VARIABLE.get_BoundingBox(doc.ActiveView).Max;
-            //    TaskDialog.Show("Element", bb.ToString());
-            //}
-            //TaskDialog.Show("Rooms", roomsLink.Count.ToString());
+                    element.LookupParameter("Comments").Set(nameRoom);
 
+                }
 
+                else
+                {
+                    var linkedInstances = FindLinkedInstances(doc); //get all linked files
 
+                    foreach (var linkInstance in linkedInstances)
+                    {
+                        var transform = linkInstance.GetTotalTransform().Inverse;
+                        var targetPoint = transform.OfPoint(newSearchPoint);
+                        var linkDocument = linkInstance.GetLinkDocument();
 
+                        var room = FindRoom(linkDocument, targetPoint);
+                        if (room != null)
+                        {
+                            var subs = room.Name.Split(' ');
+                            element.LookupParameter("Comments").Set(room.Number + " " + subs[0]);
 
-
-            //IList<string> numFinishList = new List<string>();
-
-            //группировка по отделке
-            //var roomsGroups = allFloors.GroupBy(p => p.LookupParameter("Тип отделки пола").AsValueString());
-
-            //using (Transaction worksetTransaction = new Transaction(doc, "Set preview view id"))
-            //{
-            //    worksetTransaction.Start();
-            //    //пробегаемся по сгруппированным значениям
-
-            //    foreach (IGrouping<string, Element> element in roomsGroups)
-            //    {
-            //        IList<string> numroomList = new List<string>();
-            //        numroomList.Clear();
-
-            //        //создаем массив с номерами помещений
-            //        foreach (var t in element)
-            //        {
-            //            numroomList.Add(t.LookupParameter("Номер").AsString());
-            //        }
-
-            //        string numbersAllRoomString = string.Join(", ", numroomList.ToArray());
-
-            //        numroomList.Clear();
-
-
-            //        foreach (var t in element)
-            //        {
-
-            //            t.LookupParameter("ADSK_Номера помещений для пола").Set(numbersAllRoomString);
-            //        }
-
-            //    }
-
-            //    worksetTransaction.Commit();
-            //}
-
-            TaskDialog.Show("Rooms", AllRooms.Count.ToString());
-
-            return Result.Succeeded;
+                        }
+                        else
+                        {
+                            nameRoom = "It's not in Room";
+                            element.LookupParameter("Comments").Set(nameRoom);
+                        }
+                    }
+                }
 
             }
-
-            catch (Exception ex)
+        }
+        
+        private Room FindRoom(Document doc, XYZ newSearchPoint)
+        {
+            if (doc != null)
             {
-                message = ex.ToString();
-                return Result.Failed;
-            }
-            finally
-            {
-                
+                return doc
+                    .Phases
+                    .Cast<Phase>()
+                    .Select(x => doc.GetRoomAtPoint(newSearchPoint, x))
+                    .FirstOrDefault(x => x != null);
             }
 
-            
-
+            return null;
         }
 
-        private IEnumerable<RevitLinkInstance> FindLinkedInstances(Document doc)
+
+        public IEnumerable<RevitLinkInstance> FindLinkedInstances(Document doc)
         {
             var collector = new FilteredElementCollector(doc);
             return collector
@@ -252,6 +132,54 @@ namespace BIMv2
             }
 
             return projectRooms;
+        }
+
+        public IList<Element>  GetAllFloorElements(Document document)
+        {
+            // List all Floor's
+            var floor_collector = new FilteredElementCollector(document)
+                .OfCategory(BuiltInCategory.OST_Floors)
+                .WhereElementIsNotElementType();
+            IList<Element> allFloors = floor_collector.ToElements();
+            return allFloors;
+        }
+
+        public List<Element> GetAllRoom(Document doc)
+        {
+            //список линкованных файлов
+            IEnumerable<RevitLinkInstance> linkedInstances = FindLinkedInstances(doc);
+
+            if (linkedInstances != null)
+            {
+
+                foreach (var linkInstance in linkedInstances)
+                {
+                    Document linkDocument = linkInstance.GetLinkDocument();
+                    var transform = linkInstance.GetTotalTransform();
+
+                    List<Element> roomsLink = GetAllRoomsLinked(linkDocument);
+
+                    //сделать проверку на подгруженность файла линк
+
+                    if (roomsLink != null)
+                    {
+                        foreach (var room in roomsLink) //may be not element, but room come back
+                        {
+                            var areaRoom = room.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble();
+
+                            if (areaRoom > 0)
+                            {
+                                AllRooms.Add(room);
+                            }
+
+                        }
+
+                    }
+
+                }
+            }
+
+            return AllRooms;
         }
 
     }
