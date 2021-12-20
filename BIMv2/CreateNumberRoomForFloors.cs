@@ -58,7 +58,7 @@ namespace BIMv2
                     nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
                                myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
 
-                    element.LookupParameter("Comments").Set(nameRoom);
+                    element.LookupParameter("Номер помещения (отделка)").Set(nameRoom);
 
                 }
 
@@ -75,14 +75,15 @@ namespace BIMv2
                         var room = FindRoom(linkDocument, targetPoint);
                         if (room != null)
                         {
-                            var subs = room.Name.Split(' ');
-                            element.LookupParameter("Comments").Set(room.Number + " " + subs[0]);
+                            nameRoom = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
+                                       room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+                            element.LookupParameter("Номер помещения (отделка)").Set(nameRoom);
 
                         }
                         else
                         {
                             nameRoom = "It's not in Room";
-                            element.LookupParameter("Comments").Set(nameRoom);
+                            element.LookupParameter("Номер помещения (отделка)").Set(nameRoom);
                         }
                     }
                 }
