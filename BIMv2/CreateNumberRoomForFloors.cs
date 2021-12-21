@@ -38,7 +38,7 @@ namespace BIMv2
                 t.Start("Stage 2");
 
                 WriteAllRoom(doc);
-                TaskDialog.Show("Сделано", "Сгруппированы" + $"");
+                TaskDialog.Show("Сделано", "Сгруппированы перекрытия");
 
                 t.Commit();
 

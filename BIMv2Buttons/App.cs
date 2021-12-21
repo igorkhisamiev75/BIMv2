@@ -35,7 +35,21 @@ namespace BIMv2Buttons
 
             BitmapImage pb1Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/transferNameRoom.png"));
             pb1.LargeImage = pb1Image;
-            
+
+            //попробуем создать еще одну кнопку
+            ribbonPanel.AddSeparator(); //разделитель между кнопками
+
+
+            // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData b11Data = new PushButtonData("cmdCreateNumberRoomForFloors.cs.cs", "Записать"
+                + Environment.NewLine + "помещения в полы", thisAssemblyPath, "BIMv2.CreateNumberRoomForFloors");
+
+            PushButton pb11 = ribbonPanel.AddItem(b11Data) as PushButton;
+            pb11.ToolTip = "Записать помещения в перекрытия";
+
+            BitmapImage pb11Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-floor-32.png"));
+            pb11.LargeImage = pb11Image;
+
             //попробуем создать еще одну кнопку
             ribbonPanel.AddSeparator(); //разделитель между кнопками
             

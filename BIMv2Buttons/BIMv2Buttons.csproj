@@ -71,6 +71,7 @@
     <Compile Include="CreateElementsInRooms\RoomsData.cs" />
     <Compile Include="CreateLightingInRoom\CreateLightingInRoom.cs" />
     <Compile Include="CreateModelText\CreateModelText.cs" />
+    <Compile Include="CreateNumberRoomForFloors\CreateNumberRoomForFloors.cs" />
     <Compile Include="DelFilters\DeletedFilter.cs" />
     <Compile Include="DelFilters\ViewWPF.xaml.cs">
       <DependentUpon>ViewWPF.xaml</DependentUpon>
@@ -130,6 +131,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\icons8-clean2-32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\icons8-floor-32.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
