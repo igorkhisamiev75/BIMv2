@@ -17,7 +17,6 @@ namespace BIMv2
         public List<Element> projectRooms = new List<Element>();
         public List<Element> AllRooms = new List<Element>();
         public List<Floor> AllF = new List<Floor>();
-        
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -29,7 +28,8 @@ namespace BIMv2
 
                 WriteNumberRoomInFloorsComment(doc);
                 var allFloors = GetAllFloorElements(doc);
-                
+
+                //TaskDialog.Show("Сделано", "Прописано коментарии в "+$"{allFloors.Count.ToString()}");
                 doc.Regenerate();
 
                 t.Commit();
@@ -37,13 +37,13 @@ namespace BIMv2
                 t.Start("Stage 2");
 
                 WriteAllRoom(doc);
-                TaskDialog.Show("Сделано", "Сгруппированы" + $"");
+                TaskDialog.Show("Сделано", "Сгруппированы перекрытия");
 
                 t.Commit();
 
             }
             return Result.Succeeded;
-            
+
         }
 
         public void WriteAllRoom(Document doc)
@@ -59,9 +59,9 @@ namespace BIMv2
             foreach (var VARIABLE in AllF)
             {
                 //TaskDialog.Show("Сделано", $"{VARIABLE.Name}");
-                
+
             }
-            
+
 
             //группировка по типу пола
             var groups = AllF.GroupBy(p => p.Name);
@@ -103,12 +103,12 @@ namespace BIMv2
         public void WriteNumberRoomInFloorsComment(Document doc)
         {
             var allFloors = GetAllFloorElements(doc);
-            
+
             foreach (var element in allFloors)
             {
                 Room myRoom;
                 var nameRoom = "";
-                
+
                 var minPoint = element.get_BoundingBox(doc.ActiveView).Min;
                 var maxPoint = element.get_BoundingBox(doc.ActiveView).Max;
                 XYZ zN = new XYZ(0, 0, 2);
@@ -142,11 +142,11 @@ namespace BIMv2
                             nameRoom = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
                                        room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
                             element.LookupParameter("Номер помещения (отделка)").Set(nameRoom);
-
+                            break;
                         }
                         else
                         {
-                            nameRoom = "It's not in Room";
+                            nameRoom = "Error";
                             element.LookupParameter("Номер помещения (отделка)").Set(nameRoom);
                         }
                     }
@@ -154,7 +154,7 @@ namespace BIMv2
 
             }
         }
-        
+
         private Room FindRoom(Document doc, XYZ newSearchPoint)
         {
             if (doc != null)
@@ -168,7 +168,6 @@ namespace BIMv2
 
             return null;
         }
-
 
         public IEnumerable<RevitLinkInstance> FindLinkedInstances(Document doc)
         {
@@ -199,7 +198,7 @@ namespace BIMv2
             return projectRooms;
         }
 
-        public IList<Element>  GetAllFloorElements(Document document)
+        public IList<Element> GetAllFloorElements(Document document)
         {
             // List all Floor's
             var floor_collector = new FilteredElementCollector(document)

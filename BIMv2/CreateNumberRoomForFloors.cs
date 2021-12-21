@@ -12,13 +12,12 @@ using Autodesk.Revit.UI.Selection;
 namespace BIMv2
 {
     [Transaction(TransactionMode.Manual)]
-    class CreateNumberRoomForFloors : IExternalCommand
+    public class CreateNumberRoomForFloors : IExternalCommand
     {
         public List<Element> projectRooms = new List<Element>();
         public List<Element> AllRooms = new List<Element>();
         public List<Floor> AllF = new List<Floor>();
         
-
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             Document doc = commandData.Application.ActiveUIDocument.Document;
@@ -143,11 +142,11 @@ namespace BIMv2
                             nameRoom = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
                                        room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
                             element.LookupParameter("Номер помещения (отделка)").Set(nameRoom);
-
+                            break;
                         }
                         else
                         {
-                            nameRoom = "It's not in Room";
+                            nameRoom = "Error";
                             element.LookupParameter("Номер помещения (отделка)").Set(nameRoom);
                         }
                     }
@@ -169,8 +168,7 @@ namespace BIMv2
 
             return null;
         }
-
-
+        
         public IEnumerable<RevitLinkInstance> FindLinkedInstances(Document doc)
         {
             var collector = new FilteredElementCollector(doc);
