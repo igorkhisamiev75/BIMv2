@@ -93,7 +93,7 @@ namespace BIMv2
                 foreach (var t in element)
                 {
 
-                    t.LookupParameter("Comments").Set(numbersAllRoomString);
+                    t.LookupParameter("Комментарии").Set(numbersAllRoomString);
                 }
 
             }

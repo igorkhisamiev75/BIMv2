@@ -9,9 +9,11 @@ using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Selection;
 
+
 namespace BIMv2
 {
     [Transaction(TransactionMode.Manual)]
+    [Regeneration(RegenerationOption.Manual)]
     public class CreateNumberRoomForFloors : IExternalCommand
     {
         public List<Element> projectRooms = new List<Element>();
@@ -93,7 +95,7 @@ namespace BIMv2
                 foreach (var t in element)
                 {
 
-                    t.LookupParameter("Comments").Set(numbersAllRoomString);
+                    t.LookupParameter("Комментарии").Set(numbersAllRoomString);
                 }
 
             }
@@ -103,17 +105,30 @@ namespace BIMv2
         public void WriteNumberRoomInFloorsComment(Document doc)
         {
             var allFloors = GetAllFloorElements(doc);
-            
+            List<List<XYZ>> polygons = new List<List<XYZ>>();
+
             foreach (var element in allFloors)
             {
                 Room myRoom;
                 var nameRoom = "";
-                
+
+                Floor floor = (Floor)element;
+
+                Options opts = new Options();
+
+                var obj = floor.get_Geometry(opts);
+
+                TaskDialog.Show("Сделано", $"{obj.ToString()}");
+
+
                 var minPoint = element.get_BoundingBox(doc.ActiveView).Min;
                 var maxPoint = element.get_BoundingBox(doc.ActiveView).Max;
                 XYZ zN = new XYZ(0, 0, 2);
 
                 var newSearchPoint = (minPoint + maxPoint) / 2 + zN;
+                //var newSearchPoint = minPoint + zN;
+
+                //newSearchPoint = adfEndPoint;
 
                 myRoom = FindRoom(doc, newSearchPoint);
 
