@@ -16,6 +16,8 @@ namespace BIMv2
     {
         public List<Element> projectRooms = new List<Element>();
         public List<Element> AllRooms = new List<Element>();
+        public List<Floor> AllF = new List<Floor>();
+        
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -28,7 +30,7 @@ namespace BIMv2
                 WriteNumberRoomInFloorsComment(doc);
                 var allFloors = GetAllFloorElements(doc);
                 
-                TaskDialog.Show("Сделано", "Прописано коментарии в "+$"{allFloors.Count.ToString()}");
+                //TaskDialog.Show("Сделано", "Прописано коментарии в "+$"{allFloors.Count.ToString()}");
                 doc.Regenerate();
 
                 t.Commit();
@@ -36,7 +38,7 @@ namespace BIMv2
                 t.Start("Stage 2");
 
                 WriteAllRoom(doc);
-                TaskDialog.Show("Сделано", "Объеденить" + $"");
+                TaskDialog.Show("Сделано", "Сгруппированы" + $"");
 
                 t.Commit();
 
@@ -49,8 +51,21 @@ namespace BIMv2
         {
             var allFloors = GetAllFloorElements(doc);
 
-            //группировка по отделке
-            var groups = allFloors.GroupBy(p => p.LookupParameter("Type").AsValueString());
+            foreach (var VARIABLE in allFloors)
+            {
+                AllF.Add((Floor)VARIABLE);
+
+            }
+
+            foreach (var VARIABLE in AllF)
+            {
+                //TaskDialog.Show("Сделано", $"{VARIABLE.Name}");
+                
+            }
+            
+
+            //группировка по типу пола
+            var groups = AllF.GroupBy(p => p.Name);
 
             //пробегаемся по сгруппированным значениям
 
@@ -62,13 +77,18 @@ namespace BIMv2
                 //создаем массив с номерами помещений
                 foreach (var t in element)
                 {
-                    numroomList.Add(t.LookupParameter("Номер помещения(отделка)").AsString());
+                    var otd = t.LookupParameter("Номер помещения (отделка)").AsString();
+                    string[] subs = otd.Split(' ');
+                    numroomList.Add(subs[0]);
                 }
 
-                string numbersAllRoomString = string.Join(", ", numroomList.ToArray());
+                //clean list
+                var newList = new List<string>(numroomList.Distinct());
+
+                string numbersAllRoomString = string.Join(", ", newList.ToArray());
 
                 numroomList.Clear();
-                
+
                 //и записываем это массив в каждый номер этого массива
 
                 foreach (var t in element)
