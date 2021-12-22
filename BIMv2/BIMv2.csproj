@@ -62,6 +62,9 @@
     <Compile Include="CreateViewForLevels.cs" />
     <Compile Include="DeletedFilter.cs" />
     <Compile Include="GetRoomNameForSelectElement.cs" />
+    <Compile Include="GroupTypeCeilingAndWriteToComment.cs" />
+    <Compile Include="GroupTypeFloorAndWriteToComment.cs" />
+    <Compile Include="GroupTypeWallsAndWriteToComment.cs" />
     <Compile Include="HelpBIM.cs" />
     <Compile Include="PowerFactorElectrical.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

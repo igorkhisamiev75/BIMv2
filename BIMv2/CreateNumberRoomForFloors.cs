@@ -77,7 +77,9 @@ namespace BIMv2
                 }
 
                 //clean list
-                var newList = new List<string>(numroomList.Distinct());
+                List<string> newList = new List<string>(numroomList.Distinct());
+
+                newList.Sort();
 
                 string numbersAllRoomString = string.Join(", ", newList.ToArray());
 
