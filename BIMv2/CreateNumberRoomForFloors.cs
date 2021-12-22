@@ -105,30 +105,81 @@ namespace BIMv2
         public void WriteNumberRoomInFloorsComment(Document doc)
         {
             var allFloors = GetAllFloorElements(doc);
-            List<List<XYZ>> polygons = new List<List<XYZ>>();
+           
 
             foreach (var element in allFloors)
             {
                 Room myRoom;
                 var nameRoom = "";
 
+                XYZ gXyz = new XYZ();
+
                 Floor floor = (Floor)element;
+
+                ElementId eid = floor.Id;
 
                 Options opts = new Options();
 
-                var obj = floor.get_Geometry(opts);
+                List<List<XYZ>> polygons = new List<List<XYZ>>();
+                
+                GeometryElement geo = floor.get_Geometry(opts);
 
-                TaskDialog.Show("Сделано", $"{obj.ToString()}");
+                foreach (GeometryObject obj in geo) // 2013
+                {
+                    Solid solid = obj as Solid;
+                    if (solid != null)
+                    {
+                        PlanarFace lowest = null;
+                        FaceArray faces = solid.Faces;
+                        
+                        foreach (Face f in faces)
+                        {
+                            if (f != null)
+                            {
 
+                            }
+                            PlanarFace pf = f as PlanarFace;
+                            
+                            gXyz = pf.Origin;
+                            
+                            break;
 
-                var minPoint = element.get_BoundingBox(doc.ActiveView).Min;
-                var maxPoint = element.get_BoundingBox(doc.ActiveView).Max;
+                        }
+
+                    }
+                }
+
+                List<GeometryElement> geometryElements = new List<GeometryElement>(); 
+
+                geometryElements.Add(geo);
+
+                CurveArray profile = new CurveArray();
+
+                foreach (var geometryle in geometryElements)
+                {
+                    foreach (var obj in geometryle)
+                    {
+                        
+                            profile.Append(obj as Curve);
+                        
+                    }
+                }
+
+                //XYZ thetPoint = profile.get_Item(0).GetEndPoint(1);
+               
+
+                //TaskDialog.Show("Сделано", $"{geo.ToString()}");
+
+                //work for rectangular rooms
+
+                //var minPoint = element.get_BoundingBox(doc.ActiveView).Min;
+                //var maxPoint = element.get_BoundingBox(doc.ActiveView).Max;
                 XYZ zN = new XYZ(0, 0, 2);
 
-                var newSearchPoint = (minPoint + maxPoint) / 2 + zN;
+                //var newSearchPoint = (minPoint + maxPoint) / 2 + zN;
                 //var newSearchPoint = minPoint + zN;
 
-                //newSearchPoint = adfEndPoint;
+                var newSearchPoint = gXyz+zN;
 
                 myRoom = FindRoom(doc, newSearchPoint);
 
@@ -170,6 +221,8 @@ namespace BIMv2
             }
         }
         
+
+
         private Room FindRoom(Document doc, XYZ newSearchPoint)
         {
             if (doc != null)
