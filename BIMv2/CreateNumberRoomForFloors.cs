@@ -57,14 +57,7 @@ namespace BIMv2
                 AllF.Add((Floor)VARIABLE);
 
             }
-
-            foreach (var VARIABLE in AllF)
-            {
-                //TaskDialog.Show("Сделано", $"{VARIABLE.Name}");
-                
-            }
             
-
             //группировка по типу пола
             var groups = AllF.GroupBy(p => p.Name);
 
@@ -164,20 +157,8 @@ namespace BIMv2
                         
                     }
                 }
-
-                //XYZ thetPoint = profile.get_Item(0).GetEndPoint(1);
-               
-
-                //TaskDialog.Show("Сделано", $"{geo.ToString()}");
-
-                //work for rectangular rooms
-
-                //var minPoint = element.get_BoundingBox(doc.ActiveView).Min;
-                //var maxPoint = element.get_BoundingBox(doc.ActiveView).Max;
+                
                 XYZ zN = new XYZ(0, 0, 2);
-
-                //var newSearchPoint = (minPoint + maxPoint) / 2 + zN;
-                //var newSearchPoint = minPoint + zN;
 
                 var newSearchPoint = gXyz+zN;
 
@@ -212,7 +193,7 @@ namespace BIMv2
                         }
                         else
                         {
-                            nameRoom = "Error";
+                            nameRoom = "";
                             element.LookupParameter("Номер помещения (отделка)").Set(nameRoom);
                         }
                     }
