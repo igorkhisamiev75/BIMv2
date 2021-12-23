@@ -18,7 +18,7 @@ namespace BIMv2
     {
         public List<Element> projectRooms = new List<Element>();
         public List<Element> AllRooms = new List<Element>();
-        public List<Wall> AllF = new List<Wall>();
+        public List<WallSweep> AllF = new List<WallSweep>();
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -44,7 +44,7 @@ namespace BIMv2
 
             foreach (var VARIABLE in allFloors)
             {
-                AllF.Add((Wall)VARIABLE);
+                AllF.Add((WallSweep)VARIABLE);
 
             }
 
@@ -91,8 +91,8 @@ namespace BIMv2
         {
             // List all Floor's
             var floor_collector = new FilteredElementCollector(document)
-                .OfCategory(BuiltInCategory.OST_Walls)
-                .WhereElementIsNotElementType();
+                .OfClass(typeof(WallSweep));
+                //.WhereElementIsNotElementType();
             IList<Element> allFloors = floor_collector.ToElements();
             return allFloors;
         }
