@@ -62,8 +62,11 @@ namespace BIMv2
                 foreach (var t in element)
                 {
                     var otd = t.LookupParameter("Номер помещения (отделка)").AsString();
-                    string[] subs = otd.Split(' ');
-                    numroomList.Add(subs[0]);
+                    if (otd != null)
+                    {
+                        string[] subs = otd.Split(' ');
+                        numroomList.Add(subs[0]);
+                    }
                 }
 
                 //clean list

@@ -16,9 +16,7 @@ namespace BIMv2
     [Regeneration(RegenerationOption.Manual)]
     public class GroupTypeWallsAndWriteToComment : IExternalCommand
     {
-        public List<Element> projectRooms = new List<Element>();
-        public List<Element> AllRooms = new List<Element>();
-        public List<Wall> AllF = new List<Wall>();
+       public List<Wall> AllF = new List<Wall>();
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -62,8 +60,12 @@ namespace BIMv2
                 foreach (var t in element)
                 {
                     var otd = t.LookupParameter("Номер помещения (отделка)").AsString();
-                    string[] subs = otd.Split(' ');
-                    numroomList.Add(subs[0]);
+                    if (otd != null)
+                    {
+                        string[] subs = otd.Split(' ');
+                        numroomList.Add(subs[0]);
+                    }
+                    
                 }
 
                 //clean list
@@ -93,6 +95,7 @@ namespace BIMv2
             var floor_collector = new FilteredElementCollector(document)
                 .OfCategory(BuiltInCategory.OST_Walls)
                 .WhereElementIsNotElementType();
+
             IList<Element> allFloors = floor_collector.ToElements();
             return allFloors;
         }
