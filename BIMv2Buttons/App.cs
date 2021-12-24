@@ -36,10 +36,6 @@ namespace BIMv2Buttons
             BitmapImage pb1Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/transferNameRoom.png"));
             pb1.LargeImage = pb1Image;
 
-            //попробуем создать еще одну кнопку
-            ribbonPanel.AddSeparator(); //разделитель между кнопками
-
-
             // create push button for CurveTotalLength  //namespace и класс
             //PushButtonData b11Data = new PushButtonData("cmdCreateNumberRoomForFloors", "Записать"
             //    + Environment.NewLine + "помещения в полы", thisAssemblyPath, "BIMv2.CreateNumberRoomForFloors");
@@ -125,7 +121,6 @@ namespace BIMv2Buttons
             pb3.LargeImage = pb3Image;
 
             
-           
             // Add a new ribbon panel
             RibbonPanel ribbonPanel2 = application.CreateRibbonPanel(tabName, "BIM стандарт и помощь"); //подпись под кнопками
 
@@ -142,11 +137,11 @@ namespace BIMv2Buttons
             ribbonPanel2.AddSeparator(); //разделитель между кнопками
 
             // create push button for CurveTotalLength  //namespace и класс
-            PushButtonData b5Data = new PushButtonData("cmdHelpBIM.cs", "Написать"
-                + Environment.NewLine + "в тех поддержку", thisAssemblyPath, "BIMv2.HelpBIM");
+            PushButtonData b5Data = new PushButtonData("cmdHelpBIM.cs", "Группа"
+                + Environment.NewLine + "МРГТ Whatsapp", thisAssemblyPath, "BIMv2.HelpBIM");
 
             PushButton pb5 = ribbonPanel2.AddItem(b5Data) as PushButton;
-            pb5.ToolTip = "Можно написать, но лучше поискать самим";
+            pb5.ToolTip = "Можно написать, но лучше поискать самим в Google";
 
             BitmapImage pb5Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-whatsapp-32.png"));
             pb5.LargeImage = pb5Image;
@@ -154,7 +149,7 @@ namespace BIMv2Buttons
             
 
             // Add a new ribbon panel
-            RibbonPanel ribbonPanel3 = application.CreateRibbonPanel(tabName, "Надстройки для электрика"); //подпись под кнопками
+            RibbonPanel ribbonPanel3 = application.CreateRibbonPanel(tabName, "Надстройки для МЕГА-электрика"); //подпись под кнопками
 
             // create push button for CurveTotalLength  //namespace и класс
             PushButtonData b2Data = new PushButtonData("cmdSumAllLightingFixtureInRoom", "Посчитать"
@@ -165,6 +160,21 @@ namespace BIMv2Buttons
 
             BitmapImage pb2Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/countLampInRoom.png"));
             pb2.LargeImage = pb2Image;
+
+            //попробуем создать еще одну кнопку
+            ribbonPanel3.AddSeparator(); //разделитель между кнопками
+
+            //16
+
+            // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData b16Data = new PushButtonData("cmdNormalIlluminationForLightFix.cs", "Записать"
+                + Environment.NewLine + "нормируемую освещенность", thisAssemblyPath, "BIMv2.NormalIlluminationForLightFix");
+
+            PushButton pb16 = ribbonPanel3.AddItem(b16Data) as PushButton;
+            pb16.ToolTip = "Запись нормируемой освещенности";
+
+            BitmapImage pb16Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/countLampInRoom2.png"));
+            pb16.LargeImage = pb16Image;
 
             //попробуем создать еще одну кнопку
             ribbonPanel3.AddSeparator(); //разделитель между кнопками

@@ -79,10 +79,16 @@ namespace BIMv2
                             var room = FindRoom(linkDocument, targetPoint);
                             if (room != null)
                             {
-                                var subs = room.Name.Split(' ');
+                                nameRoom = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
+                                           room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+                                //var subs = room.Name.Split(' ');
+
+                                //e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
+                                //    .Set(room.Number + " " + subs[0]);
 
                                 e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
-                                    .Set(room.Number + " " + subs[0]);
+                                    .Set(nameRoom);
+
                                 break;
                             }
                             else
@@ -110,7 +116,6 @@ namespace BIMv2
 
                         e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
                             .Set(nameRoom);
-                        break;
                     }
 
                     else
@@ -125,11 +130,17 @@ namespace BIMv2
                             var room = FindRoom(linkDocument, targetPoint);
                             if (room != null)
                             {
-                                var subs = room.Name.Split(' ');
+                                nameRoom = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
+                                           room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
 
+                                //var subs = room.Name.Split(' ');
+
+                                //e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
+                                //    .Set(room.Number + " " + subs[0]);
                                 e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
-                                    .Set(room.Number + " " + subs[0]);
+                                    .Set(nameRoom);
                                 break;
+
                             }
                             else
                             {
@@ -141,16 +152,18 @@ namespace BIMv2
 
                     }
                 }
+
+
             }
         }
 
         public void SumAllLightningFixInRoom() // sum and set count lightning
         {
+            //все светильники в которые прописали ADSK_Зона bd940efd-bae8-43c6-a839-454b44ff6baa
 
             var listLightFixtturel = GetAllElements();
             var sharedGUIDZONA = "c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5";
             var sharedGUIDCOUNTLIGHTFIX = "bd940efd-bae8-43c6-a839-454b44ff6baa";
-
 
 
             foreach (var svet in listLightFixtturel)

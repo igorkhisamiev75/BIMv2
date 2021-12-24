@@ -86,6 +86,7 @@
     <Compile Include="GroupTypeWallSweepsAndWriteToComment\GroupTypeWallSweepsAndWriteToComment.cs" />
     <Compile Include="HelpBIM\HelpBIM.cs" />
     <Compile Include="LightingFixtures\SumAllLightingFixtureInRoom.cs" />
+    <Compile Include="NormalIlluminationForLightFix.cs\NormalIlluminationForLightFix.cs" />
     <Compile Include="PowerFactorElectrical\PowerFactorElectrical.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="WriteNameRoom\WriteNameRoomInPlumbingFixtures.cs" />
@@ -143,6 +144,9 @@
     <Resource Include="Resources\icons8-ceiling-32.png" />
     <Resource Include="Resources\icons8-dosk-32.png" />
     <Resource Include="Resources\icons8-wall-32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\countLampInRoom2.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
