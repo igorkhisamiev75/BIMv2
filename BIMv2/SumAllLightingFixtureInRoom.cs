@@ -30,34 +30,42 @@ namespace BIMv2
             _doc = uiDoc.Document;
 
             Selection selection = uiDoc.Selection;
-
-            ICollection<ElementId> selectedIds = uiDoc.Selection.GetElementIds();
-
             IList<Element> sElements = selection.PickElementsByRectangle();
 
 
             using (var t = new Transaction(_doc))
             {
                 t.Start("Select all lighting fixtures");
-                //спросить выбран ли элементы?
+                
+                WriteNameRoomInElementMethod(uiApp, sElements);
+                SumAllLightningFixInRoom();
 
-
-
-                //WriteNameRoomInElementMethod(uiApp);
-
-                //SumAllLightningFixInRoom();
                 TaskDialog.Show("Complite!", "Complite!  ☺☺☺");
+
                 t.Commit();
-                t.Start();
-                var res = t.Commit();
+               
             }
 
             return Result.Succeeded;
         }
 
-        public void WriteNameRoomInElementMethod(UIApplication uiApp) //проставляем помещения в светильники
+        public void WriteNameRoomInElementMethod(UIApplication uiApp, IList<Element> sElements) //проставляем помещения в светильники
         {
-            var allElements = GetAllElements(); //get all lighting
+            IList<Element> allElements = new List<Element>();
+
+            //Selection selection = uiApp.ActiveUIDocument.Selection;
+            //IList<Element> sElements2 = selection.PickElementsByRectangle();
+            
+            if (sElements == null)
+            {
+                allElements = GetAllElements(); //get all lighting
+            }
+            else
+            {
+                allElements = sElements;
+            }
+
+            
 
             foreach (var e in allElements)
             {
@@ -177,19 +185,7 @@ namespace BIMv2
             var listLightFixtturel = GetAllElements();
             var sharedGUIDZONA = "c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5";
             var sharedGUIDCOUNTLIGHTFIX = "bd940efd-bae8-43c6-a839-454b44ff6baa";
-
-            //получить параметр и присвоить ему значение
-            //var ad = listLightFixtturel[0].get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS);
-            //ad.Set("0.ToString()");
-
-            //var ad2 = listLightFixtturel[0].get_Parameter(BuiltInParameter.ROOM_CALCULATION_POINT);
-
-
-            //var ad3 = (FamilyInstance)listLightFixtturel[0];
-
-            //XYZ speCalculationPoint=ad3.GetSpatialElementCalculationPoint();
-
-
+            
             foreach (var svet in listLightFixtturel)
             {
                 var countSvet = 0;
