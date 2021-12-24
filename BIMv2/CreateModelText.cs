@@ -30,6 +30,7 @@ namespace BIMv2
                 t.Start("Run");
                 uiApp = commandData.Application;
                 uiDoc = uiApp.ActiveUIDocument;
+
                 Reference r = uiDoc.Selection.PickObject(ObjectType.Element, "Выбрать текст модели");
 
                 CreateModelTextMethod(r, uiDoc);

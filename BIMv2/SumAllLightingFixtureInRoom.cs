@@ -8,6 +8,7 @@ using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
+using Autodesk.Revit.UI.Selection;
 
 #endregion
 
@@ -27,13 +28,24 @@ namespace BIMv2
             var uiDoc = uiApp.ActiveUIDocument;
             _app = uiApp.Application;
             _doc = uiDoc.Document;
+
+            Selection selection = uiDoc.Selection;
+
+            ICollection<ElementId> selectedIds = uiDoc.Selection.GetElementIds();
+
+            IList<Element> sElements = selection.PickElementsByRectangle();
+
+
             using (var t = new Transaction(_doc))
             {
                 t.Start("Select all lighting fixtures");
+                //спросить выбран ли элементы?
 
-                WriteNameRoomInElementMethod(uiApp);
 
-                SumAllLightningFixInRoom();
+
+                //WriteNameRoomInElementMethod(uiApp);
+
+                //SumAllLightningFixInRoom();
                 TaskDialog.Show("Complite!", "Complite!  ☺☺☺");
                 t.Commit();
                 t.Start();
