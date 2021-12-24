@@ -16,8 +16,6 @@ namespace BIMv2
     [Regeneration(RegenerationOption.Manual)]
     public class GroupTypeCeilingAndWriteToComment : IExternalCommand
     {
-        public List<Element> projectRooms = new List<Element>();
-        public List<Element> AllRooms = new List<Element>();
         public List<Ceiling> AllF = new List<Ceiling>();
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
@@ -41,15 +39,9 @@ namespace BIMv2
         public void WriteToComment(Document doc)
         {
             var allFloors = GetAllFloorElements(doc);
-
-            foreach (var VARIABLE in allFloors)
-            {
-                AllF.Add((Ceiling)VARIABLE);
-
-            }
-
+            
             //группировка по типу пола
-            var groups = AllF.GroupBy(p => p.Name);
+            var groups = allFloors.GroupBy(p => p.Name);
 
             //пробегаемся по сгруппированным значениям
 

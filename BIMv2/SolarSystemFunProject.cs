@@ -72,9 +72,9 @@ namespace BIMv2
             //TaskDialog.Show("Revit", info);
         }
 
-        //public void WriteNameRoomInElementMethod(UIApplication uiApp)
+        //public void WriteLightingFixturesillumination(UIApplication uiApp)
         //{
-        //    var allElements = GetAllElements();
+        //    var allElements = GetAllLightFix();
 
         //    foreach (var e in allElements)
         //    {
@@ -121,7 +121,7 @@ namespace BIMv2
         //        }
         //    }
         //}
-        //public IList<Element> GetAllElements()
+        //public IList<Element> GetAllLightFix()
         //{
         //    // List all plumbing fixtures
         //    var plumbingFixCollector = new FilteredElementCollector(_doc).OfClass(typeof(FamilyInstance));

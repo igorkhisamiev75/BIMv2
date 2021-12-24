@@ -64,6 +64,7 @@ namespace BIMv2
 
                         e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
                             .Set(nameRoom);
+                        break;
                     }
 
                     else
@@ -82,6 +83,7 @@ namespace BIMv2
 
                                 e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
                                     .Set(room.Number + " " + subs[0]);
+                                break;
                             }
                             else
                             {
@@ -108,6 +110,7 @@ namespace BIMv2
 
                         e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
                             .Set(nameRoom);
+                        break;
                     }
 
                     else
@@ -126,6 +129,7 @@ namespace BIMv2
 
                                 e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
                                     .Set(room.Number + " " + subs[0]);
+                                break;
                             }
                             else
                             {

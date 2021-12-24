@@ -63,6 +63,7 @@ namespace BIMv2
 
                         e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
                             .Set(nameRoom);
+                        break;
                     }
 
                     else
@@ -81,6 +82,10 @@ namespace BIMv2
 
                                 e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
                                     .Set(room.Number + " " + subs[0]);
+
+
+
+                                break;
                             }
                             else
                             {
@@ -90,7 +95,7 @@ namespace BIMv2
                             }
                         }
                     }
-
+                    
                 }
 
                 else
@@ -140,94 +145,7 @@ namespace BIMv2
 
 
 
-                //else
-                //{
-                    
-                    
-                        
-
-                //        if (myRoom != null)
-                //        {
-                //            nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
-                //                       myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
-
-                //            e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
-                //                .Set(nameRoom);
-                //        }
-                //        else
-                //        {
-                //            nameRoom = "It's not in Room Current Model";
-                //            e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
-                //                .Set(nameRoom);
-                //        }
-
-                    
-
-                   
-
-                //}
-
-
-
-                //else
-                //{
-                //    
-                //        else
-                //        {
-                //            var familyInstance = (FamilyInstance)e;
-                //            if (familyInstance.HasSpatialElementCalculationPoint)
-                //            {
-
-                //                var scp = familyInstance.GetSpatialElementCalculationPoint();
-                //                targetPoint = transform.OfPoint(scp);
-
-                //                room = FindRoom(linkDocument, targetPoint);
-
-                //                if (room != null)
-                //                {
-                //                    var subs = room.Name.Split(' ');
-
-                //                    e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
-                //                        .Set(room.Number + " " + subs[0]);
-                //                }
-                //                else
-                //                {
-                //                    nameRoom = "It's not in Room";
-                //                    e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
-                //                        .Set(nameRoom);
-                //                }
-
-                //myRoom = FindRoom(_doc, scp);
-
-                //if (myRoom != null)
-                //{
-                //    var subs = myRoom.Name.Split(' ');
-
-                //    e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
-                //        .Set(myRoom.Number + " " + subs[0]);
-                //}
-                //else
-                //{
-                //    nameRoom = "It's not in Room";
-                //    e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
-                //        .Set(nameRoom);
-                //}
-                //                }
-
-
-
-                //            }
-
-
-
-                //        }
-                //    }
-
-
-
-
-
-                //}
+                
             }
         }
 

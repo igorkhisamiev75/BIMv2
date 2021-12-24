@@ -67,6 +67,7 @@
     <Compile Include="GroupTypeWallsAndWriteToComment.cs" />
     <Compile Include="GroupTypeWallSweepsAndWriteToComment.cs" />
     <Compile Include="HelpBIM.cs" />
+    <Compile Include="NormalIlluminationForLightFix.cs" />
     <Compile Include="PowerFactorElectrical.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RoomsByFloorFinishType.cs" />

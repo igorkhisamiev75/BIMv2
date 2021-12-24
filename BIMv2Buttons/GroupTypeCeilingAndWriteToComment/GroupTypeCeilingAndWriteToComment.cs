@@ -42,14 +42,9 @@ namespace BIMv2
         {
             var allFloors = GetAllFloorElements(doc);
 
-            foreach (var VARIABLE in allFloors)
-            {
-                AllF.Add((Ceiling)VARIABLE);
-
-            }
 
             //группировка по типу пола
-            var groups = AllF.GroupBy(p => p.Name);
+            var groups = allFloors.GroupBy(p => p.Name);
 
             //пробегаемся по сгруппированным значениям
 
