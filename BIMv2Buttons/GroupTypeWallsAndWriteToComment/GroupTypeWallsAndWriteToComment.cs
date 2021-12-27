@@ -36,6 +36,7 @@ namespace BIMv2
         public void WriteToComment(Document doc)
         {
             var allFloors = GetAllFloorElements(doc);
+            AllF.Clear();
 
             foreach (var VARIABLE in allFloors)
             {
@@ -44,8 +45,7 @@ namespace BIMv2
 
             }
 
-
-            //группировка по отделке
+            //группировка по стадии
             var groups = AllF.GroupBy(p2 => p2.get_Parameter(new Guid("037b6cb5-a3fe-473e-9994-293f5b0265b6")).AsString());
 
             foreach (var group in groups)
@@ -55,53 +55,52 @@ namespace BIMv2
 
                 foreach (var elWall in group)
                 {
-                    if (elWall.GetType().ToString() == "Wall")
+                    wallGoupStatus.Add(elWall);
+                }
+
+                //группировка по типу 
+                var groupsN = wallGoupStatus.GroupBy(p => p.Name);
+
+                //пробегаемся по сгруппированным значениям
+
+                foreach (IGrouping<string, Element> element in groupsN)
+                {
+
+                    IList<string> numroomList = new List<string>();
+                    numroomList.Clear();
+
+                    //создаем массив с номерами помещений
+
+                    foreach (var t in element)
                     {
-                        wallGoupStatus.Add(elWall);
+                        var otd = t.LookupParameter("Номер помещения (отделка)").AsString();
+                        if (otd != null)
+                        {
+                            string[] subs = otd.Split(' ');
+                            numroomList.Add(subs[0]);
+                        }
+
                     }
 
-                    //группировка по типу пола
-                    var groupsN = wallGoupStatus.GroupBy(p => p.Name);
+                    //clean list
+                    List<string> newList = new List<string>(numroomList.Distinct());
 
-                    //пробегаемся по сгруппированным значениям
+                    newList.Sort();
 
-                    foreach (IGrouping<string, Element> element in groups)
+                    string numbersAllRoomString = string.Join(", ", newList.ToArray());
+
+                    numroomList.Clear();
+
+                    //и записываем это массив в каждый номер этого массива
+
+                    foreach (var t in element)
                     {
-                        IList<string> numroomList = new List<string>();
-                        numroomList.Clear();
-
-                        //создаем массив с номерами помещений
-                        foreach (var t in element)
-                        {
-                            var otd = t.LookupParameter("Номер помещения (отделка)").AsString();
-                            if (otd != null)
-                            {
-                                string[] subs = otd.Split(' ');
-                                numroomList.Add(subs[0]);
-                            }
-
-                        }
-
-                        //clean list
-                        List<string> newList = new List<string>(numroomList.Distinct());
-
-                        newList.Sort();
-
-                        string numbersAllRoomString = string.Join(", ", newList.ToArray());
-
-                        numroomList.Clear();
-
-                        //и записываем это массив в каждый номер этого массива
-
-                        foreach (var t in element)
-                        {
-
-                            t.LookupParameter("Комментарии").Set(numbersAllRoomString);
-                        }
-
+                        t.LookupParameter("Комментарии").Set(numbersAllRoomString);
                     }
 
                 }
+
+
             }
 
 

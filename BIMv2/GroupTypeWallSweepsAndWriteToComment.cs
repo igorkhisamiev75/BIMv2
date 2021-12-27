@@ -1,14 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-
-using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
-using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
-using Autodesk.Revit.UI.Selection;
-
 
 namespace BIMv2
 {
@@ -16,8 +11,7 @@ namespace BIMv2
     [Regeneration(RegenerationOption.Manual)]
     public class GroupTypeWallSweepsAndWriteToComment : IExternalCommand
     {
-        public List<Element> projectRooms = new List<Element>();
-        public List<Element> AllRooms = new List<Element>();
+        
         public List<WallSweep> AllF = new List<WallSweep>();
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
@@ -41,19 +35,33 @@ namespace BIMv2
         public void WriteToComment(Document doc)
         {
             var allFloors = GetAllFloorElements(doc);
+            AllF.Clear();
 
             foreach (var VARIABLE in allFloors)
             {
                 AllF.Add((WallSweep)VARIABLE);
-
             }
 
-            //группировка по типу пола
-            var groups = AllF.GroupBy(p => p.Name);
+            //группировка по стадии
+            var groups = AllF.GroupBy(p2 =>
+                p2.get_Parameter(new Guid("037b6cb5-a3fe-473e-9994-293f5b0265b6")).AsString());
+
+            foreach (var group in groups)
+            {
+                List<WallSweep> wallGoupStatus = new List<WallSweep>();
+                wallGoupStatus.Clear();
+
+                foreach (var elWall in group)
+                {
+                    wallGoupStatus.Add(elWall);
+                }
+
+                //группировка по типу 
+                var groupsN = wallGoupStatus.GroupBy(p => p.Name);
 
             //пробегаемся по сгруппированным значениям
 
-            foreach (IGrouping<string, Element> element in groups)
+            foreach (IGrouping<string, Element> element in groupsN)
             {
                 IList<string> numroomList = new List<string>();
                 numroomList.Clear();
@@ -62,8 +70,12 @@ namespace BIMv2
                 foreach (var t in element)
                 {
                     var otd = t.LookupParameter("Номер помещения (отделка)").AsString();
-                    string[] subs = otd.Split(' ');
-                    numroomList.Add(subs[0]);
+                    if (otd != null)
+                    {
+                        string[] subs = otd.Split(' ');
+                        numroomList.Add(subs[0]);
+                    }
+                    
                 }
 
                 //clean list
@@ -82,6 +94,7 @@ namespace BIMv2
 
                     t.LookupParameter("Комментарии").Set(numbersAllRoomString);
                 }
+            }
 
             }
 

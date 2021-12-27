@@ -2,13 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
-using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
-using Autodesk.Revit.UI.Selection;
-
 
 namespace BIMv2
 {
@@ -16,8 +12,7 @@ namespace BIMv2
     [Regeneration(RegenerationOption.Manual)]
     public class GroupTypeWallSweepsAndWriteToComment : IExternalCommand
     {
-        public List<Element> projectRooms = new List<Element>();
-        public List<Element> AllRooms = new List<Element>();
+
         public List<WallSweep> AllF = new List<WallSweep>();
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
@@ -29,7 +24,7 @@ namespace BIMv2
                 t.Start("Stage 2");
 
                 WriteToComment(doc);
-                TaskDialog.Show("Сделано", "Сгруппированы профили");
+                TaskDialog.Show("Сделано", "Сгруппированы профили стен");
 
                 t.Commit();
 
@@ -41,46 +36,65 @@ namespace BIMv2
         public void WriteToComment(Document doc)
         {
             var allFloors = GetAllFloorElements(doc);
+            AllF.Clear();
 
             foreach (var VARIABLE in allFloors)
             {
                 AllF.Add((WallSweep)VARIABLE);
-
             }
 
-            //группировка по типу пола
-            var groups = AllF.GroupBy(p => p.Name);
+            //группировка по стадии
+            var groups = AllF.GroupBy(p2 =>
+                p2.get_Parameter(new Guid("037b6cb5-a3fe-473e-9994-293f5b0265b6")).AsString());
 
-            //пробегаемся по сгруппированным значениям
-
-            foreach (IGrouping<string, Element> element in groups)
+            foreach (var group in groups)
             {
-                IList<string> numroomList = new List<string>();
-                numroomList.Clear();
+                List<WallSweep> wallGoupStatus = new List<WallSweep>();
+                wallGoupStatus.Clear();
 
-                //создаем массив с номерами помещений
-                foreach (var t in element)
+                foreach (var elWall in group)
                 {
-                    var otd = t.LookupParameter("Номер помещения (отделка)").AsString();
-                    string[] subs = otd.Split(' ');
-                    numroomList.Add(subs[0]);
+                    wallGoupStatus.Add(elWall);
                 }
 
-                //clean list
-                List<string> newList = new List<string>(numroomList.Distinct());
+                //группировка по типу 
+                var groupsN = wallGoupStatus.GroupBy(p => p.Name);
 
-                newList.Sort();
+                //пробегаемся по сгруппированным значениям
 
-                string numbersAllRoomString = string.Join(", ", newList.ToArray());
-
-                numroomList.Clear();
-
-                //и записываем это массив в каждый номер этого массива
-
-                foreach (var t in element)
+                foreach (IGrouping<string, Element> element in groupsN)
                 {
+                    IList<string> numroomList = new List<string>();
+                    numroomList.Clear();
 
-                    t.LookupParameter("Комментарии").Set(numbersAllRoomString);
+                    //создаем массив с номерами помещений
+                    foreach (var t in element)
+                    {
+                        var otd = t.LookupParameter("Номер помещения (отделка)").AsString();
+                        if (otd != null)
+                        {
+                            string[] subs = otd.Split(' ');
+                            numroomList.Add(subs[0]);
+                        }
+
+                    }
+
+                    //clean list
+                    List<string> newList = new List<string>(numroomList.Distinct());
+
+                    newList.Sort();
+
+                    string numbersAllRoomString = string.Join(", ", newList.ToArray());
+
+                    numroomList.Clear();
+
+                    //и записываем это массив в каждый номер этого массива
+
+                    foreach (var t in element)
+                    {
+
+                        t.LookupParameter("Комментарии").Set(numbersAllRoomString);
+                    }
                 }
 
             }
@@ -92,7 +106,7 @@ namespace BIMv2
             // List all Floor's
             var floor_collector = new FilteredElementCollector(document)
                 .OfClass(typeof(WallSweep));
-                //.WhereElementIsNotElementType();
+            //.WhereElementIsNotElementType();
             IList<Element> allFloors = floor_collector.ToElements();
             return allFloors;
         }

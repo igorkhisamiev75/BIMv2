@@ -35,6 +35,7 @@ namespace BIMv2
         public void WriteToComment(Document doc)
         {
             var allFloors = GetAllFloorElements(doc);
+            AllF.Clear();
 
             foreach (var VARIABLE in allFloors)
             {
@@ -43,8 +44,7 @@ namespace BIMv2
 
             }
             
-
-                //группировка по отделке
+                //группировка по стадии
             var groups = AllF.GroupBy(p2 => p2.get_Parameter(new Guid("037b6cb5-a3fe-473e-9994-293f5b0265b6")).AsString());
 
             foreach (var group in groups)
@@ -54,22 +54,22 @@ namespace BIMv2
 
                 foreach (var elWall in group)
                 {
-                    if (elWall.GetType().ToString() == "Wall")
-                    {
-                        wallGoupStatus.Add(elWall);
-                    }
+                    wallGoupStatus.Add(elWall);
+                }
 
-                    //группировка по типу пола
-                    var groupsN = wallGoupStatus.GroupBy(p => p.Name);
+                //группировка по типу 
+                var groupsN = wallGoupStatus.GroupBy(p => p.Name);
 
-                    //пробегаемся по сгруппированным значениям
+                //пробегаемся по сгруппированным значениям
 
-                    foreach (IGrouping<string, Element> element in groups)
-                    {
-                        IList<string> numroomList = new List<string>();
-                        numroomList.Clear();
+                foreach (IGrouping<string, Element> element in groupsN)
+                {
+                        
+                    IList<string> numroomList = new List<string>();
+                    numroomList.Clear();
 
-                        //создаем массив с номерами помещений
+                //создаем массив с номерами помещений
+                        
                         foreach (var t in element)
                         {
                             var otd = t.LookupParameter("Номер помещения (отделка)").AsString();
@@ -94,13 +94,12 @@ namespace BIMv2
 
                         foreach (var t in element)
                         {
-
                             t.LookupParameter("Комментарии").Set(numbersAllRoomString);
                         }
 
-                    }
-
                 }
+
+                
             }
             
            
