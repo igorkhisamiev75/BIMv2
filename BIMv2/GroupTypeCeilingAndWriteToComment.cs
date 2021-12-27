@@ -27,7 +27,7 @@ namespace BIMv2
                 t.Start("Stage 2");
 
                 WriteToComment(doc);
-                TaskDialog.Show("Сделано", "Сгруппированы перекрытия");
+                TaskDialog.Show("Сделано", "Сгруппированы потолки");
 
                 t.Commit();
 
