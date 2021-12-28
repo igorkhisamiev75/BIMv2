@@ -45,7 +45,8 @@ namespace BIMv2
                 if (item.ViewType == ViewType.FloorPlan
                     || item.ViewType == ViewType.ThreeD
                     || item.ViewType == ViewType.Elevation
-                    || item.ViewType == ViewType.Section)
+                    || item.ViewType == ViewType.Section
+                    || item.ViewType == ViewType.CeilingPlan)
                 {
                     onlyViewPlan3DSection.Add(item);
                 }
