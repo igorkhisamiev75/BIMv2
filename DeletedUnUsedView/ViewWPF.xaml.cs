@@ -23,7 +23,7 @@ namespace DeletedUnUsedView
             filterCollection = elements;
 
             ListBox.ItemsSource = filterCollection;
-            ListBox.DisplayMemberPath = "Name";
+            ListBox.DisplayMemberPath = "Title";
             
         }
 
