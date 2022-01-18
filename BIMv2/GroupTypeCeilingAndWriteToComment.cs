@@ -12,7 +12,7 @@ namespace BIMv2
     [Regeneration(RegenerationOption.Manual)]
     public class GroupTypeCeilingAndWriteToComment : IExternalCommand
     {
-        public List<Ceiling> AllF = new List<Ceiling>();
+        public List<Element> AllF = new List<Element>();
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -40,7 +40,7 @@ namespace BIMv2
             foreach (var VARIABLE in allFloors)
             {
 
-                AllF.Add((Ceiling)VARIABLE);
+                AllF.Add((Element)VARIABLE);
 
             }
 
@@ -51,7 +51,7 @@ namespace BIMv2
 
             foreach (var group in groups)
             {
-                List<Ceiling> wallGoupStatus = new List<Ceiling>();
+                List<Element> wallGoupStatus = new List<Element>();
                 wallGoupStatus.Clear();
 
                 foreach (var elWall in group)
@@ -100,7 +100,7 @@ namespace BIMv2
 
                     }
 
-                }
+            }
 
         }
 
