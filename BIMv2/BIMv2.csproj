@@ -59,6 +59,7 @@
     <Compile Include="CreateLightingInRoom.cs" />
     <Compile Include="CreateModelText.cs" />
     <Compile Include="CreateNumberRoomForFloors.cs" />
+    <Compile Include="CreateNumberRoomForWall.cs" />
     <Compile Include="CreateViewForLevels.cs" />
     <Compile Include="DeletedFilter.cs" />
     <Compile Include="GetRoomNameForSelectElement.cs" />
