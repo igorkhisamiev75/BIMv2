@@ -34,8 +34,8 @@ namespace BIMv2
 
                 t.Start("Stage 2");
 
-                WriteAllRoom(doc);
-                TaskDialog.Show("Сделано", "Сгруппированы перекрытия");
+                //WriteAllRoom(doc);
+                //TaskDialog.Show("Сделано", "Сгруппированы перекрытия");
 
                 t.Commit();
 
@@ -97,11 +97,10 @@ namespace BIMv2
         {
             var allFloors = GetAllFloorElements(doc);
            
-
             foreach (var element in allFloors)
             {
                 Room myRoom;
-                var nameRoom = "";
+                string nameRoom = "";
 
                 XYZ gXyz = new XYZ();
 
@@ -125,16 +124,16 @@ namespace BIMv2
                         
                         foreach (Face f in faces)
                         {
-                            if (f != null)
-                            {
-
-                            }
+                            
                             PlanarFace pf = f as PlanarFace;
                             
                             gXyz = pf.Origin;
-                            
-                            break;
 
+                            if (pf.FaceNormal.X==0 && pf.FaceNormal.Y == 0 && pf.FaceNormal.Z == 1)
+                            {
+                                break;
+                            }
+                            
                         }
 
                     }
@@ -167,7 +166,7 @@ namespace BIMv2
                     nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
                                myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
 
-                    element.LookupParameter("Номер помещения (отделка)").Set(nameRoom);
+                    element.LookupParameter("Комментарии").Set(nameRoom);
 
                 }
 
@@ -186,13 +185,13 @@ namespace BIMv2
                         {
                             nameRoom = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
                                        room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
-                            element.LookupParameter("Номер помещения (отделка)").Set(nameRoom);
+                            element.LookupParameter("Комментарии").Set(nameRoom);
                             break;
                         }
                         else
                         {
                             nameRoom = "";
-                            element.LookupParameter("Номер помещения (отделка)").Set(nameRoom);
+                            element.LookupParameter("Комментарии").Set(nameRoom);
                         }
                     }
                 }
