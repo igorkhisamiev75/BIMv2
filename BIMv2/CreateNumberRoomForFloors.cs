@@ -142,37 +142,37 @@ namespace BIMv2
 
                         }
                         
-                        foreach (Face f in faces)
-                        {
+                        //foreach (Face f in faces)
+                        //{
                             
-                            PlanarFace pf = f as PlanarFace;
+                        //    PlanarFace pf = f as PlanarFace;
 
-                            RuledFace rf=f as RuledFace;
+                        //    RuledFace rf=f as RuledFace;
 
-                            CylindricalFace cf=f as CylindricalFace;
+                        //    CylindricalFace cf=f as CylindricalFace;
 
-                            if (pf != null)
-                            {
+                        //    if (pf != null)
+                        //    {
 
-                                gXyz = pf.Origin;
+                        //        gXyz = pf.Origin;
 
-                                if (pf.FaceNormal.X == 0 && pf.FaceNormal.Y == 0 && pf.FaceNormal.Z > 0)
-                                {
+                        //        if (pf.FaceNormal.X == 0 && pf.FaceNormal.Y == 0 && pf.FaceNormal.Z > 0)
+                        //        {
                                     
-                                    break;
-                                }
-                            }
+                        //            break;
+                        //        }
+                        //    }
 
-                            if (rf != null)
-                            {
-                                XYZ rfXYZ=rf.get_Point(0);
+                        //    if (rf != null)
+                        //    {
+                        //        XYZ rfXYZ=rf.get_Point(0);
 
-                                gXyz = rfXYZ;
-                                break;
+                        //        gXyz = rfXYZ;
+                        //        break;
                                 
-                            }
+                        //    }
                             
-                        }
+                        //}
 
                     }
                 }
@@ -196,13 +196,10 @@ namespace BIMv2
                 XYZ zN = new XYZ(0, 0, 2);
 
                 XYZ newSearchPoint = pointLine + zN;
+                
+                myRoom = FindRoom(doc, newSearchPoint);
 
-                //if (newSearchPoint.X != 0 && newSearchPoint.Y != 0 && newSearchPoint.Z != 2)
-                //{
-
-                    myRoom = FindRoom(doc, newSearchPoint);
-
-                    if (myRoom != null)
+                if (myRoom != null)
                     {
                         nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
                                    myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
@@ -211,7 +208,7 @@ namespace BIMv2
 
                     }
 
-                    else
+                else
                     {
                         var linkedInstances = FindLinkedInstances(doc); //get all linked files
 
@@ -237,7 +234,7 @@ namespace BIMv2
                         }
                     }
 
-                //}
+                
 
             }
         }
