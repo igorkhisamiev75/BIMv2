@@ -104,6 +104,8 @@ namespace BIMv2
 
                 XYZ gXyz = new XYZ(0,0,0);
 
+                XYZ pointLine = new XYZ(0, 0, 0);
+
 
 
                 Floor floor = (Floor)element;
@@ -122,7 +124,23 @@ namespace BIMv2
                     if (solid != null)
                     {
                         PlanarFace lowest = null;
-                        FaceArray faces = solid.Faces;
+                        FaceArray faces = solid.Faces; //faces
+
+                        EdgeArray edgeArray = solid.Edges; //edges
+
+                        foreach (Edge elEdgeArray in edgeArray)
+                        {
+                            pointLine = elEdgeArray.Tessellate()[0];
+
+                            //if (g != null)
+                            //{
+                            //    pointLine = g.Tessellate()[0];
+                            //    break;
+                            //}
+
+
+
+                        }
                         
                         foreach (Face f in faces)
                         {
@@ -130,6 +148,8 @@ namespace BIMv2
                             PlanarFace pf = f as PlanarFace;
 
                             RuledFace rf=f as RuledFace;
+
+                            CylindricalFace cf=f as CylindricalFace;
 
                             if (pf != null)
                             {
@@ -151,11 +171,7 @@ namespace BIMv2
                                 break;
                                 
                             }
-
-
-
-
-
+                            
                         }
 
                     }
@@ -179,7 +195,7 @@ namespace BIMv2
                 
                 XYZ zN = new XYZ(0, 0, 2);
 
-                XYZ newSearchPoint = gXyz+zN;
+                XYZ newSearchPoint = pointLine + zN;
 
                 //if (newSearchPoint.X != 0 && newSearchPoint.Y != 0 && newSearchPoint.Z != 2)
                 //{
