@@ -32,12 +32,12 @@ namespace BIMv2
 
                 t.Commit();
 
-                t.Start("Stage 2");
+                //t.Start("Stage 2");
 
                 //WriteAllRoom(doc);
-                //TaskDialog.Show("Сделано", "Сгруппированы перекрытия");
+                TaskDialog.Show("Сделано", "Номера помещений прописаны");
 
-                t.Commit();
+                //t.Commit();
 
             }
             return Result.Succeeded;
@@ -102,7 +102,9 @@ namespace BIMv2
                 Room myRoom;
                 string nameRoom = "";
 
-                XYZ gXyz = new XYZ();
+                XYZ gXyz = new XYZ(0,0,0);
+
+
 
                 Floor floor = (Floor)element;
 
@@ -126,75 +128,100 @@ namespace BIMv2
                         {
                             
                             PlanarFace pf = f as PlanarFace;
-                            
-                            gXyz = pf.Origin;
 
-                            if (pf.FaceNormal.X==0 && pf.FaceNormal.Y == 0 && pf.FaceNormal.Z == 1)
+                            RuledFace rf=f as RuledFace;
+
+                            if (pf != null)
                             {
-                                break;
+
+                                gXyz = pf.Origin;
+
+                                if (pf.FaceNormal.X == 0 && pf.FaceNormal.Y == 0 && pf.FaceNormal.Z > 0)
+                                {
+                                    
+                                    break;
+                                }
                             }
-                            
+
+                            if (rf != null)
+                            {
+                                XYZ rfXYZ=rf.get_Point(0);
+
+                                gXyz = rfXYZ;
+                                break;
+                                
+                            }
+
+
+
+
+
                         }
 
                     }
                 }
 
-                List<GeometryElement> geometryElements = new List<GeometryElement>(); 
+                //List<GeometryElement> geometryElements = new List<GeometryElement>(); 
 
-                geometryElements.Add(geo);
+                //geometryElements.Add(geo);
 
-                CurveArray profile = new CurveArray();
+                //CurveArray profile = new CurveArray();
 
-                foreach (var geometryle in geometryElements)
-                {
-                    foreach (var obj in geometryle)
-                    {
+                //foreach (var geometryle in geometryElements)
+                //{
+                //    foreach (var obj in geometryle)
+                //    {
                         
-                            profile.Append(obj as Curve);
+                //            profile.Append(obj as Curve);
                         
-                    }
-                }
+                //    }
+                //}
                 
                 XYZ zN = new XYZ(0, 0, 2);
 
-                var newSearchPoint = gXyz+zN;
+                XYZ newSearchPoint = gXyz+zN;
 
-                myRoom = FindRoom(doc, newSearchPoint);
+                //if (newSearchPoint.X != 0 && newSearchPoint.Y != 0 && newSearchPoint.Z != 2)
+                //{
 
-                if (myRoom != null)
-                {
-                    nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
-                               myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+                    myRoom = FindRoom(doc, newSearchPoint);
 
-                    element.LookupParameter("Комментарии").Set(nameRoom);
-
-                }
-
-                else
-                {
-                    var linkedInstances = FindLinkedInstances(doc); //get all linked files
-
-                    foreach (var linkInstance in linkedInstances)
+                    if (myRoom != null)
                     {
-                        var transform = linkInstance.GetTotalTransform().Inverse;
-                        var targetPoint = transform.OfPoint(newSearchPoint);
-                        var linkDocument = linkInstance.GetLinkDocument();
+                        nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
+                                   myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
 
-                        var room = FindRoom(linkDocument, targetPoint);
-                        if (room != null)
+                        element.LookupParameter("Комментарии").Set(nameRoom);
+
+                    }
+
+                    else
+                    {
+                        var linkedInstances = FindLinkedInstances(doc); //get all linked files
+
+                        foreach (var linkInstance in linkedInstances)
                         {
-                            nameRoom = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
-                                       room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
-                            element.LookupParameter("Комментарии").Set(nameRoom);
-                            break;
-                        }
-                        else
-                        {
-                            nameRoom = "";
-                            element.LookupParameter("Комментарии").Set(nameRoom);
+                            var transform = linkInstance.GetTotalTransform().Inverse;
+                            var targetPoint = transform.OfPoint(newSearchPoint);
+                            var linkDocument = linkInstance.GetLinkDocument();
+
+                            var room = FindRoom(linkDocument, targetPoint);
+                            if (room != null)
+                            {
+                                nameRoom = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
+                                           room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+                                element.LookupParameter("Комментарии").Set(nameRoom);
+                                break;
+                            }
+                            else
+                            {
+                                nameRoom = "";
+                                element.LookupParameter("Комментарии").Set(nameRoom);
+                            }
                         }
                     }
-                }
+
+                //}
 
             }
         }
