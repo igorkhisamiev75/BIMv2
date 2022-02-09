@@ -103,6 +103,7 @@ namespace BIMv2
                 string nameRoom = "";
 
                 XYZ gXyz = new XYZ(0,0,0);
+                XYZ zOfset = new XYZ(0, 0, 2);
 
                 XYZ pointLine = new XYZ(0, 0, 0);
 
@@ -115,7 +116,8 @@ namespace BIMv2
                 Options opts = new Options();
 
                 List<List<XYZ>> polygons = new List<List<XYZ>>();
-                
+                List<XYZ> findList = new List<XYZ>();
+
                 GeometryElement geo = floor.get_Geometry(opts);
 
                 foreach (GeometryObject obj in geo) // 2013
@@ -131,6 +133,8 @@ namespace BIMv2
                         foreach (Edge elEdgeArray in edgeArray)
                         {
                             pointLine = elEdgeArray.Tessellate()[0];
+
+                           findList.Add(pointLine);
 
                             //if (g != null)
                             //{
@@ -187,28 +191,29 @@ namespace BIMv2
                 //{
                 //    foreach (var obj in geometryle)
                 //    {
-                        
+
                 //            profile.Append(obj as Curve);
-                        
+
                 //    }
                 //}
-                
-                XYZ zN = new XYZ(0, 0, 2);
 
-                XYZ newSearchPoint = pointLine + zN;
-                
-                myRoom = FindRoom(doc, newSearchPoint);
+                foreach (XYZ pointForFind in findList) //пройтись по всем точкам
+                {
+                    XYZ newSearchPoint = pointForFind + zOfset;
 
-                if (myRoom != null)
+                    myRoom = FindRoom(doc, newSearchPoint);
+
+                    if (myRoom != null)
                     {
                         nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
                                    myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
 
                         element.LookupParameter("Комментарии").Set(nameRoom);
+                        break;
 
                     }
 
-                else
+                    else
                     {
                         var linkedInstances = FindLinkedInstances(doc); //get all linked files
 
@@ -226,13 +231,19 @@ namespace BIMv2
                                 element.LookupParameter("Комментарии").Set(nameRoom);
                                 break;
                             }
+
                             else
                             {
+                                break;
                                 nameRoom = "";
                                 element.LookupParameter("Комментарии").Set(nameRoom);
                             }
                         }
                     }
+
+                }
+
+                
 
                 
 

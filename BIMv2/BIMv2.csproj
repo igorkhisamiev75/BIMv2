@@ -55,6 +55,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BIMStandart.cs" />
+    <Compile Include="ClearProjectBrowser.cs" />
     <Compile Include="CreateAnyElementsInRooms.cs" />
     <Compile Include="CreateLightingInRoom.cs" />
     <Compile Include="CreateModelText.cs" />
