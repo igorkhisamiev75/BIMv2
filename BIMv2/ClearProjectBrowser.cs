@@ -21,11 +21,23 @@ namespace BIMv2
             _app = uiApp.Application;
             _doc = uiDoc.Document;
 
+            //active view
+            var notForDeleetedId = _doc.ActiveView.Id;
+
             ViewSet m_allViews = new ViewSet();
 
-            IEnumerable<View> views = new FilteredElementCollector(_doc).OfClass(typeof(View))
-                .WhereElementIsNotElementType()
-                .Cast<View>();
+            //IEnumerable<View> views = new FilteredElementCollector(_doc).
+            //    OfClass(typeof(View))
+            //    .WhereElementIsNotElementType()
+            //    .Cast<View>();
+
+            List<ElementId> viewsForDel = new FilteredElementCollector(_doc).
+                OfClass(typeof(View)).ToElements().Cast<View>().
+                Select(y => y.Id).ToList();
+
+            viewsForDel.Remove(notForDeleetedId);
+
+            #region OldCode
 
             //list draftingView
             List<ElementId> L = new FilteredElementCollector(_doc).
@@ -92,21 +104,38 @@ namespace BIMv2
             // get list of all ViewPlan
             //FilteredElementCollector collector = new FilteredElementCollector(_doc);
             //FilteredElementIterator itor = collector.OfClass(typeof(View)).GetElementIterator();
-
+            #endregion
             using (Transaction t = new Transaction(_doc))
             {
-                t.Start("Deleting DraftingViews");
-                _doc.Delete(L);
-                _doc.Delete(L2);
-                _doc.Delete(L3);
-                _doc.Delete(L4);
-                _doc.Delete(L5);
-                _doc.Delete(L6);
-                _doc.Delete(L7);
-                _doc.Delete(L8);
-                _doc.Delete(L9);
+                t.Start("Deleting Views");
+
+                foreach(var n in viewsForDel)
+                {
+                    try
+                    {
+                        _doc.Delete(n);
+                    }
+
+                    catch
+                    {
+                        //TaskDialog.Show("Error", $"Тут трабл с{n}");
+                    }
+                }
+                
+
+                //_doc.Delete(L);
+                //_doc.Delete(L2);
+                //_doc.Delete(L3);
+                //_doc.Delete(L4);
+                //_doc.Delete(L5);
+                //_doc.Delete(L6);
+                //_doc.Delete(L7);
+                //_doc.Delete(L8);
+                //_doc.Delete(L9);
                 //_doc.Delete(L10);
                 //_doc.Delete(L11);
+
+
                 t.Commit();
                 
             }
