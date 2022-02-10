@@ -68,6 +68,27 @@ namespace BIMv2
                 OfClass(typeof(ViewSheet)).ToElements().Cast<ViewSheet>().
                 Select(y => y.Id).ToList();
 
+            //list View
+            List<ElementId> L8 = new FilteredElementCollector(_doc).
+                OfClass(typeof(View)).ToElements().Cast<View>().
+                Where(x => x.ViewType == ViewType.Section).
+                Select(y => y.Id).ToList();
+
+            //list View
+            List<ElementId> L9 = new FilteredElementCollector(_doc).
+                OfClass(typeof(ImageView)).ToElements().Cast<ImageView>().
+                Select(y => y.Id).ToList();
+
+            //list View
+            List<ElementId> L10 = new FilteredElementCollector(_doc).
+                OfClass(typeof(ViewSection)).ToElements().Cast<ViewSection>().
+                Select(y => y.Id).ToList();
+
+            //list View
+            List<ElementId> L11 = new FilteredElementCollector(_doc).
+                OfClass(typeof(ViewPlan)).ToElements().Cast<ViewPlan>().
+                Select(y => y.Id).ToList();
+
             // get list of all ViewPlan
             //FilteredElementCollector collector = new FilteredElementCollector(_doc);
             //FilteredElementIterator itor = collector.OfClass(typeof(View)).GetElementIterator();
@@ -82,6 +103,10 @@ namespace BIMv2
                 _doc.Delete(L5);
                 _doc.Delete(L6);
                 _doc.Delete(L7);
+                _doc.Delete(L8);
+                _doc.Delete(L9);
+                //_doc.Delete(L10);
+                //_doc.Delete(L11);
                 t.Commit();
                 
             }
