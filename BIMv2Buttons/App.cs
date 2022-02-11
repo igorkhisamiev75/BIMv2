@@ -138,7 +138,7 @@ namespace BIMv2Buttons
 
             // create push button for CurveTotalLength  //namespace и класс
             PushButtonData b5Data = new PushButtonData("cmdHelpBIM.cs", "Группа"
-                + Environment.NewLine + "МРГТ Whatsapp", thisAssemblyPath, "BIMv2.HelpBIM");
+                + Environment.NewLine + "МРГТ Telegram", thisAssemblyPath, "BIMv2.HelpBIM");
 
             PushButton pb5 = ribbonPanel2.AddItem(b5Data) as PushButton;
             pb5.ToolTip = "Можно написать, но лучше поискать самим в Google";
@@ -246,6 +246,18 @@ namespace BIMv2Buttons
 
             BitmapImage pb10Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-clean2-32.png"));
             pb10.LargeImage = pb10Image;
+
+            //попробуем создать еще одну кнопку
+            ribbonPanel4.AddSeparator(); //разделитель между кнопками
+
+            PushButtonData b11Data = new PushButtonData("cmdClearProjectBrowser", "Удалить"
+                                        + Environment.NewLine + "всё из диспетчера", thisAssemblyPath, "BIMv2.ClearProjectBrowser");
+
+            PushButton pb11 = ribbonPanel4.AddItem(b11Data) as PushButton;
+            pb11.ToolTip = "Удалить всё кроме активного вида";
+
+            BitmapImage pb11Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-clean3-32.png"));
+            pb11.LargeImage = pb11Image;
 
             //попробуем создать еще одну кнопку
             ribbonPanel4.AddSeparator(); //разделитель между кнопками
