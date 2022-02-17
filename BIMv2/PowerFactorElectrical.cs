@@ -117,10 +117,10 @@ namespace BIMv2
             var collector = new FilteredElementCollector(_doc)
                 .OfCategory(BuiltInCategory.OST_GenericAnnotation)
                 .WhereElementIsNotElementType();
-            IList<ElementId> room_eids = collector.ToElementIds() as IList<ElementId>;
-            var annotationList = collector.ToElements();
 
-            return annotationList;
+            return collector.ToElements();
+
+            
         }
     }
 }

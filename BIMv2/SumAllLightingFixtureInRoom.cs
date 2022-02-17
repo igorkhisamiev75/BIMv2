@@ -191,7 +191,7 @@ namespace BIMv2
                 var countSvet = 0;
 
                 foreach (var element in listLightFixtturel)
-                    if (svet.get_Parameter(new Guid(sharedGUIDZONA)).AsString() ==
+                    if (svet.get_Parameter(new Guid(sharedGUIDZONA)).AsString() == 
                         element.get_Parameter(new Guid(sharedGUIDZONA)).AsString() &&
                         getFamilyName(svet) == getFamilyName(element))
                         countSvet++;
@@ -203,11 +203,12 @@ namespace BIMv2
 
         public string getFamilyName(Element e)
         {
-            var eId = e.GetTypeId();
-            var elementType = (ElementType)
-                _doc.GetElement(eId);
-            var familyName = elementType.FamilyName;
-            return familyName;
+            var sharedADSKNaimenovanie = "e6e0f5cd-3e26-485b-9342-23882b20eb43";
+            //var eId = e.GetTypeId();
+            //var elementType = (ElementType)_doc.GetElement(eId);
+            //var familyName = elementType.FamilyName;
+            var nameADSKNaimenovanie = e.GetTypeId().ToString();
+            return nameADSKNaimenovanie;
         }
 
         public IList<Element> GetAllElements()

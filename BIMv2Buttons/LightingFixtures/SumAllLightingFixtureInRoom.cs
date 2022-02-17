@@ -164,6 +164,7 @@ namespace BIMv2
             var listLightFixtturel = GetAllElements();
             var sharedGUIDZONA = "c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5";
             var sharedGUIDCOUNTLIGHTFIX = "bd940efd-bae8-43c6-a839-454b44ff6baa";
+            
 
 
             foreach (var svet in listLightFixtturel)
@@ -183,11 +184,8 @@ namespace BIMv2
 
         public string getFamilyName(Element e)
         {
-            var eId = e.GetTypeId();
-            var elementType = (ElementType)
-                _doc.GetElement(eId);
-            var familyName = elementType.FamilyName;
-            return familyName;
+           var nameADSKNaimenovanie = e.GetTypeId().ToString();
+           return nameADSKNaimenovanie;
         }
 
         public IList<Element> GetAllElements()
