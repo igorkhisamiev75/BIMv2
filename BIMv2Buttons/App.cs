@@ -167,8 +167,8 @@ namespace BIMv2Buttons
             //16
 
             // create push button for CurveTotalLength  //namespace и класс
-            PushButtonData b16Data = new PushButtonData("cmdNormalIlluminationForLightFix.cs", "Записать"
-                + Environment.NewLine + "нормируемую освещенность", thisAssemblyPath, "BIMv2.NormalIlluminationForLightFix");
+            PushButtonData b16Data = new PushButtonData("cmdNormalIlluminationForLightFix.cs", "Записать норм."
+                + Environment.NewLine + "освещенность", thisAssemblyPath, "BIMv2.NormalIlluminationForLightFix");
 
             PushButton pb16 = ribbonPanel3.AddItem(b16Data) as PushButton;
             pb16.ToolTip = "Запись нормируемой освещенности";
@@ -258,6 +258,18 @@ namespace BIMv2Buttons
 
             BitmapImage pb11Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-clean3-32.png"));
             pb11.LargeImage = pb11Image;
+
+            //попробуем создать еще одну кнопку
+            ribbonPanel4.AddSeparator(); //разделитель между кнопками
+
+            PushButtonData b17Data = new PushButtonData("cmdCreateWorksets", "Создать"
+                + Environment.NewLine + "рабочие наборы", thisAssemblyPath, "BIMv2.CreateWorksets");
+
+            PushButton pb17 = ribbonPanel4.AddItem(b17Data) as PushButton;
+            pb17.ToolTip = "Создание рабочих наборов по списку";
+
+            BitmapImage pb17Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-ws-32.png"));
+            pb17.LargeImage = pb17Image;
 
             //попробуем создать еще одну кнопку
             ribbonPanel4.AddSeparator(); //разделитель между кнопками

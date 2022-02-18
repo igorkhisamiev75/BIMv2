@@ -33,55 +33,59 @@ namespace CreateWorksSet
             //get list workSet
             List<string> listWS=viewWpf.listWs; //0 1 2 3 4
 
-            int countWorkset = listWS.Count; //5
-
-            //last workset with 2 chair
-            string lastWS = listWS[listWS.Count-1]; //4\r\n
-
-            int intLast = lastWS.Length; //3
-
-            
-            lastWS = lastWS.Remove(lastWS.Length - 2);
-            
-
-            listWS[listWS.Count-1] = lastWS;
-
-            doc.EnableWorksharing($"{listWS[0]}", $"{listWS[1]}");
-            
-            //Workset newWorkset = null;
-            // Worksets can only be created in a document with worksharing enabled
-            if (doc.IsWorkshared)
+            if (listWS.Count>=2)
             {
-                if (countWorkset > 2)
+
+                int countWorkset = listWS.Count; //5
+
+                //last workset with 2 chair
+                string lastWS = listWS[listWS.Count - 1]; //4\r\n
+
+                int intLast = lastWS.Length; //3
+
+
+                lastWS = lastWS.Remove(lastWS.Length - 2);
+
+
+                listWS[listWS.Count - 1] = lastWS;
+
+                doc.EnableWorksharing($"{listWS[0]}", $"{listWS[1]}");
+
+                //Workset newWorkset = null;
+                // Worksets can only be created in a document with worksharing enabled
+                if (doc.IsWorkshared)
                 {
-                    for(int j=1; j < countWorkset-1; j++)
+                    if (countWorkset > 2)
                     {
-                        if (listWS[j + 1] != null)
+                        for (int j = 1; j < countWorkset - 1; j++)
                         {
-                            string worksetName = listWS[j + 1];
-
-                            // Workset name must not be in use by another workset
-                            if (WorksetTable.IsWorksetNameUnique(doc, worksetName))
+                            if (listWS[j + 1] != null)
                             {
-                                using (Transaction worksetTransaction = new Transaction(doc, "Set preview view id"))
+                                string worksetName = listWS[j + 1];
+
+                                // Workset name must not be in use by another workset
+                                if (WorksetTable.IsWorksetNameUnique(doc, worksetName))
                                 {
-                                    worksetTransaction.Start();
+                                    using (Transaction worksetTransaction = new Transaction(doc, "Set preview view id"))
+                                    {
+                                        worksetTransaction.Start();
 
-                                    Workset newWorkset = Workset.Create(doc, worksetName);
-                                    WorksetTable daf = doc.GetWorksetTable();
+                                        Workset newWorkset = Workset.Create(doc, worksetName);
+                                        WorksetTable daf = doc.GetWorksetTable();
 
-                                    daf.SetActiveWorksetId(newWorkset.Id);
-                                    worksetTransaction.Commit();
+                                        daf.SetActiveWorksetId(newWorkset.Id);
+                                        worksetTransaction.Commit();
+                                    }
                                 }
                             }
+
                         }
-                        
+
                     }
-                    
+
                 }
-                
             }
-            
+
             return Result.Succeeded;
         }
     }

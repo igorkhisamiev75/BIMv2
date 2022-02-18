@@ -49,6 +49,7 @@ namespace CreateWorksSet
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
+            MessageBox.Show("А нахера открывали???");
             Close();
         }
     }
