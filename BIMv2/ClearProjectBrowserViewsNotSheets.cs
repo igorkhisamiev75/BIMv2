@@ -32,19 +32,20 @@ namespace BIMv2
 
             List<ElementId> viewsForDel = new FilteredElementCollector(_doc).
                 OfClass(typeof(View)).ToElements().Cast<View>().
+                Where(x=>x.ViewType!=ViewType.DrawingSheet).
                 Select(y => y.Id).ToList();
 
-            //get List without sheet
-            foreach (var elementId in viewsForDel)
-            {
-                ElementType objType = _doc.GetElement(elementId) as ElementType;
-                if (!objType.Name.Equals("Drawing Sheet"))
-                {
-                    viewsForDelWithoutSheet.Add(elementId);
-                }
-            }
+            ////get List without sheet
+            //foreach (var elementId in viewsForDel)
+            //{
+            //    ElementType objType = _doc.GetElement(elementId) as ElementType;
+            //    if(null != objType && !objType.Name.Equals("View Sheet"))
+            //    {
+            //        viewsForDelWithoutSheet.Add(elementId);
+            //    }
+            //}
 
-            foreach (var elementId in viewsForDelWithoutSheet)
+            foreach (var elementId in viewsForDel)
             {
                 Element element = _doc.GetElement(elementId) as Element;
 
