@@ -4,7 +4,7 @@ using System.Windows;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
-using BIMv2Buttons.CreateWorksets;
+using BIMv2Buttons.CreateWS;
 using Application = Autodesk.Revit.ApplicationServices.Application;
 
 #endregion
