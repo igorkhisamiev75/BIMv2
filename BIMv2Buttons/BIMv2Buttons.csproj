@@ -115,8 +115,11 @@
       <DependentUpon>ViewWPF.xaml</DependentUpon>
     </Compile>
     <Compile Include="GroupTypeCeilingAndWriteToComment\GroupTypeCeilingAndWriteToComment.cs" />
+    <Compile Include="GroupTypeCeilingByNote\GroupTypeCeilingByNote.cs" />
     <Compile Include="GroupTypeFloorAndWriteToComment\GroupTypeFloorAndWriteToComment.cs" />
+    <Compile Include="GroupTypeFloorByNote\GroupTypeFloorByNote.cs" />
     <Compile Include="GroupTypeWallsAndWriteToComment\GroupTypeWallsAndWriteToComment.cs" />
+    <Compile Include="GroupTypeWallsByNote\GroupTypeWallsByNote.cs" />
     <Compile Include="GroupTypeWallSweepsAndWriteToComment\GroupTypeWallSweepsAndWriteToComment.cs" />
     <Compile Include="HelpBIM\HelpBIM.cs" />
     <Compile Include="LightingFixtures\SumAllLightingFixtureInRoom.cs" />
@@ -192,5 +195,6 @@
   <ItemGroup>
     <Resource Include="Resources\icons8-clean3-32.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
