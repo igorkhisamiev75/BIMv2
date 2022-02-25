@@ -100,12 +100,6 @@ namespace BIMv2
 
             }
         }
-
-    
-
-
-
-
         
         public IList<Element> GetAllFloorElements(Document document)
         {

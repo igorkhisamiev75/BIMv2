@@ -88,8 +88,11 @@
     <Compile Include="DeletedFilter.cs" />
     <Compile Include="GetRoomNameForSelectElement.cs" />
     <Compile Include="GroupTypeCeilingAndWriteToComment.cs" />
+    <Compile Include="GroupTypeCeilingByNote.cs" />
     <Compile Include="GroupTypeFloorAndWriteToComment.cs" />
+    <Compile Include="GroupTypeFloorByNote.cs" />
     <Compile Include="GroupTypeWallsAndWriteToComment.cs" />
+    <Compile Include="GroupTypeWallsByNote.cs" />
     <Compile Include="GroupTypeWallSweepsAndWriteToComment.cs" />
     <Compile Include="HelpBIM.cs" />
     <Compile Include="NormalIlluminationForLightFix.cs" />
