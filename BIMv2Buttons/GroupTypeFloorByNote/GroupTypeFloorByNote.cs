@@ -5,7 +5,7 @@ using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 
-namespace BIMv2
+namespace BIMv2Buttons
 {
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]
@@ -54,7 +54,7 @@ namespace BIMv2
 
             //group by level
             IEnumerable<IGrouping<string, Floor>> groups = AllF.GroupBy(p2 =>
-                p2.LookupParameter("Level").AsValueString());
+                p2.get_Parameter(BuiltInParameter.LEVEL_PARAM).AsValueString());
 
             foreach (IGrouping<string, Floor> group in groups)
             {

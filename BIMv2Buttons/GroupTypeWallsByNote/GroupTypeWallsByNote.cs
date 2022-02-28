@@ -5,7 +5,7 @@ using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 
-namespace BIMv2
+namespace BIMv2Buttons
 {
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]
@@ -62,7 +62,7 @@ namespace BIMv2
 
             //группировка по уровню
             IEnumerable<IGrouping<string, Wall>> groups = AllF.GroupBy(p2 =>
-                p2.LookupParameter("Base Constraint").AsValueString());
+                p2.get_Parameter(BuiltInParameter.WALL_BASE_CONSTRAINT).AsValueString());
 
             foreach (var group in groups)
             {

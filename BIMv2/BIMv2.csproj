@@ -78,6 +78,7 @@
     <Compile Include="BIMStandart.cs" />
     <Compile Include="ClearProjectBrowser.cs" />
     <Compile Include="ClearProjectBrowserViewsNotSheets.cs" />
+    <Compile Include="ConvertGrids3Dto2D.cs" />
     <Compile Include="CreateAnyElementsInRooms.cs" />
     <Compile Include="CreateLightingInRoom.cs" />
     <Compile Include="CreateModelText.cs" />
