@@ -53,8 +53,8 @@ namespace BIMv2
                 Grid gr = VARIABLE as Grid;
 
 
-                double grl1 = gr.Curve.GetEndPoint(0).X + gr.Curve.GetEndPoint(0).Y;
-                double grl2 = gr.Curve.GetEndPoint(1).X + gr.Curve.GetEndPoint(1).Y;
+                //double grl1 = gr.Curve.GetEndPoint(0).X + gr.Curve.GetEndPoint(0).Y;
+                //double grl2 = gr.Curve.GetEndPoint(1).X + gr.Curve.GetEndPoint(1).Y;
 
                 gr.SetDatumExtentType(DatumEnds.End0,doc.ActiveView,DatumExtentType.ViewSpecific);
                 gr.SetDatumExtentType(DatumEnds.End1, doc.ActiveView, DatumExtentType.ViewSpecific);
