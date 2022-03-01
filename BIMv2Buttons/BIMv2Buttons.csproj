@@ -89,6 +89,7 @@
     <Compile Include="App.cs" />
     <Compile Include="BIMStandart\BIMStandart.cs" />
     <Compile Include="ClearProjectBrowser\ClearProjectBrowser.cs" />
+    <Compile Include="ConvertGrids3Dto2D\ConvertGrids3Dto2D.cs" />
     <Compile Include="CreateAnyElementsInRooms\CreateAnyElementsInRooms.cs" />
     <Compile Include="CreateElementsInRooms\CreateElementsInRooms.cs" />
     <Compile Include="CreateElementsInRooms\ElementOnCeilingCreator.cs" />
@@ -195,6 +196,8 @@
   <ItemGroup>
     <Resource Include="Resources\icons8-clean3-32.png" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Resources\icons8-2d-16.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

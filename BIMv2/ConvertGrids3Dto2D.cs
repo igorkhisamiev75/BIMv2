@@ -31,7 +31,7 @@ namespace BIMv2
                 uiDoc = uiApp.ActiveUIDocument;
 
                 ConvertTo2D(_doc, uiDoc);
-                TaskDialog.Show("Готово", "Оси переведены в 2D");
+                TaskDialog.Show("Готово", "Оси переведены в 2D/3D");
                 t.Commit();
 
             }
@@ -45,19 +45,42 @@ namespace BIMv2
         {
             var grids = GetAllGridsElements(doc);
 
-            List<bool> list = new List<bool>();
-
-
-            foreach (var VARIABLE in grids)
+            if (grids.Count != 0)
             {
-                Grid gr = VARIABLE as Grid;
+                Grid grid = (Grid)grids[0];
+
+                if ((grid.GetDatumExtentTypeInView(DatumEnds.End0, doc.ActiveView) == DatumExtentType.Model) ||
+                    (grid.GetDatumExtentTypeInView(DatumEnds.End1, doc.ActiveView) == DatumExtentType.Model))
+                {
+                    foreach (var VARIABLE in grids)
+                    {
+                        Grid grid2 = VARIABLE as Grid;
+
+                        grid2.SetDatumExtentType(DatumEnds.End0, doc.ActiveView, DatumExtentType.ViewSpecific);
+                        grid2.SetDatumExtentType(DatumEnds.End1, doc.ActiveView, DatumExtentType.ViewSpecific);
+
+                    }
+                }
+
+                else
+                {
+                    foreach (var VARIABLE in grids)
+                    {
+                        Grid grid2 = VARIABLE as Grid;
+
+                        grid2.SetDatumExtentType(DatumEnds.End0, doc.ActiveView, DatumExtentType.Model);
+                        grid2.SetDatumExtentType(DatumEnds.End1, doc.ActiveView, DatumExtentType.Model);
+                    }
+                }
+            }
+            
 
 
-                //double grl1 = gr.Curve.GetEndPoint(0).X + gr.Curve.GetEndPoint(0).Y;
-                //double grl2 = gr.Curve.GetEndPoint(1).X + gr.Curve.GetEndPoint(1).Y;
+            //double grl1 = gr.Curve.GetEndPoint(0).X + gr.Curve.GetEndPoint(0).Y;
+            //double grl2 = gr.Curve.GetEndPoint(1).X + gr.Curve.GetEndPoint(1).Y;
 
-                gr.SetDatumExtentType(DatumEnds.End0,doc.ActiveView,DatumExtentType.ViewSpecific);
-                gr.SetDatumExtentType(DatumEnds.End1, doc.ActiveView, DatumExtentType.ViewSpecific);
+            
+                
 
                 //show and hide bubble
                 //if (!gr.IsBubbleVisibleInView(DatumEnds.End0, doc.ActiveView) && !gr.IsBubbleVisibleInView(DatumEnds.End1, doc.ActiveView))
@@ -80,7 +103,7 @@ namespace BIMv2
 
             }
 
-        }
+        
 
         public IList<Element> GetAllGridsElements(Document document)
         {
