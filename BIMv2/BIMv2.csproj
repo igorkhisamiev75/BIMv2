@@ -82,6 +82,7 @@
     <Compile Include="CreateAnyElementsInRooms.cs" />
     <Compile Include="CreateLightingInRoom.cs" />
     <Compile Include="CreateModelText.cs" />
+    <Compile Include="CreateModelTextRoomNameInRoom.cs" />
     <Compile Include="CreateNumberRoomForFloors.cs" />
     <Compile Include="CreateNumberRoomForWall.cs" />
     <Compile Include="CreateViewForLevels.cs" />
