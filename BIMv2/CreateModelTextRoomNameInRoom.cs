@@ -80,15 +80,7 @@ namespace BIMv2
                 familyInstance.get_Parameter(new Guid("e6e0f5cd-3e26-485b-9342-23882b20eb43")).Set(roomNumber);
                 familyInstance.get_Parameter(new Guid("9c98831b-9450-412d-b072-7d69b39f4029")).Set(roomName);
 
-                //create copy element
-                //e.get_Parameter(BuiltInParameter.TEXT_TEXT).Set(textModel);
-
-                //ElementTransformUtils.MoveElement(_doc, e.Id, placeXyzPoint);
-
-                //ICollection<ElementId> newElement = ElementTransformUtils.CopyElement(_doc, e.Id, placeXyzPoint);
-
-                //e = _doc.GetElement(new ElementId(GetId(newElement)));
-
+                
             }
             
         }
