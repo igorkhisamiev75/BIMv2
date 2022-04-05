@@ -1,12 +1,15 @@
 ﻿#region Namespace
+
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
-
 using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
+using Autodesk.Revit.DB.Structure;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Selection;
 
@@ -27,15 +30,16 @@ namespace BIMv2
             _app = uiApp.Application;
             _doc = uiDoc.Document;
 
+            XYZ pointRoom = new XYZ();
+
             using (var t = new Transaction(_doc))
             {
                 t.Start("Run");
                 uiApp = commandData.Application;
                 uiDoc = uiApp.ActiveUIDocument;
 
-                Reference r = uiDoc.Selection.PickObject(ObjectType.Element, "Выбрать текст модели");
-
-                CreateModelTextMethod(r, uiDoc);
+                
+                CreateModelTextMethod(uiDoc);
                 TaskDialog.Show("Готово", "Complite!!!☺☺☺");
                 t.Commit();
 
@@ -43,31 +47,47 @@ namespace BIMv2
             return Result.Succeeded;
         }
 
-        public void CreateModelTextMethod(Reference r, UIDocument uiDocument)
+        public void CreateModelTextMethod(UIDocument uiDocument)
         {
-            //reed txt file
-            //string path = @"C:\text.txt";
-            //string[] arStr = File.ReadAllLines(path, Encoding.GetEncoding(1251));
-
+            //Get All Rooms
             var rooms = GetRoomsOnCurrentProject(_doc);
+            
+            FamilySymbol symbol = GetSymbol(_doc, "Для подписи помещений", "Для подписи помещений");
 
-            //UniqueId элемента
-            //string earthId = "c30ec930-30e2-4f3a-8f98-7767e782e4c8-0005496f";
-            //Element e = _doc.GetElement(earthId);
-
-            // We have picked something.
-            Element e = uiDocument.Document.GetElement(r);
-
-            XYZ point1 = new XYZ(0, -10, 0);
-
-
-            foreach (var s in rooms)
+            //create model text in Rooms
+            foreach (var room in rooms)
             {
-                //create copy element
-                e.get_Parameter(BuiltInParameter.TEXT_TEXT).Set(s);
-                ICollection<ElementId> newElement = ElementTransformUtils.CopyElement(_doc, e.Id, point1);
+                //get room name and number
+                var roomName = room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+                var roomNumber= room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();
 
-                e = _doc.GetElement(new ElementId(GetId(newElement)));
+                var textModel = roomNumber + "\n" + roomName;
+
+                //level
+                var level = room.LevelId;
+                Level level1 = GetLevelFromRoomById(level);
+
+
+                LocationPoint lpPoint = (LocationPoint)room.Location;
+                
+                XYZ pointRoom = lpPoint.Point;
+
+                XYZ placeXyzPoint = new XYZ(pointRoom.X, pointRoom.Y, 0);
+
+                FamilyInstance familyInstance = _doc.Create.NewFamilyInstance(
+                    placeXyzPoint, symbol, level1, StructuralType.NonStructural);
+
+                familyInstance.get_Parameter(new Guid("e6e0f5cd-3e26-485b-9342-23882b20eb43")).Set(roomNumber);
+                familyInstance.get_Parameter(new Guid("9c98831b-9450-412d-b072-7d69b39f4029")).Set(roomName);
+
+                //create copy element
+                //e.get_Parameter(BuiltInParameter.TEXT_TEXT).Set(textModel);
+
+                //ElementTransformUtils.MoveElement(_doc, e.Id, placeXyzPoint);
+
+                //ICollection<ElementId> newElement = ElementTransformUtils.CopyElement(_doc, e.Id, placeXyzPoint);
+
+                //e = _doc.GetElement(new ElementId(GetId(newElement)));
 
             }
             
@@ -98,6 +118,27 @@ namespace BIMv2
 
         }
 
+        public FamilySymbol GetSymbol(Document document, string familyName, string symbolName)
+        {
+            return new FilteredElementCollector(document).OfClass(typeof(Family)).OfType<Family>().FirstOrDefault(f => f.Name.Equals(familyName))?.GetFamilySymbolIds().Select(id => document.GetElement(id)).OfType<FamilySymbol>().FirstOrDefault(symbol => symbol.Name.Equals(symbolName));
+        }
+
+        public Level GetLevelFromRoomById(ElementId elementId)
+        {
+            FilteredElementCollector lvlCollector = new FilteredElementCollector(_doc);
+            ICollection<Element> lvlCollection = lvlCollector.OfClass(typeof(Level)).ToElements();
+
+            foreach (Element l in lvlCollection)
+            {
+                if (l.Id == elementId)
+                {
+                    return (Level)l;
+                }
+
+            }
+            return null;
+
+        }
     }
 
 }
