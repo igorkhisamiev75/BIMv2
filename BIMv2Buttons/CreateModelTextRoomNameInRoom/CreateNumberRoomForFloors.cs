@@ -6,7 +6,7 @@ using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
 
 
-namespace BIMv2
+namespace BIMv2Buttons
 {
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]

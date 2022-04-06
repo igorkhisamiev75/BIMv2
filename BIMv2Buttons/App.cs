@@ -181,7 +181,7 @@ namespace BIMv2Buttons
             ribbonPanel4.AddSeparator(); //разделитель между кнопками
 
             PushButtonData b20Data = new PushButtonData("cmdCreateModelTextRoomNameInRoom.cs", "Подписать"
-                + Environment.NewLine + "помещения в 3D", thisAssemblyPath, "BIMv2.CreateModelTextRoomNameInRoom");
+                + Environment.NewLine + "помещения в 3D", thisAssemblyPath, "BIMv2Buttons.CreateModelTextRoomNameInRoom");
 
             PushButton pb20 = ribbonPanel4.AddItem(b20Data) as PushButton;
             pb20.ToolTip = "Подписать помещения с помощью семейства Для подписи помещений.rfa";

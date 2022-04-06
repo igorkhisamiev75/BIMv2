@@ -12,7 +12,7 @@ using Autodesk.Revit.UI.Selection;
 namespace BIMv2
 {
     [Transaction(TransactionMode.Manual)]
-    public class CreateNumberRoomForFloors : IExternalCommand
+    public class CreateNumberRoomForFloors2 : IExternalCommand
     {
         public List<Element> projectRooms = new List<Element>();
         public List<Element> AllRooms = new List<Element>();
