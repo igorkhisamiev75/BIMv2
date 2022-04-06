@@ -101,6 +101,7 @@
     </Compile>
     <Compile Include="CreateElementsInRooms\RoomsData.cs" />
     <Compile Include="CreateLightingInRoom\CreateLightingInRoom.cs" />
+    <Compile Include="CreateModelTextRoomNameInRoom\CreateModelTextRoomNameInRoom.cs" />
     <Compile Include="CreateModelText\CreateModelText.cs" />
     <Compile Include="CreateNumberRoomForFloors\CreateNumberRoomForFloors.cs" />
     <Compile Include="CreateWS\CreateWorksets.cs" />
@@ -199,5 +200,6 @@
   <ItemGroup>
     <Resource Include="Resources\icons8-2d-16.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
