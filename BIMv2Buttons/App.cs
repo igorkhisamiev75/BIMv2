@@ -321,6 +321,18 @@ namespace BIMv2Buttons
             //попробуем создать еще одну кнопку
             ribbonPanel4.AddSeparator(); //разделитель между кнопками
 
+            PushButtonData b20Data = new PushButtonData("cmdCreateModelTextRoomNameInRoom.cs", "Подписать"
+                                                                             + Environment.NewLine + "помещения в 3D", thisAssemblyPath, "BIMv2.CreateModelTextRoomNameInRoom");
+
+            PushButton pb20 = ribbonPanel4.AddItem(b20Data) as PushButton;
+            pb20.ToolTip = "Подписать помещения с помощью семейства Для подписи помещений.rfa";
+
+            BitmapImage pb20Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-sign-32.png"));
+            pb20.LargeImage = pb20Image;
+
+            //попробуем создать еще одну кнопку
+            ribbonPanel4.AddSeparator(); //разделитель между кнопками
+
             // Create three push buttons for split button drop down 
 
             // #1 
