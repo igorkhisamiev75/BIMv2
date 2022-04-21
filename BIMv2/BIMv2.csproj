@@ -104,6 +104,7 @@
     <Compile Include="SolarSystemFunProject.cs" />
     <Compile Include="SumAllLightingFixtureInRoom.cs" />
     <Compile Include="Test.cs" />
+    <Compile Include="WallFinishComposition.cs" />
     <Compile Include="WallFinishing.cs" />
     <Compile Include="WriteNameRoomInPlumbingFixtures.cs" />
   </ItemGroup>
