@@ -54,7 +54,7 @@ namespace BIMv2
             }
 
             //группировка по уровню
-            //IEnumerable<IGrouping<string, Wall>> groups = AllF.GroupBy(p2 =>
+            //IEnumerable<IGrouping<string, Wall>> groups = AllFinishWall.GroupBy(p2 =>
             //    p2.LookupParameter("Звисимость снизу").AsValueString());
 
             //группировка по уровню

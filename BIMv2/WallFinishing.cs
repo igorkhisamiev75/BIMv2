@@ -12,7 +12,7 @@ namespace BIMv2
     [Regeneration(RegenerationOption.Manual)]
     public class WallFinishing : IExternalCommand
     {
-        public List<Floor> AllF = new List<Floor>();
+        public List<Wall> AllFinishWall = new List<Wall>();
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -22,102 +22,113 @@ namespace BIMv2
             {
                 t.Start("Stage 2");
 
-                WriteToComment(doc);
+                WriteToWallSquare(doc);
 
-                TaskDialog.Show("Сделано", "Полы сгруппированы");
+                TaskDialog.Show("Сделано", "Стены ОТДЕЛКА посчитаны и площадь записана в параметр MRGT_ВидОтделкиСтеныПлощадь");
 
                 t.Commit();
 
             }
-
             return Result.Succeeded;
 
         }
 
-        public void WriteToComment(Document doc)
+        public void WriteToWallSquare(Document doc)
         {
-            IList<Element> allFloors = GetAllFloorElements(doc);
-            AllF.Clear();
+            var allWallElements = GetAllWallElements(doc);
+            AllFinishWall.Clear();
 
-            foreach (Element VARIABLE in allFloors)
+            foreach (var VARIABLE in allWallElements)
             {
                 try
                 {
-                    var ggg = (Floor)VARIABLE;
-                    AllF.Add(ggg);
+                    var wall = (Wall)VARIABLE;
+
+                    var descriptionWallType = wall.WallType.LookupParameter("Описание").AsString();
+                    
+                    if (descriptionWallType == "Отделка")
+                    {
+                        AllFinishWall.Add(wall);
+                    }
+                    
                 }
                 catch (Exception e)
                 {
                     continue;
                 }
 
+
             }
 
-            //group by level
-            IEnumerable<IGrouping<string, Floor>> groups = AllF.GroupBy(p2 =>
-                p2.LookupParameter("Level").AsValueString());
+            //group by room
+            IEnumerable<IGrouping<string, Wall>> groups = AllFinishWall.GroupBy(p2 =>
+                p2.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString());
 
-            foreach (IGrouping<string, Floor> group in groups)
+            foreach (var group in groups)
             {
-                List<Floor> floorGroups = new List<Floor>();
-                floorGroups.Clear();
+                List<Wall> WallGroup = new List<Wall>();
+                WallGroup.Clear();
 
-                foreach (Floor elWall in group)
+                foreach (var elWall in group)
                 {
-                    floorGroups.Add(elWall);
+                    WallGroup.Add(elWall);
                 }
 
-                //группировка по типу 
-                IEnumerable<IGrouping<string, Floor>> groupsN = floorGroups.GroupBy(p => p.Name);
+                //группировка по типу стены
+                var groupsN = WallGroup.GroupBy(p => p.Name);
 
                 //пробегаемся по сгруппированным значениям
 
                 foreach (IGrouping<string, Element> element in groupsN)
                 {
+
                     IList<string> numroomList = new List<string>();
                     numroomList.Clear();
 
-                    //создаем массив с номерами помещений
-                    foreach (Element t in element)
+                    //суммируем площадь
+
+                    double squeWall = 0;
+
+                    foreach (var t in element)
                     {
-                        string otd = t.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString();
-                        if (otd != null)
-                        {
-                            //string[] subs = otd.Split(' ');
-                            numroomList.Add(otd);
-                        }
+                        var otd = t.get_Parameter(BuiltInParameter.HOST_AREA_COMPUTED).AsDouble();
+                        squeWall += otd;
 
                     }
-
-                    //clean list
-                    List<string> newList = new List<string>(numroomList.Distinct());
-
-                    newList.Sort();
-
-                    string numbersAllRoomString = string.Join(", ", newList.ToArray());
-
-                    numroomList.Clear();
-
+                    
                     //и записываем это массив в каждый номер этого массива
 
-                    foreach (Element t in element)
+                    foreach (var t in element)
                     {
-                        t.get_Parameter(new Guid("6b89127c-f4ec-4724-b120-8d4b5cdcdcb6")).Set(numbersAllRoomString);
+                        //var r = sqFootToSquareM(squeWall);
+                        t.get_Parameter(new Guid("2c097f7a-e32f-4455-9e8a-ac72e131b24c")).Set(squeWall);
                     }
 
                 }
 
+
             }
+
+
         }
 
-        public IList<Element> GetAllFloorElements(Document document)
+        public IList<Element> GetAllWallElements(Document document)
         {
             // List all Floor's
             var floor_collector = new FilteredElementCollector(document)
-                .OfCategory(BuiltInCategory.OST_Floors)
+                .OfCategory(BuiltInCategory.OST_Walls)
                 .WhereElementIsNotElementType();
+
             IList<Element> allFloors = floor_collector.ToElements();
             return allFloors;
+        }
+        /// <summary>
+        /// Convert square feet to square meters 
+        /// with two decimal places precision.
+        /// </summary>
+        double sqFootToSquareM(double sqFoot)
+        {
+            return Math.Round(sqFoot * 0.092903, 2);
         }
 
     }

@@ -112,7 +112,10 @@ namespace BIMv2
 
         public FamilySymbol GetSymbol(Document document, string familyName, string symbolName)
         {
-            return new FilteredElementCollector(document).OfClass(typeof(Family)).OfType<Family>().FirstOrDefault(f => f.Name.Equals(familyName))?.GetFamilySymbolIds().Select(id => document.GetElement(id)).OfType<FamilySymbol>().FirstOrDefault(symbol => symbol.Name.Equals(symbolName));
+            return new FilteredElementCollector(document)
+                .OfClass(typeof(Family)).OfType<Family>()
+                .FirstOrDefault(f => f.Name.Equals(familyName))?.GetFamilySymbolIds()
+                .Select(id => document.GetElement(id)).OfType<FamilySymbol>().FirstOrDefault(symbol => symbol.Name.Equals(symbolName));
         }
 
         public Level GetLevelFromRoomById(ElementId elementId)
