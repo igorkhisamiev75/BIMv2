@@ -68,6 +68,7 @@ namespace BIMv2
             foreach (var grouping in groupByRooms)
             {
                 string pirog="WALL";
+                
                 //group by type wall
                 IEnumerable<IGrouping<string, Wall>> groupByType = grouping.GroupBy(p2 => p2.Name);
 
@@ -89,14 +90,36 @@ namespace BIMv2
                 }
                 else
                 {
-                    foreach (var wall in groupByType)
+                    List<Wall> w = new List<Wall>();
+                    foreach (var wall in grouping)
                     {
+                        w.Add(wall);
+                    }
+
+                    foreach (var wall in grouping)
+                    {
+                        List<string> w2 = new List<string>();
+
+                        //пробегаемся по всем и создаем новый массив только стены
+
+                        foreach (var VARIABLE in wall)
+                        {
+                            w.Add(VARIABLE.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).AsString());
+                        }
+
+                        //clean list
+                        List<string> newList = new List<string>(w2.Distinct());
+
+                        string numbersAllRoomString = string.Join(", ", newList.ToArray());
+
                         pirog = "WALL2";
+
+
 
                         foreach (var wall2 in wall)
                         {
                            
-                            wall2.get_Parameter(new Guid("6533b173-94cb-465e-964c-ed1e0dfce339")).Set(pirog);
+                            wall2.get_Parameter(new Guid("6533b173-94cb-465e-964c-ed1e0dfce339")).Set(numbersAllRoomString);
                         }
                        
 
