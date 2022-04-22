@@ -22,10 +22,8 @@ namespace BIMv2
             {
                 t.Start("Stage 2");
 
-                WriteToWallSquare(doc);
-
-
-
+                WriteToWallFinishAlliance(doc);
+                
                 TaskDialog.Show("Сделано", "Пироги стен сгруппированы");
 
                 t.Commit();
@@ -35,7 +33,7 @@ namespace BIMv2
 
         }
 
-        public void WriteToWallSquare(Document doc)
+        public void WriteToWallFinishAlliance(Document doc)
         {
             var allWallElements = GetAllWallElements(doc);
 
@@ -62,15 +60,62 @@ namespace BIMv2
 
             }
 
-            foreach (var wall in AllFinishWall)
+           
+            //group by room
+            IEnumerable<IGrouping<string, Wall>> groupByRooms = AllFinishWall.GroupBy(p2 =>
+                p2.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString());
+            
+            foreach (var grouping in groupByRooms)
             {
-                var NameOfBaseFinish = wall.WallType.LookupParameter("Наименование базовой отделки").AsString();
+                string pirog="WALL";
+                //group by type wall
+                IEnumerable<IGrouping<string, Wall>> groupByType = grouping.GroupBy(p2 => p2.Name);
 
-                wall.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).Set(NameOfBaseFinish);
+                //TaskDialog.Show("1", groupByRooms2.Count().ToString());
+                
+
+                List<Wall> wallGoupStatus = new List<Wall>();
+
+                if (groupByType.Count() == 1)
+                {
+                    foreach (var wall in grouping)
+                    {
+                        pirog = wall.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).AsString();
+
+                        wall.get_Parameter(new Guid("6533b173-94cb-465e-964c-ed1e0dfce339")).Set(pirog);
+                    }
+
+                    continue;
+                }
+                else
+                {
+                    foreach (var wall in groupByType)
+                    {
+                        pirog = "WALL2";
+
+                        foreach (var wall2 in wall)
+                        {
+                           
+                            wall2.get_Parameter(new Guid("6533b173-94cb-465e-964c-ed1e0dfce339")).Set(pirog);
+                        }
+                       
+
+                    }
+                }
+
+               
+
+
+
             }
 
-        }
 
+        }
+        /// <summary>
+        /// Get all elements
+        /// </summary>
+        /// <param name="document"></param>
+        /// <returns></returns>
         public IList<Element> GetAllWallElements(Document document)
         {
             // List all Floor's
