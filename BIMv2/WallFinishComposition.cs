@@ -22,10 +22,8 @@ namespace BIMv2
             {
                 t.Start("Stage 2");
 
-                WriteToWallSquare(doc);
+                WriteFinishToWall(doc);
                 
-               
-
                 TaskDialog.Show("Сделано", "Пироги стен скопированы");
 
                 t.Commit();
@@ -35,7 +33,7 @@ namespace BIMv2
 
         }
         
-        public void WriteToWallSquare(Document doc)
+        public void WriteFinishToWall(Document doc)
         {
             var allWallElements = GetAllWallElements(doc);
             
@@ -64,7 +62,7 @@ namespace BIMv2
 
             foreach (var wall in AllFinishWall)
             {
-                var NameOfBaseFinish = wall.WallType.LookupParameter("Наименование базовой отделки").AsString();
+                var NameOfBaseFinish = wall.WallType.LookupParameter("MRGT_СлоиОтделки").AsString();
 
                 wall.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).Set(NameOfBaseFinish);
             }
