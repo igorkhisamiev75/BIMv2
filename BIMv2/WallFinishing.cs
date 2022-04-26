@@ -22,6 +22,7 @@ namespace BIMv2
             {
                 t.Start("Записываем суммарную площадь отделки");
 
+                //записываем суммарную площадь в каждую стену
                 WriteToWallSquare(doc);
 
                 //записываем из типа стены в параметр экземпляра
@@ -77,18 +78,13 @@ namespace BIMv2
 
             foreach (var grouping in groupByRooms)
             {
-                string pirog = "WALL";
+                string pirog = "";
                 string square = "";
 
                 //group by type wall
                 IEnumerable<IGrouping<string, Wall>> groupByType = grouping.GroupBy(p2 => p2.Name);
 
-                //TaskDialog.Show("1", groupByRooms2.Count().ToString());
-
-
-                List<Wall> wallGoupStatus = new List<Wall>();
-
-                if (groupByType.Count() == 1)
+               if (groupByType.Count() == 1)
                 {
                     foreach (var wall in grouping)
                     {
@@ -109,12 +105,9 @@ namespace BIMv2
                         listWall.Add(wall2);
                     }
 
-                    //TaskDialog.Show("1", listWall.Count().ToString());
-
                     //удаление дубликатов, групирруем по имени
                     var wallsGroup = listWall.GroupBy(x => x.Name).Select(x => x.First()).ToList();
 
-                    int countTypeWallinRoom = wallsGroup.Count;
                     pirog = "";
                     square = "";
 
@@ -124,13 +117,17 @@ namespace BIMv2
 
                         var LayerInWall = wall.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).AsString();
                         var countLayerInWall = LayerInWall.Where(x => "\n".IndexOf(x) != -1).Count();
-
-                        //TaskDialog.Show("1", countLayerInWall.ToString());
-
+                        
                         pirog += wall.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).AsString() + "\n\n";
+                        
 
-                        square += wall.get_Parameter(new Guid("2c097f7a-e32f-4455-9e8a-ac72e131b24c")).AsValueString() + "\n\n\n\n";
+                        square += wall.get_Parameter(new Guid("2c097f7a-e32f-4455-9e8a-ac72e131b24c")).AsValueString();
 
+                        for (int i = 0; i < countLayerInWall; i++)
+                        {
+                            square += "\n\n";
+                        }
+                        
                     }
 
                     foreach (var wall in grouping)
@@ -261,11 +258,11 @@ namespace BIMv2
             var allWallElements = GetAllWallElements(doc);
             AllFinishWall.Clear();
 
-            foreach (var VARIABLE in allWallElements)
+            foreach (var element in allWallElements)
             {
                 try
                 {
-                    var wall = (Wall)VARIABLE;
+                    var wall = (Wall)element;
 
                     var descriptionWallType = wall.WallType.LookupParameter("Описание").AsString();
                     
