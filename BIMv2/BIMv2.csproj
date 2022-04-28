@@ -76,6 +76,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="BIMStandart.cs" />
+    <Compile Include="CeilingFinish.cs" />
     <Compile Include="ClearProjectBrowser.cs" />
     <Compile Include="ClearProjectBrowserViewsNotSheets.cs" />
     <Compile Include="ConvertGrids3Dto2D.cs" />
@@ -88,6 +89,7 @@
     <Compile Include="CreateViewForLevels.cs" />
     <Compile Include="CreateWorksets.cs" />
     <Compile Include="DeletedFilter.cs" />
+    <Compile Include="FloorFinish.cs" />
     <Compile Include="GetRoomNameForSelectElement.cs" />
     <Compile Include="GroupTypeCeilingAndWriteToComment.cs" />
     <Compile Include="GroupTypeCeilingByNote.cs" />
