@@ -76,7 +76,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="BIMStandart.cs" />
-    <Compile Include="CeilingFinish.cs" />
+    <Compile Include="PluginFinish2BIM\CeilingFinish.cs" />
     <Compile Include="ClearProjectBrowser.cs" />
     <Compile Include="ClearProjectBrowserViewsNotSheets.cs" />
     <Compile Include="ConvertGrids3Dto2D.cs" />
@@ -89,7 +89,8 @@
     <Compile Include="CreateViewForLevels.cs" />
     <Compile Include="CreateWorksets.cs" />
     <Compile Include="DeletedFilter.cs" />
-    <Compile Include="FloorFinish.cs" />
+    <Compile Include="PluginFinish2BIM\FindRoomForElementsFinish.cs" />
+    <Compile Include="PluginFinish2BIM\FloorFinish.cs" />
     <Compile Include="GetRoomNameForSelectElement.cs" />
     <Compile Include="GroupTypeCeilingAndWriteToComment.cs" />
     <Compile Include="GroupTypeCeilingByNote.cs" />
@@ -106,13 +107,14 @@
     <Compile Include="SolarSystemFunProject.cs" />
     <Compile Include="SumAllLightingFixtureInRoom.cs" />
     <Compile Include="Test.cs" />
-    <Compile Include="WallFinishAlliance.cs" />
-    <Compile Include="WallFinishComposition.cs" />
-    <Compile Include="WallFinishing.cs" />
-    <Compile Include="WriteNameRoomInPlumbingFixtures.cs" />
+    <Compile Include="PluginFinish2BIM\Test\WallFinishAlliance.cs" />
+    <Compile Include="PluginFinish2BIM\Test\WallFinishComposition.cs" />
+    <Compile Include="PluginFinish2BIM\WallFinishing.cs" />
+    <Compile Include="PluginFinish2BIM\Test\WriteNameRoomInPlumbingFixtures.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

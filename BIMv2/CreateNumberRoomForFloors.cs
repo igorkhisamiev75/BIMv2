@@ -107,8 +107,6 @@ namespace BIMv2
 
                 XYZ pointLine = new XYZ(0, 0, 0);
 
-
-
                 Floor floor = (Floor)element;
 
                 ElementId eid = floor.Id;

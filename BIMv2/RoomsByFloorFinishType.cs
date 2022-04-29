@@ -21,6 +21,7 @@ namespace BIMv2
             var room_collector = new FilteredElementCollector(doc)
                 .OfCategory(BuiltInCategory.OST_Rooms)
                 .WhereElementIsNotElementType();
+
             //IList<ElementId> room_eids = room_collector.ToElementIds() as IList<ElementId>;
             IList<Element> allRooms = room_collector.ToElements();
             IList<string> numFinishList = new List<string>();
