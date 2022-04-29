@@ -34,7 +34,7 @@ namespace BIMv2
                 //TaskDialog.Show("Сделано", "Стены ОТДЕЛКА посчитаны и площадь записана в параметр MRGT_ВидОтделкиСтеныПлощадь");
                 
                 //записываем информацию в помещения
-                WriteToRoomsWallsSquare(doc);
+                WriteToRooms(doc);
 
                 //TaskDialog.Show("Сделано", "Стены ОТДЕЛКА посчитаны");
 
@@ -42,6 +42,120 @@ namespace BIMv2
 
             }
             return Result.Succeeded;
+
+        }
+        public void WriteToWallSquare(Document doc)
+        {
+            var allWallElements = GetAllWallElements(doc);
+            AllFinishWall.Clear();
+
+            foreach (var element in allWallElements)
+            {
+                try
+                {
+                    var wall = (Wall)element;
+
+                    var descriptionWallType = wall.WallType.LookupParameter("Описание").AsString();
+                    
+                    if (descriptionWallType == "Отделка")
+                    {
+                        AllFinishWall.Add(wall);
+                    }
+                    
+                }
+                catch (Exception e)
+                {
+                    continue;
+                }
+
+
+            }
+
+            //group by room
+            IEnumerable<IGrouping<string, Wall>> groups = AllFinishWall.GroupBy(p2 =>
+                p2.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString());
+
+            foreach (var group in groups)
+            {
+                List<Wall> WallGroup = new List<Wall>();
+                WallGroup.Clear();
+
+                foreach (var elWall in group)
+                {
+                    WallGroup.Add(elWall);
+                }
+
+                //группировка по типу стены
+                var groupsN = WallGroup.GroupBy(p => p.Name);
+
+                //пробегаемся по сгруппированным значениям
+
+                foreach (IGrouping<string, Element> element in groupsN)
+                {
+
+                    IList<string> numroomList = new List<string>();
+                    numroomList.Clear();
+
+                    //суммируем площадь
+
+                    double squeWall = 0;
+
+                    foreach (var t in element)
+                    {
+                        var otd = t.get_Parameter(BuiltInParameter.HOST_AREA_COMPUTED).AsDouble();
+                        squeWall += otd;
+
+                    }
+                    
+                    //и записываем это массив в каждый номер этого массива
+
+                    foreach (var t in element)
+                    {
+                        //var r = sqFootToSquareM(squeWall);
+                        t.get_Parameter(new Guid("2c097f7a-e32f-4455-9e8a-ac72e131b24c")).Set(squeWall);
+                    }
+
+                }
+
+
+            }
+
+
+        }
+
+        public void WriteFinishToWall(Document doc)
+        {
+            var allWallElements = GetAllWallElements(doc);
+
+            //отделка только //мжно в запросе сразу попробовать отфильтровать
+            foreach (var element in allWallElements)
+            {
+                try
+                {
+                    var wall = (Wall)element;
+
+                    var descriptionWallType = wall.WallType.LookupParameter("Описание").AsString();
+
+                    if (descriptionWallType == "Отделка")
+                    {
+                        AllFinishWall.Add(wall);
+                    }
+
+                }
+                catch (Exception e)
+                {
+                    continue;
+                }
+
+
+            }
+
+            foreach (var wall in AllFinishWall)
+            {
+                var NameOfBaseFinish = wall.WallType.LookupParameter("MRGT_СлоиОтделки").AsString();
+
+                wall.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).Set(NameOfBaseFinish);
+            }
 
         }
 
@@ -149,44 +263,8 @@ namespace BIMv2
 
 
         }
-
-        public void WriteFinishToWall(Document doc)
-        {
-            var allWallElements = GetAllWallElements(doc);
-
-            //отделка только //мжно в запросе сразу попробовать отфильтровать
-            foreach (var element in allWallElements)
-            {
-                try
-                {
-                    var wall = (Wall)element;
-
-                    var descriptionWallType = wall.WallType.LookupParameter("Описание").AsString();
-
-                    if (descriptionWallType == "Отделка")
-                    {
-                        AllFinishWall.Add(wall);
-                    }
-
-                }
-                catch (Exception e)
-                {
-                    continue;
-                }
-
-
-            }
-
-            foreach (var wall in AllFinishWall)
-            {
-                var NameOfBaseFinish = wall.WallType.LookupParameter("MRGT_СлоиОтделки").AsString();
-
-                wall.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).Set(NameOfBaseFinish);
-            }
-
-        }
-
-        private void WriteToRoomsWallsSquare(Document doc)
+        
+        private void WriteToRooms(Document doc)
         {
             //all rooms
             var allRooms = GetAllRooms(doc);
@@ -231,6 +309,7 @@ namespace BIMv2
                         if (numberRoom == numberRoomInWall)
                         {
                             //получаем площадь
+                            //MRGT_ПлощадьОбъединенная
                             var squareWall = wall.get_Parameter(new Guid("1e2bf482-d000-4acd-a903-17caa723e563"))
                                 .AsString();
                             room.get_Parameter(new Guid("1e2bf482-d000-4acd-a903-17caa723e563")).Set(squareWall);
@@ -238,7 +317,7 @@ namespace BIMv2
                             //получаем отделку
                             var finishWall = wall.get_Parameter(new Guid("6533b173-94cb-465e-964c-ed1e0dfce339"))
                                 .AsString();
-                            room.get_Parameter(new Guid("6533b173-94cb-465e-964c-ed1e0dfce339")).Set(finishWall);
+                            room.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).Set(finishWall);
 
 
                             continue;
@@ -252,87 +331,7 @@ namespace BIMv2
             }
 
         }
-
-
-        public void WriteToWallSquare(Document doc)
-        {
-            var allWallElements = GetAllWallElements(doc);
-            AllFinishWall.Clear();
-
-            foreach (var element in allWallElements)
-            {
-                try
-                {
-                    var wall = (Wall)element;
-
-                    var descriptionWallType = wall.WallType.LookupParameter("Описание").AsString();
-                    
-                    if (descriptionWallType == "Отделка")
-                    {
-                        AllFinishWall.Add(wall);
-                    }
-                    
-                }
-                catch (Exception e)
-                {
-                    continue;
-                }
-
-
-            }
-
-            //group by room
-            IEnumerable<IGrouping<string, Wall>> groups = AllFinishWall.GroupBy(p2 =>
-                p2.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString());
-
-            foreach (var group in groups)
-            {
-                List<Wall> WallGroup = new List<Wall>();
-                WallGroup.Clear();
-
-                foreach (var elWall in group)
-                {
-                    WallGroup.Add(elWall);
-                }
-
-                //группировка по типу стены
-                var groupsN = WallGroup.GroupBy(p => p.Name);
-
-                //пробегаемся по сгруппированным значениям
-
-                foreach (IGrouping<string, Element> element in groupsN)
-                {
-
-                    IList<string> numroomList = new List<string>();
-                    numroomList.Clear();
-
-                    //суммируем площадь
-
-                    double squeWall = 0;
-
-                    foreach (var t in element)
-                    {
-                        var otd = t.get_Parameter(BuiltInParameter.HOST_AREA_COMPUTED).AsDouble();
-                        squeWall += otd;
-
-                    }
-                    
-                    //и записываем это массив в каждый номер этого массива
-
-                    foreach (var t in element)
-                    {
-                        //var r = sqFootToSquareM(squeWall);
-                        t.get_Parameter(new Guid("2c097f7a-e32f-4455-9e8a-ac72e131b24c")).Set(squeWall);
-                    }
-
-                }
-
-
-            }
-
-
-        }
-
+        
         public IList<Element> GetAllWallElements(Document document)
         {
             // List all Floor's
