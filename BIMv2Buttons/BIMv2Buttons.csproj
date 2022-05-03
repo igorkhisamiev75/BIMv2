@@ -128,6 +128,7 @@
     <Compile Include="NormalIlluminationForLightFix.cs\NormalIlluminationForLightFix.cs" />
     <Compile Include="PowerFactorElectrical\PowerFactorElectrical.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="WallFinishing\WallFinishing.cs" />
     <Compile Include="WriteNameRoom\WriteNameRoomInPlumbingFixtures.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -203,5 +204,6 @@
   <ItemGroup>
     <Resource Include="Resources\icons8-sign-32.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

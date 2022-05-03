@@ -35,7 +35,23 @@ namespace BIMv2Buttons
             //попробуем создать еще одну кнопку
             ribbonPanel.AddSeparator(); //разделитель между кнопками
 
+            // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData b21Data = new PushButtonData("cmdWallFinishing", "Посчитать"
+                + Environment.NewLine + "отделку", thisAssemblyPath, "BIMv2Buttons.WallFinishing");
+
+            PushButton pb21 = ribbonPanel.AddItem(b21Data) as PushButton;
+            pb21.ToolTip = "Переписывает отделку в помещения";
+
+            BitmapImage pb21Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-floor-32.png"));
+            pb21.LargeImage = pb21Image;
+
+
+            //попробуем создать еще одну кнопку
+            ribbonPanel.AddSeparator(); //разделитель между кнопками
+
             // Create three push buttons for split button drop down 
+
+
 
             // #1 
             PushButtonData pushButtonData1 = new PushButtonData("cmdGroupTypeFloorByNote.cs", "Сгруппировать полы", thisAssemblyPath, "BIMv2Buttons.GroupTypeFloorByNote");

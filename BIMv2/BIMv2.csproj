@@ -111,6 +111,7 @@
     <Compile Include="PluginFinish2BIM\Test\WallFinishComposition.cs" />
     <Compile Include="PluginFinish2BIM\WallFinishing.cs" />
     <Compile Include="PluginFinish2BIM\Test\WriteNameRoomInPlumbingFixtures.cs" />
+    <Compile Include="WallFinishing.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

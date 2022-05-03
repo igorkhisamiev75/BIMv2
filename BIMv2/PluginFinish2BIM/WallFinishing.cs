@@ -10,7 +10,7 @@ namespace BIMv2
 {
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]
-    public class WallFinishing : IExternalCommand
+    public class WallFinishing2 : IExternalCommand
     {
         public List<Wall> AllFinishWall = new List<Wall>();
 
@@ -36,7 +36,7 @@ namespace BIMv2
                 //записываем информацию в помещения
                 WriteToRooms(doc);
 
-                //TaskDialog.Show("Сделано", "Стены ОТДЕЛКА посчитаны");
+                TaskDialog.Show("Сделано", "Отделка посчитана");
 
                 t.Commit();
 
