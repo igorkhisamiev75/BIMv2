@@ -76,6 +76,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="BIMStandart.cs" />
+    <Compile Include="CreateRailingInRooms.cs" />
     <Compile Include="PluginFinish2BIM\CeilingFinish.cs" />
     <Compile Include="ClearProjectBrowser.cs" />
     <Compile Include="ClearProjectBrowserViewsNotSheets.cs" />
