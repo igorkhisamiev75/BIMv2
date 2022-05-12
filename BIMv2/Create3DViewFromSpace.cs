@@ -41,7 +41,7 @@ namespace BIMv2
                     {
                         foreach (Room room in roomsLink)
                         {
-                            if (room.Area != 0)
+                            if (room.Area != 0 && room.Location != null)
                             {
 
                                 ProjectRoomsList.Add(room);
@@ -70,39 +70,47 @@ namespace BIMv2
               
                 foreach (var room in ProjectRoomsList)
                 {
-                    t.Start();
+                    if (room.Area > 0 )
+                    {
+                        t.Start();
 
-                    // Create the 3d view
-                    View3D view = View3D.CreateIsometric(_doc, viewFamilyType.Id);
+                        try
+                        {
+                            // Create the 3d view
+                            View3D view = View3D.CreateIsometric(_doc, viewFamilyType.Id);
 
-                    // Set the name of the view
-                    view.Name = "Помещение" + room.Name + " 3D вид";
+                            // Set the name of the view
+                            view.Name = "Помещение " + room.Name + " 3D вид";
 
-                    // Set the name of the transaction
-                    // A transaction can be renamed after it has been started
-                    t.SetName("Create view " + view.Name);
+                            //t.SetName("Create view " + view.Name);
 
-                    // Create a new BoundingBoxXYZ to define a 3D rectangular space
-                    BoundingBoxXYZ boundingBoxXYZ = new BoundingBoxXYZ();
+                            // Create a new BoundingBoxXYZ to define a 3D rectangular space
+                            BoundingBoxXYZ boundingBoxXYZ = new BoundingBoxXYZ();
+
+                            boundingBoxXYZ.Min = room.get_BoundingBox(_doc.ActiveView).Min;
+                            boundingBoxXYZ.Max = room.get_BoundingBox(_doc.ActiveView).Max;
+
+                            // Apply this bouding box to the view's section box
+
+                            view.SetSectionBox(boundingBoxXYZ);
+                            //view.CropBox = boundingBoxXYZ;
+
+                            t.Commit();
+
+                            // Open the just-created view
+                            // There cannot be an open transaction when the active view is set
+                            //uiDoc.ActiveView = view;
+                        }
+
+                        catch (Exception e)
+                        {
+                            //TaskDialog.Show("Ошибка", e.Message);
+                        }
+                    }
                     
-                    boundingBoxXYZ.Min =room.get_BoundingBox(_doc.ActiveView).Min;
-
-                    boundingBoxXYZ.Max = room.get_BoundingBox(_doc.ActiveView).Max;
-
-                    // Apply this bouding box to the view's section box
-
-                    view.SetSectionBox(boundingBoxXYZ);
-                    //view.CropBox = boundingBoxXYZ;
-
-                    t.Commit();
-
-                    // Open the just-created view
-                    // There cannot be an open transaction when the active view is set
-                    uiDoc.ActiveView = view;
-
-
                 }
 
+                TaskDialog.Show("Готово", "Создано " + ProjectRoomsList.Count+" видов");
                 return Result.Succeeded;
 
             }
