@@ -47,18 +47,11 @@ namespace BIMv2
                                 ProjectRoomsList.Add(room);
 
                             }
-
-
                         }
                     }
-
                 }
             }
-
-
-           
-
-
+            
             // get a ViewFamilyType for a 3D View
             ViewFamilyType viewFamilyType =
                 (from v in new FilteredElementCollector(_doc).OfClass(typeof(ViewFamilyType)).Cast<ViewFamilyType>()
@@ -67,36 +60,34 @@ namespace BIMv2
 
             using (Transaction t = new Transaction(_doc, "Create view"))
             {
-              
+                t.Start();
+
                 foreach (var room in ProjectRoomsList)
                 {
+                    BoundingBoxXYZ boundingBoxXYZ = new BoundingBoxXYZ();
+
                     if (room.Area > 0 )
                     {
-                        t.Start();
-
                         try
                         {
                             // Create the 3d view
                             View3D view = View3D.CreateIsometric(_doc, viewFamilyType.Id);
 
                             // Set the name of the view
-                            view.Name = "Помещение " + room.Name + " 3D вид";
+                            view.Name = room.Name + " 3D вид";
 
                             //t.SetName("Create view " + view.Name);
-
                             // Create a new BoundingBoxXYZ to define a 3D rectangular space
-                            BoundingBoxXYZ boundingBoxXYZ = new BoundingBoxXYZ();
-
+                            
                             boundingBoxXYZ.Min = room.get_BoundingBox(_doc.ActiveView).Min;
                             boundingBoxXYZ.Max = room.get_BoundingBox(_doc.ActiveView).Max;
 
                             // Apply this bouding box to the view's section box
 
                             view.SetSectionBox(boundingBoxXYZ);
+                            
                             //view.CropBox = boundingBoxXYZ;
-
-                            t.Commit();
-
+                            
                             // Open the just-created view
                             // There cannot be an open transaction when the active view is set
                             //uiDoc.ActiveView = view;
@@ -104,13 +95,15 @@ namespace BIMv2
 
                         catch (Exception e)
                         {
+                            continue;
                             //TaskDialog.Show("Ошибка", e.Message);
                         }
                     }
                     
                 }
 
-                TaskDialog.Show("Готово", "Создано " + ProjectRoomsList.Count+" видов");
+                t.Commit();
+                TaskDialog.Show("Готово", "Создано " + ProjectRoomsList.Count.ToString()+" видов");
                 return Result.Succeeded;
 
             }
