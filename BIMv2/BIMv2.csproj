@@ -91,6 +91,7 @@
     <Compile Include="CreateViewForLevels.cs" />
     <Compile Include="CreateWorksets.cs" />
     <Compile Include="DeletedFilter.cs" />
+    <Compile Include="PluginFinish2BIM\CreateWallFiltersByRoomNumber.cs" />
     <Compile Include="PluginFinish2BIM\FindRoomForElementsFinish.cs" />
     <Compile Include="PluginFinish2BIM\FloorFinish.cs" />
     <Compile Include="GetRoomNameForSelectElement.cs" />
