@@ -344,15 +344,6 @@ namespace BIMv2
         }
 
 
-        /// <summary>
-        /// Convert square feet to square meters 
-        /// with two decimal places precision.
-        /// </summary>
-        double sqFootToSquareM(double sqFoot)
-        {
-            return Math.Round(sqFoot * 0.092903, 2);
-        }
-
         public IList<Element> GetAllRooms(Document doc)
         {
             // List all Room's
