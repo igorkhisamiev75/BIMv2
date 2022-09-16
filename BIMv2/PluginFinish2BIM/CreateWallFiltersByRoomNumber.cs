@@ -45,7 +45,7 @@ namespace BIMv2
                 {
                     var wall2 = (Wall)element;
 
-                    var descriptionWallType = wall2.WallType.LookupParameter("Описание").AsString();
+                    var descriptionWallType = wall2.WallType.LookupParameter("ADSK_Наименование краткое").AsString();
 
                     if (descriptionWallType == "Отделка")
                     {
@@ -110,6 +110,7 @@ namespace BIMv2
 
                     // Criterion 3 - custom shared parameter value matches string pattern
                     // Get the id for the shared parameter - the ElementId is not hardcoded, so we need to get an instance of this type to find it
+                    //ADSK_Примечание
                     Guid spGuid = new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3");
 
                     FilteredElementCollector collector = new FilteredElementCollector(doc);

@@ -12,7 +12,7 @@ namespace BIMv2
     [Regeneration(RegenerationOption.Manual)]
     public class CeilingFinish : IExternalCommand
     {
-        public List<Ceiling> AllFinishWall = new List<Ceiling>();
+        public List<Ceiling> AllFinishListCeiling = new List<Ceiling>();
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -23,20 +23,20 @@ namespace BIMv2
                 t.Start("Записываем суммарную площадь отделки");
 
                 //записываем суммарную площадь 
-                WriteToWallSquare(doc);
+                WriteToCeilingSquare(doc);
 
                 //записываем из типа стены в параметр экземпляра
-                WriteFinishToWall(doc);
+                WriteFinishToCeiling(doc);
 
                 //объединяем отделку и площадь где это нужно
-                WriteToWallFinishAlliance(doc);
+                WriteToCeilingFinishAlliance(doc);
 
                 //TaskDialog.Show("Сделано", "Стены ОТДЕЛКА посчитаны и площадь записана в параметр MRGT_ВидОтделкиСтеныПлощадь");
 
                 //записываем информацию в помещения
-                WriteToRoomsWallsSquare(doc);
+                WriteToRoomsCeilingSquare(doc);
 
-                //TaskDialog.Show("Сделано", "Стены ОТДЕЛКА посчитаны");
+                TaskDialog.Show("Сделано", "Потолки 2");
 
                 t.Commit();
 
@@ -45,24 +45,24 @@ namespace BIMv2
 
         }
 
-        public void WriteToWallFinishAlliance(Document doc)
+        public void WriteToCeilingFinishAlliance(Document doc)
         {
-            var allWallElements = GetAllWallElements(doc);
+            var allCeilingElements = GetAllCeilingElements(doc);
 
             //отделка только //мжно в запросе сразу попробовать отфильтровать
-            foreach (var element in allWallElements)
+            foreach (var element in allCeilingElements)
             {
                 try
                 {
-                    var wall = (Ceiling)element;
+                    var ceiling = (Ceiling)element;
 
-                    var typeGetCeiling = doc.GetElement(wall.GetTypeId());
-                    var descriptionWallType = typeGetCeiling.LookupParameter("Описание").AsString();
+                    var typeGetCeiling = doc.GetElement(ceiling.GetTypeId());
+                    var descriptionWallType = typeGetCeiling.LookupParameter("ADSK_Наименование краткое").AsString();
 
 
                     if (descriptionWallType == "Отделка")
                     {
-                        AllFinishWall.Add(wall);
+                        AllFinishListCeiling.Add(ceiling);
                     }
 
                 }
@@ -75,7 +75,7 @@ namespace BIMv2
 
 
             //group by room
-            IEnumerable<IGrouping<string, Ceiling>> groupByRooms = AllFinishWall.GroupBy(p2 =>
+            IEnumerable<IGrouping<string, Ceiling>> groupByRooms = AllFinishListCeiling.GroupBy(p2 =>
                 p2.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString());
 
             foreach (var grouping in groupByRooms)
@@ -88,31 +88,31 @@ namespace BIMv2
 
                 if (groupByType.Count() == 1)
                 {
-                    foreach (var wall in grouping)
+                    foreach (var ceiling in grouping)
                     {
                         //MRGT_ВидОтделкиСтены
-                        pirog = wall.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).AsString();
+                        pirog = ceiling.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).AsString();
                         //MRGT_ВидОтделкиСтенаПлощадь
-                        square = wall.get_Parameter(new Guid("2c097f7a-e32f-4455-9e8a-ac72e131b24c")).AsValueString();
+                        square = ceiling.get_Parameter(new Guid("2c097f7a-e32f-4455-9e8a-ac72e131b24c")).AsValueString();
 
                         //MRGT_ВидОтделкиПотолки
-                        wall.get_Parameter(new Guid("5f9a763c-3a9b-443a-b55b-4d589d533f02")).Set(pirog);
+                        ceiling.get_Parameter(new Guid("5f9a763c-3a9b-443a-b55b-4d589d533f02")).Set(pirog);
                         //MRGT_ПлощадьОбъединеннаяПотолки
-                        wall.get_Parameter(new Guid("da79a6c6-7c1d-4c43-87d5-96e8dd83c495")).Set(square);
+                        ceiling.get_Parameter(new Guid("da79a6c6-7c1d-4c43-87d5-96e8dd83c495")).Set(square);
                     }
 
                     continue;
                 }
                 else
                 {
-                    List<Ceiling> listWall = new List<Ceiling>();
+                    List<Ceiling> ceilings = new List<Ceiling>();
                     foreach (var wall2 in grouping)
                     {
-                        listWall.Add(wall2);
+                        ceilings.Add(wall2);
                     }
 
                     //удаление дубликатов, групирруем по имени
-                    var wallsGroup = listWall.GroupBy(x => x.Name).Select(x => x.First()).ToList();
+                    var wallsGroup = ceilings.GroupBy(x => x.Name).Select(x => x.First()).ToList();
 
                     pirog = "";
                     square = "";
@@ -136,12 +136,12 @@ namespace BIMv2
 
                     }
 
-                    foreach (var wall in grouping)
+                    foreach (var ceiling in grouping)
                     {
                         //MRGT_ВидОтделкиПотолки
-                        wall.get_Parameter(new Guid("5f9a763c-3a9b-443a-b55b-4d589d533f02")).Set(pirog);
+                        ceiling.get_Parameter(new Guid("5f9a763c-3a9b-443a-b55b-4d589d533f02")).Set(pirog);
                         //MRGT_ПлощадьОбъединеннаяПотолки
-                        wall.get_Parameter(new Guid("da79a6c6-7c1d-4c43-87d5-96e8dd83c495")).Set(square);
+                        ceiling.get_Parameter(new Guid("da79a6c6-7c1d-4c43-87d5-96e8dd83c495")).Set(square);
                     }
 
 
@@ -152,23 +152,23 @@ namespace BIMv2
 
         }
 
-        public void WriteFinishToWall(Document doc)
+        public void WriteFinishToCeiling(Document doc)
         {
-            var allWallElements = GetAllWallElements(doc);
+            var allCeilingElements = GetAllCeilingElements(doc);
 
             //отделка только //можно в запросе сразу попробовать отфильтровать
-            foreach (var element in allWallElements)
+            foreach (var element in allCeilingElements)
             {
                 try
                 {
-                    var wall = (Ceiling)element;
+                    var ceiling = (Ceiling)element;
 
-                    var typeGetCeiling = doc.GetElement(wall.GetTypeId());
-                    var descriptionWallType = typeGetCeiling.LookupParameter("Описание").AsString();
+                    var typeGetCeiling = doc.GetElement(ceiling.GetTypeId());
+                    var s = typeGetCeiling.LookupParameter("ADSK_Наименование краткое").AsString();
 
-                    if (descriptionWallType == "Отделка")
+                    if (s == "Отделка")
                     {
-                        AllFinishWall.Add(wall);
+                        AllFinishListCeiling.Add(ceiling);
                     }
 
                 }
@@ -180,25 +180,25 @@ namespace BIMv2
 
             }
 
-            foreach (var wall in AllFinishWall)
+            foreach (var ceiling in AllFinishListCeiling)
             {
-                var typeGetCeiling = doc.GetElement(wall.GetTypeId());
+                var typeGetCeiling = doc.GetElement(ceiling.GetTypeId());
                
                 var NameOfBaseFinish = typeGetCeiling.LookupParameter("MRGT_СлоиОтделки").AsString();
 
                 //MRGT_ВидОтделкиСтены
-                wall.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).Set(NameOfBaseFinish);
+                ceiling.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).Set(NameOfBaseFinish);
             }
 
         }
 
-        private void WriteToRoomsWallsSquare(Document doc)
+        private void WriteToRoomsCeilingSquare(Document doc)
         {
             //all rooms
             var allRooms = GetAllRooms(doc);
 
-            var allWallElements = GetAllWallElements(doc);
-            AllFinishWall.Clear();
+            var allWallElements = GetAllCeilingElements(doc);
+            AllFinishListCeiling.Clear();
 
             foreach (var VARIABLE in allWallElements)
             {
@@ -207,11 +207,11 @@ namespace BIMv2
                     var wall = (Ceiling)VARIABLE;
 
                     var typeGetCeiling = doc.GetElement(wall.GetTypeId());
-                    var descriptionWallType = typeGetCeiling.LookupParameter("Описание").AsString();
+                    var descriptionWallType = typeGetCeiling.LookupParameter("ADSK_Наименование краткое").AsString();
 
                     if (descriptionWallType == "Отделка")
                     {
-                        AllFinishWall.Add(wall);
+                        AllFinishListCeiling.Add(wall);
                     }
 
                 }
@@ -231,7 +231,7 @@ namespace BIMv2
                     var numberRoom = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();
 
                     //проходимся по всем перекрытиям и находим совпадения по номеру
-                    foreach (var wall in AllFinishWall)
+                    foreach (var wall in AllFinishListCeiling)
                     {
                         var numberRoomInWall = wall.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString();
 
@@ -255,23 +255,23 @@ namespace BIMv2
         }
 
 
-        public void WriteToWallSquare(Document doc)
+        public void WriteToCeilingSquare(Document doc)
         {
-            var allWallElements = GetAllWallElements(doc);
-            AllFinishWall.Clear();
+            var allWallElements = GetAllCeilingElements(doc);
+            AllFinishListCeiling.Clear();
 
             foreach (var element in allWallElements)
             {
                 try
                 {
-                    var wall = (Ceiling)element;
+                    var ceiling = (Ceiling)element;
 
-                    var typeGetCeiling = doc.GetElement(wall.GetTypeId());
-                    var descriptionWallType = typeGetCeiling.LookupParameter("Описание").AsString();
+                    var typeGetCeiling = doc.GetElement(ceiling.GetTypeId());
+                    var descriptionWallType = typeGetCeiling.LookupParameter("ADSK_Наименование краткое").AsString();
 
                     if (descriptionWallType == "Отделка")
                     {
-                        AllFinishWall.Add(wall);
+                        AllFinishListCeiling.Add(ceiling);
                     }
 
                 }
@@ -284,21 +284,21 @@ namespace BIMv2
             }
 
             //group by room
-            IEnumerable<IGrouping<string, Ceiling>> groups = AllFinishWall.GroupBy(p2 =>
+            IEnumerable<IGrouping<string, Ceiling>> groups = AllFinishListCeiling.GroupBy(p2 =>
                 p2.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString());
 
             foreach (var group in groups)
             {
-                List<Ceiling> WallGroup = new List<Ceiling>();
-                WallGroup.Clear();
+                List<Ceiling> ceilingsGroup = new List<Ceiling>();
+                ceilingsGroup.Clear();
 
                 foreach (var elWall in group)
                 {
-                    WallGroup.Add(elWall);
+                    ceilingsGroup.Add(elWall);
                 }
 
                 //группировка по типу стены
-                var groupsN = WallGroup.GroupBy(p => p.Name);
+                var groupsN = ceilingsGroup.GroupBy(p => p.Name);
 
                 //пробегаемся по сгруппированным значениям
 
@@ -310,12 +310,12 @@ namespace BIMv2
 
                     //суммируем площадь
 
-                    double squeWall = 0;
+                    double squeCiling = 0;
 
                     foreach (var t in element)
                     {
                         var otd = t.get_Parameter(BuiltInParameter.HOST_AREA_COMPUTED).AsDouble();
-                        squeWall += otd;
+                        squeCiling += otd;
 
                     }
 
@@ -324,7 +324,7 @@ namespace BIMv2
                     foreach (var t in element)
                     {
                         //MRGT_ВидОтделкиСтенаПлощадь
-                        t.get_Parameter(new Guid("2c097f7a-e32f-4455-9e8a-ac72e131b24c")).Set(squeWall);
+                        t.get_Parameter(new Guid("2c097f7a-e32f-4455-9e8a-ac72e131b24c")).Set(squeCiling);
                     }
 
                 }
@@ -335,15 +335,15 @@ namespace BIMv2
 
         }
 
-        public IList<Element> GetAllWallElements(Document document)
+        public IList<Element> GetAllCeilingElements(Document document)
         {
             // List all Floor's
             var floor_collector = new FilteredElementCollector(document)
                 .OfCategory(BuiltInCategory.OST_Ceilings)
                 .WhereElementIsNotElementType();
 
-            IList<Element> allFloors = floor_collector.ToElements();
-            return allFloors;
+            IList<Element> allCeilingElements = floor_collector.ToElements();
+            return allCeilingElements;
         }
 
         public IList<Element> GetAllRooms(Document doc)

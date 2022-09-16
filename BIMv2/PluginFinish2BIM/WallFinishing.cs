@@ -36,7 +36,7 @@ namespace BIMv2
                 //записываем информацию в помещения
                 WriteToRooms(doc);
 
-                TaskDialog.Show("Сделано", "Отделка посчитана");
+                TaskDialog.Show("Сделано", "Отделка посчитана 3");
 
                 t.Commit();
 
@@ -55,7 +55,7 @@ namespace BIMv2
                 {
                     var wall = (Wall)element;
 
-                    var descriptionWallType = wall.WallType.LookupParameter("Описание").AsString();
+                    var descriptionWallType = wall.WallType.LookupParameter("ADSK_Наименование краткое").AsString();
                     
                     if (descriptionWallType == "Отделка")
                     {
@@ -134,7 +134,7 @@ namespace BIMv2
                 {
                     var wall = (Wall)element;
 
-                    var descriptionWallType = wall.WallType.LookupParameter("Описание").AsString();
+                    var descriptionWallType = wall.WallType.LookupParameter("ADSK_Наименование краткое").AsString();
 
                     if (descriptionWallType == "Отделка")
                     {
@@ -170,7 +170,7 @@ namespace BIMv2
                 {
                     var wall = (Wall)element;
 
-                    var descriptionWallType = wall.WallType.LookupParameter("Описание").AsString();
+                    var descriptionWallType = wall.WallType.LookupParameter("ADSK_Наименование краткое").AsString();
 
                     if (descriptionWallType == "Отделка")
                     {
@@ -230,19 +230,20 @@ namespace BIMv2
                     {
                         //нужно найти сколько слоёв в стене
 
+                        //MRGT_ПирогОбъединенная
                         var LayerInWall = wall.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).AsString();
                         var countLayerInWall = LayerInWall.Where(x => "\n".IndexOf(x) != -1).Count();
                         
                         pirog += wall.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).AsString() + "\n\n";
                         
-
-                        square += wall.get_Parameter(new Guid("2c097f7a-e32f-4455-9e8a-ac72e131b24c")).AsValueString();
+                        square += "\n\n\n";
 
                         for (int i = 0; i < countLayerInWall; i++)
                         {
                             square += "\n\n";
                         }
-                        
+
+                        square += wall.get_Parameter(new Guid("2c097f7a-e32f-4455-9e8a-ac72e131b24c")).AsValueString();
                     }
 
                     foreach (var wall in grouping)
@@ -278,7 +279,7 @@ namespace BIMv2
                 {
                     var wall = (Wall)VARIABLE;
 
-                    var descriptionWallType = wall.WallType.LookupParameter("Описание").AsString();
+                    var descriptionWallType = wall.WallType.LookupParameter("ADSK_Наименование краткое").AsString();
 
                     if (descriptionWallType == "Отделка")
                     {
