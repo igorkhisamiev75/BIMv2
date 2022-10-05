@@ -1,9 +1,11 @@
 ﻿#region Namespace
 
 using System;
-
+using System.Collections;
+using System.Collections.Generic;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
 
 #endregion
@@ -18,18 +20,45 @@ namespace BIMv2
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
 
         {
-            try
-            {
-                System.Diagnostics.Process.Start(
-                    "https://wa.me/79218720713?text=У%20меня%20проблемы%20с%20Revit%20помоги!");
-                return Result.Succeeded;
-            }
+            Document doc = commandData.Application.ActiveUIDocument.Document;
+            Phase newConstructionPhase = doc.Phases.get_Item(1);
 
-            catch (Exception ex)
+            using (var t = new Transaction(doc))
             {
-                return Result.Failed;
-            }
+                t.Start("Create Rooms");
+               
 
+                try
+                {
+                   
+                    // create room using Phase
+                    Room newScheduleRoom = doc.Create.NewRoom(newConstructionPhase);
+                    // set the Room Number and Name
+                    string newRoomNumber = "101";
+                    string newRoomName = "Class Room 1";
+                    newScheduleRoom.Name = newRoomName;
+                    newScheduleRoom.Number = newRoomNumber;
+
+
+                    TaskDialog.Show("Revit", "Id");
+                    t.Commit();
+                    //doc.Regenerate();
+                    return Result.Succeeded;
+                    
+                }
+                
+            
+
+                catch (Exception ex)
+                {
+                    TaskDialog.Show("Revit", ex.Message);
+                    return Result.Failed;
+                }
+
+            }
+            
         }
+
+       
     }
 }
