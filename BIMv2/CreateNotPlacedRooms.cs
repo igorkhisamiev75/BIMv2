@@ -2,17 +2,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
-using System.Linq;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
 using ExcelDataReader;
-using Microsoft.Office.Interop.Excel;
-using OfficeOpenXml;
-using ExcelDataReader.Exceptions;
+
 
 
 #endregion
@@ -28,7 +24,7 @@ namespace BIMv2
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
 
         {
-            string pathToFile = @"C:\Project\B2\2022-08-26_ЛСР_Библиотеки_ТИМ\03_Скрипты\АР\Квартирография\Классификатор помещений (справочно).xlsx";
+            string pathToFile = @"C:\Классификатор помещений (справочно).xlsx";
 
             // Создаем поток для чтения.
             var stream = File.Open(pathToFile, FileMode.Open, FileAccess.Read);
