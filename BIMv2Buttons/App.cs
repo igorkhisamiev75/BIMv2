@@ -36,7 +36,7 @@ namespace BIMv2Buttons
             ribbonPanel.AddSeparator(); //разделитель между кнопками
 
             // create push button for CurveTotalLength  //namespace и класс
-            PushButtonData b22Data = new PushButtonData("cmdCreateNotPlacedRooms", "Создать"
+            PushButtonData b22Data = new PushButtonData("cmdCreateNotPlacedRooms.cs", "Создать"
                 + Environment.NewLine + "имена помещений", thisAssemblyPath, "BIMv2.CreateNotPlacedRooms");
 
             PushButton pb22 = ribbonPanel.AddItem(b22Data) as PushButton;
@@ -352,7 +352,7 @@ namespace BIMv2Buttons
             ribbonPanel4.AddSeparator(); //разделитель между кнопками
 
             PushButtonData b20Data = new PushButtonData("cmdCreateModelTextRoomNameInRoom.cs", "Подписать"
-                                                                             + Environment.NewLine + "помещения в 3D", thisAssemblyPath, "BIMv2.CreateModelTextRoomNameInRoom");
+                + Environment.NewLine + "помещения в 3D", thisAssemblyPath, "BIMv2.CreateModelTextRoomNameInRoom");
 
             PushButton pb20 = ribbonPanel4.AddItem(b20Data) as PushButton;
             pb20.ToolTip = "Подписать помещения с помощью семейства Для подписи помещений.rfa";

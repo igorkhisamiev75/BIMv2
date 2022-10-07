@@ -45,9 +45,11 @@
     </Reference>
     <Reference Include="ExcelDataReader, Version=3.6.0.0, Culture=neutral, PublicKeyToken=93517dbe6a4012fa, processorArchitecture=MSIL">
       <HintPath>..\packages\ExcelDataReader.3.6.0\lib\net45\ExcelDataReader.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="ExcelDataReader.DataSet, Version=3.6.0.0, Culture=neutral, PublicKeyToken=93517dbe6a4012fa, processorArchitecture=MSIL">
       <HintPath>..\packages\ExcelDataReader.DataSet.3.6.0\lib\net35\ExcelDataReader.DataSet.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.IO.RecyclableMemoryStream, Version=1.4.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.IO.RecyclableMemoryStream.1.4.1\lib\net46\Microsoft.IO.RecyclableMemoryStream.dll</HintPath>
@@ -143,6 +145,7 @@
     <Compile Include="PluginFinish2BIM\WallFinishing.cs" />
     <Compile Include="PluginFinish2BIM\Test\WriteNameRoomInPlumbingFixtures.cs" />
     <Compile Include="WallFinishing.cs" />
+    <Compile Include="WriteTypeRooms.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
