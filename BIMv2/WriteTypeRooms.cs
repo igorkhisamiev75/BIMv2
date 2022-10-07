@@ -59,17 +59,12 @@ namespace BIMv2
 
                 }
 
-
                 //group by number apartment
                 IEnumerable<IGrouping<string, Room>> groupsRoom = rooms.GroupBy(p2 =>
-                    p2.LookupParameter("ADSK_Номер квартиры").AsString());
-
-
-
+                    p2.get_Parameter(new Guid("10fb72de-237e-4b9c-915b-8849b8907695")).AsString());
+                
                 //del not placedrooms
                 
-
-
                 try
                 {
                     foreach (var variable in groupsRoom)
@@ -90,7 +85,7 @@ namespace BIMv2
                         {
                             foreach (var room in variable)
                             {
-                                room.get_Parameter(new Guid("78e3b89c-eb68-4600-84a7-c523de162743")).Set("1(1с)");
+                                room.get_Parameter(new Guid("78e3b89c-eb68-4600-84a7-c523de162743")).Set("1(1С)");
                             }
                             continue;
 
@@ -100,7 +95,7 @@ namespace BIMv2
                         {
                             foreach (var room in variable)
                             {
-                                room.get_Parameter(new Guid("78e3b89c-eb68-4600-84a7-c523de162743")).Set("2(2с)");
+                                room.get_Parameter(new Guid("78e3b89c-eb68-4600-84a7-c523de162743")).Set("2(2С)");
                             }
                             continue;
 
@@ -110,7 +105,7 @@ namespace BIMv2
                         {
                             foreach (var room in variable)
                             {
-                                room.get_Parameter(new Guid("78e3b89c-eb68-4600-84a7-c523de162743")).Set("3(3с)");
+                                room.get_Parameter(new Guid("78e3b89c-eb68-4600-84a7-c523de162743")).Set("3(3С)");
                             }
                             continue;
 
@@ -120,7 +115,7 @@ namespace BIMv2
                         {
                             foreach (var room in variable)
                             {
-                                room.get_Parameter(new Guid("78e3b89c-eb68-4600-84a7-c523de162743")).Set("4(4с)");
+                                room.get_Parameter(new Guid("78e3b89c-eb68-4600-84a7-c523de162743")).Set("4(4С)");
                             }
                         }
 
@@ -133,16 +128,14 @@ namespace BIMv2
                                     room.get_Parameter(new Guid("78e3b89c-eb68-4600-84a7-c523de162743")).Set("работай");
                                     continue;
                                 }
-                                
+                                continue;
                             }
-                            continue;
-
+                            
                         }
-
-
-
+                        
                     }
-                   
+
+                    TaskDialog.Show("Revit", "Тип квартиры записан");
                     t.Commit();
                     return Result.Succeeded;
 
