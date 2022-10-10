@@ -81,7 +81,8 @@ namespace BIMv2
                                 koefRoom = koefRoom + 1;
                             }
 
-                            if(room.get_Parameter((BuiltInParameter.ROOM_NAME)).AsString() == "Кухня-гостиная")
+                            if(room.get_Parameter((BuiltInParameter.ROOM_NAME)).AsString() == "Кухня-гостиная"||
+                               room.get_Parameter((BuiltInParameter.ROOM_NAME)).AsString() == "Кухня")
                             {
                                 koefRoom = koefRoom + 0.5;
                             }
