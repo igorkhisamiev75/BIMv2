@@ -69,9 +69,29 @@ namespace BIMv2
                 {
                     foreach (var variable in groupsRoom)
                     {
-                        int i = variable.Count();
 
-                        if (i == 3)
+                        //посчитаем коэфициент квартир
+
+                        double koefRoom = 0;
+
+                        foreach (var room in variable)
+                        {
+                            if (room.get_Parameter((BuiltInParameter.ROOM_NAME)).AsString() == "Жилая комната")
+                            {
+                                koefRoom = koefRoom + 1;
+                            }
+
+                            if(room.get_Parameter((BuiltInParameter.ROOM_NAME)).AsString() == "Кухня-гостиная")
+                            {
+                                koefRoom = koefRoom + 0.5;
+                            }
+                            
+                        }
+
+
+                        //int i = variable.Count();
+
+                        if (koefRoom == 1)
                         {
                             foreach (var room in variable)
                             {
@@ -81,7 +101,7 @@ namespace BIMv2
 
                         }
 
-                        if (i == 4)
+                        if (koefRoom == 1.5)
                         {
                             foreach (var room in variable)
                             {
@@ -91,7 +111,7 @@ namespace BIMv2
 
                         }
 
-                        if (i == 5)
+                        if (koefRoom == 2.5)
                         {
                             foreach (var room in variable)
                             {
@@ -101,7 +121,7 @@ namespace BIMv2
 
                         }
 
-                        if (i == 6)
+                        if (koefRoom == 3.5)
                         {
                             foreach (var room in variable)
                             {
@@ -111,7 +131,7 @@ namespace BIMv2
 
                         }
 
-                        if (i == 7)
+                        if (koefRoom == 4.5)
                         {
                             foreach (var room in variable)
                             {
@@ -135,7 +155,7 @@ namespace BIMv2
                         
                     }
 
-                    TaskDialog.Show("Revit", "Тип квартиры записан");
+                    TaskDialog.Show("Revit", $"Тип квартир записан для {groupsRoom.Count()} квартир");
                     t.Commit();
                     return Result.Succeeded;
 
