@@ -34,7 +34,14 @@ namespace BIMv2
 
             //SharedParameterElement shElem = doc.GetElement(Field.ParameterId) as SharedParameterElement;
 
-           
+            string adskNumberSection = "b59a3474-a5f4-430a-b087-a20f1a4eb57e";
+            string adskTypeRoom = "78e3b89c-eb68-4600-84a7-c523de162743";
+            string adskSqueRoomLiving = "178e222b-903b-48f5-8bfc-b624cd67d13c";
+            string adskSqueRoom = "d3035d0f-b738-4407-a0e5-30787b92fa49";
+            string adskSqueRoomOur = "af973552-3d15-48e3-aad8-121fe0dda34e";
+            string lsrSque = "467593ec-2ec6-497a-8711-95622d6da67f";
+
+
 
             // transaction
             Transaction t = new Transaction(doc, "Create Schedule");
@@ -44,14 +51,31 @@ namespace BIMv2
             ElementId roomCategoryId = new ElementId(BuiltInCategory.OST_Rooms);
             ViewSchedule schedule = ViewSchedule.CreateSchedule(doc, roomCategoryId);
 
-            schedule.Name = "Room Schedule Sample";
+            schedule.Name = "Room Schedule Sample2";
 
             var field = schedule.Definition.GetSchedulableFields()
-                .FirstOrDefault(x => IsSharedParameterSchedulableField(schedule.Document, x.ParameterId, new Guid("78e3b89c-eb68-4600-84a7-c523de162743")));
-                //.FirstOrDefault(x => x.ParameterId == destParameterId);
+                .FirstOrDefault(x => IsSharedParameterSchedulableField(schedule.Document, x.ParameterId, new Guid(adskNumberSection)));
+            //.FirstOrDefault(x => x.ParameterId == destParameterId);
+            var field2 = schedule.Definition.GetSchedulableFields()
+                .FirstOrDefault(x => IsSharedParameterSchedulableField(schedule.Document, x.ParameterId, new Guid(adskTypeRoom)));
+            var field3 = schedule.Definition.GetSchedulableFields()
+                .FirstOrDefault(x => IsSharedParameterSchedulableField(schedule.Document, x.ParameterId, new Guid(adskSqueRoomLiving)));
+            var field4 = schedule.Definition.GetSchedulableFields()
+                .FirstOrDefault(x => IsSharedParameterSchedulableField(schedule.Document, x.ParameterId, new Guid(adskSqueRoom)));
+            var field5 = schedule.Definition.GetSchedulableFields()
+                .FirstOrDefault(x => IsSharedParameterSchedulableField(schedule.Document, x.ParameterId, new Guid(adskSqueRoomOur)));
+            var field6 = schedule.Definition.GetSchedulableFields()
+                .FirstOrDefault(x => IsSharedParameterSchedulableField(schedule.Document, x.ParameterId, new Guid(lsrSque)));
 
-            if (field != null)
+
+
+            if (field != null) 
                 schedule.Definition.AddField(field);
+            schedule.Definition.AddField(field2);
+            schedule.Definition.AddField(field3);
+            schedule.Definition.AddField(field4);
+            schedule.Definition.AddField(field5);
+            schedule.Definition.AddField(field6);
 
             ////family and type group sorting
             //ScheduleSortGroupField FamilyTypeSorting = null;
