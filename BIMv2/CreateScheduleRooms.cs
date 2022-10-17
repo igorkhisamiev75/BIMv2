@@ -31,6 +31,7 @@ namespace BIMv2
             string adskSqueRoom = "d3035d0f-b738-4407-a0e5-30787b92fa49";
             string adskSqueRoomOur = "af973552-3d15-48e3-aad8-121fe0dda34e";
             string lsrSque = "467593ec-2ec6-497a-8711-95622d6da67f";
+            string adskNumberRoom = "10fb72de-237e-4b9c-915b-8849b8907695";
 
 
 
@@ -68,6 +69,9 @@ namespace BIMv2
             .Where(x => x.FieldType == ScheduleFieldType.Instance || x.FieldType == ScheduleFieldType.ElementType)
             .First(x => x.ParameterId == new ElementId(BuiltInParameter.ROOM_NAME));
 
+            SchedulableField field9 = schedule.Definition.GetSchedulableFields()
+                .FirstOrDefault(x => IsSharedParameterSchedulableField(schedule.Document, x.ParameterId, new Guid(adskNumberRoom)));
+
 
 
             //if (field != null)
@@ -80,8 +84,10 @@ namespace BIMv2
             schedule.Definition.AddField(field6);
             schedule.Definition.AddField(field7);
             schedule.Definition.AddField(field8);
+            schedule.Definition.AddField(field9);
 
-            
+            schedule.Definition.GetField(8).IsHidden = true;
+
 
             //add count room
             schedule.Definition.AddField(ScheduleFieldType.Count);
@@ -103,7 +109,7 @@ namespace BIMv2
             ScheduleFieldId scheduleField = schedule.Definition.GetFieldId(0);
 
             //create schedulefilter 
-            filter1 = new ScheduleFilter(scheduleField, ScheduleFilterType.Equal, "2");
+            filter1 = new ScheduleFilter(scheduleField, ScheduleFilterType.Equal, "1");
 
             schedule.Definition.GetField(0).IsHidden = true;
 
@@ -115,6 +121,8 @@ namespace BIMv2
             ScheduleFilter filter2 = null;
 
             ScheduleFieldId scheduleField2 = schedule.Definition.GetFieldId(7);
+            schedule.Definition.GetField(7).IsHidden = true;
+            
 
             //create schedulefilter 
             filter2 = new ScheduleFilter(scheduleField2, ScheduleFilterType.Equal, "Прихожая");
@@ -128,14 +136,14 @@ namespace BIMv2
             ElementId levelId = GetLevelIdByName(doc, "Этаж 02");
 
             ScheduleFieldId scheduleField3 = schedule.Definition.GetFieldId(6);
-
+            schedule.Definition.GetField(6).IsHidden = true;
             //create schedulefilter 
             filter3 = new ScheduleFilter(scheduleField3, ScheduleFilterType.Equal, levelId);
 
             // add schedule's filter
             schedule.Definition.AddFilter(filter3);
 
-            //family and type group sorting
+            //group sorting
             ScheduleSortGroupField scheduleSortGroupField = null;
 
             //create group sorting(family and type)
@@ -143,46 +151,14 @@ namespace BIMv2
             // add schedule's group sorting field
             schedule.Definition.AddSortGroupField(scheduleSortGroupField);
 
-            //скрыть ненужные столбцы
+            //family and type group sorting
+            ScheduleSortGroupField scheduleSortGroupField2 = null;
+            //create group sorting(family and type)
+            scheduleSortGroupField2 = new ScheduleSortGroupField(schedule.Definition.GetFieldId(8));
+            // add schedule's group sorting field
+            schedule.Definition.AddSortGroupField(scheduleSortGroupField2);
 
-            
-
-            // iterate schedulablefileds
-            //foreach (SchedulableField sf in schedule.Definition.GetSchedulableFields())
-            //{
-            //    // check field if in params
-            //    if (CheckField(sf))
-            //    {
-            //        // add field
-            //        ScheduleField scheduleField = schedule.Definition.AddField(sf);
-
-            //        // schedule's filter (to collect base constraint)
-            //        if (sf.ParameterId == new ElementId(BuiltInParameter.ROOM_NAME))
-            //        {
-
-            //            // create schedulefilter by level
-            //            BaseConstraintFilter = new ScheduleFilter(scheduleField.FieldId, ScheduleFilterType.Equal,
-            //                GetLevelByName(doc, "Этаж 02").Id);
-            //            // add schedule's filter
-            //            schedule.Definition.AddFilter(BaseConstraintFilter);
-            //        }
-
-            //        // schedule's group sorting (to collect family and type field)
-            //        if (sf.ParameterId == new ElementId(BuiltInParameter.ROOM_AREA))
-            //        {
-
-            //            // create group sorting (family and type)
-            //            FamilyTypeSorting = new ScheduleSortGroupField(scheduleField.FieldId);
-            //            // add schedule's group sorting field
-            //            schedule.Definition.AddSortGroupField(FamilyTypeSorting);
-            //        }
-
-            //    }
-            //    //}
-            //    //// set filter
-            //    //schedule.Definition.SetFilter(0, BaseConstraintFilter);
-            //    //// set sorting/grouping      
-            //    //schedule.Definition.SetSortGroupField(0, FamilyTypeSorting);
+          
 
             // close transaction
             t.Commit();
