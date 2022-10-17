@@ -81,6 +81,8 @@ namespace BIMv2
             schedule.Definition.AddField(field7);
             schedule.Definition.AddField(field8);
 
+            
+
             //add count room
             schedule.Definition.AddField(ScheduleFieldType.Count);
 
@@ -93,8 +95,7 @@ namespace BIMv2
             //add filter
             //schedule.Definition.AddFilter(new ScheduleFilter(schedule.Id, ScheduleFilterType.Equal, "your value"));
 
-            ////family and type group sorting
-            //ScheduleSortGroupField FamilyTypeSorting = null;
+            
 
             // base contraint filter
             ScheduleFilter filter1 = null;
@@ -103,6 +104,9 @@ namespace BIMv2
 
             //create schedulefilter 
             filter1 = new ScheduleFilter(scheduleField, ScheduleFilterType.Equal, "2");
+
+            schedule.Definition.GetField(0).IsHidden = true;
+
 
             // add schedule's filter
             schedule.Definition.AddFilter(filter1);
@@ -131,7 +135,17 @@ namespace BIMv2
             // add schedule's filter
             schedule.Definition.AddFilter(filter3);
 
+            //family and type group sorting
+            ScheduleSortGroupField scheduleSortGroupField = null;
 
+            //create group sorting(family and type)
+            scheduleSortGroupField = new ScheduleSortGroupField(schedule.Definition.GetFieldId(1));
+            // add schedule's group sorting field
+            schedule.Definition.AddSortGroupField(scheduleSortGroupField);
+
+            //скрыть ненужные столбцы
+
+            
 
             // iterate schedulablefileds
             //foreach (SchedulableField sf in schedule.Definition.GetSchedulableFields())
@@ -189,23 +203,23 @@ namespace BIMv2
             return levelLevelId;
         }
 
-        public bool CheckField(SchedulableField vs)
-        {
-            foreach (BuiltInParameter bip in BiParams)
-            {
-                if (new ElementId(bip) == vs.ParameterId)
-                    return true;
-            }
-            return false;
-        }
+        //public bool CheckField(SchedulableField vs)
+        //{
+        //    foreach (BuiltInParameter bip in BiParams)
+        //    {
+        //        if (new ElementId(bip) == vs.ParameterId)
+        //            return true;
+        //    }
+        //    return false;
+        //}
 
-        public Element GetLevelByName(Document doc, string name)
-        {
-            Level level = new FilteredElementCollector(doc).OfClass(typeof(Level))
-                .Cast<Level>().Where(x => x.Name == name).FirstOrDefault();
+        //public Element GetLevelByName(Document doc, string name)
+        //{
+        //    Level level = new FilteredElementCollector(doc).OfClass(typeof(Level))
+        //        .Cast<Level>().Where(x => x.Name == name).FirstOrDefault();
 
-            return level;
-        }
+        //    return level;
+        //}
 
         private static bool IsSharedParameterSchedulableField(Document document, ElementId parameterId, Guid sharedParameterId)
         {
