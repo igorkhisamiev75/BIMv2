@@ -56,46 +56,7 @@ namespace DeletedUnUsedView
                 }
             }
 
-            ////get filters ID
-            //foreach (var view in onlyViewPlan3DSection)
-            //{
-            //    var f = view.GetOrderedFilters();
-            //    if (f != null)
-            //    {
-            //        foreach (var item in f)
-            //        {
-            //            filtersInViewsId.Add(item.GetHashCode());
-            //        }
-            //    }
-
-            //}
-
-            //filtersInViewsId = filtersInViewsId.GroupBy(x => x.GetHashCode()).Select(group =>
-            //    group.OrderBy(x => x.GetHashCode()).First()).ToList();
-
-            ////clean filters list
-
-            //foreach (var VARIABLE in allView)
-            //{
-            //    filtersCollectionCopy.Add(VARIABLE);
-            //}
-
-            //foreach (var filterAllfilters in filtersCollection)
-            //{
-
-            //    var i = filterAllfilters.Id.GetHashCode();
-
-            //    foreach (var element in filtersInViewsId)
-            //    {
-            //        if (i.ToString() == element.ToString())
-            //        {
-            //            filtersCollectionCopy.Remove(filterAllfilters);
-            //        }
-
-            //    }
-
-            //}
-
+           
 
             ViewWPF vpViewWpf = new ViewWPF(filtersCollectionCopy);
 
