@@ -14,16 +14,7 @@ namespace BIMv2
     public class CreateScheduleRooms : IExternalCommand
     {
         // built in parameters / fields to add in schedule
-        BuiltInParameter[] BiParams = new BuiltInParameter[] { BuiltInParameter.ROOM_NAME,
-            BuiltInParameter.ROOM_NUMBER, BuiltInParameter.ROOM_AREA, BuiltInParameter.ROOM_DEPARTMENT};
-
-        // built in parameters / fields to add in schedule
-        BuiltInParameter[] BiParams2 = new BuiltInParameter[] { BuiltInParameter.ELEM_FAMILY_AND_TYPE_PARAM,
-            BuiltInParameter.WALL_BASE_CONSTRAINT, BuiltInParameter.HOST_AREA_COMPUTED, BuiltInParameter.CURVE_ELEM_LENGTH};
-
-        
-
-
+        BuiltInParameter[] BiParams = new BuiltInParameter[] { BuiltInParameter.ROOM_NAME, BuiltInParameter.ROOM_NUMBER };
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elementSet)
         {
@@ -51,39 +42,72 @@ namespace BIMv2
             ElementId roomCategoryId = new ElementId(BuiltInCategory.OST_Rooms);
             ViewSchedule schedule = ViewSchedule.CreateSchedule(doc, roomCategoryId);
 
-            schedule.Name = "Room Schedule Sample2";
+            schedule.Name = "Room Schedule Sample11";
 
-            var field = schedule.Definition.GetSchedulableFields()
+            SchedulableField field = schedule.Definition.GetSchedulableFields()
                 .FirstOrDefault(x => IsSharedParameterSchedulableField(schedule.Document, x.ParameterId, new Guid(adskNumberSection)));
             //.FirstOrDefault(x => x.ParameterId == destParameterId);
-            var field2 = schedule.Definition.GetSchedulableFields()
+            SchedulableField field2 = schedule.Definition.GetSchedulableFields()
                 .FirstOrDefault(x => IsSharedParameterSchedulableField(schedule.Document, x.ParameterId, new Guid(adskTypeRoom)));
-            var field3 = schedule.Definition.GetSchedulableFields()
+            SchedulableField field3 = schedule.Definition.GetSchedulableFields()
                 .FirstOrDefault(x => IsSharedParameterSchedulableField(schedule.Document, x.ParameterId, new Guid(adskSqueRoomLiving)));
-            var field4 = schedule.Definition.GetSchedulableFields()
+            SchedulableField field4 = schedule.Definition.GetSchedulableFields()
                 .FirstOrDefault(x => IsSharedParameterSchedulableField(schedule.Document, x.ParameterId, new Guid(adskSqueRoom)));
-            var field5 = schedule.Definition.GetSchedulableFields()
+            SchedulableField field5 = schedule.Definition.GetSchedulableFields()
                 .FirstOrDefault(x => IsSharedParameterSchedulableField(schedule.Document, x.ParameterId, new Guid(adskSqueRoomOur)));
-            var field6 = schedule.Definition.GetSchedulableFields()
+            SchedulableField field6 = schedule.Definition.GetSchedulableFields()
                 .FirstOrDefault(x => IsSharedParameterSchedulableField(schedule.Document, x.ParameterId, new Guid(lsrSque)));
 
+            //get level
+            SchedulableField field7 = schedule.Definition.GetSchedulableFields()
+            .Where(x => x.FieldType == ScheduleFieldType.Instance || x.FieldType == ScheduleFieldType.ElementType)
+            .First(x => x.ParameterId == new ElementId(BuiltInParameter.ROOM_LEVEL_ID));
+
+            //get name
+            SchedulableField field8 = schedule.Definition.GetSchedulableFields()
+            .Where(x => x.FieldType == ScheduleFieldType.Instance || x.FieldType == ScheduleFieldType.ElementType)
+            .First(x => x.ParameterId == new ElementId(BuiltInParameter.ROOM_NAME));
 
 
-            if (field != null) 
-                schedule.Definition.AddField(field);
+
+            //if (field != null)
+            //    schedule.Definition.GetSchedulableFields();
+            schedule.Definition.AddField(field);
             schedule.Definition.AddField(field2);
             schedule.Definition.AddField(field3);
             schedule.Definition.AddField(field4);
             schedule.Definition.AddField(field5);
             schedule.Definition.AddField(field6);
+            schedule.Definition.AddField(field7);
+            schedule.Definition.AddField(field8);
+
+            //add count room
+            schedule.Definition.AddField(ScheduleFieldType.Count);
+
+            schedule.Definition.GetFieldCount();
+
+            //размеры столбиков
+            //фильтровать
+            //собирать все уровни и блоки
+
+            //add filter
+            //schedule.Definition.AddFilter(new ScheduleFilter(schedule.Id, ScheduleFilterType.Equal, "your value"));
 
             ////family and type group sorting
             //ScheduleSortGroupField FamilyTypeSorting = null;
 
-            //// base contraint filter
-            //ScheduleFilter BaseConstraintFilter = null;
+            // base contraint filter
+            ScheduleFilter BaseConstraintFilter = null;
 
-            //// iterate schedulablefileds
+            ScheduleFieldId scheduleField = schedule.Definition.GetFieldId(0);
+
+            //create schedulefilter 
+            BaseConstraintFilter = new ScheduleFilter(scheduleField, ScheduleFilterType.Equal, "2");
+
+            // add schedule's filter
+            schedule.Definition.AddFilter(BaseConstraintFilter);
+
+            // iterate schedulablefileds
             //foreach (SchedulableField sf in schedule.Definition.GetSchedulableFields())
             //{
             //    // check field if in params
@@ -114,11 +138,11 @@ namespace BIMv2
             //        }
 
             //    }
-            //}
-            //// set filter
-            //schedule.Definition.SetFilter(0, BaseConstraintFilter);
-            //// set sorting/grouping      
-            //schedule.Definition.SetSortGroupField(0, FamilyTypeSorting);
+            //    //}
+            //    //// set filter
+            //    //schedule.Definition.SetFilter(0, BaseConstraintFilter);
+            //    //// set sorting/grouping      
+            //    //schedule.Definition.SetSortGroupField(0, FamilyTypeSorting);
 
             // close transaction
             t.Commit();
