@@ -161,6 +161,7 @@ namespace BIMv2
             // add schedule's group sorting field
             schedule.Definition.AddSortGroupField(scheduleSortGroupField2);
 
+            //name
             schedule.Definition.GetField(1).ColumnHeading = "Тип квартиры";
             schedule.Definition.GetField(2).ColumnHeading = "Жилая площадь квартиры";
             schedule.Definition.GetField(3).ColumnHeading = "Площадь квартиры";
@@ -169,7 +170,18 @@ namespace BIMv2
             schedule.Definition.GetField(9).ColumnHeading = "Кол-во";
 
 
+            schedule.Definition.GetField(2).HorizontalAlignment = ScheduleHorizontalAlignment.Center;
+            schedule.Definition.GetField(3).HorizontalAlignment = ScheduleHorizontalAlignment.Center;
+            schedule.Definition.GetField(4).HorizontalAlignment = ScheduleHorizontalAlignment.Center;
+            schedule.Definition.GetField(5).HorizontalAlignment = ScheduleHorizontalAlignment.Center;
+            schedule.Definition.GetField(9).HorizontalAlignment = ScheduleHorizontalAlignment.Center;
 
+            schedule.Definition.GetField(3).DisplayType = ScheduleFieldDisplayType.Totals;
+            schedule.Definition.GetField(4).DisplayType = ScheduleFieldDisplayType.Totals;
+            schedule.Definition.GetField(5).DisplayType = ScheduleFieldDisplayType.Totals;
+            schedule.Definition.GetField(9).DisplayType = ScheduleFieldDisplayType.Totals;
+
+            schedule.Definition.ShowGrandTotal = true;
 
             // close transaction
             t.Commit();
