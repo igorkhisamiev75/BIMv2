@@ -42,7 +42,7 @@ namespace BIMv2
             ElementId roomCategoryId = new ElementId(BuiltInCategory.OST_Rooms);
             ViewSchedule schedule = ViewSchedule.CreateSchedule(doc, roomCategoryId);
 
-            schedule.Name = "Room Schedule Sample11";
+            schedule.Name = "TEST_Room Schedule Sample11";
 
             SchedulableField field = schedule.Definition.GetSchedulableFields()
                 .FirstOrDefault(x => IsSharedParameterSchedulableField(schedule.Document, x.ParameterId, new Guid(adskNumberSection)));
@@ -97,15 +97,41 @@ namespace BIMv2
             //ScheduleSortGroupField FamilyTypeSorting = null;
 
             // base contraint filter
-            ScheduleFilter BaseConstraintFilter = null;
+            ScheduleFilter filter1 = null;
 
             ScheduleFieldId scheduleField = schedule.Definition.GetFieldId(0);
 
             //create schedulefilter 
-            BaseConstraintFilter = new ScheduleFilter(scheduleField, ScheduleFilterType.Equal, "2");
+            filter1 = new ScheduleFilter(scheduleField, ScheduleFilterType.Equal, "2");
 
             // add schedule's filter
-            schedule.Definition.AddFilter(BaseConstraintFilter);
+            schedule.Definition.AddFilter(filter1);
+
+            // base contraint filter
+            ScheduleFilter filter2 = null;
+
+            ScheduleFieldId scheduleField2 = schedule.Definition.GetFieldId(7);
+
+            //create schedulefilter 
+            filter2 = new ScheduleFilter(scheduleField2, ScheduleFilterType.Equal, "Прихожая");
+
+            // add schedule's filter
+            schedule.Definition.AddFilter(filter2);
+
+            // filter имя уровня
+            ScheduleFilter filter3 = null;
+
+            ElementId levelId = GetLevelIdByName(doc, "Этаж 02");
+
+            ScheduleFieldId scheduleField3 = schedule.Definition.GetFieldId(6);
+
+            //create schedulefilter 
+            filter3 = new ScheduleFilter(scheduleField3, ScheduleFilterType.Equal, levelId);
+
+            // add schedule's filter
+            schedule.Definition.AddFilter(filter3);
+
+
 
             // iterate schedulablefileds
             //foreach (SchedulableField sf in schedule.Definition.GetSchedulableFields())
@@ -153,6 +179,16 @@ namespace BIMv2
             return Result.Succeeded;
         }
 
+        public ElementId GetLevelIdByName(Document doc, string name)
+        {
+            Level level = new FilteredElementCollector(doc).OfClass(typeof(Level))
+                .Cast<Level>().Where(x => x.Name == name).FirstOrDefault();
+
+            ElementId levelLevelId = level.Id;
+
+            return levelLevelId;
+        }
+
         public bool CheckField(SchedulableField vs)
         {
             foreach (BuiltInParameter bip in BiParams)
@@ -176,6 +212,24 @@ namespace BIMv2
             var sharedParameterElement = document.GetElement(parameterId) as SharedParameterElement;
 
             return sharedParameterElement?.GuidValue == sharedParameterId;
+        }
+
+        public static ScheduleField FindField(ViewSchedule schedule, BuiltInParameter paramEnum)
+        {
+            ScheduleDefinition definition = schedule.Definition;
+            ScheduleField foundField = null;
+            ElementId paramId = new ElementId(paramEnum);
+
+            foreach (ScheduleFieldId fieldId in definition.GetFieldOrder())
+            {
+                foundField = definition.GetField(fieldId);
+                if (foundField.ParameterId == paramId)
+                {
+                    return foundField;
+                }
+            }
+
+            return null;
         }
     }
 }
