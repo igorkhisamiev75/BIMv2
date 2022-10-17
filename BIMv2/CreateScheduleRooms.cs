@@ -88,6 +88,7 @@ namespace BIMv2
 
             schedule.Definition.GetField(8).IsHidden = true;
 
+            
 
             //add count room
             schedule.Definition.AddField(ScheduleFieldType.Count);
@@ -122,7 +123,9 @@ namespace BIMv2
 
             ScheduleFieldId scheduleField2 = schedule.Definition.GetFieldId(7);
             schedule.Definition.GetField(7).IsHidden = true;
+
             
+
 
             //create schedulefilter 
             filter2 = new ScheduleFilter(scheduleField2, ScheduleFilterType.Equal, "Прихожая");
@@ -158,7 +161,15 @@ namespace BIMv2
             // add schedule's group sorting field
             schedule.Definition.AddSortGroupField(scheduleSortGroupField2);
 
-          
+            schedule.Definition.GetField(1).ColumnHeading = "Тип квартиры";
+            schedule.Definition.GetField(2).ColumnHeading = "Жилая площадь квартиры";
+            schedule.Definition.GetField(3).ColumnHeading = "Площадь квартиры";
+            schedule.Definition.GetField(4).ColumnHeading = "Общая площадь квартиры(с балконами с коэф.)";
+            schedule.Definition.GetField(5).ColumnHeading = "Общая площадь квартиры(с балконами без коэф.)";
+            schedule.Definition.GetField(9).ColumnHeading = "Кол-во";
+
+
+
 
             // close transaction
             t.Commit();
