@@ -63,7 +63,7 @@ namespace CreateScheduleWPF
             //    }
             //}
 
-            MessageBox.Show("Выбрано " + checkLevels.Count + " уровне для создания спецификаций");
+            MessageBox.Show("Выбрано " + checkLevels.Count + " уровн(я/ей/ь) для создания спецификаций");
             Close();
         }
 

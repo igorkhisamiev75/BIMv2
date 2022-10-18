@@ -128,6 +128,7 @@
     <Compile Include="DelFilters\ViewWPF.xaml.cs">
       <DependentUpon>ViewWPF.xaml</DependentUpon>
     </Compile>
+    <Compile Include="DelUnplacedRoom\DelUnplacedRoom.cs" />
     <Compile Include="DelUnUesdFilters\DeletedUnFilter.cs" />
     <Compile Include="DelUnUesdFilters\ViewWPF.xaml.cs">
       <DependentUpon>ViewWPF.xaml</DependentUpon>
@@ -228,6 +229,8 @@
   <ItemGroup>
     <Resource Include="Resources\icons8-typeRoom-32.png" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Resources\icons8-spreadsheet-32.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

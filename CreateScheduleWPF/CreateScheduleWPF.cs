@@ -19,21 +19,6 @@ namespace CreateScheduleWPF
         private Application _app;
         private Document _doc;
         
-
-        public ICollection<View> viewsInProject = new List<View>();
-
-        public ICollection<Element> filtersCollection = new List<Element>();
-
-        public ICollection<Element> filtersCollectionCopy = new List<Element>();
-
-        public ICollection<Element> unusedFiltersCollection = new List<Element>();
-
-        public ICollection<View> onlyViewPlan3DSection = new List<View>();
-
-        public ICollection<int> filtersInViewsId = new List<int>();
-
-
-
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             
@@ -54,6 +39,7 @@ namespace CreateScheduleWPF
             //get all section
 
             var Rooms = GetAllRooms();
+  
 
             foreach(var room in Rooms)
             {

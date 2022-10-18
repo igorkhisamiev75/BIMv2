@@ -49,6 +49,19 @@ namespace BIMv2Buttons
             ribbonPanel.AddSeparator(); //разделитель между кнопками
 
             // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData b24Data = new PushButtonData("cmdDelUnplacedRoom.cs", "Удалить"
+                + Environment.NewLine + "лишнии помещения", thisAssemblyPath, "BIMv2.DelUnplacedRoom");
+
+            PushButton pb24 = ribbonPanel.AddItem(b24Data) as PushButton;
+            pb24.ToolTip = "Удаляет лишние помещения из проекта";
+
+            BitmapImage pb24Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-clean2-32.png"));
+            pb24.LargeImage = pb24Image;
+
+            //попробуем создать еще одну кнопку
+            ribbonPanel.AddSeparator(); //разделитель между кнопками
+
+            // create push button for CurveTotalLength  //namespace и класс
             PushButtonData b23Data = new PushButtonData("cmdWriteTypeRooms.cs", "Записать"
                 + Environment.NewLine + "тип квартиры", thisAssemblyPath, "BIMv2.WriteTypeRooms");
 
