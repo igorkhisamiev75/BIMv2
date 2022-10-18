@@ -13,9 +13,7 @@ namespace BIMv2
     [Transaction(TransactionMode.Manual)]
     public class CreateScheduleRooms : IExternalCommand
     {
-        // built in parameters / fields to add in schedule
-        BuiltInParameter[] BiParams = new BuiltInParameter[] { BuiltInParameter.ROOM_NAME, BuiltInParameter.ROOM_NUMBER };
-
+        
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elementSet)
         {
             // ui document
@@ -161,7 +159,7 @@ namespace BIMv2
             // add schedule's group sorting field
             schedule.Definition.AddSortGroupField(scheduleSortGroupField2);
 
-            //name
+            //задание имя столбца
             schedule.Definition.GetField(1).ColumnHeading = "Тип квартиры";
             schedule.Definition.GetField(2).ColumnHeading = "Жилая площадь квартиры";
             schedule.Definition.GetField(3).ColumnHeading = "Площадь квартиры";
@@ -169,13 +167,14 @@ namespace BIMv2
             schedule.Definition.GetField(5).ColumnHeading = "Общая площадь квартиры(с балконами без коэф.)";
             schedule.Definition.GetField(9).ColumnHeading = "Кол-во";
 
-
+            //выравнивание столбиков
             schedule.Definition.GetField(2).HorizontalAlignment = ScheduleHorizontalAlignment.Center;
             schedule.Definition.GetField(3).HorizontalAlignment = ScheduleHorizontalAlignment.Center;
             schedule.Definition.GetField(4).HorizontalAlignment = ScheduleHorizontalAlignment.Center;
             schedule.Definition.GetField(5).HorizontalAlignment = ScheduleHorizontalAlignment.Center;
             schedule.Definition.GetField(9).HorizontalAlignment = ScheduleHorizontalAlignment.Center;
 
+            //подсчет итоговой
             schedule.Definition.GetField(3).DisplayType = ScheduleFieldDisplayType.Totals;
             schedule.Definition.GetField(4).DisplayType = ScheduleFieldDisplayType.Totals;
             schedule.Definition.GetField(5).DisplayType = ScheduleFieldDisplayType.Totals;
@@ -202,23 +201,7 @@ namespace BIMv2
             return levelLevelId;
         }
 
-        //public bool CheckField(SchedulableField vs)
-        //{
-        //    foreach (BuiltInParameter bip in BiParams)
-        //    {
-        //        if (new ElementId(bip) == vs.ParameterId)
-        //            return true;
-        //    }
-        //    return false;
-        //}
-
-        //public Element GetLevelByName(Document doc, string name)
-        //{
-        //    Level level = new FilteredElementCollector(doc).OfClass(typeof(Level))
-        //        .Cast<Level>().Where(x => x.Name == name).FirstOrDefault();
-
-        //    return level;
-        //}
+       
 
         private static bool IsSharedParameterSchedulableField(Document document, ElementId parameterId, Guid sharedParameterId)
         {
@@ -227,22 +210,6 @@ namespace BIMv2
             return sharedParameterElement?.GuidValue == sharedParameterId;
         }
 
-        public static ScheduleField FindField(ViewSchedule schedule, BuiltInParameter paramEnum)
-        {
-            ScheduleDefinition definition = schedule.Definition;
-            ScheduleField foundField = null;
-            ElementId paramId = new ElementId(paramEnum);
-
-            foreach (ScheduleFieldId fieldId in definition.GetFieldOrder())
-            {
-                foundField = definition.GetField(fieldId);
-                if (foundField.ParameterId == paramId)
-                {
-                    return foundField;
-                }
-            }
-
-            return null;
-        }
+        
     }
 }

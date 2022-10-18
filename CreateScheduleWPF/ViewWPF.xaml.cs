@@ -45,23 +45,23 @@ namespace CreateScheduleWPF
                     if (variable.GetHashCode() == element.GetHashCode())
                     {
                         checkLevels.Add(element);
-                        // MessageBox.Show("Выбрано" + element.Name);
+                        //MessageBox.Show("Выбрано " + element.Name);
 
                     }
                 }
             }
 
-            foreach (var element in filterCollection2)
-            {
-                foreach (var variable in ListBox2.SelectedItems)
-                {
-                    if (variable.GetHashCode() == element.GetHashCode())
-                    {
-                        checkSection.Add(element);
-                        
-                    }
-                }
-            }
+            //foreach (var element2 in filterCollection2)
+            //{
+            //    foreach (var variable in ListBox2.SelectedItems)
+            //    {
+            //        if (variable.GetHashCode() == element2.GetHashCode())
+            //        {
+            //            checkSection.Add(element2);
+            //            MessageBox.Show("Выбрано" + element2);
+            //        }
+            //    }
+            //}
 
             MessageBox.Show("Выбрано " + checkLevels.Count + " уровне для создания спецификаций");
             Close();
