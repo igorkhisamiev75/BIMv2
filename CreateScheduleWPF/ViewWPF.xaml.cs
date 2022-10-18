@@ -12,12 +12,13 @@ namespace CreateScheduleWPF
     {
 
         //public readonly DeletedFilter m_data_filters;  // Filters data for current active document
-        public List<Element> checkFilters = new List<Element>();
+        public List<Element> checkLevels = new List<Element>();
+        public List<string> checkSection = new List<string>();
 
         private readonly ICollection<Element> filterCollection;
-        private readonly ICollection<Element> filterCollection2;
+        private readonly ICollection<string> filterCollection2;
 
-        public ViewWPF(ICollection<Element> elements, ICollection<Element> elements2)
+        public ViewWPF(ICollection<Element> elements, ICollection<string> elements2)
         {
             InitializeComponent();
             filterCollection = elements;
@@ -27,7 +28,7 @@ namespace CreateScheduleWPF
             ListBox.DisplayMemberPath = "Name";
 
             ListBox2.ItemsSource = filterCollection2;
-            ListBox2.DisplayMemberPath = "Name";
+            //ListBox2.DisplayMemberPath = filterCollection2.ToString();
 
             //TreeView.SelectedValuePath = filterCollection.ToString();
             //TreeView.ItemsSource = filterCollection;
@@ -43,14 +44,26 @@ namespace CreateScheduleWPF
                 {
                     if (variable.GetHashCode() == element.GetHashCode())
                     {
-                        checkFilters.Add(element);
+                        checkLevels.Add(element);
                         // MessageBox.Show("Выбрано" + element.Name);
 
                     }
                 }
             }
-          
-            MessageBox.Show("Выбрано " + checkFilters.Count + " фильтров для удаления");
+
+            foreach (var element in filterCollection2)
+            {
+                foreach (var variable in ListBox2.SelectedItems)
+                {
+                    if (variable.GetHashCode() == element.GetHashCode())
+                    {
+                        checkSection.Add(element);
+                        
+                    }
+                }
+            }
+
+            MessageBox.Show("Выбрано " + checkLevels.Count + " уровне для создания спецификаций");
             Close();
         }
 

@@ -67,7 +67,7 @@ namespace CreateScheduleWPF
 
             vpViewWpf.ShowDialog();
 
-            var checkFilters = vpViewWpf.checkFilters;
+            var checkFilters = vpViewWpf.checkLevels;
 
             using (var t = new Transaction(_doc))
             {
