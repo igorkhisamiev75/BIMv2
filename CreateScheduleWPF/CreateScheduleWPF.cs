@@ -32,6 +32,8 @@ namespace CreateScheduleWPF
 
         public ICollection<int> filtersInViewsId = new List<int>();
 
+
+
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
 
@@ -41,63 +43,18 @@ namespace CreateScheduleWPF
             _app = uiApp.Application;
             _doc = uiDoc.Document;
 
-            filtersCollection = GetAllFilters();
+            // Find the levels
+            FilteredElementCollector collector = new FilteredElementCollector(_doc);
+            ICollection<Element> levels = collector.OfClass(typeof(Level)).ToElements();
 
-            ICollection<View> allView = GetAllViews(_doc);
+            //get all section
 
-            foreach (var item in allView)
-            {
-                if (item.ViewType == ViewType.FloorPlan
-                    || item.ViewType == ViewType.ThreeD
-                    || item.ViewType == ViewType.Elevation
-                    || item.ViewType == ViewType.Section)
-                {
-                    onlyViewPlan3DSection.Add(item);
-                }
-            }
+            var Rooms = GetAllRooms();
 
-            //get filters ID
-            foreach (var view in onlyViewPlan3DSection)
-            {
-                var f = view.GetOrderedFilters();
-                if (f != null)
-                {
-                    foreach (var item in f)
-                    {
-                        filtersInViewsId.Add(item.GetHashCode());
-                    }
-                }
-
-            }
-
-            filtersInViewsId = filtersInViewsId.GroupBy(x => x.GetHashCode()).Select(group =>
-                group.OrderBy(x => x.GetHashCode()).First()).ToList();
-
-            //clean filters list
-
-            foreach (var VARIABLE in filtersCollection)
-            {
-                filtersCollectionCopy.Add(VARIABLE);
-            }
-
-            foreach (var filterAllfilters in filtersCollection)
-            {
-
-                var i = filterAllfilters.Id.GetHashCode();
-
-                foreach (var element in filtersInViewsId)
-                {
-                    if (i.ToString() == element.ToString())
-                    {
-                        filtersCollectionCopy.Remove(filterAllfilters);
-                    }
-
-                }
-
-            }
+            //foreach()
 
 
-            ViewWPF vpViewWpf = new ViewWPF(filtersCollectionCopy);
+            ViewWPF vpViewWpf = new ViewWPF(levels);
 
             vpViewWpf.ShowDialog();
 
@@ -205,6 +162,18 @@ namespace CreateScheduleWPF
             }
 
             return viewsInProject;
+        }
+
+        public IList<Element> GetAllRooms()
+        {
+            // List all Room's
+            var room_collector = new FilteredElementCollector(_doc)
+                .OfCategory(BuiltInCategory.OST_Rooms)
+                .WhereElementIsNotElementType();
+            IList<ElementId> room_eids = room_collector.ToElementIds() as IList<ElementId>;
+            var allRooms = room_collector.ToElements();
+
+            return allRooms;
         }
 
     }

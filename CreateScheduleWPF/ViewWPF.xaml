@@ -27,7 +27,7 @@
             Name="ListBox"
             HorizontalContentAlignment="Stretch"
             HorizontalAlignment="Stretch" 
-            Margin="10,10,10,10" 
+            Margin="10,10,10,10.429" 
             VerticalAlignment="Stretch" 
             SelectionMode="Extended"
         />
