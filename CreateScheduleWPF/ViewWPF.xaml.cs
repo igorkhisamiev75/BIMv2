@@ -15,13 +15,19 @@ namespace CreateScheduleWPF
         public List<Element> checkFilters = new List<Element>();
 
         private readonly ICollection<Element> filterCollection;
-        public ViewWPF(ICollection<Element> elements)
+        private readonly ICollection<Element> filterCollection2;
+
+        public ViewWPF(ICollection<Element> elements, ICollection<Element> elements2)
         {
             InitializeComponent();
             filterCollection = elements;
+            filterCollection2 = elements2;
 
             ListBox.ItemsSource = filterCollection;
             ListBox.DisplayMemberPath = "Name";
+
+            ListBox2.ItemsSource = filterCollection2;
+            ListBox2.DisplayMemberPath = "Name";
 
             //TreeView.SelectedValuePath = filterCollection.ToString();
             //TreeView.ItemsSource = filterCollection;

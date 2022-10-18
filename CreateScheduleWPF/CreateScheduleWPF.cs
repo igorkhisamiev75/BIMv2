@@ -39,6 +39,7 @@ namespace CreateScheduleWPF
 
             var uiApp = commandData.Application;
             var uiDoc = uiApp.ActiveUIDocument;
+            string adskNumberSection = "b59a3474-a5f4-430a-b087-a20f1a4eb57e";
 
             _app = uiApp.Application;
             _doc = uiDoc.Document;
@@ -47,14 +48,22 @@ namespace CreateScheduleWPF
             FilteredElementCollector collector = new FilteredElementCollector(_doc);
             ICollection<Element> levels = collector.OfClass(typeof(Level)).ToElements();
 
+            List<string> sectionList = new List<string>();
+
             //get all section
 
             var Rooms = GetAllRooms();
 
-            //foreach()
+            foreach(var room in Rooms)
+            {
+                var g = room.get_Parameter(new Guid(adskNumberSection)).AsString();
+                sectionList.Add(g);
+            }
 
+            //clean list
+            List<string> newList = new List<string>(sectionList.Distinct());
 
-            ViewWPF vpViewWpf = new ViewWPF(levels);
+            ViewWPF vpViewWpf = new ViewWPF(levels, newList);
 
             vpViewWpf.ShowDialog();
 

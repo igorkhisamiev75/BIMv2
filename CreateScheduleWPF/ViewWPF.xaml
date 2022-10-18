@@ -25,12 +25,16 @@
                 Grid.Column="1" Height="21" Click="Button_Click_1"/>
         <ListBox 
             Name="ListBox"
-            HorizontalContentAlignment="Stretch"
-            HorizontalAlignment="Stretch" 
-            Margin="10,10,10,10.429" 
-            VerticalAlignment="Stretch" 
+            HorizontalContentAlignment="Stretch" 
+            Margin="10,10,209,10" 
             SelectionMode="Extended"
         />
+        <ListBox 
+            Name="ListBox2"
+            HorizontalContentAlignment="Stretch" 
+            Margin="213,10,10,10"
+            SelectionMode="Extended"
+         />
 
     </Grid>
 </Window>
