@@ -109,6 +109,7 @@
     <Compile Include="CreateNotPlacedRooms.cs" />
     <Compile Include="CreateRailingInRooms.cs" />
     <Compile Include="CreateScheduleRooms.cs" />
+    <Compile Include="DelUnplacedRoom.cs" />
     <Compile Include="PluginFinish2BIM\CeilingFinish.cs" />
     <Compile Include="ClearProjectBrowser.cs" />
     <Compile Include="ClearProjectBrowserViewsNotSheets.cs" />
