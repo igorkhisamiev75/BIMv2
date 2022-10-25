@@ -46,7 +46,7 @@ namespace BIMv2
                     {
                         var ggg = (Room)element;
                         //get square 
-                        if ((ggg.get_Parameter(BuiltInParameter.ROOM_VOLUME)).AsDouble() > 0)
+                        if ((ggg.get_Parameter(BuiltInParameter.ROOM_AREA)).AsDouble() > 0)
                         {
                             rooms.Add(ggg);
                         }
