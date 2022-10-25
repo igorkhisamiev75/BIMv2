@@ -13,7 +13,9 @@ using Autodesk.Revit.UI.Selection;
 namespace BIMv2
 {
     [Transaction(TransactionMode.Manual)]
-    //[RegenerationAttribute(RegenerationOption.Manual)]
+    [Regeneration(RegenerationOption.Manual)]
+    [Journaling(JournalingMode.NoCommandData)]
+
     public class CreateFloorInRoom : IExternalCommand
     {
         Application _app;
@@ -25,8 +27,39 @@ namespace BIMv2
         private FloorType floorType;
         private Level level;
         private bool structural;
-
         private Autodesk.Revit.Creation.Application creApp;
+
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+        {
+
+            UIApplication uiApp = commandData.Application;
+            UIDocument uiDoc = uiApp.ActiveUIDocument;
+            _app = uiApp.Application;
+            _doc = uiDoc.Document;
+            creApp = commandData.Application.Application.Create;
+
+
+            using (Transaction t = new Transaction(_doc))
+            {
+                t.Start("Create floor");
+
+                Element elem = SelectedElement(_doc); //select room
+
+                CreateFloorInRooms(elem);
+
+                TaskDialog.Show("У тебя получилось", "Ты красавчик!☺☺☺");
+                t.Commit();
+
+                t.Start();
+                CreateFloorOpenings(elem);
+
+                var res = t.Commit();
+
+            }
+
+            return Result.Succeeded;
+
+        }
 
 
         // a floor type to be used by the new floor instead of the default type
@@ -94,39 +127,9 @@ namespace BIMv2
             }
         }
 
-        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
-        {
+        
 
-            UIApplication uiApp = commandData.Application;
-            UIDocument uiDoc = uiApp.ActiveUIDocument;
-            _app = uiApp.Application;
-            _doc = uiDoc.Document;
-            creApp = commandData.Application.Application.Create;
-
-
-            using (Transaction t = new Transaction(_doc))
-            {
-                t.Start("Create floor");
-
-                Element elem = SelectedElement(_doc); //select room
-
-                CreateFloorInRooms(elem);
-
-                TaskDialog.Show("У тебя получилось", "Ты красавчик!☺☺☺");
-                t.Commit();
-
-                t.Start();
-                CreateFloorOpenings();
-
-                var res = t.Commit();
-
-            }
-
-            return Result.Succeeded;
-
-        }
-
-        private void CreateFloorOpenings()
+        public void CreateFloorOpenings(Element elem)
         {
 
             FloorType floorType;
@@ -137,11 +140,10 @@ namespace BIMv2
             var floorCollector = new FilteredElementCollector(_doc).OfClass(typeof(Floor));
             IList<Element> floorList = floorCollector.ToElements();
 
-            for (int i = 0; i < rooms.Count; i++)
-            {
+            
                 CurveArray roomsCurves = new CurveArray();
-                var r1 = (Room)rooms[i];
-                var f1 = (Floor)floorList[i];
+                var r1 = (Room)elem;
+                var f1 = (Floor)floorList[0];
 
                 SpatialElementBoundaryOptions bo = new SpatialElementBoundaryOptions();
                 IList<IList<BoundarySegment>> segments2 = r1.GetBoundarySegments(bo);
@@ -165,11 +167,11 @@ namespace BIMv2
 
                 }
 
-            }
+            
 
         }
 
-        private void CreateFloorInRooms(Element elem)
+        public void CreateFloorInRooms(Element elem)
         {
 
             FloorType floorType;
@@ -208,7 +210,7 @@ namespace BIMv2
 
         }
 
-        private void GetRoomInProject(out IList<Element> rooms)
+        public void GetRoomInProject(out IList<Element> rooms)
         {
 
 
@@ -222,7 +224,7 @@ namespace BIMv2
             rooms = collector3.WherePasses(filter).ToElements();
         }
 
-        private FloorType GetFloorTypeInProject()
+        public FloorType GetFloorTypeInProject()
         {
             FloorType floorType;
             //// Get a floor type for floor creation
@@ -232,7 +234,7 @@ namespace BIMv2
             return floorType;
         }
 
-        private void SortCurves(CurveArray lines)
+        public void SortCurves(CurveArray lines)
         {
             XYZ pointCurves = lines.get_Item(0).GetEndPoint(1);
             Curve temCurve = lines.get_Item(0);
@@ -261,7 +263,7 @@ namespace BIMv2
             }
 
         }
-        private Curve GetNext(CurveArray profile, XYZ connected, Curve line)
+        public Curve GetNext(CurveArray profile, XYZ connected, Curve line)
         {
             foreach (Curve c in profile)
             {
