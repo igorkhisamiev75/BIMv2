@@ -47,7 +47,7 @@ namespace BIMv2
 
                 CreateFloorInRooms(elem);
 
-                TaskDialog.Show("У тебя получилось", "Ты красавчик!☺☺☺");
+                TaskDialog.Show("У тебя получилось", "Пол создан ☺☺☺");
                 t.Commit();
 
                 t.Start();
