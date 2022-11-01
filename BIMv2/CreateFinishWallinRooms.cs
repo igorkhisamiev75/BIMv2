@@ -23,11 +23,7 @@ namespace BIMv2
         Document _doc;
         private const double PRECISION = 0.00000001;
         private CurveArray profile;
-        //private Hashtable floorTypes;
-        private List<string> floorTypesName;
-        private FloorType floorType;
-        private Level level;
-        private bool structural;
+       
         private Autodesk.Revit.Creation.Application creApp;
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
@@ -44,17 +40,27 @@ namespace BIMv2
             {
                 t.Start("Create finish walls");
 
-                Element elem = SelectedElement(_doc); //select room
+                var Rooms = GetAllRooms();
 
-                CreateWallInRooms(elem);
+                foreach(Room room in Rooms)
+                {
+                    try
+                    {
+                        CreateWallInRooms(room);
+                    }
 
-                TaskDialog.Show("У тебя получилось", "Стены созданы ☺☺☺");
+                    catch
+                    {
+
+                    }
+                    
+                    
+                }
+
+                //Element elem = SelectedElement(_doc); //select room
+
+                TaskDialog.Show("2bim.ru", "Стены созданы ☺☺☺");
                 t.Commit();
-
-                //t.Start();
-                //CreateFloorOpenings(elem);
-
-                //var res = t.Commit();
 
             }
 
@@ -63,31 +69,6 @@ namespace BIMv2
         }
 
 
-        // a floor type to be used by the new floor instead of the default type
-        public FloorType FloorType
-        {
-            get
-            {
-                return floorType;
-            }
-            set
-            {
-                floorType = value;
-            }
-        }
-
-        // the Level on which the floors are to be placed
-        public Level Level
-        {
-            get
-            {
-                return level;
-            }
-            set
-            {
-                level = value;
-            }
-        }
 
         // an array of planar lines and arcs that represent the horizontal profile of the floor
         public CurveArray Profile
@@ -102,78 +83,9 @@ namespace BIMv2
             }
         }
 
-        // determine wether the floor is structural
-        public bool Structural
+        public void CreateWallInRooms(Room elem)
         {
-            get
-            {
-                return structural;
-            }
-            set
-            {
-                structural = value;
-            }
-        }
-
-        // a list of all Floor Types Name that could be used by the new Floor
-        public List<string> FloorTypesName
-        {
-            get
-            {
-                return floorTypesName;
-            }
-            set
-            {
-                floorTypesName = value;
-            }
-        }
-
-
-
-        public void CreateFloorOpenings(Element elem)
-        {
-
-            WallType floorType;
-            IList<Element> rooms;
-            GetRoomInProject(out rooms);
-
-            // List all the floors instances 
-            var wallCollector = new FilteredElementCollector(_doc).OfClass(typeof(Wall));
-            IList<Element> wallList = wallCollector.ToElements();
-
-
-            CurveArray roomsCurves = new CurveArray();
-            Room r1 = (Room)elem;
-            Wall f1 = (Wall)wallList[0];
-
-            SpatialElementBoundaryOptions bo = new SpatialElementBoundaryOptions();
-            IList<IList<BoundarySegment>> segments2 = r1.GetBoundarySegments(bo);
-
-            CurveArray temp = new CurveArray();
-
-            if (null != segments2)
-            {
-                for (int j = 1; j < segments2.Count; j++)
-                {
-                    IList<BoundarySegment> segmentList = segments2[j];
-
-                    foreach (BoundarySegment boundarySegment in segmentList)
-                    {
-                        Curve c = boundarySegment.GetCurve();
-                        temp.Append(c);
-                    }
-                    SortCurves(temp);
-                    var opening = _doc.Create.NewOpening(f1, temp, true); //create opening
-                }
-
-            }
-
-
-
-        }
-
-        public void CreateWallInRooms(Element elem)
-        {
+            string ADSK_Primechanie = "a85b7661-26b0-412f-979c-66af80b4b2c3";
 
             WallType wallType;
             IList<Element> rooms;
@@ -185,10 +97,15 @@ namespace BIMv2
 
 
             CurveArray roomsCurves = new CurveArray();
-            Room room = (Room)elem;
+            Room room = elem;
 
             ElementId levelId = room.LevelId;
-            double heightRoom = room.get_Parameter(BuiltInParameter.ROOM_UPPER_OFFSET).AsDouble();
+            double heightRoom = room.get_Parameter(BuiltInParameter.ROOM_HEIGHT).AsDouble();
+            if(heightRoom <= 0)
+            {
+                heightRoom = 1;
+            }
+            string numberRoom = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();
             string nameRoom = room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
 
 
@@ -232,12 +149,9 @@ namespace BIMv2
                     wall.get_Parameter(BuiltInParameter.WALL_ATTR_ROOM_BOUNDING).Set(0);
 
                     //set room name
-
-                    wall.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
-
-                    //wall.LookupParameter("Room Bounding").Set(0);
-
+                    wall.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
                     wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(heightRoom);
+                    wall.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
                 }
 
                 if (!g.IsCyclic)
@@ -246,6 +160,7 @@ namespace BIMv2
                     //wall.LookupParameter("Room Bounding").Set(0);
                     wall.get_Parameter(BuiltInParameter.WALL_ATTR_ROOM_BOUNDING).Set(0);
                     wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(heightRoom);
+                    wall.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
                     wall.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
                 }
             }
@@ -380,6 +295,18 @@ namespace BIMv2
                 return null;
             }
 
+        }
+
+        public IList<Element> GetAllRooms()
+        {
+            // List all Room's
+            var room_collector = new FilteredElementCollector(_doc)
+                .OfCategory(BuiltInCategory.OST_Rooms)
+                .WhereElementIsNotElementType();
+            IList<ElementId> room_eids = room_collector.ToElementIds() as IList<ElementId>;
+            var allRooms = room_collector.ToElements();
+
+            return allRooms;
         }
     }
 
