@@ -107,6 +107,7 @@
     <Compile Include="BIMStandart.cs" />
     <Compile Include="Create3DViewFromSpace.cs" />
     <Compile Include="CreateFinishWallinRooms.cs" />
+    <Compile Include="CreateFinishWallinSelectedRoom.cs" />
     <Compile Include="CreateFloorInRoom.cs" />
     <Compile Include="CreateNotPlacedRooms.cs" />
     <Compile Include="CreateRailingInRooms.cs" />

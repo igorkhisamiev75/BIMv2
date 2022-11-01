@@ -232,5 +232,8 @@
   <ItemGroup>
     <Resource Include="Resources\icons8-spreadsheet-32.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="CreateFinishWallinSelectedRoom\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
