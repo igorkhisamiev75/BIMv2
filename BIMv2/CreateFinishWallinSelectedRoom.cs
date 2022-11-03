@@ -223,20 +223,19 @@ namespace BIMv2
 
                 }
 
-                TaskDialog.Show("2bim.ru", "Все стены соеденены");
+                //TaskDialog.Show("2bim.ru", "Все стены соеденены");
 
             }
-
+            TaskDialog.Show("2bim.ru", "Все стены соеденены");
             _doc.Regenerate();
             //unjoin walls
             foreach (var wall1 in walls)
             {
                 foreach (var wall2 in walls)
                 {
-                    if (wall1 != wall2)
+                    if (wall1 != wall2 && JoinGeometryUtils.IsCuttingElementInJoin(_doc, wall1, wall2))
                     {
-                        if (JoinGeometryUtils.AreElementsJoined(_doc, wall1, wall2)
-                            && !JoinGeometryUtils.IsCuttingElementInJoin(_doc, wall1, wall2))
+                        if (JoinGeometryUtils.AreElementsJoined(_doc, wall1, wall2))
                             {
                             JoinGeometryUtils.UnjoinGeometry(_doc, wall1, wall2);
                             TaskDialog.Show("2bim.ru", "разъеденены");
