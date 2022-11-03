@@ -88,7 +88,7 @@ namespace BIMv2
 
             WallType wallType;
             IList<Element> rooms;
-            wallType = GetWallTypeInProject();
+            wallType = GetWallTypeInProject("Отделка");
 
             ElementId wallTypeId= wallType.GetTypeId();
 
@@ -200,19 +200,58 @@ namespace BIMv2
             {
                 foreach (var wall2 in walls)
                 {
-                    try
+                    if (wall1 != wall2)
                     {
-                        JoinGeometryUtils.JoinGeometry(_doc, wall1, wall2);
-                        _doc.Regenerate();
+                        try {
+                            if (!JoinGeometryUtils.AreElementsJoined(_doc, wall1, wall2))
+                            {
+                                JoinGeometryUtils.JoinGeometry(_doc, wall1, wall2);
+                                //_doc.Regenerate();
+                                //JoinGeometryUtils.IsCuttingElementInJoin(_doc, wall1, wall2)||
+                            }
+                            else
+                            {
+                                continue;
+                               
+                            }
+                        }
+                        catch { continue; }
+
                     }
 
-                    catch { }
+                    else { continue; }
 
+                }
+
+                TaskDialog.Show("2bim.ru", "Все стены соеденены");
+
+            }
+
+            _doc.Regenerate();
+            //unjoin walls
+            foreach (var wall1 in walls)
+            {
+                foreach (var wall2 in walls)
+                {
+                    if (wall1 != wall2)
+                    {
+                        if (JoinGeometryUtils.AreElementsJoined(_doc, wall1, wall2)
+                            && !JoinGeometryUtils.IsCuttingElementInJoin(_doc, wall1, wall2))
+                            {
+                            JoinGeometryUtils.UnjoinGeometry(_doc, wall1, wall2);
+                            TaskDialog.Show("2bim.ru", "разъеденены");
+
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
                 }
             }
 
 
-        }
+         }
 
         public void GetRoomInProject(out IList<Element> rooms)
         {
@@ -228,19 +267,19 @@ namespace BIMv2
             rooms = collector3.WherePasses(filter).ToElements();
         }
 
-        public WallType GetWallTypeInProject()
+        public WallType GetWallTypeInProject(string nameTypeWall)
         {
             WallType wallType;
             //// Get a floor type for floor creation
             FilteredElementCollector collector = new FilteredElementCollector(_doc);
             collector.OfClass(typeof(WallType));
-            wallType = collector.Where(x => x.Name == "Отделка") as WallType;
+            wallType = collector.Where(x => x.Name == nameTypeWall) as WallType;
             //as WallType;
 
             FilteredElementCollector a = new FilteredElementCollector(_doc).OfClass(typeof(WallType));
             foreach (WallType wallType2 in a)
             {
-                if (wallType2.Name == "Отделка")
+                if (wallType2.Name == nameTypeWall)
                 {
                     return wallType2;
                 }
