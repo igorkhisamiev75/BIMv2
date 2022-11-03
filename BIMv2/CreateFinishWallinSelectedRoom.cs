@@ -1,6 +1,7 @@
 ﻿#region Namespaces
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;
@@ -46,19 +47,16 @@ namespace BIMv2
 
                 try
                 {
-                        CreateWallInRooms(elem, uiDoc);
+                    CreateWallInRooms(elem, uiDoc);
+                    TaskDialog.Show("2bim.ru", "22Стены созданы ☺☺☺");
                 }
 
                     catch
                     {
-                    //TaskDialog.Show("2bim.ru", "Походу не помещение выбрал");
+                    TaskDialog.Show("2bim.ru", "Не сработало");
                 }
 
-
                 
-                
-
-                TaskDialog.Show("2bim.ru", "Стены созданы ☺☺☺");
                 t.Commit();
 
             }
@@ -89,14 +87,15 @@ namespace BIMv2
             WallType wallType;
             IList<Element> rooms;
             wallType = GetWallTypeInProject();
-            Floor sourr;
-            Floor sourr2;
+
+            ElementId wallTypeId= wallType.GetTypeId();
 
             CurveArray roomsCurves = new CurveArray();
             Room room = (Room)elem;
 
             ElementId levelId = room.LevelId;
             double heightRoom = room.get_Parameter(BuiltInParameter.ROOM_HEIGHT).AsDouble();
+
             if (heightRoom <= 0)
             {
                 heightRoom = 1;
@@ -104,12 +103,13 @@ namespace BIMv2
             string numberRoom = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();
             string nameRoom = room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
 
+            IList<Curve> curves = new List<Curve>();
 
             SpatialElementBoundaryOptions bo = new SpatialElementBoundaryOptions();
             IList<IList<BoundarySegment>> segments2 = room.GetBoundarySegments(bo);
 
 
-            CurveArray temp = new CurveArray();
+            //CurveArray temp = new CurveArray();
 
             if (null != segments2)
             {
@@ -122,22 +122,23 @@ namespace BIMv2
                     foreach (BoundarySegment boundarySegment in segmentList)
                     {
                         Curve c = boundarySegment.GetCurve();
-                        temp.Append(c);
+                        roomsCurves.Append(c);
                     }
                 }
 
 
             }
 
-            foreach (Curve g in temp)
+            foreach (Curve g in roomsCurves)
             {
                 if (g == null) continue;
                 if (g.IsCyclic)
                 {
                     var wall = Wall.Create(_doc, g, levelId, false);
+                    //Wall wall = Wall.Create(_doc, curves, wallTypeId, levelId, false);
                    // wall.get_Parameter(BuiltInParameter.WALL_ATTR_ROOM_BOUNDING).AsInteger();
 
-                    //set bounding
+                    //set bounding граница помещения
                     wall.get_Parameter(BuiltInParameter.WALL_ATTR_ROOM_BOUNDING).Set(1);
 
                     //set room name
@@ -145,27 +146,34 @@ namespace BIMv2
                     wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(heightRoom);
                     wall.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
 
-                    IList<Reference> sideFaces = HostObjectUtils.GetSideFaces(wall, ShellLayerType.Exterior);
+                    //IList<Reference> sideFaces = HostObjectUtils.GetSideFaces(wall, ShellLayerType.Exterior);
 
-                    Face face = uiDoc.Document.GetElement(sideFaces[0]).GetGeometryObjectFromReference(sideFaces[0]) as Face;
-                    PlanarFace pf = face as PlanarFace;
-                    XYZ normal_reverted = -1.0 * pf.FaceNormal;
-                    wall.Location.Move(normal_reverted * (wall.WallType.Width / 2.0));
+                    //Face face = uiDoc.Document.GetElement(sideFaces[0]).GetGeometryObjectFromReference(sideFaces[0]) as Face;
+                    //PlanarFace pf = face as PlanarFace;
+                    //XYZ normal_reverted = -1.0 * pf.FaceNormal;
+                    //wall.Location.Move(normal_reverted * (wall.WallType.Width / 2.0));
                 }
                 if (!g.IsCyclic)
                 {
+                    
                     var wall = Wall.Create(_doc, g, levelId, false);
+                    //Wall wall = Wall.Create(_doc, curves, wallTypeId, levelId, false);
                     wall.get_Parameter(BuiltInParameter.WALL_ATTR_ROOM_BOUNDING).Set(1);
+                    wall.get_Parameter(BuiltInParameter.ELEM_TYPE_PARAM).Set(wallTypeId);
                     wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(heightRoom);
                     wall.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
                     wall.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
-                    
-                    IList<Reference> sideFaces = HostObjectUtils.GetSideFaces(wall, ShellLayerType.Exterior);
-                    //find this question
-                    Face face = uiDoc.Document.GetElement(sideFaces[0]).GetGeometryObjectFromReference(sideFaces[0]) as Face;
+
+                    _doc.Regenerate();
+
+                    IList<Reference> sideFaces = HostObjectUtils.GetSideFaces(wall, ShellLayerType.Interior);
+                    ////find this question
+                    Face face = uiDoc.Document.GetElement(sideFaces[0])
+                        .GetGeometryObjectFromReference(sideFaces[0]) as Face;
                     PlanarFace pf = face as PlanarFace;
-                    XYZ normal_reverted = -1.0 * pf.FaceNormal;
-                    wall.Location.Move(normal_reverted * (wall.WallType.Width / 2.0));
+                    XYZ normal_reverted = pf.FaceNormal;
+                    wall.Location.Move(-normal_reverted * (wall.WallType.Width / 2.0));
+                    //wall.Location.Move(XYZ.BasisY);
                 }
             }
 
@@ -192,8 +200,19 @@ namespace BIMv2
             //// Get a floor type for floor creation
             FilteredElementCollector collector = new FilteredElementCollector(_doc);
             collector.OfClass(typeof(WallType));
-            wallType = collector.FirstElement() as WallType;
-            return wallType;
+            wallType = collector.Where(x => x.Name == "Отделка") as WallType;
+            //as WallType;
+
+            FilteredElementCollector a = new FilteredElementCollector(_doc).OfClass(typeof(WallType));
+            foreach (WallType wallType2 in a)
+            {
+                if (wallType2.Name == "Отделка")
+                {
+                    wallType = wallType2;
+                }
+            }
+
+                return wallType;
         }
 
         public void SortCurves(CurveArray lines)
