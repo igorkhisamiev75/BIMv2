@@ -84,6 +84,8 @@ namespace BIMv2
         {
             string ADSK_Primechanie = "a85b7661-26b0-412f-979c-66af80b4b2c3";
 
+            IList<Wall> walls = new List<Wall>();
+
             WallType wallType;
             IList<Element> rooms;
             wallType = GetWallTypeInProject();
@@ -146,12 +148,18 @@ namespace BIMv2
                     wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(heightRoom);
                     wall.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
 
-                    //IList<Reference> sideFaces = HostObjectUtils.GetSideFaces(wall, ShellLayerType.Exterior);
+                    _doc.Regenerate();
 
-                    //Face face = uiDoc.Document.GetElement(sideFaces[0]).GetGeometryObjectFromReference(sideFaces[0]) as Face;
+                    //IList<Reference> sideFaces = HostObjectUtils.GetSideFaces(wall, ShellLayerType.Interior);
+
+                    //// MOVE WALL
+                    //Face face = uiDoc.Document.GetElement(sideFaces[0])
+                    //    .GetGeometryObjectFromReference(sideFaces[0]) as Face;
                     //PlanarFace pf = face as PlanarFace;
-                    //XYZ normal_reverted = -1.0 * pf.FaceNormal;
-                    //wall.Location.Move(normal_reverted * (wall.WallType.Width / 2.0));
+                    //XYZ normal_reverted = pf.FaceNormal;
+                    //wall.Location.Move(-normal_reverted * (wall.WallType.Width / 2.0));
+
+                    walls.Add(wall);
                 }
                 if (!g.IsCyclic)
                 {
@@ -167,13 +175,30 @@ namespace BIMv2
                     _doc.Regenerate();
 
                     IList<Reference> sideFaces = HostObjectUtils.GetSideFaces(wall, ShellLayerType.Interior);
-                    ////find this question
+                    // MOVE WALL
                     Face face = uiDoc.Document.GetElement(sideFaces[0])
                         .GetGeometryObjectFromReference(sideFaces[0]) as Face;
                     PlanarFace pf = face as PlanarFace;
                     XYZ normal_reverted = pf.FaceNormal;
                     wall.Location.Move(-normal_reverted * (wall.WallType.Width / 2.0));
-                    //wall.Location.Move(XYZ.BasisY);
+
+                    walls.Add(wall);
+
+                }
+            }
+
+            foreach (var wall1 in walls)
+            {
+                foreach (var wall2 in walls)
+                {
+                    try
+                    {
+                        JoinGeometryUtils.JoinGeometry(_doc, wall1, wall2);
+                        _doc.Regenerate();
+                    }
+
+                    catch { }
+
                 }
             }
 
