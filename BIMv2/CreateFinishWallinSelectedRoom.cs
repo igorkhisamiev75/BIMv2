@@ -48,7 +48,7 @@ namespace BIMv2
                 try
                 {
                     CreateWallInRooms(elem, uiDoc);
-                    TaskDialog.Show("2bim.ru", "22Стены созданы ☺☺☺");
+                    TaskDialog.Show("2bim.ru", "Стены созданы ☺☺☺");
                 }
 
                     catch
@@ -91,6 +91,8 @@ namespace BIMv2
             wallType = GetWallTypeInProject();
 
             ElementId wallTypeId= wallType.GetTypeId();
+
+            var elementIdWall = wallType.get_Parameter(BuiltInParameter.ALL_MODEL_TYPE_NAME).Element.Id;
 
             CurveArray roomsCurves = new CurveArray();
             Room room = (Room)elem;
@@ -137,16 +139,20 @@ namespace BIMv2
                 if (g.IsCyclic)
                 {
                     var wall = Wall.Create(_doc, g, levelId, false);
-                    //Wall wall = Wall.Create(_doc, curves, wallTypeId, levelId, false);
-                   // wall.get_Parameter(BuiltInParameter.WALL_ATTR_ROOM_BOUNDING).AsInteger();
-
+                   
                     //set bounding граница помещения
                     wall.get_Parameter(BuiltInParameter.WALL_ATTR_ROOM_BOUNDING).Set(1);
 
-                    //set room name
+                    //set room name and number
                     wall.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
-                    wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(heightRoom);
                     wall.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
+
+                    //set height
+                    wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(heightRoom);
+
+                    //set type 
+                    wall.get_Parameter(BuiltInParameter.ELEM_FAMILY_AND_TYPE_PARAM).Set(elementIdWall);
+                                        
 
                     _doc.Regenerate();
 
@@ -160,6 +166,7 @@ namespace BIMv2
                     //wall.Location.Move(-normal_reverted * (wall.WallType.Width / 2.0));
 
                     walls.Add(wall);
+                    continue;
                 }
                 if (!g.IsCyclic)
                 {
@@ -167,7 +174,8 @@ namespace BIMv2
                     var wall = Wall.Create(_doc, g, levelId, false);
                     //Wall wall = Wall.Create(_doc, curves, wallTypeId, levelId, false);
                     wall.get_Parameter(BuiltInParameter.WALL_ATTR_ROOM_BOUNDING).Set(1);
-                    wall.get_Parameter(BuiltInParameter.ELEM_TYPE_PARAM).Set(wallTypeId);
+                    //wall.get_Parameter(BuiltInParameter.ELEM_TYPE_PARAM).Set(wallTypeId);
+                    wall.get_Parameter(BuiltInParameter.ELEM_FAMILY_AND_TYPE_PARAM).Set(elementIdWall);
                     wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(heightRoom);
                     wall.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
                     wall.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
@@ -187,6 +195,7 @@ namespace BIMv2
                 }
             }
 
+            //join walls
             foreach (var wall1 in walls)
             {
                 foreach (var wall2 in walls)
@@ -233,7 +242,7 @@ namespace BIMv2
             {
                 if (wallType2.Name == "Отделка")
                 {
-                    wallType = wallType2;
+                    return wallType2;
                 }
             }
 
