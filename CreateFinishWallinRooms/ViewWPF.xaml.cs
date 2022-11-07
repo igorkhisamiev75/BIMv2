@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Autodesk.Revit.DB;
 using System.Collections.Generic;
 using System.Windows;
+using Autodesk.Revit.DB.Architecture;
 
 namespace CreateFinishWallinRooms
 {
@@ -16,32 +17,28 @@ namespace CreateFinishWallinRooms
     {
 
         //public readonly DeletedFilter m_data_filters;  // Filters data for current active document
-        public List<Element> checkFilters = new List<Element>();
+        public List<Room> checkRooms = new List<Room>();
 
-        private readonly ICollection<Element> filterCollection;
-        public ViewWPF(ICollection<Element> elements)
+        private readonly List<Room> roomCollection;
+        public ViewWPF(List<Room> elements)
         {
             InitializeComponent();
-            filterCollection = elements;
+            roomCollection = elements;
 
-            ListBox.ItemsSource = filterCollection;
+            ListBox.ItemsSource = roomCollection;
             ListBox.DisplayMemberPath = "Name";
-
-            //TreeView.SelectedValuePath = filterCollection.ToString();
-            //TreeView.ItemsSource = filterCollection;
-            //TreeView.DisplayMemberPath = "Name";
 
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            foreach (var element in filterCollection)
+            foreach (var element in roomCollection)
             {
                 foreach (var variable in ListBox.SelectedItems)
                 {
                     if (variable.GetHashCode() == element.GetHashCode())
                     {
-                        checkFilters.Add(element);
+                        checkRooms.Add(element);
                         // MessageBox.Show("Выбрано" + element.Name);
 
                     }
@@ -55,13 +52,28 @@ namespace CreateFinishWallinRooms
             //}
             ////MessageBox.Show("Selected filters removed");
             ///
-            MessageBox.Show("Выбрано " + checkFilters.Count + " фильтров для удаления");
+            MessageBox.Show("Выбрано " + checkRooms.Count + " фильтров для удаления");
             Close();
         }
 
-        private void Button_Click_1(object sender, RoutedEventArgs e)
+        private void cansel_Click(object sender, RoutedEventArgs e)
         {
             Close();
+        }
+
+        private void finish1_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void finishAll_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void finishDel_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

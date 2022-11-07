@@ -7,6 +7,7 @@ using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Application = Autodesk.Revit.ApplicationServices.Application;
+using Autodesk.Revit.DB.Architecture;
 
 namespace CreateFinishWallinRooms
 {
@@ -21,7 +22,9 @@ namespace CreateFinishWallinRooms
 
         public ICollection<View> viewsInProject = new List<View>();
 
-        public ICollection<Element> filtersCollection = new List<Element>();
+        public ICollection<Element> roomsCollection = new List<Element>();
+
+        public List<Room> roomsCollection2 = new List<Room>();
 
         public ICollection<Element> filtersCollectionCopy = new List<Element>();
 
@@ -40,13 +43,18 @@ namespace CreateFinishWallinRooms
             _app = uiApp.Application;
             _doc = uiDoc.Document;
 
-            filtersCollection = GetAllRooms();
+            roomsCollection = GetAllRooms(_doc);
 
-            ViewWPF vpViewWpf = new ViewWPF(filtersCollectionCopy);
+            foreach(var rooms in roomsCollection)
+            {
+                roomsCollection2.Add((Room)rooms);
+            }
+
+            ViewWPF vpViewWpf = new ViewWPF(roomsCollection2);
 
             vpViewWpf.ShowDialog();
 
-            var checkFilters = vpViewWpf.checkFilters;
+            var checkFilters = vpViewWpf.checkRooms;
 
             using (var t = new Transaction(_doc))
             {
@@ -63,7 +71,7 @@ namespace CreateFinishWallinRooms
             return Result.Succeeded;
         }
 
-        public void ViewFiltersDelete(Document doc, List<Element> checkFilters)
+        public void ViewFiltersDelete(Document doc, List<Room> checkFilters)
         {
             ArrayList oViewFiltersToDelete = new ArrayList();
 
@@ -102,10 +110,10 @@ namespace CreateFinishWallinRooms
         }
 
         //get all filters
-        public IList<Element> GetAllRooms()
+        public IList<Element> GetAllRooms(Document doc)
         {
             // List all Room's
-            var room_collector = new FilteredElementCollector(_doc)
+            var room_collector = new FilteredElementCollector(doc)
                 .OfCategory(BuiltInCategory.OST_Rooms)
                 .WhereElementIsNotElementType();
             IList<ElementId> room_eids = room_collector.ToElementIds() as IList<ElementId>;
@@ -114,37 +122,6 @@ namespace CreateFinishWallinRooms
             return allRooms;
         }
 
-        //get all view
-        private ICollection<View> GetAllViews(Document doc)
-        {
-            FilteredElementCollector collector = new FilteredElementCollector(doc);
-            FilteredElementIterator itor = collector.OfClass(typeof(View)).GetElementIterator();
-            itor.Reset();
-            while (itor.MoveNext())
-            {
-                View view = itor.Current as View;
-                // skip view templates because they're invisible in project browser
-                if (null == view || view.IsTemplate)
-                {
-                    continue;
-                }
-                else
-                {
-                    ElementType objType = doc.GetElement(view.GetTypeId()) as ElementType;
-                    if (null == objType || objType.Name.Equals("Schedule")
-                                        || objType.Name.Equals("Drawing Sheet"))
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        m_allViews.Insert(view);
-                        viewsInProject.Add(view);
-                    }
-                }
-            }
-
-            return viewsInProject;
-        }
+       
     }
 }

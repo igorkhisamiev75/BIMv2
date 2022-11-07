@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:CreateFinishWallinRooms"
              mc:Ignorable="d" 
              Title="Отдедка помещений - Cтены"
-             Height="500" Width="800">
+             Height="800" Width="500">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
@@ -19,34 +19,57 @@
             HorizontalAlignment="Stretch" 
             Margin="10,10,10,10" 
             VerticalAlignment="Stretch" 
-            SelectionMode="Extended"/>
+            SelectionMode="Multiple"
+            ItemsSource="{Binding Items}">
+
+            <ListBox.Resources>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="OverridesDefaultStyle" Value="true" />
+                    <Setter Property="SnapsToDevicePixels" Value="true" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem">
+                                <CheckBox Margin="5,2"
+                                          IsChecked="{TemplateBinding IsSelected}">
+                                    <ContentPresenter />
+                                </CheckBox>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListBox.Resources>
+          
+            
+
+        </ListBox>
+         
+        
+
         <Button Name="finish1" 
                 Height="65" 
                 Grid.Column="1"
                 HorizontalAlignment="Stretch" 
                 Margin="10,10,10,10" 
-                VerticalAlignment="Top">
+                VerticalAlignment="Top" Click="finish1_Click">
             <Button.Content>
                 <TextBlock Text="Выбрать помещение на плане" 
                            TextWrapping="Wrap" 
                            TextAlignment="Center"/>
             </Button.Content>
         </Button>
+        
         <Button Name="finishAll" 
-                Height="65" 
-                Grid.Column="1"
-                HorizontalAlignment="Stretch" 
-                Margin="10,85,10,334">
+                Grid.Column="1" 
+                Margin="10,159,10,533" Click="finishAll_Click">
             <Button.Content>
                 <TextBlock Text="Отделка через список помещений" 
                            TextWrapping="Wrap" 
                            TextAlignment="Center"/>
             </Button.Content>
         </Button>
-        <Button Name="finishDel" 
-                Height="65"
+        <Button Name="finishDel"
                 Grid.Column="1" 
-                Margin="10,164,10,255">
+                Margin="10,314,10,376" Click="finishDel_Click">
             <Button.Content>
                 <TextBlock Text="Удалить отделку в выбранном помещении на плане" 
                            TextWrapping="Wrap" 
@@ -57,13 +80,19 @@
                 Height="65" 
                 Grid.Column="1" 
                 Margin="10,0,10,10"
-                VerticalAlignment="Bottom">
+                VerticalAlignment="Bottom" Click="cansel_Click">
             <Button.Content>
                 <TextBlock Text="Отмена" 
                            TextWrapping="Wrap" 
                            TextAlignment="Center"/>
             </Button.Content>
         </Button>
+        <ComboBox Grid.Column="1" 
+                  HorizontalAlignment="Center" 
+                  Margin="0,484,0,0" 
+                  VerticalAlignment="Top" 
+                  Width="95" 
+                  Height="28"/>
 
     </Grid>
 </Window>
