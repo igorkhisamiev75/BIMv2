@@ -68,7 +68,28 @@ namespace CreateFinishWallinRooms
 
         private void finishAll_Click(object sender, RoutedEventArgs e)
         {
+            foreach (var element in roomCollection)
+            {
+                foreach (var variable in ListBox.SelectedItems)
+                {
+                    if (variable.GetHashCode() == element.GetHashCode())
+                    {
+                        checkRooms.Add(element);
+                        // MessageBox.Show("Выбрано" + element.Name);
 
+                    }
+                }
+            }
+            //foreach (var VARIABLE in ListBox.SelectedItems)
+            //{
+            //    //ilterCollection.Contains(VARIABLE)
+            //    MessageBox.Show("Выбрано" + VARIABLE.GetHashCode());
+
+            //}
+            ////MessageBox.Show("Selected filters removed");
+            ///
+            MessageBox.Show("Выбрано " + checkRooms.Count + " комнат для отделки");
+            Close();
         }
 
         private void finishDel_Click(object sender, RoutedEventArgs e)
