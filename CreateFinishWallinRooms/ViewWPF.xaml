@@ -10,7 +10,7 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="0.2*"/>
+            <ColumnDefinition Width="0.3*"/>
         </Grid.ColumnDefinitions>
         <ListBox 
             Name="ListBox"
@@ -48,7 +48,7 @@
                 Grid.Column="1" 
                 Margin="10,164,10,255">
             <Button.Content>
-                <TextBlock Text="Удалить отделку" 
+                <TextBlock Text="Удалить отделку в выбранном помещении на плане" 
                            TextWrapping="Wrap" 
                            TextAlignment="Center"/>
             </Button.Content>
