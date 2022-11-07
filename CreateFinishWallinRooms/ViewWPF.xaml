@@ -1,0 +1,69 @@
+﻿<Window x:Class="CreateFinishWallinRooms.ViewWPF"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:CreateFinishWallinRooms"
+             mc:Ignorable="d" 
+             Title="Отдедка помещений - Cтены"
+             Height="500" Width="800">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="0.2*"/>
+        </Grid.ColumnDefinitions>
+        <ListBox 
+            Name="ListBox"
+            Grid.Column="0"
+            HorizontalContentAlignment="Stretch"
+            HorizontalAlignment="Stretch" 
+            Margin="10,10,10,10" 
+            VerticalAlignment="Stretch" 
+            SelectionMode="Extended"/>
+        <Button Name="finish1" 
+                Height="65" 
+                Grid.Column="1"
+                HorizontalAlignment="Stretch" 
+                Margin="10,10,10,10" 
+                VerticalAlignment="Top">
+            <Button.Content>
+                <TextBlock Text="Выбрать помещение на плане" 
+                           TextWrapping="Wrap" 
+                           TextAlignment="Center"/>
+            </Button.Content>
+        </Button>
+        <Button Name="finishAll" 
+                Height="65" 
+                Grid.Column="1"
+                HorizontalAlignment="Stretch" 
+                Margin="10,85,10,334">
+            <Button.Content>
+                <TextBlock Text="Отделка через список помещений" 
+                           TextWrapping="Wrap" 
+                           TextAlignment="Center"/>
+            </Button.Content>
+        </Button>
+        <Button Name="finishDel" 
+                Height="65"
+                Grid.Column="1" 
+                Margin="10,164,10,255">
+            <Button.Content>
+                <TextBlock Text="Удалить отделку" 
+                           TextWrapping="Wrap" 
+                           TextAlignment="Center"/>
+            </Button.Content>
+        </Button>
+        <Button Name="cansel" 
+                Height="65" 
+                Grid.Column="1" 
+                Margin="10,0,10,10"
+                VerticalAlignment="Bottom">
+            <Button.Content>
+                <TextBlock Text="Отмена" 
+                           TextWrapping="Wrap" 
+                           TextAlignment="Center"/>
+            </Button.Content>
+        </Button>
+
+    </Grid>
+</Window>

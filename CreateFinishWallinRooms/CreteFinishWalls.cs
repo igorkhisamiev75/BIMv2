@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CreateFinishWallinRooms
 {
-    public class Class1
+    public class CreteFinishWalls
     {
     }
 }
