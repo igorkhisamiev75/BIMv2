@@ -79,7 +79,7 @@ namespace CreateElementsInRooms
 
             //create new family in rooms
 
-            using (Transaction transaction = new Transaction(_doc/*, Guid.NewGuid().GetHashCode().ToString()*/))
+            using (Transaction transaction = new Transaction(_doc))
 
             {
                 try

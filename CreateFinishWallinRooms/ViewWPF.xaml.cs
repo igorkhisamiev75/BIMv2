@@ -15,19 +15,24 @@ namespace CreateFinishWallinRooms
     /// </summary>
     public partial class ViewWPF : Window
     {
-
-        //public readonly DeletedFilter m_data_filters;  // Filters data for current active document
         public List<Room> checkRooms = new List<Room>();
-
-        private readonly List<Room> roomCollection;
-        public ViewWPF(List<Room> elements)
+        
+        public List<Room> roomCollection;
+        
+        public ViewWPF(List<Room> elements, IList<WallType> typeWallCollection)
         {
             InitializeComponent();
-            roomCollection = elements;
-
-            ListBox.ItemsSource = roomCollection;
+           
+            ListBox.ItemsSource = elements;
             ListBox.DisplayMemberPath = "Name";
 
+            ComboBox.ItemsSource = typeWallCollection;
+            ComboBox.SelectedIndex = 0; 
+            ComboBox.DisplayMemberPath = "Name";
+            
+            
+            
+            
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -52,7 +57,7 @@ namespace CreateFinishWallinRooms
             //}
             ////MessageBox.Show("Selected filters removed");
             ///
-            MessageBox.Show("Выбрано " + checkRooms.Count + " фильтров для удаления");
+            //MessageBox.Show("Выбрано " + checkRooms.Count + " фильтров для удаления");
             Close();
         }
 
@@ -61,9 +66,10 @@ namespace CreateFinishWallinRooms
             Close();
         }
 
-        private void finish1_Click(object sender, RoutedEventArgs e)
+        public void finish1_Click(object sender, RoutedEventArgs e)
         {
-
+            checkRooms = null;
+           Close();
         }
 
         private void finishAll_Click(object sender, RoutedEventArgs e)
@@ -88,7 +94,7 @@ namespace CreateFinishWallinRooms
             //}
             ////MessageBox.Show("Selected filters removed");
             ///
-            MessageBox.Show("Выбрано " + checkRooms.Count + " комнат для отделки");
+            //MessageBox.Show("Выбрано " + checkRooms.Count + " комнат для отделки");
             Close();
         }
 
