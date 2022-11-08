@@ -47,14 +47,14 @@ namespace CreateFinishWallinRooms
 
         public void finish1_Click(object sender, RoutedEventArgs e)
         {
-            whatsButton = "1";
+            whatsButton = "отделкаВыборомПомещения";
             checkRooms = null;
            Close();
         }
 
         private void finishAll_Click(object sender, RoutedEventArgs e)
         {
-            whatsButton = "2";
+            whatsButton = "отделкаПоСпеке";
             foreach (Room room in roomCollection)
             {
                 foreach (var variable in ListBox.SelectedItems)
@@ -73,7 +73,7 @@ namespace CreateFinishWallinRooms
 
         private void finishDel_Click(object sender, RoutedEventArgs e)
         {
-            whatsButton = "3";
+            whatsButton = "удалитьОтделку";
             Close();
         }
     }

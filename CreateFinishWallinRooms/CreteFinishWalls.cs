@@ -82,13 +82,6 @@ namespace CreateFinishWallinRooms
 
             List<Room> checkRooms = vpViewWpf.checkRooms;
 
-            //foreach (var item in checkRooms)
-            //{
-            //    TaskDialog.Show("2bim.ru", $"Выбрана {item.Name.ToString()}");
-            //}
-
-            //TaskDialog.Show("2bim.ru", $"Выбрана {checkRooms[0].Name.ToString()}");
-
             string whatsButton = vpViewWpf.whatsButton;
 
             using (var t = new Transaction(_doc))
@@ -97,7 +90,7 @@ namespace CreateFinishWallinRooms
                 uiApp = commandData.Application;
                 uiDoc = uiApp.ActiveUIDocument;
 
-                if (whatsButton == "1")
+                if (whatsButton == "отделкаВыборомПомещения")
                 {
                     //TaskDialog.Show("2bim.ru", "1");
                     Element elem = SelectedElement(_doc); //select room
@@ -114,7 +107,7 @@ namespace CreateFinishWallinRooms
                     }
                 }
 
-                if (whatsButton == "2")
+                if (whatsButton == "отделкаПоСпеке")
                 {
                     foreach (Room room in checkRooms)
                     {
@@ -136,7 +129,7 @@ namespace CreateFinishWallinRooms
                     }
                 }
 
-                if (whatsButton == "3")
+                if (whatsButton == "удалитьОтделку")
                 {
                     //TaskDialog.Show("2bim.ru", "3");
                     //Element elem = SelectedElement(_doc); //select room
