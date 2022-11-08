@@ -7,6 +7,7 @@ using Autodesk.Revit.DB;
 using System.Collections.Generic;
 using System.Windows;
 using Autodesk.Revit.DB.Architecture;
+using System.Windows.Controls;
 
 namespace CreateFinishWallinRooms
 {
@@ -18,7 +19,10 @@ namespace CreateFinishWallinRooms
         public List<Room> checkRooms = new List<Room>();
         
         public List<Room> roomCollection;
-        
+
+        //public RoutedEventHandler routEvent;
+        public string whatsButton;
+
         public ViewWPF(List<Room> rooms, IList<WallType> typeWallCollection)
         {
             InitializeComponent();
@@ -43,20 +47,22 @@ namespace CreateFinishWallinRooms
 
         public void finish1_Click(object sender, RoutedEventArgs e)
         {
-           checkRooms = null;
+            whatsButton = "1";
+            checkRooms = null;
            Close();
         }
 
         private void finishAll_Click(object sender, RoutedEventArgs e)
         {
-            foreach (Room element in roomCollection)
+            whatsButton = "2";
+            foreach (Room room in roomCollection)
             {
                 foreach (var variable in ListBox.SelectedItems)
                 {
-                    if (element.GetHashCode() == variable.GetHashCode())
+                    if (room.GetHashCode() == variable.GetHashCode())
                     {
-                        checkRooms.Add(element);
-                        MessageBox.Show("Выбрано" + element.Name);
+                        checkRooms.Add(room);
+                        //MessageBox.Show("Выбрано" + element.Name);
 
                     }
                 }
@@ -67,7 +73,7 @@ namespace CreateFinishWallinRooms
 
         private void finishDel_Click(object sender, RoutedEventArgs e)
         {
-            //checkRooms.Add();
+            whatsButton = "3";
             Close();
         }
     }

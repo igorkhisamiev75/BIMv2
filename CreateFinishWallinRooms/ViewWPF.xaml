@@ -27,8 +27,8 @@
             HorizontalAlignment="Stretch" 
             Margin="10,10,10,10" 
             VerticalAlignment="Stretch" 
-            SelectionMode="Multiple"
-            ItemsSource="{Binding Items}">
+            SelectionMode="Multiple">
+            <!--ItemsSource="{Binding Items}"-->
 
             <!--<ListBox.Template>
                 <ControlTemplate>
@@ -46,7 +46,7 @@
                 </ControlTemplate>
             </ListBox.Template>-->
 
-            <ListBox.Resources>
+            <!--<ListBox.Resources>
                 <Style TargetType="ListBoxItem">
                     <Setter Property="OverridesDefaultStyle" Value="true" />
                     <Setter Property="SnapsToDevicePixels" Value="true" />
@@ -61,13 +61,13 @@
                         </Setter.Value>
                     </Setter>
                 </Style>
-            </ListBox.Resources>
+            </ListBox.Resources>-->
 
         </ListBox>
 
 
 
-        <Button Name="finish1" 
+        <Button x:Name="finish1" 
                 Height="65" 
                 Grid.Column="1"
                 Grid.Row="0"

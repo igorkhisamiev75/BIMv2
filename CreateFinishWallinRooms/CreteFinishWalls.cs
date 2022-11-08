@@ -69,34 +69,41 @@ namespace CreateFinishWallinRooms
 
             roomsCollection = GetAllRooms(_doc);
            
-
             foreach (var rooms in roomsCollection)
             {
                 roomsCollection2.Add((Room)rooms);
             }
 
+            //create form 
             ViewWPF vpViewWpf = new ViewWPF(roomsCollection2, WallTypes);
-
+            
+            //show form
             vpViewWpf.ShowDialog();
 
-            var checkRooms = vpViewWpf.checkRooms;
+            List<Room> checkRooms = vpViewWpf.checkRooms;
 
-            
+            //foreach (var item in checkRooms)
+            //{
+            //    TaskDialog.Show("2bim.ru", $"Выбрана {item.Name.ToString()}");
+            //}
+
+            //TaskDialog.Show("2bim.ru", $"Выбрана {checkRooms[0].Name.ToString()}");
+
+            string whatsButton = vpViewWpf.whatsButton;
+
             using (var t = new Transaction(_doc))
             {
                 t.Start("Run");
                 uiApp = commandData.Application;
                 uiDoc = uiApp.ActiveUIDocument;
 
-                
-
-                if (checkRooms == null)
+                if (whatsButton == "1")
                 {
-
+                    //TaskDialog.Show("2bim.ru", "1");
                     Element elem = SelectedElement(_doc); //select room
                     try
                     {
-                        CreateWallInSelected(elem, uiDoc);
+                        CreateWallInRoom(elem, uiDoc);
                         TaskDialog.Show("2bim.ru", "Отделка стен создана ☺☺☺");
                     }
 
@@ -107,8 +114,45 @@ namespace CreateFinishWallinRooms
                     }
                 }
 
-                //create finish
-                //CreateWallInRooms(checkRooms, uiDoc);
+                if (whatsButton == "2")
+                {
+                    foreach (Room room in checkRooms)
+                    {
+                        
+                        try
+                        {
+                            Element element = (Element)room;
+                            CreateWallInRoom(element, uiDoc);
+                            _doc.Regenerate();
+
+                            TaskDialog.Show("2bim.ru", "Отделка стен создана ☺☺☺");
+                        }
+
+                        catch
+                        {
+                            //TaskDialog.Show("2bim.ru", "Ошибка");
+                            //TaskDialog.Show("2bim.ru", "Не сработало");
+                        }
+                    }
+                }
+
+                if (whatsButton == "3")
+                {
+                    //TaskDialog.Show("2bim.ru", "3");
+                    //Element elem = SelectedElement(_doc); //select room
+                    try
+                    {
+                        //удалить отделку
+                    }
+
+                    catch
+                    {
+                        //TaskDialog.Show("2bim.ru", "Отделка стен создана ☺☺☺");
+                        //TaskDialog.Show("2bim.ru", "Не сработало");
+                    }
+                }
+
+
                 t.Commit();
 
             }
@@ -116,7 +160,7 @@ namespace CreateFinishWallinRooms
             return Result.Succeeded;
         }
 
-        public void CreateWallInSelected(Element elem, UIDocument uiDoc)
+        public void CreateWallInRoom(Element elem, UIDocument uiDoc)
         {
             string ADSK_Primechanie = "a85b7661-26b0-412f-979c-66af80b4b2c3";
 
@@ -131,6 +175,7 @@ namespace CreateFinishWallinRooms
             var elementIdWall = wallType.get_Parameter(BuiltInParameter.ALL_MODEL_TYPE_NAME).Element.Id;
 
             CurveArray roomsCurves = new CurveArray();
+                       
             Room room = (Room)elem;
 
             ElementId levelId = room.LevelId;
@@ -316,171 +361,6 @@ namespace CreateFinishWallinRooms
 
         }
 
-        public void CreateWallInRooms(List<Room> roomsCollection2, UIDocument uiDoc)
-        {
-            string ADSK_Primechanie = "a85b7661-26b0-412f-979c-66af80b4b2c3";
-
-            IList<Wall> walls = new List<Wall>();
-
-            WallType wallType;
-            IList<Element> rooms;
-            wallType = GetWallTypeInProject();
-
-            ElementId wallTypeId = wallType.GetTypeId();
-
-            var elementIdWall = wallType.get_Parameter(BuiltInParameter.ALL_MODEL_TYPE_NAME).Element.Id;
-
-            CurveArray roomsCurves = new CurveArray();
-            Room room = roomsCollection2[0];
-
-            ElementId levelId = room.LevelId;
-            double heightRoom = room.get_Parameter(BuiltInParameter.ROOM_HEIGHT).AsDouble();
-
-            if (heightRoom <= 0)
-            {
-                heightRoom = 1;
-            }
-            string numberRoom = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();
-            string nameRoom = room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
-
-            IList<Curve> curves = new List<Curve>();
-
-            SpatialElementBoundaryOptions bo = new SpatialElementBoundaryOptions();
-            IList<IList<BoundarySegment>> segments2 = room.GetBoundarySegments(bo);
-
-
-            //CurveArray temp = new CurveArray();
-
-            if (null != segments2)
-            {
-
-                foreach (IList<BoundarySegment> segment in segments2)
-                {
-                    IList<BoundarySegment> segmentList = segment;
-
-
-                    foreach (BoundarySegment boundarySegment in segmentList)
-                    {
-                        Curve c = boundarySegment.GetCurve();
-                        roomsCurves.Append(c);
-                    }
-                }
-
-
-            }
-
-            foreach (Curve g in roomsCurves)
-            {
-                if (g == null) continue;
-                if (g.IsCyclic)
-                {
-                    var wall = Wall.Create(_doc, g, levelId, false);
-
-                    //set bounding граница помещения
-                    wall.get_Parameter(BuiltInParameter.WALL_ATTR_ROOM_BOUNDING).Set(1);
-
-                    //set room name and number
-                    wall.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
-                    wall.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
-
-                    //set height
-                    wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(heightRoom);
-
-                    //set type 
-                    wall.get_Parameter(BuiltInParameter.ELEM_FAMILY_AND_TYPE_PARAM).Set(elementIdWall);
-
-
-                    _doc.Regenerate();
-
-
-                    walls.Add(wall);
-                    continue;
-                }
-                if (!g.IsCyclic)
-                {
-
-                    var wall = Wall.Create(_doc, g, levelId, false);
-                    //Wall wall = Wall.Create(_doc, curves, wallTypeId, levelId, false);
-                    wall.get_Parameter(BuiltInParameter.WALL_ATTR_ROOM_BOUNDING).Set(1);
-                    //wall.get_Parameter(BuiltInParameter.ELEM_TYPE_PARAM).Set(wallTypeId);
-                    wall.get_Parameter(BuiltInParameter.ELEM_FAMILY_AND_TYPE_PARAM).Set(elementIdWall);
-                    wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(heightRoom);
-                    wall.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
-                    wall.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
-
-                    _doc.Regenerate();
-
-                    IList<Reference> sideFaces = HostObjectUtils.GetSideFaces(wall, ShellLayerType.Interior);
-                    // MOVE WALL
-                    Face face = uiDoc.Document.GetElement(sideFaces[0])
-                        .GetGeometryObjectFromReference(sideFaces[0]) as Face;
-                    PlanarFace pf = face as PlanarFace;
-                    XYZ normal_reverted = pf.FaceNormal;
-                    wall.Location.Move(-normal_reverted * (wall.WallType.Width / 2.0));
-
-                    walls.Add(wall);
-
-                }
-            }
-
-            //join walls
-            foreach (var wall1 in walls)
-            {
-                foreach (var wall2 in walls)
-                {
-                    if (wall1 != wall2)
-                    {
-                        try
-                        {
-                            if (!JoinGeometryUtils.AreElementsJoined(_doc, wall1, wall2))
-                            {
-                                JoinGeometryUtils.JoinGeometry(_doc, wall1, wall2);
-                                //_doc.Regenerate();
-                                //JoinGeometryUtils.IsCuttingElementInJoin(_doc, wall1, wall2)||
-                            }
-                            else
-                            {
-                                continue;
-
-                            }
-                        }
-                        catch { continue; }
-
-                    }
-
-                    else { continue; }
-
-                }
-
-                //TaskDialog.Show("2bim.ru", "Все стены соеденены");
-
-            }
-            TaskDialog.Show("2bim.ru", "Все стены соеденены");
-            _doc.Regenerate();
-            //unjoin walls
-            foreach (var wall1 in walls)
-            {
-                foreach (var wall2 in walls)
-                {
-                    if (wall1 != wall2 && JoinGeometryUtils.IsCuttingElementInJoin(_doc, wall1, wall2))
-                    {
-                        if (JoinGeometryUtils.AreElementsJoined(_doc, wall1, wall2))
-                        {
-                            JoinGeometryUtils.UnjoinGeometry(_doc, wall1, wall2);
-                            TaskDialog.Show("2bim.ru", "разъеденены");
-
-                        }
-                        else
-                        {
-                            continue;
-                        }
-                    }
-                }
-            }
-
-
-        }
-
         public WallType GetWallTypeInProject()
         {
             WallType wallType;
@@ -516,17 +396,7 @@ namespace CreateFinishWallinRooms
             return allRooms;
         }
 
-        public IList<WallType> GetAllFloors(Document doc)
-        {
-
-            // Search all the wall types in the Revit
-            FilteredElementCollector filteredElementCollector = new FilteredElementCollector(doc);
-            filteredElementCollector.OfClass(typeof(WallType));
-            var m_wallTypeCollection = filteredElementCollector.Cast<WallType>().ToList<WallType>();
-
-                return m_wallTypeCollection;
-        }
-
+        
         public WallType GetWallTypeInProject(string nameTypeWall)
         {
             WallType wallType;
