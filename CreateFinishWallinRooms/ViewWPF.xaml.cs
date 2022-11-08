@@ -19,11 +19,12 @@ namespace CreateFinishWallinRooms
         
         public List<Room> roomCollection;
         
-        public ViewWPF(List<Room> elements, IList<WallType> typeWallCollection)
+        public ViewWPF(List<Room> rooms, IList<WallType> typeWallCollection)
         {
             InitializeComponent();
-           
-            ListBox.ItemsSource = elements;
+            roomCollection=rooms;
+
+            ListBox.ItemsSource = rooms;
             ListBox.DisplayMemberPath = "Name";
 
             ComboBox.ItemsSource = typeWallCollection;
@@ -35,32 +36,6 @@ namespace CreateFinishWallinRooms
             
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            foreach (var element in roomCollection)
-            {
-                foreach (var variable in ListBox.SelectedItems)
-                {
-                    if (variable.GetHashCode() == element.GetHashCode())
-                    {
-                        checkRooms.Add(element);
-                        // MessageBox.Show("Выбрано" + element.Name);
-
-                    }
-                }
-            }
-            //foreach (var VARIABLE in ListBox.SelectedItems)
-            //{
-            //    //ilterCollection.Contains(VARIABLE)
-            //    MessageBox.Show("Выбрано" + VARIABLE.GetHashCode());
-
-            //}
-            ////MessageBox.Show("Selected filters removed");
-            ///
-            //MessageBox.Show("Выбрано " + checkRooms.Count + " фильтров для удаления");
-            Close();
-        }
-
         private void cansel_Click(object sender, RoutedEventArgs e)
         {
             Close();
@@ -68,39 +43,32 @@ namespace CreateFinishWallinRooms
 
         public void finish1_Click(object sender, RoutedEventArgs e)
         {
-            checkRooms = null;
+           checkRooms = null;
            Close();
         }
 
         private void finishAll_Click(object sender, RoutedEventArgs e)
         {
-            foreach (var element in roomCollection)
+            foreach (Room element in roomCollection)
             {
                 foreach (var variable in ListBox.SelectedItems)
                 {
-                    if (variable.GetHashCode() == element.GetHashCode())
+                    if (element.GetHashCode() == variable.GetHashCode())
                     {
                         checkRooms.Add(element);
-                        // MessageBox.Show("Выбрано" + element.Name);
+                        MessageBox.Show("Выбрано" + element.Name);
 
                     }
                 }
             }
-            //foreach (var VARIABLE in ListBox.SelectedItems)
-            //{
-            //    //ilterCollection.Contains(VARIABLE)
-            //    MessageBox.Show("Выбрано" + VARIABLE.GetHashCode());
-
-            //}
-            ////MessageBox.Show("Selected filters removed");
-            ///
-            //MessageBox.Show("Выбрано " + checkRooms.Count + " комнат для отделки");
+            MessageBox.Show("Выбрано " + checkRooms.Count + " комнат для отделки");
             Close();
         }
 
         private void finishDel_Click(object sender, RoutedEventArgs e)
         {
-
+            //checkRooms.Add();
+            Close();
         }
     }
 }
