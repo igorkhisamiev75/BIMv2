@@ -95,7 +95,7 @@ namespace CreateFinishWallinRooms
                 if (whatsButton == "отделкаВыборомПомещения")
                 {
 
-                    TaskDialog.Show("2bim.ru", $"{rb.ToString()}");
+                    //TaskDialog.Show("2bim.ru", $"{rb.ToString()}");
                     Element elem = SelectedElement(_doc); //select room
                     try
                     {

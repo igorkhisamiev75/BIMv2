@@ -61,7 +61,7 @@ namespace BIMv2
 
                 //group by number apartment
                 IEnumerable<IGrouping<string, Room>> groupsRoom = rooms.GroupBy(p2 =>
-                    p2.get_Parameter(new Guid("10fb72de-237e-4b9c-915b-8849b8907695")).AsString());
+                    p2.get_Parameter(new Guid(adsk_numberRoom)).AsString());
 
                 //del not placedrooms
 
@@ -97,11 +97,11 @@ namespace BIMv2
 
                         //int i = variable.Count();
 
-                        if (koefRoom == 1)
+                        if (koefRoom == 1 || koefRoom == 0.5)
                         {
                             foreach (var room in variable)
                             {
-                                room.get_Parameter(new Guid("78e3b89c-eb68-4600-84a7-c523de162743")).Set("СТ");
+                                room.get_Parameter(new Guid(adsk_typeRoom)).Set("СТ");
                             }
                             continue;
 
@@ -111,7 +111,7 @@ namespace BIMv2
                         {
                             foreach (var room in variable)
                             {
-                                room.get_Parameter(new Guid("78e3b89c-eb68-4600-84a7-c523de162743")).Set("1(1С)");
+                                room.get_Parameter(new Guid(adsk_typeRoom)).Set("1(1С)");
                             }
                             continue;
 
@@ -121,7 +121,7 @@ namespace BIMv2
                         {
                             foreach (var room in variable)
                             {
-                                room.get_Parameter(new Guid("78e3b89c-eb68-4600-84a7-c523de162743")).Set("2(2С)");
+                                room.get_Parameter(new Guid(adsk_typeRoom)).Set("2(2С)");
                             }
                             continue;
 
@@ -131,7 +131,7 @@ namespace BIMv2
                         {
                             foreach (var room in variable)
                             {
-                                room.get_Parameter(new Guid("78e3b89c-eb68-4600-84a7-c523de162743")).Set("3(3С)");
+                                room.get_Parameter(new Guid(adsk_typeRoom)).Set("3(3С)");
                             }
                             continue;
 
@@ -141,7 +141,7 @@ namespace BIMv2
                         {
                             foreach (var room in variable)
                             {
-                                room.get_Parameter(new Guid("78e3b89c-eb68-4600-84a7-c523de162743")).Set("4(4С)");
+                                room.get_Parameter(new Guid(adsk_typeRoom)).Set("4(4С)");
                             }
                         }
 
@@ -151,7 +151,7 @@ namespace BIMv2
                             {
                                 if ((room.get_Parameter(BuiltInParameter.ROOM_DEPARTMENT)).AsString() == "Квартиры")
                                 {
-                                    room.get_Parameter(new Guid("78e3b89c-eb68-4600-84a7-c523de162743")).Set("работай");
+                                    room.get_Parameter(new Guid(adsk_typeRoom)).Set("работай");
                                     continue;
                                 }
                                 continue;
