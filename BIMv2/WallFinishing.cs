@@ -75,7 +75,7 @@ namespace BIMv2
             IEnumerable<IGrouping<string, Wall>> groups = AllFinishWall.GroupBy(p2 =>
                 p2.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString());
 
-            foreach (var group in groups)
+            foreach (IGrouping<string, Wall> group in groups)
             {
                 List<Wall> WallGroup = new List<Wall>();
                 WallGroup.Clear();

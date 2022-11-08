@@ -9,6 +9,7 @@ using Autodesk.Revit.UI;
 using Application = Autodesk.Revit.ApplicationServices.Application;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI.Selection;
+using System.Windows.Documents;
 
 namespace CreateFinishWallinRooms
 {
@@ -29,6 +30,8 @@ namespace CreateFinishWallinRooms
         public ICollection<Element> roomsCollection = new List<Element>();
 
         public List<Room> roomsCollection2 = new List<Room>();
+
+        public List<String> roomsNameInProject = new List<String>();
 
         public ICollection<Element> filtersCollectionCopy = new List<Element>();
 
@@ -74,13 +77,45 @@ namespace CreateFinishWallinRooms
                 roomsCollection2.Add((Room)rooms);
             }
 
+            
+
+            //удаление дубликатов, групирруем по имени помещения
+            List<Room> roomGroup = roomsCollection2.GroupBy(x => 
+            x.get_Parameter(BuiltInParameter.ROOM_NAME).AsString()).Select(x => x.First()).ToList();
+
+            foreach(Room room in roomGroup)
+            {
+                roomsNameInProject.Add(room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString());
+            }
+
+            //foreach(var rooms in groupedCustomerList)
+
+
+            ////group by room
+            //IEnumerable<IGrouping<string, Wall>> groups = AllFinishWall.GroupBy(p2 =>
+            //    p2.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString());
+
+            //TaskDialog.Show("2bim.ru", $"{roomGroup.Count().ToString()}");
+
             //create form 
-            ViewWPF vpViewWpf = new ViewWPF(roomsCollection2, WallTypes);
+            ViewWPF vpViewWpf = new ViewWPF(roomsNameInProject, WallTypes);
             
             //show form
             vpViewWpf.ShowDialog();
 
-            List<Room> checkRooms = vpViewWpf.checkRooms;
+            List<String> checkRoomsString = vpViewWpf.checkRooms;
+
+            List<Room> checkRooms=new List<Room>();
+
+            foreach (Room room in roomsCollection2)
+            {
+                var nameRoome= room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+
+                if (checkRoomsString.Contains(nameRoome))
+                {
+                    checkRooms.Add(room);
+                }
+            }
 
             string whatsButton = vpViewWpf.whatsButton;
 
@@ -335,8 +370,6 @@ namespace CreateFinishWallinRooms
 
             try
             {
-
-
                 var uidoc = new UIDocument(_doc);
 
                 //sDocument.Regenerate();
@@ -365,16 +398,7 @@ namespace CreateFinishWallinRooms
             collector.OfClass(typeof(WallType));
             //wallType = collector.Where(x => x.Name == nameTypeWall) as WallType;
             wallType = collector.FirstOrDefault()  as WallType;
-            //as WallType;
-
-            //FilteredElementCollector a = new FilteredElementCollector(_doc).OfClass(typeof(WallType));
-            //foreach (WallType wallType2 in a)
-            //{
-            //    if (wallType2.Name == nameTypeWall)
-            //    {
-            //        return wallType2;
-            //    }
-            //}
+            
 
             return wallType;
         }

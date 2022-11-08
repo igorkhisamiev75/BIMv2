@@ -16,20 +16,20 @@ namespace CreateFinishWallinRooms
     /// </summary>
     public partial class ViewWPF : Window
     {
-        public List<Room> checkRooms = new List<Room>();        
-        public List<Room> roomCollection;
+        public List<String> checkRooms = new List<String>();        
+        public List<String> roomCollection;
 
         //public RoutedEventHandler routEvent;
         public string whatsButton;
         public bool roomBoording;
 
-        public ViewWPF(List<Room> rooms, IList<WallType> typeWallCollection)
+        public ViewWPF(List<String> rooms, IList<WallType> typeWallCollection)
         {
             InitializeComponent();
             roomCollection=rooms;
 
             ListBox.ItemsSource = rooms;
-            ListBox.DisplayMemberPath = "Name";
+            ListBox.DisplayMemberPath = "";
 
             ComboBox.ItemsSource = typeWallCollection;
             ComboBox.SelectedIndex = 0; 
@@ -57,7 +57,7 @@ namespace CreateFinishWallinRooms
         private void finishAll_Click(object sender, RoutedEventArgs e)
         {
             whatsButton = "отделкаПоСпеке";
-            foreach (Room room in roomCollection)
+            foreach (var room in roomCollection)
             {
                 foreach (var variable in ListBox.SelectedItems)
                 {
