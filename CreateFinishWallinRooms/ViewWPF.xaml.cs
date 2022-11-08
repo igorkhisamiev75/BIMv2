@@ -16,12 +16,12 @@ namespace CreateFinishWallinRooms
     /// </summary>
     public partial class ViewWPF : Window
     {
-        public List<Room> checkRooms = new List<Room>();
-        
+        public List<Room> checkRooms = new List<Room>();        
         public List<Room> roomCollection;
 
         //public RoutedEventHandler routEvent;
         public string whatsButton;
+        public bool roomBoording;
 
         public ViewWPF(List<Room> rooms, IList<WallType> typeWallCollection)
         {
@@ -34,8 +34,8 @@ namespace CreateFinishWallinRooms
             ComboBox.ItemsSource = typeWallCollection;
             ComboBox.SelectedIndex = 0; 
             ComboBox.DisplayMemberPath = "Name";
-            
-            
+
+            //var g=chekRoomBoarding.GetValue;
             
             
         }
@@ -45,11 +45,13 @@ namespace CreateFinishWallinRooms
             Close();
         }
 
-        public void finish1_Click(object sender, RoutedEventArgs e)
+        //public bool GetChekRoomBoarding() => chekRoomBoarding;
+
+        public void finish1_Click(object sender, RoutedEventArgs e, bool chekRoomBoarding)
         {
             whatsButton = "отделкаВыборомПомещения";
-            checkRooms = null;
-           Close();
+            roomBoording = chekRoomBoarding;
+            Close();
         }
 
         private void finishAll_Click(object sender, RoutedEventArgs e)
@@ -74,6 +76,13 @@ namespace CreateFinishWallinRooms
         private void finishDel_Click(object sender, RoutedEventArgs e)
         {
             whatsButton = "удалитьОтделку";
+            Close();
+        }
+
+        private void finish1_Click(object sender, RoutedEventArgs e)
+        {
+            whatsButton = "отделкаВыборомПомещения";
+            
             Close();
         }
     }

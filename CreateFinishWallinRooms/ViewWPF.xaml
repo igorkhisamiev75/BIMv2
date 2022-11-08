@@ -135,6 +135,19 @@
             Content="Тип отделки" 
             HorizontalAlignment="Center"          
             Width="95"/>
+        <CheckBox x:Name="chekRoomBoarding"
+                  IsChecked="True"
+                  Grid.Column="1" 
+                  HorizontalAlignment="Left" 
+                  Margin="10,115,0,0" 
+                  Grid.Row="3" 
+                  VerticalAlignment="Top">
+            <CheckBox.Content>
+                <TextBlock Text="Граница помещения"
+                           TextWrapping="Wrap" 
+                           TextAlignment="Center"/>
+            </CheckBox.Content>
+        </CheckBox>
 
     </Grid>
 </Window>

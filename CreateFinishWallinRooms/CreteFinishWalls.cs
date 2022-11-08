@@ -84,6 +84,8 @@ namespace CreateFinishWallinRooms
 
             string whatsButton = vpViewWpf.whatsButton;
 
+            bool rb = vpViewWpf.roomBoording;
+
             using (var t = new Transaction(_doc))
             {
                 t.Start("Run");
@@ -92,7 +94,8 @@ namespace CreateFinishWallinRooms
 
                 if (whatsButton == "отделкаВыборомПомещения")
                 {
-                    //TaskDialog.Show("2bim.ru", "1");
+
+                    TaskDialog.Show("2bim.ru", $"{rb.ToString()}");
                     Element elem = SelectedElement(_doc); //select room
                     try
                     {
