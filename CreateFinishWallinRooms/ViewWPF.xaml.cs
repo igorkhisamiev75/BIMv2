@@ -22,6 +22,7 @@ namespace CreateFinishWallinRooms
         //public RoutedEventHandler routEvent;
         public string whatsButton;
         public bool roomBoording;
+        WallType typeWallCollectionSelected;
 
         public ViewWPF(List<String> rooms, IList<WallType> typeWallCollection)
         {
@@ -39,16 +40,13 @@ namespace CreateFinishWallinRooms
 
         private void cansel_Click(object sender, RoutedEventArgs e)
         {
-            if (chekRoomBoarding.IsChecked.GetValueOrDefault())
-            {
-                roomBoording = true;
-            }
-            else 
-            { 
-                roomBoording = false; 
-            }
+            typeWallCollectionSelected = ComboBox.SelectedValue as WallType;
+            //MessageBox.Show("Выбрано " + typeWallCollectionSelected.ToString());
 
-            //MessageBox.Show("Выбрано " + roomBoording);
+            var nameWallType = typeWallCollectionSelected.get_Parameter(BuiltInParameter.ALL_MODEL_TYPE_NAME).AsString();
+
+            MessageBox.Show("Выбрано " + nameWallType);
+
             Close();
         }
 
