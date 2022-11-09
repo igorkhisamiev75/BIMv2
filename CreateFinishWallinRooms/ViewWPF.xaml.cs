@@ -33,7 +33,7 @@ namespace CreateFinishWallinRooms
             ListBox.DisplayMemberPath = "";
 
             ComboBox.ItemsSource = typeWallCollection;
-            ComboBox.SelectedIndex = 0; 
+            ComboBox.SelectedIndex = 5; 
             ComboBox.DisplayMemberPath = "Name";
 
         }
