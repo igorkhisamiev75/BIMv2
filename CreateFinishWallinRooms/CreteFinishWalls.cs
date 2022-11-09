@@ -99,12 +99,13 @@ namespace CreateFinishWallinRooms
             //room boarding cheack box
 
             if (vpViewWpf.roomBoording == true)
-            {
-                roomBoardingWall = 1;
-            }
+            { roomBoardingWall = 1; }
 
             else { roomBoardingWall = 0; }
-             
+
+            //get selected walltype
+            WallType selectedWallTpe = vpViewWpf.typeWallCollectionSelected;
+
             //get rooms checked
             List<String> checkRoomsString = vpViewWpf.checkRooms;
 
@@ -137,7 +138,7 @@ namespace CreateFinishWallinRooms
                     Element elem = SelectedElement(_doc); //select room
                     try
                     {
-                        CreateWallInRoom(elem, uiDoc, roomBoardingWall);
+                        CreateWallInRoom(elem, uiDoc, roomBoardingWall, selectedWallTpe);
                         TaskDialog.Show("2bim.ru", "Отделка стен создана ☺☺☺");
                     }
 
@@ -156,7 +157,7 @@ namespace CreateFinishWallinRooms
                         try
                         {
                             Element element = (Element)room;
-                            CreateWallInRoom(element, uiDoc, roomBoardingWall);
+                            CreateWallInRoom(element, uiDoc, roomBoardingWall, selectedWallTpe);
                             _doc.Regenerate();
 
                             TaskDialog.Show("2bim.ru", "Отделка стен создана ☺☺☺");
@@ -194,15 +195,15 @@ namespace CreateFinishWallinRooms
             return Result.Succeeded;
         }
 
-        public void CreateWallInRoom(Element elem, UIDocument uiDoc, int _roomBoardingWall)
+        public void CreateWallInRoom(Element elem, UIDocument uiDoc, int _roomBoardingWall, WallType wallType)
         {
             string ADSK_Primechanie = "a85b7661-26b0-412f-979c-66af80b4b2c3";
 
             IList<Wall> walls = new List<Wall>();
 
-            WallType wallType;
+            //WallType wallType;
             IList<Element> rooms;
-            wallType = GetWallTypeInProject("Отделка");
+            //wallType = GetWallTypeInProject("Отделка");
 
             ElementId wallTypeId = wallType.GetTypeId();
 

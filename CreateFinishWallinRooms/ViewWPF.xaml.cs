@@ -22,7 +22,7 @@ namespace CreateFinishWallinRooms
         //public RoutedEventHandler routEvent;
         public string whatsButton;
         public bool roomBoording;
-        WallType typeWallCollectionSelected;
+        public WallType typeWallCollectionSelected;
 
         public ViewWPF(List<String> rooms, IList<WallType> typeWallCollection)
         {
@@ -40,12 +40,11 @@ namespace CreateFinishWallinRooms
 
         private void cansel_Click(object sender, RoutedEventArgs e)
         {
-            typeWallCollectionSelected = ComboBox.SelectedValue as WallType;
+            //typeWallCollectionSelected = ComboBox.SelectedValue as WallType;
             //MessageBox.Show("Выбрано " + typeWallCollectionSelected.ToString());
 
-            var nameWallType = typeWallCollectionSelected.get_Parameter(BuiltInParameter.ALL_MODEL_TYPE_NAME).AsString();
-
-            MessageBox.Show("Выбрано " + nameWallType);
+            //var nameWallType = typeWallCollectionSelected.get_Parameter(BuiltInParameter.ALL_MODEL_TYPE_NAME).AsString();
+            //MessageBox.Show("Выбрано " + nameWallType);
 
             Close();
         }
@@ -54,6 +53,8 @@ namespace CreateFinishWallinRooms
 
         public void finish1_Click(object sender, RoutedEventArgs e)
         {
+            typeWallCollectionSelected = ComboBox.SelectedValue as WallType;
+
             whatsButton = "отделкаВыборомПомещения";
 
             if (chekRoomBoarding.IsChecked.GetValueOrDefault())
@@ -70,6 +71,7 @@ namespace CreateFinishWallinRooms
 
         private void finishAll_Click(object sender, RoutedEventArgs e)
         {
+            typeWallCollectionSelected = ComboBox.SelectedValue as WallType;
             whatsButton = "отделкаПоСпеке";
 
             if (chekRoomBoarding.IsChecked.GetValueOrDefault())
