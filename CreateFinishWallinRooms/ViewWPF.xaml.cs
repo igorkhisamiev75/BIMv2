@@ -35,28 +35,54 @@ namespace CreateFinishWallinRooms
             ComboBox.SelectedIndex = 0; 
             ComboBox.DisplayMemberPath = "Name";
 
-            //var g=chekRoomBoarding.GetValue;
-            
-            
         }
 
         private void cansel_Click(object sender, RoutedEventArgs e)
         {
+            if (chekRoomBoarding.IsChecked.GetValueOrDefault())
+            {
+                roomBoording = true;
+            }
+            else 
+            { 
+                roomBoording = false; 
+            }
+
+            //MessageBox.Show("Выбрано " + roomBoording);
             Close();
         }
 
-        //public bool GetChekRoomBoarding() => chekRoomBoarding;
+        
 
-        public void finish1_Click(object sender, RoutedEventArgs e, bool chekRoomBoarding)
+        public void finish1_Click(object sender, RoutedEventArgs e)
         {
             whatsButton = "отделкаВыборомПомещения";
-            roomBoording = chekRoomBoarding;
+
+            if (chekRoomBoarding.IsChecked.GetValueOrDefault())
+            {
+                roomBoording = true;
+            }
+            else
+            {
+                roomBoording = false;
+            }
+
             Close();
         }
 
         private void finishAll_Click(object sender, RoutedEventArgs e)
         {
             whatsButton = "отделкаПоСпеке";
+
+            if (chekRoomBoarding.IsChecked.GetValueOrDefault())
+            {
+                roomBoording = true;
+            }
+            else
+            {
+                roomBoording = false;
+            }
+
             foreach (var room in roomCollection)
             {
                 foreach (var variable in ListBox.SelectedItems)
@@ -69,7 +95,7 @@ namespace CreateFinishWallinRooms
                     }
                 }
             }
-            MessageBox.Show("Выбрано " + checkRooms.Count + " комнат для отделки");
+            //MessageBox.Show("Выбрано " + checkRooms.Count + " комнат для отделки");
             Close();
         }
 
@@ -79,11 +105,5 @@ namespace CreateFinishWallinRooms
             Close();
         }
 
-        private void finish1_Click(object sender, RoutedEventArgs e)
-        {
-            whatsButton = "отделкаВыборомПомещения";
-            
-            Close();
-        }
     }
 }

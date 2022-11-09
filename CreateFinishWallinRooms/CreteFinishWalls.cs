@@ -41,6 +41,8 @@ namespace CreateFinishWallinRooms
 
         public ICollection<int> filtersInViewsId = new List<int>();
 
+        public int roomBoardingWall; //для границы помещений
+
         // Properties
         /// <summary>
         /// Inform all the wall types can be created in current document
@@ -88,21 +90,22 @@ namespace CreateFinishWallinRooms
                 roomsNameInProject.Add(room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString());
             }
 
-            //foreach(var rooms in groupedCustomerList)
-
-
-            ////group by room
-            //IEnumerable<IGrouping<string, Wall>> groups = AllFinishWall.GroupBy(p2 =>
-            //    p2.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString());
-
-            //TaskDialog.Show("2bim.ru", $"{roomGroup.Count().ToString()}");
-
             //create form 
             ViewWPF vpViewWpf = new ViewWPF(roomsNameInProject, WallTypes);
             
             //show form
             vpViewWpf.ShowDialog();
 
+            //room boarding cheack box
+
+            if (vpViewWpf.roomBoording == true)
+            {
+                roomBoardingWall = 1;
+            }
+
+            else { roomBoardingWall = 0; }
+             
+            //get rooms checked
             List<String> checkRoomsString = vpViewWpf.checkRooms;
 
             List<Room> checkRooms=new List<Room>();
@@ -134,7 +137,7 @@ namespace CreateFinishWallinRooms
                     Element elem = SelectedElement(_doc); //select room
                     try
                     {
-                        CreateWallInRoom(elem, uiDoc);
+                        CreateWallInRoom(elem, uiDoc, roomBoardingWall);
                         TaskDialog.Show("2bim.ru", "Отделка стен создана ☺☺☺");
                     }
 
@@ -153,7 +156,7 @@ namespace CreateFinishWallinRooms
                         try
                         {
                             Element element = (Element)room;
-                            CreateWallInRoom(element, uiDoc);
+                            CreateWallInRoom(element, uiDoc, roomBoardingWall);
                             _doc.Regenerate();
 
                             TaskDialog.Show("2bim.ru", "Отделка стен создана ☺☺☺");
@@ -191,7 +194,7 @@ namespace CreateFinishWallinRooms
             return Result.Succeeded;
         }
 
-        public void CreateWallInRoom(Element elem, UIDocument uiDoc)
+        public void CreateWallInRoom(Element elem, UIDocument uiDoc, int _roomBoardingWall)
         {
             string ADSK_Primechanie = "a85b7661-26b0-412f-979c-66af80b4b2c3";
 
@@ -253,7 +256,7 @@ namespace CreateFinishWallinRooms
                     var wall = Wall.Create(_doc, g, levelId, false);
 
                     //set bounding граница помещения
-                    wall.get_Parameter(BuiltInParameter.WALL_ATTR_ROOM_BOUNDING).Set(1);
+                    wall.get_Parameter(BuiltInParameter.WALL_ATTR_ROOM_BOUNDING).Set(_roomBoardingWall);
 
                     //set room name and number
                     wall.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
@@ -285,7 +288,7 @@ namespace CreateFinishWallinRooms
 
                     var wall = Wall.Create(_doc, g, levelId, false);
                     //Wall wall = Wall.Create(_doc, curves, wallTypeId, levelId, false);
-                    wall.get_Parameter(BuiltInParameter.WALL_ATTR_ROOM_BOUNDING).Set(1);
+                    wall.get_Parameter(BuiltInParameter.WALL_ATTR_ROOM_BOUNDING).Set(_roomBoardingWall);
                     //wall.get_Parameter(BuiltInParameter.ELEM_TYPE_PARAM).Set(wallTypeId);
                     wall.get_Parameter(BuiltInParameter.ELEM_FAMILY_AND_TYPE_PARAM).Set(elementIdWall);
                     wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(heightRoom);
