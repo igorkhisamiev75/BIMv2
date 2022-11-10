@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Autodesk.Revit.UI;
 using System.Windows.Media.Imaging;
+using BIMv2;
 
 namespace BIMv2Buttons
 {
@@ -56,22 +57,36 @@ namespace BIMv2Buttons
             BitmapImage pb23Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-typeRoom-32.png"));
             pb23.LargeImage = pb23Image;
 
+            //попробуем создать еще одну кнопку
+            ribbonPanelb2.AddSeparator(); //разделитель между кнопками
+
+            // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData b1DataB2_2 = new PushButtonData("cmdCreteFinishWalls", "Создать стены"
+                + Environment.NewLine + "в помещении", thisAssemblyPath, "BIMv2.CreteFinishWalls");
+
+            PushButton pb1B2_2 = ribbonPanelb2.AddItem(b1DataB2_2) as PushButton;
+            pb1B2_2.ToolTip = "Создать отделочные стены в помещении";
+
+            BitmapImage pb1ImageB2_2 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-finishwall-32.png"));
+            pb1B2_2.LargeImage = pb1ImageB2_2;
 
             //попробуем создать еще одну кнопку
             ribbonPanelb2.AddSeparator(); //разделитель между кнопками
 
-
-
-
             // create push button for CurveTotalLength  //namespace и класс
-            PushButtonData b1DataB2_1 = new PushButtonData("cmdWriteNameRoomInPlumbingFixtures", "Помещения"
-                + Environment.NewLine + "в элементы", thisAssemblyPath, "BIMv2.WriteNameRoomInPlumbingFixtures");
+            PushButtonData b1DataB2_1 = new PushButtonData("cmdConvertGrids3Dto2D", "Оси 2D/3D"
+                + Environment.NewLine + "поменять", thisAssemblyPath, "BIMv2.ConvertGrids3Dto2D");
 
             PushButton pb1B2_1 = ribbonPanelb2.AddItem(b1DataB2_1) as PushButton;
-            pb1B2_1.ToolTip = "Переписывает номера и имена в ADSK_Зона для сантехники, обобщенных моделей, спец.оборудование, мебель";
+            pb1B2_1.ToolTip = "Перевести оси в 2D либо 3D";
 
-            BitmapImage pb1ImageB2_1 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/transferNameRoom.png"));
+            BitmapImage pb1ImageB2_1 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-2d-16.png"));
             pb1B2_1.LargeImage = pb1ImageB2_1;
+
+
+            //кнопки 2BIM
+
+
 
             String tabName = "BIMv2";    // создание вкладки
             application.CreateRibbonTab(tabName);

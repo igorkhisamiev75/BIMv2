@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
@@ -8,7 +9,7 @@ using Autodesk.Revit.UI;
 using Application = Autodesk.Revit.ApplicationServices.Application;
 
 
-namespace BIMv2Buttons
+namespace BIMv2
 {
     [Transaction(TransactionMode.Manual)]
     class ConvertGrids3Dto2D : IExternalCommand
@@ -29,9 +30,16 @@ namespace BIMv2Buttons
                 t.Start("Run");
                 uiApp = commandData.Application;
                 uiDoc = uiApp.ActiveUIDocument;
+                try
+                {
+                    ConvertTo2D(_doc, uiDoc);
+                    TaskDialog.Show("Готово", "Оси переведены в 2D/3D");
+                }
+                catch
+                {
+                    TaskDialog.Show("Не сработало", "Вообще программирование это как в лесу на Аляске искать дорогу домой и спрашивать дорогу у глухонемого алеута");
+                }
 
-                ConvertTo2D(_doc, uiDoc);
-                TaskDialog.Show("Готово", "Оси переведены в 2D/3D");
                 t.Commit();
 
             }
@@ -43,7 +51,7 @@ namespace BIMv2Buttons
 
         public void ConvertTo2D(Document doc, UIDocument uiDoc)
         {
-            var grids = GetAllGridsElements(doc);
+            IList<Element> grids = GetAllGridsElements(doc);
 
             if (grids.Count != 0)
             {
@@ -52,7 +60,7 @@ namespace BIMv2Buttons
                 if ((grid.GetDatumExtentTypeInView(DatumEnds.End0, doc.ActiveView) == DatumExtentType.Model) ||
                     (grid.GetDatumExtentTypeInView(DatumEnds.End1, doc.ActiveView) == DatumExtentType.Model))
                 {
-                    foreach (var VARIABLE in grids)
+                    foreach (Element VARIABLE in grids)
                     {
                         Grid grid2 = VARIABLE as Grid;
 
@@ -74,42 +82,11 @@ namespace BIMv2Buttons
                 }
             }
 
-            
 
 
+        }
 
 
-
-
-
-            //double grl1 = gr.Curve.GetEndPoint(0).X + gr.Curve.GetEndPoint(0).Y;
-            //double grl2 = gr.Curve.GetEndPoint(1).X + gr.Curve.GetEndPoint(1).Y;
-
-            
-                
-
-                //show and hide bubble
-                //if (!gr.IsBubbleVisibleInView(DatumEnds.End0, doc.ActiveView) && !gr.IsBubbleVisibleInView(DatumEnds.End1, doc.ActiveView))
-                //{
-                //    gr.ShowBubbleInView(DatumEnds.End0, doc.ActiveView);
-                //    gr.ShowBubbleInView(DatumEnds.End1, doc.ActiveView);
-                //}
-                ////all ON then turn all OFF
-                //else if (gr.IsBubbleVisibleInView(DatumEnds.End0, doc.ActiveView) && gr.IsBubbleVisibleInView(DatumEnds.End1, doc.ActiveView))
-                //{
-                //    gr.HideBubbleInView(DatumEnds.End0, doc.ActiveView);
-                //    gr.HideBubbleInView(DatumEnds.End1, doc.ActiveView);
-                //}
-                ////if one is ON then Turn all ON.
-                //else if ((gr.IsBubbleVisibleInView(DatumEnds.End0, doc.ActiveView) && !gr.IsBubbleVisibleInView(DatumEnds.End1, doc.ActiveView)) || ((!gr.IsBubbleVisibleInView(DatumEnds.End0, doc.ActiveView) && gr.IsBubbleVisibleInView(DatumEnds.End1, doc.ActiveView))))
-                //{
-                //    gr.ShowBubbleInView(DatumEnds.End0, doc.ActiveView);
-                //    gr.ShowBubbleInView(DatumEnds.End1, doc.ActiveView);
-                //}
-
-            }
-
-        
 
         public IList<Element> GetAllGridsElements(Document document)
         {
@@ -118,8 +95,8 @@ namespace BIMv2Buttons
                 .OfCategory(BuiltInCategory.OST_Grids)
                 .WhereElementIsNotElementType();
 
-            IList<Element> allFloors = grid_collector.ToElements();
-            return allFloors;
+            IList<Element> allGrid = grid_collector.ToElements();
+            return allGrid;
         }
     }
 
