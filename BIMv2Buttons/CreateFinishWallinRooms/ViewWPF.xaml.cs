@@ -11,30 +11,36 @@ namespace BIMv2Buttons.CreateFinishWallinRooms
     /// </summary>
     public partial class ViewWPF : Window
     {
-        public List<String> checkRooms = new List<String>();        
+        public List<String> checkRooms = new List<String>();
         public List<String> roomCollection;
 
         //public RoutedEventHandler routEvent;
         public string whatsButton;
         public bool roomBoording;
         public WallType typeWallCollectionSelected;
+        public Level selectedLevel;
 
-        public ViewWPF(List<String> rooms, IList<WallType> typeWallCollection)
+        public ViewWPF(List<String> rooms, IList<WallType> typeWallCollection, List<Level> levels)
         {
             InitializeComponent();
-            roomCollection=rooms;
+            roomCollection = rooms;
 
             ListBox.ItemsSource = rooms;
             ListBox.DisplayMemberPath = "";
 
             ComboBox.ItemsSource = typeWallCollection;
-            ComboBox.SelectedIndex = 5; 
+            ComboBox.SelectedIndex = 5;
             ComboBox.DisplayMemberPath = "Name";
+
+            ComboBoxLevel.ItemsSource = levels;
+            ComboBoxLevel.DisplayMemberPath = "Name";
+            ComboBoxLevel.SelectedItem = 1;
 
         }
 
         private void cansel_Click(object sender, RoutedEventArgs e)
         {
+            selectedLevel = ComboBoxLevel.SelectedItem as Level;
             //typeWallCollectionSelected = ComboBox.SelectedValue as WallType;
             //MessageBox.Show("Выбрано " + typeWallCollectionSelected.ToString());
 
@@ -44,10 +50,11 @@ namespace BIMv2Buttons.CreateFinishWallinRooms
             Close();
         }
 
-        
+
 
         public void finish1_Click(object sender, RoutedEventArgs e)
         {
+            selectedLevel = ComboBoxLevel.SelectedItem as Level;
             typeWallCollectionSelected = ComboBox.SelectedValue as WallType;
 
             whatsButton = "отделкаВыборомПомещения";
@@ -66,6 +73,8 @@ namespace BIMv2Buttons.CreateFinishWallinRooms
 
         private void finishAll_Click(object sender, RoutedEventArgs e)
         {
+            selectedLevel = ComboBoxLevel.SelectedItem as Level;
+
             typeWallCollectionSelected = ComboBox.SelectedValue as WallType;
             whatsButton = "отделкаПоСпеке";
 

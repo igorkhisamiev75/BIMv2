@@ -22,11 +22,13 @@ namespace BIMv2
 
         private Application _app;
         private Document _doc;
-        private ViewSet m_allViews = new ViewSet();
+        //private ViewSet m_allViews = new ViewSet();
 
         public ICollection<View> viewsInProject = new List<View>();
 
         public ICollection<Element> roomsCollection = new List<Element>();
+
+        public List<Level> levelCollection2 = new List<Level>();
 
         public List<Room> roomsCollection2 = new List<Room>();
 
@@ -41,6 +43,7 @@ namespace BIMv2
         public ICollection<int> filtersInViewsId = new List<int>();
 
         public int roomBoardingWall; //для границы помещений
+        Level selectedLevelInForms;
 
         // Properties
         /// <summary>
@@ -65,6 +68,15 @@ namespace BIMv2
 
             //m_wallTypeCollection = new IList<WallType>();
 
+            // Search all level
+            FilteredElementCollector filteredLevelCollector = new FilteredElementCollector(_doc);
+            filteredLevelCollector.OfClass(typeof(Level));
+            List<Level> levelCollection = filteredLevelCollector.Cast<Level>().ToList<Level>();
+
+            levelCollection2 = levelCollection;
+
+            //TaskDialog.Show("2bim.ru", $"{levelCollection.Count()}");
+
             // Search all the wall types in the Revit
             FilteredElementCollector filteredElementCollector = new FilteredElementCollector(_doc);
             filteredElementCollector.OfClass(typeof(WallType));
@@ -72,26 +84,26 @@ namespace BIMv2
 
 
             roomsCollection = GetAllRooms(_doc);
-           
+
             foreach (var rooms in roomsCollection)
             {
                 roomsCollection2.Add((Room)rooms);
             }
 
-            
+
 
             //удаление дубликатов, групирруем по имени помещения
-            List<Room> roomGroup = roomsCollection2.GroupBy(x => 
+            List<Room> roomGroup = roomsCollection2.GroupBy(x =>
             x.get_Parameter(BuiltInParameter.ROOM_NAME).AsString()).Select(x => x.First()).ToList();
 
-            foreach(Room room in roomGroup)
+            foreach (Room room in roomGroup)
             {
                 roomsNameInProject.Add(room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString());
             }
 
             //create form 
-            ViewWPF vpViewWpf = new ViewWPF(roomsNameInProject, WallTypes);
-            
+            ViewWPF vpViewWpf = new ViewWPF(roomsNameInProject, WallTypes, levelCollection2);
+
             //show form
             vpViewWpf.ShowDialog();
 
@@ -108,13 +120,25 @@ namespace BIMv2
             //get rooms checked
             List<String> checkRoomsString = vpViewWpf.checkRooms;
 
-            List<Room> checkRooms=new List<Room>();
+            //get selected level
+
+            selectedLevelInForms = vpViewWpf.selectedLevel;
+            //if(selectedLevelInForms != null)
+            //{
+            //    TaskDialog.Show("2bim.ru", $"Level name selected {selectedLevelInForms.Name}");
+            //}
+
+
+
+            List<Room> checkRooms = new List<Room>();
 
             foreach (Room room in roomsCollection2)
             {
-                var nameRoome= room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+                string nameRoome = room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+                var levelRoom = room.get_Parameter(BuiltInParameter.ROOM_LEVEL_ID).AsValueString();
+                var levelSelect = selectedLevelInForms.Name;
 
-                if (checkRoomsString.Contains(nameRoome))
+                if (checkRoomsString.Contains(nameRoome) && levelSelect == levelRoom)
                 {
                     checkRooms.Add(room);
                 }
@@ -145,7 +169,7 @@ namespace BIMv2
                     catch
                     {
                         //TaskDialog.Show("2bim.ru", "Отделка стен создана ☺☺☺");
-                        //TaskDialog.Show("2bim.ru", "Не сработало");
+                        //
                     }
                 }
 
@@ -153,7 +177,7 @@ namespace BIMv2
                 {
                     foreach (Room room in checkRooms)
                     {
-                        
+
                         try
                         {
                             Element element = (Element)room;
@@ -210,10 +234,11 @@ namespace BIMv2
             var elementIdWall = wallType.get_Parameter(BuiltInParameter.ALL_MODEL_TYPE_NAME).Element.Id;
 
             CurveArray roomsCurves = new CurveArray();
-                       
+
             Room room = (Room)elem;
 
             ElementId levelId = room.LevelId;
+
             double heightRoom = room.get_Parameter(BuiltInParameter.ROOM_HEIGHT).AsDouble();
 
             if (heightRoom <= 0)
@@ -402,7 +427,7 @@ namespace BIMv2
         //    collector.OfClass(typeof(WallType));
         //    //wallType = collector.Where(x => x.Name == nameTypeWall) as WallType;
         //    wallType = collector.FirstOrDefault()  as WallType;
-            
+
 
         //    return wallType;
         //}
@@ -420,7 +445,7 @@ namespace BIMv2
             return allRooms;
         }
 
-        
+
         //public WallType GetWallTypeInProject(string nameTypeWall)
         //{
         //    WallType wallType;

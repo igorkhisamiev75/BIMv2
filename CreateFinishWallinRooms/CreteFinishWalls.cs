@@ -22,7 +22,7 @@ namespace CreateFinishWallinRooms
 
         private Application _app;
         private Document _doc;
-        private ViewSet m_allViews = new ViewSet();
+        //private ViewSet m_allViews = new ViewSet();
 
         public ICollection<View> viewsInProject = new List<View>();
 
