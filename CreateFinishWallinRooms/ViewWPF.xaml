@@ -22,7 +22,7 @@
         <ListBox 
             Name="ListBox"
             Grid.Column="0"
-            Grid.RowSpan="2"
+            Grid.RowSpan="3"
             HorizontalContentAlignment="Stretch"
             HorizontalAlignment="Stretch" 
             Margin="10,20,10,10" 
@@ -121,7 +121,7 @@
         <ComboBox 
             Name="ComboBox" 
             Grid.Column="0"
-            Grid.Row="2"
+            Grid.Row="3"
             HorizontalAlignment="Left" 
             VerticalAlignment="Top"
             Margin="10,40,10,10"
@@ -129,7 +129,7 @@
             Height="28"/>
         <Label 
             Grid.Column="0"
-            Grid.Row="2"
+            Grid.Row="3"
             VerticalAlignment="Top" 
             Margin="10,10,0,0"
             Content="Выбрать тип стен для отделки" 
@@ -140,7 +140,7 @@
         <CheckBox x:Name="chekRoomBoarding"
                   IsChecked="True"
                   Grid.Column="0" 
-                  Grid.Row="2" 
+                  Grid.Row="3" 
                   HorizontalAlignment="Left" 
                   Margin="10,85,0,0" 
                   VerticalAlignment="Top">
@@ -152,10 +152,10 @@
         </CheckBox>
         <Border BorderBrush="#FF787070" 
                 BorderThickness="1" 
-                Grid.Row="2"/>
+                Grid.Row="3"/>
         <Border BorderBrush="#FF787070" 
                 BorderThickness="1" 
-                Grid.RowSpan="2"/>
+                Grid.RowSpan="3"/>
         <Label Content="Список имён помещений" 
                HorizontalAlignment="Left" 
                Margin="10,0,0,0" 

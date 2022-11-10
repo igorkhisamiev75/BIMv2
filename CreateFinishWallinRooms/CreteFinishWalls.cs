@@ -121,6 +121,7 @@ namespace CreateFinishWallinRooms
                 }
             }
 
+            //whats button
             string whatsButton = vpViewWpf.whatsButton;
 
             bool rb = vpViewWpf.roomBoording;
@@ -144,7 +145,7 @@ namespace CreateFinishWallinRooms
 
                     catch
                     {
-                        TaskDialog.Show("2bim.ru", "Отделка стен создана ☺☺☺");
+                        //TaskDialog.Show("2bim.ru", "Отделка стен создана ☺☺☺");
                         //TaskDialog.Show("2bim.ru", "Не сработало");
                     }
                 }
@@ -394,18 +395,18 @@ namespace CreateFinishWallinRooms
 
         }
 
-        public WallType GetWallTypeInProject()
-        {
-            WallType wallType;
-            //// Get a floor type for floor creation
-            FilteredElementCollector collector = new FilteredElementCollector(_doc);
-            collector.OfClass(typeof(WallType));
-            //wallType = collector.Where(x => x.Name == nameTypeWall) as WallType;
-            wallType = collector.FirstOrDefault()  as WallType;
+        //public WallType GetWallTypeInProject()
+        //{
+        //    WallType wallType;
+        //    //// Get a floor type for floor creation
+        //    FilteredElementCollector collector = new FilteredElementCollector(_doc);
+        //    collector.OfClass(typeof(WallType));
+        //    //wallType = collector.Where(x => x.Name == nameTypeWall) as WallType;
+        //    wallType = collector.FirstOrDefault()  as WallType;
             
 
-            return wallType;
-        }
+        //    return wallType;
+        //}
 
         //get all rooms
         public IList<Element> GetAllRooms(Document doc)
@@ -421,25 +422,25 @@ namespace CreateFinishWallinRooms
         }
 
         
-        public WallType GetWallTypeInProject(string nameTypeWall)
-        {
-            WallType wallType;
-            //// Get a floor type for floor creation
-            FilteredElementCollector collector = new FilteredElementCollector(_doc);
-            collector.OfClass(typeof(WallType));
-            wallType = collector.Where(x => x.Name == nameTypeWall) as WallType;
-            //as WallType;
+        //public WallType GetWallTypeInProject(string nameTypeWall)
+        //{
+        //    WallType wallType;
+        //    //// Get a floor type for floor creation
+        //    FilteredElementCollector collector = new FilteredElementCollector(_doc);
+        //    collector.OfClass(typeof(WallType));
+        //    wallType = collector.Where(x => x.Name == nameTypeWall) as WallType;
+        //    //as WallType;
 
-            FilteredElementCollector a = new FilteredElementCollector(_doc).OfClass(typeof(WallType));
-            foreach (WallType wallType2 in a)
-            {
-                if (wallType2.Name == nameTypeWall)
-                {
-                    return wallType2;
-                }
-            }
+        //    FilteredElementCollector a = new FilteredElementCollector(_doc).OfClass(typeof(WallType));
+        //    foreach (WallType wallType2 in a)
+        //    {
+        //        if (wallType2.Name == nameTypeWall)
+        //        {
+        //            return wallType2;
+        //        }
+        //    }
 
-            return wallType;
-        }
+        //    return wallType;
+        //}
     }
 }
