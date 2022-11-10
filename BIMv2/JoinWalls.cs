@@ -41,28 +41,31 @@ namespace BIMv2
                 t.Start("Join walls");
 
                 //get all walls
-
                 IList<Element> allWallElements = GetAllWallElements(_doc);
 
                 //join walls
                 foreach (var wall1 in allWallElements)
                 {
+                    //BoundingBoxXYZ g1 = wall1.get_BoundingBox(_doc.ActiveView);
+                    //Element f = g1.;
                     foreach (var wall2 in allWallElements)
                     {
+                        //BoundingBoxXYZ g2 = wall2.get_BoundingBox(_doc.ActiveView);
                         if (wall1 != wall2)
                         {
                             try
                             {
-                                if (!JoinGeometryUtils.AreElementsJoined(_doc, wall1, wall2))
-                                {
-                                    JoinGeometryUtils.JoinGeometry(_doc, wall1, wall2);
-                                  
-                                }
+                                if (JoinGeometryUtils.AreElementsJoined(_doc, wall1, wall2)||
+                                    JoinGeometryUtils.AreElementsJoined(_doc, wall2, wall1))
+                                { continue; }
                                 else
                                 {
+                                    JoinGeometryUtils.JoinGeometry(_doc, wall1, wall2);
+                                    _doc.Regenerate();
                                     continue;
 
                                 }
+                                
                             }
                             catch { continue; }
 
@@ -77,28 +80,42 @@ namespace BIMv2
                 
                 _doc.Regenerate();
 
-                //unjoin walls
-                foreach (var wall1 in allWallElements)
+                var warnings= _doc.GetWarnings();
+
+                TaskDialog.Show("2bim.ru", $"{warnings.Count}");
+
+                foreach (var warning in warnings)
                 {
-                    foreach (var wall2 in allWallElements)
-                    {
-                        if (wall1 != wall2 && JoinGeometryUtils.IsCuttingElementInJoin(_doc, wall1, wall2))
+                    ICollection<ElementId> elementsWarnings = warning.GetFailingElements();
+
+                    foreach (var el2 in elementsWarnings)
+                        foreach (var el3 in elementsWarnings)
                         {
-                            if (JoinGeometryUtils.AreElementsJoined(_doc, wall1, wall2))
+                            try
                             {
-                                JoinGeometryUtils.UnjoinGeometry(_doc, wall1, wall2);
-                                continue;
+                                if (el2 != el3)
+                                {
+                                    Element firstElement = _doc.GetElement(el2);
+                                    Element secondElement = _doc.GetElement(el3);
+
+                                    JoinGeometryUtils.UnjoinGeometry(_doc, firstElement, secondElement);
+                                    _doc.Regenerate();
+                                }
                             }
 
-                            else
+                            catch
                             {
                                 continue;
                             }
+                            
                         }
+                    {
+                        
                     }
                 }
+                             
 
-                TaskDialog.Show("2bim.ru", "Стены соеденены ☺☺☺");
+                //TaskDialog.Show("2bim.ru", "Стены соеденены ☺☺☺");
                 t.Commit();
 
             }
