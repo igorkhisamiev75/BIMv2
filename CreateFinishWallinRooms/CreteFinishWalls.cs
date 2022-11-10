@@ -28,6 +28,8 @@ namespace CreateFinishWallinRooms
 
         public ICollection<Element> roomsCollection = new List<Element>();
 
+        public List<Level> levelCollection2 = new List<Level>();
+
         public List<Room> roomsCollection2 = new List<Room>();
 
         public List<String> roomsNameInProject = new List<String>();
@@ -41,6 +43,7 @@ namespace CreateFinishWallinRooms
         public ICollection<int> filtersInViewsId = new List<int>();
 
         public int roomBoardingWall; //для границы помещений
+        Level selectedLevelInForms;
 
         // Properties
         /// <summary>
@@ -64,6 +67,15 @@ namespace CreateFinishWallinRooms
             _doc = uiDoc.Document;
 
             //m_wallTypeCollection = new IList<WallType>();
+
+            // Search all level
+            FilteredElementCollector filteredLevelCollector = new FilteredElementCollector(_doc);
+            filteredLevelCollector.OfClass(typeof(Level));
+            List<Level> levelCollection = filteredLevelCollector.Cast<Level>().ToList<Level>();
+
+            levelCollection2 = levelCollection;
+
+            //TaskDialog.Show("2bim.ru", $"{levelCollection.Count()}");
 
             // Search all the wall types in the Revit
             FilteredElementCollector filteredElementCollector = new FilteredElementCollector(_doc);
@@ -90,7 +102,7 @@ namespace CreateFinishWallinRooms
             }
 
             //create form 
-            ViewWPF vpViewWpf = new ViewWPF(roomsNameInProject, WallTypes);
+            ViewWPF vpViewWpf = new ViewWPF(roomsNameInProject, WallTypes, levelCollection2);
             
             //show form
             vpViewWpf.ShowDialog();
@@ -108,13 +120,25 @@ namespace CreateFinishWallinRooms
             //get rooms checked
             List<String> checkRoomsString = vpViewWpf.checkRooms;
 
+            //get selected level
+
+            selectedLevelInForms = vpViewWpf.selectedLevel;
+            //if(selectedLevelInForms != null)
+            //{
+            //    TaskDialog.Show("2bim.ru", $"Level name selected {selectedLevelInForms.Name}");
+            //}
+            
+
+
             List<Room> checkRooms=new List<Room>();
 
             foreach (Room room in roomsCollection2)
             {
-                var nameRoome= room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+                string nameRoome = room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+                var levelRoom = room.get_Parameter(BuiltInParameter.ROOM_LEVEL_ID).AsValueString();
+                var levelSelect = selectedLevelInForms.Name;
 
-                if (checkRoomsString.Contains(nameRoome))
+                if (checkRoomsString.Contains(nameRoome) && levelSelect == levelRoom)
                 {
                     checkRooms.Add(room);
                 }
@@ -145,7 +169,7 @@ namespace CreateFinishWallinRooms
                     catch
                     {
                         //TaskDialog.Show("2bim.ru", "Отделка стен создана ☺☺☺");
-                        //TaskDialog.Show("2bim.ru", "Не сработало");
+                        //
                     }
                 }
 
@@ -214,6 +238,7 @@ namespace CreateFinishWallinRooms
             Room room = (Room)elem;
 
             ElementId levelId = room.LevelId;
+
             double heightRoom = room.get_Parameter(BuiltInParameter.ROOM_HEIGHT).AsDouble();
 
             if (heightRoom <= 0)

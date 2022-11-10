@@ -23,8 +23,9 @@ namespace CreateFinishWallinRooms
         public string whatsButton;
         public bool roomBoording;
         public WallType typeWallCollectionSelected;
+        public Level selectedLevel;
 
-        public ViewWPF(List<String> rooms, IList<WallType> typeWallCollection)
+        public ViewWPF(List<String> rooms, IList<WallType> typeWallCollection, List<Level> levels)
         {
             InitializeComponent();
             roomCollection=rooms;
@@ -36,10 +37,15 @@ namespace CreateFinishWallinRooms
             ComboBox.SelectedIndex = 5; 
             ComboBox.DisplayMemberPath = "Name";
 
+            ComboBoxLevel.ItemsSource = levels;
+            ComboBoxLevel.DisplayMemberPath = "Name";
+            ComboBoxLevel.SelectedItem = 1;
+
         }
 
         private void cansel_Click(object sender, RoutedEventArgs e)
         {
+            selectedLevel = ComboBoxLevel.SelectedItem as Level;
             //typeWallCollectionSelected = ComboBox.SelectedValue as WallType;
             //MessageBox.Show("Выбрано " + typeWallCollectionSelected.ToString());
 
@@ -53,6 +59,7 @@ namespace CreateFinishWallinRooms
 
         public void finish1_Click(object sender, RoutedEventArgs e)
         {
+            selectedLevel = ComboBoxLevel.SelectedItem as Level;
             typeWallCollectionSelected = ComboBox.SelectedValue as WallType;
 
             whatsButton = "отделкаВыборомПомещения";
@@ -71,6 +78,8 @@ namespace CreateFinishWallinRooms
 
         private void finishAll_Click(object sender, RoutedEventArgs e)
         {
+            selectedLevel=ComboBoxLevel.SelectedItem as Level;
+
             typeWallCollectionSelected = ComboBox.SelectedValue as WallType;
             whatsButton = "отделкаПоСпеке";
 
