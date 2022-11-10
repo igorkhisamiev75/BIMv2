@@ -13,7 +13,7 @@
             <RowDefinition></RowDefinition>
             <RowDefinition></RowDefinition>
             <RowDefinition></RowDefinition>
-            <RowDefinition></RowDefinition>
+            <RowDefinition Height="0.5*"></RowDefinition>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
@@ -99,17 +99,16 @@
                 VerticalAlignment="Top" 
                 Click="finishDel_Click">
             <Button.Content>
-                <TextBlock Text="Удалить отделку в выбранном помещении на плане" 
+                <TextBlock Text="Пока не работает кнопка, но процесс движется" 
                            TextWrapping="Wrap" 
                            TextAlignment="Center"/>
             </Button.Content>
         </Button>
         <Button Name="cansel" 
-                Height="65" 
                 Grid.Column="1"
                 Grid.Row="4" 
                 Margin="10,10,10,10"                 
-                VerticalAlignment="Bottom" 
+                VerticalAlignment="Stretch" 
                 Click="cansel_Click" 
                 IsCancel="True">
             <Button.Content>

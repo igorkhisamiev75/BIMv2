@@ -39,7 +39,7 @@ namespace BIMv2Buttons
                 + Environment.NewLine + "лишнии помещения", thisAssemblyPath, "BIMv2.DelUnplacedRoom");
 
             PushButton pb24 = ribbonPanelb2.AddItem(b24Data) as PushButton;
-            pb24.ToolTip = "Удаляет лишние помещения из проекта";
+            pb24.ToolTip = "Удаляет лишнии помещения из проекта, чтобы было красиво";
 
             BitmapImage pb24Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-clean2-32.png"));
             pb24.LargeImage = pb24Image;
