@@ -103,9 +103,11 @@ namespace CreateFinishWallinRooms
 
             //create form 
             ViewWPF vpViewWpf = new ViewWPF(roomsNameInProject, WallTypes, levelCollection2);
-            
+
             //show form
+            vpViewWpf.WindowStartupLocation = WindowStartupLocation.CenterScreen;
             vpViewWpf.ShowDialog();
+           
 
             //room boarding cheack box
 

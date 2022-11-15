@@ -39,13 +39,14 @@ namespace CreateFinishWallinRooms
 
             ComboBoxLevel.ItemsSource = levels;
             ComboBoxLevel.DisplayMemberPath = "Name";
-            ComboBoxLevel.SelectedItem = 1;
+            ComboBoxLevel.SelectedIndex = 1;
 
         }
 
         private void cansel_Click(object sender, RoutedEventArgs e)
         {
             selectedLevel = ComboBoxLevel.SelectedItem as Level;
+            typeWallCollectionSelected = ComboBox.SelectedValue as WallType;
             //typeWallCollectionSelected = ComboBox.SelectedValue as WallType;
             //MessageBox.Show("Выбрано " + typeWallCollectionSelected.ToString());
 
