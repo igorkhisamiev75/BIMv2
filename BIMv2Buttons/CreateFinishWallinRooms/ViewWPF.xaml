@@ -9,11 +9,11 @@
              Height="800" Width="600">
     <Grid >
         <Grid.RowDefinitions>
-            <RowDefinition></RowDefinition>
-            <RowDefinition></RowDefinition>
-            <RowDefinition></RowDefinition>
-            <RowDefinition></RowDefinition>
-            <RowDefinition></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="0.5*"></RowDefinition>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
@@ -28,40 +28,6 @@
             Margin="10,20,10,10" 
             VerticalAlignment="Stretch" 
             SelectionMode="Multiple">
-            <!--ItemsSource="{Binding Items}"-->
-
-            <!--<ListBox.Template>
-                <ControlTemplate>
-                    <DockPanel LastChildFill="True">
-                        <Grid DockPanel.Dock="Top" Height="30">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="0.1*"></ColumnDefinition>
-                                <ColumnDefinition Width="*"></ColumnDefinition>
-                            </Grid.ColumnDefinitions>
-                            <Label Grid.Column="0">*</Label>
-                            <Label Grid.Column="1">Имя помещения</Label>
-                        </Grid>
-                        <ItemsPresenter></ItemsPresenter>
-                    </DockPanel>
-                </ControlTemplate>
-            </ListBox.Template>-->
-
-            <!--<ListBox.Resources>
-                <Style TargetType="ListBoxItem">
-                    <Setter Property="OverridesDefaultStyle" Value="true" />
-                    <Setter Property="SnapsToDevicePixels" Value="true" />
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="ListBoxItem">
-                                <CheckBox Margin="5,2"
-                                          IsChecked="{TemplateBinding IsSelected}">
-                                    <ContentPresenter />
-                                </CheckBox>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </ListBox.Resources>-->
 
         </ListBox>
 
@@ -99,17 +65,16 @@
                 VerticalAlignment="Top" 
                 Click="finishDel_Click">
             <Button.Content>
-                <TextBlock Text="Удалить отделку в выбранном помещении на плане" 
+                <TextBlock Text="Пока не работает кнопка, но процесс движется" 
                            TextWrapping="Wrap" 
                            TextAlignment="Center"/>
             </Button.Content>
         </Button>
         <Button Name="cansel" 
-                Height="65" 
                 Grid.Column="1"
                 Grid.Row="4" 
                 Margin="10,10,10,10"                 
-                VerticalAlignment="Bottom" 
+                VerticalAlignment="Stretch" 
                 Click="cansel_Click" 
                 IsCancel="True">
             <Button.Content>
@@ -135,7 +100,6 @@
                   VerticalAlignment="Top" 
                   Width="188" 
                   Height="28"/>
-        
         <Label 
             Grid.Column="0"
             Grid.Row="3"
@@ -156,6 +120,17 @@
             Width="94"
             FontSize="12" 
             FontWeight="Bold"/>
+        <Label 
+            Grid.Column="0"
+            Grid.Row="3"
+            VerticalAlignment="Bottom" 
+            Margin="10,10,10,10"
+            Content="Задать высоту отделки, в мм" 
+            HorizontalAlignment="Left"          
+            Width="221"
+            FontSize="12" 
+            FontWeight="Bold"/>
+
         <CheckBox x:Name="chekRoomBoarding"
                   IsChecked="True"
                   Grid.Column="0" 
@@ -171,7 +146,19 @@
         </CheckBox>
         <Border BorderBrush="#FF787070" 
                 BorderThickness="1" 
-                Grid.Row="3"/>
+                Grid.Row="3">
+            <TextBox
+                Name="heightWallNotRooms"
+                VerticalAlignment="Top"
+                TextWrapping="Wrap"
+                HorizontalAlignment="Left"          
+                Width="100"
+                Height="22"
+                FontSize="12" 
+                Text="" 
+                Margin="202,141,0,0"/>
+
+        </Border>
         <Border BorderBrush="#FF787070" 
                 BorderThickness="1" 
                 Grid.RowSpan="3"/>
@@ -182,6 +169,7 @@
                VerticalAlignment="Top"
                FontSize="12" 
                FontWeight="Bold"/>
+
 
     </Grid>
 </Window>

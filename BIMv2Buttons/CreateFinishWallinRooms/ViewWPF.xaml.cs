@@ -19,6 +19,7 @@ namespace BIMv2Buttons.CreateFinishWallinRooms
         public bool roomBoording;
         public WallType typeWallCollectionSelected;
         public Level selectedLevel;
+        public string heighWallUser;
 
         public ViewWPF(List<String> rooms, IList<WallType> typeWallCollection, List<Level> levels)
         {
@@ -34,13 +35,15 @@ namespace BIMv2Buttons.CreateFinishWallinRooms
 
             ComboBoxLevel.ItemsSource = levels;
             ComboBoxLevel.DisplayMemberPath = "Name";
-            ComboBoxLevel.SelectedItem = 1;
+            ComboBoxLevel.SelectedIndex = 0;
 
         }
 
         private void cansel_Click(object sender, RoutedEventArgs e)
         {
             selectedLevel = ComboBoxLevel.SelectedItem as Level;
+            typeWallCollectionSelected = ComboBox.SelectedValue as WallType;
+            heighWallUser = heightWallNotRooms.Text;
             //typeWallCollectionSelected = ComboBox.SelectedValue as WallType;
             //MessageBox.Show("Выбрано " + typeWallCollectionSelected.ToString());
 
@@ -56,6 +59,7 @@ namespace BIMv2Buttons.CreateFinishWallinRooms
         {
             selectedLevel = ComboBoxLevel.SelectedItem as Level;
             typeWallCollectionSelected = ComboBox.SelectedValue as WallType;
+            heighWallUser = heightWallNotRooms.Text;
 
             whatsButton = "отделкаВыборомПомещения";
 
@@ -73,6 +77,7 @@ namespace BIMv2Buttons.CreateFinishWallinRooms
 
         private void finishAll_Click(object sender, RoutedEventArgs e)
         {
+            heighWallUser = heightWallNotRooms.Text;
             selectedLevel = ComboBoxLevel.SelectedItem as Level;
 
             typeWallCollectionSelected = ComboBox.SelectedValue as WallType;

@@ -6,7 +6,17 @@
              xmlns:local="clr-namespace:CreateFinishWallinRooms"
              mc:Ignorable="d" 
              Title="Отдедка помещений - Cтены"
-             Height="800" Width="600">
+             Height="800" 
+        Width="600"
+        WindowStyle="None"
+        ResizeMode="CanResize"
+        >
+    <Window.Background>
+        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+            <GradientStop Color="#FF93B8E1"/>
+            <GradientStop Color="#FFE2E2E2" Offset="1"/>
+        </LinearGradientBrush>
+    </Window.Background>
     <Grid >
         <Grid.RowDefinitions>
             <RowDefinition Height="*"></RowDefinition>
@@ -130,6 +140,18 @@
             Width="221"
             FontSize="12" 
             FontWeight="Bold"/>
+        <TextBox
+                Grid.Column="0"
+                Grid.Row="3"
+                Name="heightWallNotRooms"
+                VerticalAlignment="Bottom"
+                TextWrapping="Wrap"
+            HorizontalAlignment="Left"
+                Width="100"
+                Height="22"
+                FontSize="12" 
+                Text="" 
+                Margin="203,10,10,15"/>
 
         <CheckBox x:Name="chekRoomBoarding"
                   IsChecked="True"
@@ -146,17 +168,9 @@
         </CheckBox>
         <Border BorderBrush="#FF787070" 
                 BorderThickness="1" 
-                Grid.Row="3">
-            <TextBox
-                Name="heightWallNotRooms"
-                VerticalAlignment="Top"
-                TextWrapping="Wrap"
-                HorizontalAlignment="Left"          
-                Width="100"
-                Height="22"
-                FontSize="12" 
-                Text="" 
-                Margin="202,141,0,0"/>
+                Grid.Row="3"
+                Grid.RowSpan="2">
+
 
         </Border>
         <Border BorderBrush="#FF787070" 
