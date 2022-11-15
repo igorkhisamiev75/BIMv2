@@ -43,7 +43,8 @@ namespace CreateFinishWallinRooms
         public ICollection<int> filtersInViewsId = new List<int>();
 
         public int roomBoardingWall; //для границы помещений
-        Level selectedLevelInForms;
+        Level selectedLevelInForms; //выбор уровня
+        double wallHeight=0;
 
         // Properties
         /// <summary>
@@ -57,6 +58,7 @@ namespace CreateFinishWallinRooms
             }
         }
 
+        [Obsolete]
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
 
@@ -107,7 +109,16 @@ namespace CreateFinishWallinRooms
             //show form
             vpViewWpf.WindowStartupLocation = WindowStartupLocation.CenterScreen;
             vpViewWpf.ShowDialog();
-           
+
+            if (vpViewWpf.heighWallUser != "")
+            {
+                wallHeight = Convert.ToDouble(vpViewWpf.heighWallUser);
+                wallHeight = UnitUtils.Convert(wallHeight,
+                    DisplayUnitType.DUT_MILLIMETERS,
+                    DisplayUnitType.DUT_DECIMAL_FEET);
+                //TaskDialog.Show("2bim.ru", $"Высота стен {wallHeight.ToString()}");
+            }
+            
 
             //room boarding cheack box
 
@@ -227,10 +238,6 @@ namespace CreateFinishWallinRooms
 
             IList<Wall> walls = new List<Wall>();
 
-            //WallType wallType;
-            IList<Element> rooms;
-            //wallType = GetWallTypeInProject("Отделка");
-
             ElementId wallTypeId = wallType.GetTypeId();
 
             var elementIdWall = wallType.get_Parameter(BuiltInParameter.ALL_MODEL_TYPE_NAME).Element.Id;
@@ -240,13 +247,18 @@ namespace CreateFinishWallinRooms
             Room room = (Room)elem;
 
             ElementId levelId = room.LevelId;
+            double heightRoom= room.get_Parameter(BuiltInParameter.ROOM_HEIGHT).AsDouble(); 
 
-            double heightRoom = room.get_Parameter(BuiltInParameter.ROOM_HEIGHT).AsDouble();
-
-            if (heightRoom <= 0)
+            if (wallHeight != 0)
+            {
+                heightRoom = wallHeight;
+            }
+                     
+            if (heightRoom < 0)
             {
                 heightRoom = 1;
             }
+
             string numberRoom = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();
             string nameRoom = room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
 
