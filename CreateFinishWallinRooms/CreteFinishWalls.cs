@@ -350,6 +350,7 @@ namespace CreateFinishWallinRooms
                 }
             }
 
+            //join walls
             foreach (var wall1 in walls)
             {
                 foreach (var wall2 in walls)
