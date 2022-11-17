@@ -55,7 +55,10 @@ namespace BIMv2
             //get filters ID
             foreach (var view in onlyViewPlan3DSection)
             {
+#if R2019 || R2020
+#else
                 var f = view.GetOrderedFilters();
+               
                 if (f != null)
                 {
                     foreach (var item in f)
@@ -63,6 +66,7 @@ namespace BIMv2
                         filtersInViewsId.Add(item.GetHashCode());
                     }
                 }
+#endif
 
             }
 
@@ -202,5 +206,7 @@ namespace BIMv2
 
             return viewsInProject;
         }
+
+       
     }
 }
