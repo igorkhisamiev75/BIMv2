@@ -1,6 +1,7 @@
 ﻿#region Namespaces
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;
@@ -43,79 +44,115 @@ namespace BIMv2
                 //get all walls
                 IList<Element> allWallElements = GetAllWallElements(_doc);
 
-                //join walls
                 foreach (var wall1 in allWallElements)
                 {
-                    //BoundingBoxXYZ g1 = wall1.get_BoundingBox(_doc.ActiveView);
-                    //Element f = g1.;
-                    foreach (var wall2 in allWallElements)
+                  foreach (var wall2 in allWallElements)
                     {
-                        //BoundingBoxXYZ g2 = wall2.get_BoundingBox(_doc.ActiveView);
-                        if (wall1 != wall2)
+                        if(wall1 != wall2)
                         {
-                            try
-                            {
-                                if (JoinGeometryUtils.AreElementsJoined(_doc, wall1, wall2)||
-                                    JoinGeometryUtils.AreElementsJoined(_doc, wall2, wall1))
-                                { continue; }
-                                else
-                                {
-                                    JoinGeometryUtils.JoinGeometry(_doc, wall1, wall2);
-                                    _doc.Regenerate();
-                                    continue;
+                            BoundingBoxXYZ boundingBoxXYZ = wall1.get_BoundingBox(null);
+                            BoundingBoxXYZ boundingBoxXYZ2 = wall2.get_BoundingBox(null);
 
+                            if (bbIntersect(boundingBoxXYZ, boundingBoxXYZ2))
+                            {
+                                if (!JoinGeometryUtils.AreElementsJoined(_doc, wall1, wall2))
+                                {
+                                    try
+                                    {
+                                        JoinGeometryUtils.JoinGeometry(_doc, wall1, wall2);
+                                    }
+                                    catch (Autodesk.Revit.Exceptions.ArgumentException a)
+                                    {
+                                        Debug.Print("Ошибка" + a.ToString());
+                                    }
                                 }
-                                
+
                             }
-                            catch { continue; }
 
                         }
-
-                        else { continue; }
-
-                    }
-
-
-                }
-                
-                _doc.Regenerate();
-
-                var warnings= _doc.GetWarnings();
-
-                TaskDialog.Show("2bim.ru", $"{warnings.Count}");
-
-                foreach (var warning in warnings)
-                {
-                    ICollection<ElementId> elementsWarnings = warning.GetFailingElements();
-
-                    foreach (var el2 in elementsWarnings)
-                        foreach (var el3 in elementsWarnings)
-                        {
-                            try
-                            {
-                                if (el2 != el3)
-                                {
-                                    Element firstElement = _doc.GetElement(el2);
-                                    Element secondElement = _doc.GetElement(el3);
-
-                                    JoinGeometryUtils.UnjoinGeometry(_doc, firstElement, secondElement);
-                                    _doc.Regenerate();
-                                }
-                            }
-
-                            catch
-                            {
-                                continue;
-                            }
-                            
-                        }
-                    {
                         
+                       
+
+
                     }
                 }
-                             
+
+                #region
+                //join walls
+                //foreach (var wall1 in allWallElements)
+                //{
+                //    //BoundingBoxXYZ g1 = wall1.get_BoundingBox(_doc.ActiveView);
+                //    //Element f = g1.;
+                //    foreach (var wall2 in allWallElements)
+                //    {
+                //        //BoundingBoxXYZ g2 = wall2.get_BoundingBox(_doc.ActiveView);
+                //        if (wall1 != wall2)
+                //        {
+                //            try
+                //            {
+                //                if (JoinGeometryUtils.AreElementsJoined(_doc, wall1, wall2)||
+                //                    JoinGeometryUtils.AreElementsJoined(_doc, wall2, wall1))
+                //                { continue; }
+                //                else
+                //                {
+                //                    JoinGeometryUtils.JoinGeometry(_doc, wall1, wall2);
+                //                    _doc.Regenerate();
+                //                    continue;
+
+                //                }
+
+                //            }
+                //            catch { continue; }
+
+                //        }
+
+                //        else { continue; }
+
+                //    }
+
+
+                //}
+
+                //_doc.Regenerate();
+
+                //var warnings= _doc.GetWarnings();
+
+                //TaskDialog.Show("2bim.ru", $"{warnings.Count}");
+
+                //foreach (var warning in warnings)
+                //{
+                //    ICollection<ElementId> elementsWarnings = warning.GetFailingElements();
+
+                //    foreach (var el2 in elementsWarnings)
+                //        foreach (var el3 in elementsWarnings)
+                //        {
+                //            try
+                //            {
+                //                if (el2 != el3)
+                //                {
+                //                    Element firstElement = _doc.GetElement(el2);
+                //                    Element secondElement = _doc.GetElement(el3);
+
+                //                    JoinGeometryUtils.UnjoinGeometry(_doc, firstElement, secondElement);
+                //                    _doc.Regenerate();
+                //                }
+                //            }
+
+                //            catch
+                //            {
+                //                continue;
+                //            }
+
+                //        }
+                //    {
+
+                //    }
+                //}
+
+                #endregion
 
                 //TaskDialog.Show("2bim.ru", "Стены соеденены ☺☺☺");
+                _doc.Regenerate();
                 t.Commit();
 
             }
@@ -125,7 +162,22 @@ namespace BIMv2
         }
 
 
+        public bool bbIntersect(BoundingBoxXYZ BoxXYZ, BoundingBoxXYZ BoxXYZ2)
+        {
+            if (BoxXYZ != null && BoxXYZ2 != null)
+            {
+                Outline outline1 = new Outline(BoxXYZ.Min, BoxXYZ.Max);
+                Outline outline2 = new Outline(BoxXYZ2.Min, BoxXYZ2.Max);
 
+                if (outline1.Intersects(outline2,0))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+            
+        }
 
 
         public IList<Element> GetAllWallElements(Document document)

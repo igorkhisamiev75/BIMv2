@@ -8,7 +8,7 @@ using Autodesk.Revit.UI;
 using Application = Autodesk.Revit.ApplicationServices.Application;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI.Selection;
-
+using System.Diagnostics;
 
 namespace CreateFinishWallinRooms
 {
@@ -350,61 +350,59 @@ namespace CreateFinishWallinRooms
                 }
             }
 
-            //join walls
             foreach (var wall1 in walls)
             {
                 foreach (var wall2 in walls)
                 {
                     if (wall1 != wall2)
                     {
-                        try
+                        BoundingBoxXYZ boundingBoxXYZ = wall1.get_BoundingBox(null);
+                        BoundingBoxXYZ boundingBoxXYZ2 = wall2.get_BoundingBox(null);
+
+                        if (bbIntersect(boundingBoxXYZ, boundingBoxXYZ2))
                         {
                             if (!JoinGeometryUtils.AreElementsJoined(_doc, wall1, wall2))
                             {
-                                JoinGeometryUtils.JoinGeometry(_doc, wall1, wall2);
-                                //_doc.Regenerate();
-                                //JoinGeometryUtils.IsCuttingElementInJoin(_doc, wall1, wall2)||
+                                try
+                                {
+                                    JoinGeometryUtils.JoinGeometry(_doc, wall1, wall2);
+                                }
+                                catch (Autodesk.Revit.Exceptions.ArgumentException a)
+                                {
+                                    Debug.Print("Ошибка" + a.ToString());
+                                }
                             }
-                            else
-                            {
-                                continue;
 
-                            }
                         }
-                        catch { continue; }
 
                     }
 
-                    else { continue; }
+
+
 
                 }
-
-                //TaskDialog.Show("2bim.ru", "Все стены соеденены");
-
             }
-            //TaskDialog.Show("2bim.ru", "Все стены соеденены");
+
             _doc.Regenerate();
-            //unjoin walls
-            foreach (var wall1 in walls)
-            {
-                foreach (var wall2 in walls)
-                {
-                    if (wall1 != wall2 && JoinGeometryUtils.IsCuttingElementInJoin(_doc, wall1, wall2))
-                    {
-                        if (JoinGeometryUtils.AreElementsJoined(_doc, wall1, wall2))
-                        {
-                            JoinGeometryUtils.UnjoinGeometry(_doc, wall1, wall2);
-                            //TaskDialog.Show("2bim.ru", "разъеденены");
+            
 
-                        }
-                        else
-                        {
-                            continue;
-                        }
-                    }
+
+        }
+
+        public bool bbIntersect(BoundingBoxXYZ BoxXYZ, BoundingBoxXYZ BoxXYZ2)
+        {
+            if (BoxXYZ != null && BoxXYZ2 != null)
+            {
+                Outline outline1 = new Outline(BoxXYZ.Min, BoxXYZ.Max);
+                Outline outline2 = new Outline(BoxXYZ2.Min, BoxXYZ2.Max);
+
+                if (outline1.Intersects(outline2, 0))
+                {
+                    return true;
                 }
             }
 
+            return false;
 
         }
 
