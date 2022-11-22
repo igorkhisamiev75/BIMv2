@@ -24,7 +24,7 @@ namespace BIMv2
 
                 CreateViewFilter(doc, view);
 
-                TaskDialog.Show("Сделано", "Фильтры созданы");
+                TaskDialog.Show("Сделано", "Фильтры созданы2");
 
                 t.Commit();
 
@@ -63,7 +63,8 @@ namespace BIMv2
 
             foreach (var wall1 in AllFinishWall)
             {
-                var otd=wall1.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString();
+                //ADSK_Примечание
+                var otd =wall1.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString();
                 numroomList.Add(otd);
             }
 
@@ -71,6 +72,8 @@ namespace BIMv2
             List<string> newList = new List<string>(numroomList.Distinct());
 
             newList.Sort();
+
+
             Random rnd = new Random();
             int r = rnd.Next(0, 255);
             int g = rnd.Next(0, 255);
@@ -79,79 +82,86 @@ namespace BIMv2
             Color color = new Color((byte)r, (byte)g, (byte)b);
 
 
-            foreach (var nameRoom in newList)
+            foreach (string nameRoom in newList)
             {
-                if (nameRoom != "")
+                try
                 {
-                    
-                    r = rnd.Next(0, 255);
-                    g = rnd.Next(0, 255);
-                    b = rnd.Next(0, 255);
-
-                    color = new Color((byte)r, (byte)g, (byte)b);
-
-
-                    List<ElementId> categories = new List<ElementId>();
-                    categories.Add(new ElementId(BuiltInCategory.OST_Walls));
-
-                    List<FilterRule> filterRules = new List<FilterRule>();
-
-                    // Create filter element assocated to the input categories
-                    ParameterFilterElement parameterFilterElement =
-                        ParameterFilterElement.Create(doc, "Фильтр стены помещения " + nameRoom, categories);
-
-                    // Criterion 1 - wall type Function is "Exterior"
-                    //ElementId exteriorParamId = new ElementId(BuiltInParameter.FUNCTION_PARAM);
-                    //filterRules.Add(ParameterFilterRuleFactory.CreateEqualsRule(exteriorParamId, (int)WallFunction.Exterior));
-
-                    // Criterion 2 - wall height > some number
-                    //ElementId lengthId = new ElementId(BuiltInParameter.CURVE_ELEM_LENGTH);
-                    //filterRules.Add(ParameterFilterRuleFactory.CreateGreaterOrEqualRule(lengthId, 28.0, 0.0001));
-
-                    // Criterion 3 - custom shared parameter value matches string pattern
-                    // Get the id for the shared parameter - the ElementId is not hardcoded, so we need to get an instance of this type to find it
-                    //ADSK_Примечание
-                    Guid spGuid = new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3");
-
-                    FilteredElementCollector collector = new FilteredElementCollector(doc);
-                    collector.OfClass(typeof(Wall));
-                    Wall wall = collector.FirstElement() as Wall;
-
-                    if (wall != null)
+                    if (nameRoom != "" && nameRoom != null)
                     {
-                        Parameter sharedParam = wall.get_Parameter(spGuid);
-                        ElementId sharedParamId = sharedParam.Id;
 
-                        filterRules.Add(ParameterFilterRuleFactory.CreateBeginsWithRule(sharedParamId, nameRoom, true));
+                        r = rnd.Next(0, 255);
+                        g = rnd.Next(0, 255);
+                        b = rnd.Next(0, 255);
+
+                        color = new Color((byte)r, (byte)g, (byte)b);
+
+                        //категории которые используются
+                        List<ElementId> categories = new List<ElementId>();
+                        categories.Add(new ElementId(BuiltInCategory.OST_Walls));
+                        categories.Add(new ElementId(BuiltInCategory.OST_Floors));
+                        categories.Add(new ElementId(BuiltInCategory.OST_Ceilings));
+
+                        //добавить так же потолки и перекрытия
+
+                        List<FilterRule> filterRules = new List<FilterRule>();
+
+                        // Create filter element assocated to the input categories
+                        ParameterFilterElement parameterFilterElement =
+                            ParameterFilterElement.Create(doc, "Фильтр для помещения " + nameRoom, categories);
+
+                        // Criterion 1 - wall type Function is "Exterior"
+                        //ElementId exteriorParamId = new ElementId(BuiltInParameter.FUNCTION_PARAM);
+                        //filterRules.Add(ParameterFilterRuleFactory.CreateEqualsRule(exteriorParamId, (int)WallFunction.Exterior));
+
+                        // Criterion 2 - wall height > some number
+                        //ElementId lengthId = new ElementId(BuiltInParameter.CURVE_ELEM_LENGTH);
+                        //filterRules.Add(ParameterFilterRuleFactory.CreateGreaterOrEqualRule(lengthId, 28.0, 0.0001));
+
+                        // Criterion 3 - custom shared parameter value matches string pattern
+                        // Get the id for the shared parameter - the ElementId is not hardcoded, so we need to get an instance of this type to find it
+                        //ADSK_Примечание
+                        Guid spGuid = new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3");
+
+                        FilteredElementCollector collector = new FilteredElementCollector(doc);
+                        collector.OfClass(typeof(Wall));
+                        Wall wall = collector.FirstElement() as Wall;
+
+                        if (wall != null)
+                        {
+                            Parameter sharedParam = wall.get_Parameter(spGuid);
+                            ElementId sharedParamId = sharedParam.Id;
+
+                            filterRules.Add(ParameterFilterRuleFactory.CreateBeginsWithRule(sharedParamId, nameRoom, true));
+                        }
+
+                        parameterFilterElement.SetElementFilter(new ElementParameterFilter(filterRules));
+
+
+                        OverrideGraphicSettings ogs = new OverrideGraphicSettings();
+
+                        ogs.SetProjectionLineColor(color); // линии
+                        ogs.SetCutForegroundPatternColor(color); //цвет в сечении
+
+                        ogs.SetSurfaceForegroundPatternColor(color); //цвет поверхности
+
+                        FilteredElementCollector elements = new FilteredElementCollector(doc);
+                        FillPatternElement solidFillPattern = elements
+                            .OfClass(typeof(FillPatternElement))
+                            .Cast<FillPatternElement>()
+                            .First(a => a.GetFillPattern().IsSolidFill);
+
+                        ogs.SetSurfaceForegroundPatternId(solidFillPattern.Id);
+
+                        ogs.SetSurfaceBackgroundPatternColor(color);
+                        ogs.SetSurfaceBackgroundPatternId(solidFillPattern.Id);
+
+                        // Apply filter to view
+                        view.AddFilter(parameterFilterElement.Id);
+                        view.SetFilterVisibility(parameterFilterElement.Id, true);
+                        view.SetFilterOverrides(parameterFilterElement.Id, ogs);
                     }
-
-                    parameterFilterElement.SetElementFilter(new ElementParameterFilter(filterRules));
-
-
-                    OverrideGraphicSettings ogs = new OverrideGraphicSettings();
-
-                    ogs.SetProjectionLineColor(color); // линии
-                    ogs.SetCutForegroundPatternColor(color); //цвет в сечении
-
-                    ogs.SetSurfaceForegroundPatternColor(color); //цвет поверхности
-
-                    FilteredElementCollector elements = new FilteredElementCollector(doc);
-                    FillPatternElement solidFillPattern = elements
-                        .OfClass(typeof(FillPatternElement))
-                        .Cast<FillPatternElement>()
-                        .First(a => a.GetFillPattern().IsSolidFill);
-
-                    ogs.SetSurfaceForegroundPatternId(solidFillPattern.Id);
-
-                    ogs.SetSurfaceBackgroundPatternColor(color);
-                    ogs.SetSurfaceBackgroundPatternId(solidFillPattern.Id);
-
-                    // Apply filter to view
-                    view.AddFilter(parameterFilterElement.Id);
-                    view.SetFilterVisibility(parameterFilterElement.Id, true);
-                    view.SetFilterOverrides(parameterFilterElement.Id, ogs);
                 }
-                
+                catch { }
             }
             
 

@@ -198,7 +198,7 @@ namespace BIMv2
                             CreateWallInRoom(element, uiDoc, roomBoardingWall, selectedWallTpe);
                             _doc.Regenerate();
 
-                            TaskDialog.Show("2bim.ru", "Отделка стен создана ☺☺☺");
+                            //TaskDialog.Show("2bim.ru", "Отделка стен создана ☺☺☺");
                         }
 
                         catch
