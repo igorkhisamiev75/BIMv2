@@ -112,7 +112,7 @@ namespace BIMv2
 
                         string viewName = view.get_Parameter(BuiltInParameter.VIEW_NAME).AsString();
                        
-                        string nameFilter= nameRoom + viewName;
+                        string nameFilter= nameRoom + " " + viewName;
 
                         // Create filter element assocated to the input categories
                         ParameterFilterElement parameterFilterElement =
