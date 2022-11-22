@@ -4,9 +4,19 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:BIMv2Buttons.CreateFinishWallinRooms"
-             mc:Ignorable="d" 
+              mc:Ignorable="d" 
              Title="Отдедка помещений - Cтены"
-             Height="800" Width="600">
+             Height="800" 
+        Width="600"
+        WindowStyle="None"
+        ResizeMode="CanResize"
+        >
+    <Window.Background>
+        <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+            <GradientStop Color="#FF93B8E1"/>
+            <GradientStop Color="#FFE2E2E2" Offset="1"/>
+        </LinearGradientBrush>
+    </Window.Background>
     <Grid >
         <Grid.RowDefinitions>
             <RowDefinition Height="*"></RowDefinition>

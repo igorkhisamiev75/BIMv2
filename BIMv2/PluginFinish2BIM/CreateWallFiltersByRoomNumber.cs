@@ -5,6 +5,8 @@ using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 
+using Microsoft.Office.Interop.Excel;
+
 namespace BIMv2
 {
     [Transaction(TransactionMode.Manual)]
@@ -24,7 +26,7 @@ namespace BIMv2
 
                 CreateViewFilter(doc, view);
 
-                TaskDialog.Show("Сделано", "Фильтры созданы2");
+                TaskDialog.Show("Сделано", "Фильтры созданы");
 
                 t.Commit();
 
@@ -64,7 +66,11 @@ namespace BIMv2
             foreach (var wall1 in AllFinishWall)
             {
                 //ADSK_Примечание
-                var otd =wall1.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString();
+                //var otd =wall1.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString();
+                
+                //Comments
+                var otd = wall1.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).AsString();
+
                 numroomList.Add(otd);
             }
 
@@ -98,16 +104,19 @@ namespace BIMv2
                         //категории которые используются
                         List<ElementId> categories = new List<ElementId>();
                         categories.Add(new ElementId(BuiltInCategory.OST_Walls));
-                        categories.Add(new ElementId(BuiltInCategory.OST_Floors));
-                        categories.Add(new ElementId(BuiltInCategory.OST_Ceilings));
+                        //categories.Add(new ElementId(BuiltInCategory.OST_Floors));
+                        //categories.Add(new ElementId(BuiltInCategory.OST_Ceilings));
 
-                        //добавить так же потолки и перекрытия
-
+                        
                         List<FilterRule> filterRules = new List<FilterRule>();
+
+                        string viewName = view.get_Parameter(BuiltInParameter.VIEW_NAME).AsString();
+                       
+                        string nameFilter= nameRoom + viewName;
 
                         // Create filter element assocated to the input categories
                         ParameterFilterElement parameterFilterElement =
-                            ParameterFilterElement.Create(doc, "Фильтр для помещения " + nameRoom, categories);
+                            ParameterFilterElement.Create(doc, "Фильтр для помещения " + nameFilter, categories);
 
                         // Criterion 1 - wall type Function is "Exterior"
                         //ElementId exteriorParamId = new ElementId(BuiltInParameter.FUNCTION_PARAM);
@@ -119,8 +128,10 @@ namespace BIMv2
 
                         // Criterion 3 - custom shared parameter value matches string pattern
                         // Get the id for the shared parameter - the ElementId is not hardcoded, so we need to get an instance of this type to find it
+                        
                         //ADSK_Примечание
                         Guid spGuid = new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3");
+
 
                         FilteredElementCollector collector = new FilteredElementCollector(doc);
                         collector.OfClass(typeof(Wall));
@@ -128,10 +139,20 @@ namespace BIMv2
 
                         if (wall != null)
                         {
-                            Parameter sharedParam = wall.get_Parameter(spGuid);
-                            ElementId sharedParamId = sharedParam.Id;
+                            //Parameter sharedParam = wall.get_Parameter(spGuid);
 
-                            filterRules.Add(ParameterFilterRuleFactory.CreateBeginsWithRule(sharedParamId, nameRoom, true));
+                            //comments
+                            var parameterComents = wall.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS);
+
+                            //ElementId sharedParamId = sharedParam.Id;
+
+                            //comments
+                            ElementId elementId=parameterComents.Id;    
+
+
+                            //filterRules.Add(ParameterFilterRuleFactory.CreateBeginsWithRule(sharedParamId, nameRoom, true));
+                            filterRules.Add(ParameterFilterRuleFactory.CreateBeginsWithRule(elementId, nameRoom, true));
+
                         }
 
                         parameterFilterElement.SetElementFilter(new ElementParameterFilter(filterRules));
