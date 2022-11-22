@@ -43,7 +43,7 @@ namespace BIMv2
             //get all Walls
             var allElements = GetAllElements(_doc);
 
-            TaskDialog.Show("2bim.ru", $"{allElements.Count} Стен");
+            //TaskDialog.Show("2bim.ru", $"{allElements.Count} Стен");
 
 
             //get all linked rooms
@@ -64,7 +64,7 @@ namespace BIMv2
                 
             }
             
-           
+           //find collisions
 
             foreach (Element e in allElements)
             {
@@ -72,22 +72,20 @@ namespace BIMv2
 
                 foreach (Room item in allRooms)
                 {
-                    var nameRoom = item.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
-                                item.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
-
                     if (item != null)
                     {
 
                     BoundingBoxXYZ boundingBoxXYZ2 = item.get_BoundingBox(null);
-
-                    if (bbIntersect(boundingBoxXYZ, boundingBoxXYZ2))
+                    var nameRoom = item.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
+                                item.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+                        if (bbIntersect(boundingBoxXYZ, boundingBoxXYZ2))
                     {
                         try
                         {
-                            
+                               
                             //ПО_№_Помещения
                             e.get_Parameter(BuiltInParameter.ALL_MODEL_MARK).Set(nameRoom);
-                               // _doc.Regenerate();
+                              //_doc.Regenerate();
                         }
                         catch (Autodesk.Revit.Exceptions.ArgumentException a)
                         {
@@ -101,48 +99,6 @@ namespace BIMv2
 
                 }
                 
-
-                //var loc = e.Location;
-                //var locPoint = (LocationPoint)loc;
-                //var pointPF = locPoint.Point;
-                //var myRoom = FindRoom(_doc, pointPF);
-                //var nameRoom = "";
-
-                //if (myRoom != null)
-                //{
-                //    nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
-                //                   myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
-
-                //    e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
-                //        .Set(nameRoom);
-
-                //}
-                //else
-                //{
-                //    var linkedInstances = FindLinkedInstances();
-                //    foreach (var linkInstance in linkedInstances)
-                //    {
-                //        var transform = linkInstance.GetTotalTransform().Inverse;
-                //        var targetPoint = transform.OfPoint(pointPF);
-                //        var linkDocument = linkInstance.GetLinkDocument();
-
-                //        var room = FindRoom(linkDocument, targetPoint);
-                //        if (room != null)
-                //        {
-                //            string[] subs = room.Name.Split(' ');
-
-                //            e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
-                //                .Set(room.Number + " " + subs[0]);
-                //        }
-                //        else
-                //        {
-                //            nameRoom = "It's not in Room";
-                //            e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
-                //                .Set(nameRoom);
-                //        }
-
-                //    }
-                //}
             }
         }
 
@@ -153,13 +109,13 @@ namespace BIMv2
                 Outline outline1 = new Outline(BoxXYZ.Min, BoxXYZ.Max);
                 Outline outline2 = new Outline(BoxXYZ2.Min, BoxXYZ2.Max);
 
-                if (outline1.Intersects(outline2, 0) || outline2.Intersects(outline1, 0))
+                if (outline1.Intersects(outline2, 0.0001) || outline2.Intersects(outline1, 0.0001))
                 {
                     return true;
                 }
             }
 
-            return false;
+            return true;
 
         }
 
