@@ -65,7 +65,7 @@
                 VerticalAlignment="Top" 
                 Click="finishDel_Click">
             <Button.Content>
-                <TextBlock Text="Пока не работает кнопка, но процесс движется" 
+                <TextBlock Text="Выбрать все помещения" 
                            TextWrapping="Wrap" 
                            TextAlignment="Center"/>
             </Button.Content>

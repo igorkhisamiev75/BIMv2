@@ -115,8 +115,16 @@ namespace CreateFinishWallinRooms
 
         private void finishDel_Click(object sender, RoutedEventArgs e)
         {
-            whatsButton = "удалитьОтделку";
-            Close();
+            if (ListBox.SelectedIndex==-1)
+            {
+                ListBox.SelectAll();
+
+            }
+            else 
+            {
+                ListBox.UnselectAll();
+            }    
+
         }
 
     }
