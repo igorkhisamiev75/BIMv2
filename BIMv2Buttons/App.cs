@@ -110,9 +110,6 @@ namespace BIMv2Buttons
             ribbonPanel.AddSeparator(); //разделитель между кнопками
 
             
-
-           
-
             
 
             // create push button for CurveTotalLength  //namespace и класс

@@ -30,13 +30,13 @@ namespace BIMv2
 
                 //объединяем отделку и площадь где это нужно
                 WriteToWallFinishAlliance(doc);
-                
+
                 //TaskDialog.Show("Сделано", "Стены ОТДЕЛКА посчитаны и площадь записана в параметр MRGT_ВидОтделкиСтеныПлощадь");
-                
+
                 //записываем информацию в помещения
                 WriteToRooms(doc);
 
-                TaskDialog.Show("Сделано", "Отделка посчитана 3");
+                TaskDialog.Show("Сделано", "Отделка посчитана 123");
 
                 t.Commit();
 
@@ -56,12 +56,12 @@ namespace BIMv2
                     var wall = (Wall)element;
 
                     var descriptionWallType = wall.WallType.LookupParameter("ADSK_Наименование краткое").AsString();
-                    
+
                     if (descriptionWallType == "Отделка")
                     {
                         AllFinishWall.Add(wall);
                     }
-                    
+
                 }
                 catch (Exception e)
                 {
@@ -106,7 +106,7 @@ namespace BIMv2
                         squeWall += otd;
 
                     }
-                    
+
                     //и записываем это массив в каждый номер этого массива
 
                     foreach (var t in element)
@@ -199,7 +199,7 @@ namespace BIMv2
                 //group by type wall
                 IEnumerable<IGrouping<string, Wall>> groupByType = grouping.GroupBy(p2 => p2.Name);
 
-               if (groupByType.Count() == 1)
+                if (groupByType.Count() == 1)
                 {
                     foreach (var wall in grouping)
                     {
@@ -233,14 +233,14 @@ namespace BIMv2
                         //MRGT_ПирогОбъединенная
                         var LayerInWall = wall.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).AsString();
                         var countLayerInWall = LayerInWall.Where(x => "\n".IndexOf(x) != -1).Count();
-                        
+
                         pirog += wall.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).AsString() + "\n\n";
-                        
+
                         square += "\n\n\n";
 
                         for (int i = 0; i < countLayerInWall; i++)
                         {
-                            square += "\n\n";
+                            square += "\n";
                         }
 
                         square += wall.get_Parameter(new Guid("2c097f7a-e32f-4455-9e8a-ac72e131b24c")).AsValueString();
@@ -264,7 +264,7 @@ namespace BIMv2
 
 
         }
-        
+
         private void WriteToRooms(Document doc)
         {
             //all rooms
@@ -299,7 +299,7 @@ namespace BIMv2
             {
                 foreach (var room in allRooms)
                 {
-                   
+
                     var numberRoom = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();
 
                     //проходимся по всем стенам и находим совпадения по номеру
@@ -326,13 +326,13 @@ namespace BIMv2
 
                     }
 
-                    
+
 
                 }
             }
 
         }
-        
+
         public IList<Element> GetAllWallElements(Document document)
         {
             // List all Floor's
