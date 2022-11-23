@@ -69,7 +69,10 @@ namespace BIMv2
                 //var otd =wall1.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString();
                 
                 //Comments
-                var otd = wall1.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).AsString();
+                //var otd = wall1.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).AsString();
+
+                //тип
+                var otd = wall1.get_Parameter(BuiltInParameter.ELEM_TYPE_PARAM).AsValueString();
 
                 numroomList.Add(otd);
             }
@@ -110,13 +113,18 @@ namespace BIMv2
                         
                         List<FilterRule> filterRules = new List<FilterRule>();
 
-                        string viewName = view.get_Parameter(BuiltInParameter.VIEW_NAME).AsString();
+                        //string viewName = view.get_Parameter(BuiltInParameter.VIEW_NAME).AsString();
+
+                        //string nameFilter= nameRoom + " " + viewName;
+
                        
-                        string nameFilter= nameRoom + " " + viewName;
+
+                        //string nameFilter = view.get_Parameter(BuiltInParameter.VIEW_NAME).AsString();
+
 
                         // Create filter element assocated to the input categories
                         ParameterFilterElement parameterFilterElement =
-                            ParameterFilterElement.Create(doc, "Фильтр для помещения " + nameFilter, categories);
+                            ParameterFilterElement.Create(doc, "Фильтр " + nameRoom, categories);
 
                         // Criterion 1 - wall type Function is "Exterior"
                         //ElementId exteriorParamId = new ElementId(BuiltInParameter.FUNCTION_PARAM);
@@ -142,12 +150,17 @@ namespace BIMv2
                             //Parameter sharedParam = wall.get_Parameter(spGuid);
 
                             //comments
-                            var parameterComents = wall.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS);
+                            //var parameterComents = wall.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS);
+
+                            //типу стены
+                            //.get_Parameter(BuiltInParameter.ELEM_TYPE_PARAM)
+
+                            var parameterComents = wall.get_Parameter(BuiltInParameter.ELEM_TYPE_PARAM);
 
                             //ElementId sharedParamId = sharedParam.Id;
 
                             //comments
-                            ElementId elementId=parameterComents.Id;    
+                            ElementId elementId =parameterComents.Id;    
 
 
                             //filterRules.Add(ParameterFilterRuleFactory.CreateBeginsWithRule(sharedParamId, nameRoom, true));
