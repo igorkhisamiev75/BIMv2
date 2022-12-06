@@ -65,7 +65,7 @@ namespace BIMv2
             }
 
             
-            foreach (var wall in AllFinishWall)
+            foreach (var wall in allWallElements)
             {
 
                 LocationCurve wallLine = wall.Location as LocationCurve;
@@ -75,7 +75,12 @@ namespace BIMv2
                 //Location loc = e.Location;
 
                 //var locPoint = (LocationPoint)loc;
-                var pointPF = wallPoints[0];
+
+                var pointPF1 = wallPoints[0];
+                var pointPF2 = wallPoints[1];
+
+
+                var pointPF = (pointPF1 + pointPF2) / 2;
 
 
                 var myRoom = FindRoom (_doc, pointPF);
@@ -86,15 +91,18 @@ namespace BIMv2
                     nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
                                    myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
 
-                    wall.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
+                    wall.get_Parameter(new Guid("e0c30580-14c7-4cb0-8be2-444179eb94c9"))
                         .Set(nameRoom);
 
                 }
                 else
                 {
                     var linkedInstances = FindLinkedInstances();
-                    foreach (var linkInstance in linkedInstances)
+                    foreach (RevitLinkInstance linkInstance in linkedInstances)
                     {
+                        var getLinkDoc=linkInstance.GetLinkDocument();
+
+                        if (getLinkDoc != null) { 
                         var transform = linkInstance.GetTotalTransform().Inverse;
                         var targetPoint = transform.OfPoint(pointPF);
                         var linkDocument = linkInstance.GetLinkDocument();
@@ -102,18 +110,24 @@ namespace BIMv2
                         var room = FindRoom(linkDocument, targetPoint);
                         if (room != null)
                         {
-                            string[] subs = room.Name.Split(' ');
+                            //string[] subs = room.Name.Split(' ');
+                            var stringLevel = room.get_Parameter(new Guid("1a6e5bca-2b14-4f06-b2bf-efce95bd92b9"))
+                                    .AsDouble(); //yровень
+                            var poGroupName = room.get_Parameter(new Guid("a1731d92-0650-40ed-8b23-0cb7e355dd59"))
+                                    .AsString();//ПО_ргуппа
+                            var numberName = room.get_Parameter(new Guid("e0c30580-14c7-4cb0-8be2-444179eb94c9"))
+                                    .AsString();//ПО_номер
 
-                            wall.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
-                                .Set(room.Number + " " + subs[0]);
+                                wall.get_Parameter(new Guid("e0c30580-14c7-4cb0-8be2-444179eb94c9"))
+                                .Set(stringLevel + "." + poGroupName+ "."+ numberName);
                         }
                         else
                         {
                             nameRoom = "It's not in Room";
-                            wall.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
+                            wall.get_Parameter(new Guid("e0c30580-14c7-4cb0-8be2-444179eb94c9"))
                                 .Set(nameRoom);
                         }
-
+                        }
                     }
                 }
             }
