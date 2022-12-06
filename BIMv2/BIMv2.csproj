@@ -161,6 +161,7 @@
     <Compile Include="CreateRailingInRooms.cs" />
     <Compile Include="CreateScheduleRooms.cs" />
     <Compile Include="DelUnplacedRoom.cs" />
+    <Compile Include="FindNameRoomForFinishElementsRoomsInLink.cs" />
     <Compile Include="GetRoomForElementsFinishing.cs" />
     <Compile Include="JoinWalls.cs" />
     <Compile Include="PluginFinish2BIM\CeilingFinish.cs" />

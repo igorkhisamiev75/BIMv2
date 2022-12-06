@@ -101,6 +101,7 @@ namespace BIMv2
                                     try
                                     {
                                         JoinGeometryUtils.JoinGeometry(_doc, wall1, wall2);
+                                        continue;
                                     }
                                     catch (Autodesk.Revit.Exceptions.ArgumentException a)
                                     {
@@ -111,9 +112,8 @@ namespace BIMv2
                             }
 
                         }
-                        
-                       
 
+                        
 
                     }
                 }
