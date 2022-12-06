@@ -29,6 +29,14 @@ namespace BIMv2
                 t.Start("Find name room for finish walls");
 
                 WriteNameRoomWall(uiApp);
+                //потолки
+                //светильники
+                //мебель?
+                //комплекты мебели,
+                //окна
+                //сантех.прибор
+                //ограждение?
+                //перекрытие
 
                 TaskDialog.Show("У тебя получилось", "Complite!!!☺☺☺");
                 t.Commit();
@@ -142,7 +150,6 @@ namespace BIMv2
             return allFloors;
         }
 
-        
         private IEnumerable<RevitLinkInstance> FindLinkedInstances()
         {
             var collector = new FilteredElementCollector(_doc);
