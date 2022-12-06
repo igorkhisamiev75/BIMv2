@@ -78,7 +78,7 @@ namespace BIMv2
                 var pointPF = wallPoints[0];
 
 
-                var myRoom = FindRoom(_doc, pointPF);
+                var myRoom = FindRoom (_doc, pointPF);
                 var nameRoom = "";
 
                 if (myRoom != null)
