@@ -1,12 +1,18 @@
 ﻿#region Namespaces
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Selection;
+
+//using Microsoft.Office.Interop.Excel;
+
+using Floor = Autodesk.Revit.DB.Floor;
 
 #endregion
 
@@ -45,15 +51,17 @@ namespace BIMv2
 
                 Element elem = SelectedElement(_doc); //select room
 
-                CreateFloorInRooms(elem);
+                //CreateFloorInRooms(elem);
+
+                CreateCeiling(elem);
 
                 TaskDialog.Show("У тебя получилось", "Пол создан ☺☺☺");
                 t.Commit();
 
-                t.Start();
-                CreateFloorOpenings(elem);
+                //t.Start();
+                //CreateFloorOpenings(elem);
 
-                var res = t.Commit();
+                //var res = t.Commit();
 
             }
 
@@ -127,7 +135,107 @@ namespace BIMv2
             }
         }
 
-        
+        //Ceiling CreateCeilingAtElevation(Document document, Level level, double elevation)
+        //{
+        //    XYZ first = new XYZ(0, 0, 0);
+        //    XYZ second = new XYZ(20, 0, 0);
+        //    XYZ third = new XYZ(20, 15, 0);
+        //    XYZ fourth = new XYZ(0, 15, 0);
+        //    CurveLoop profile = new CurveLoop();
+        //    profile.Append(Line.CreateBound(first, second));
+        //    profile.Append(Line.CreateBound(second, third));
+        //    profile.Append(Line.CreateBound(third, fourth));
+        //    profile.Append(Line.CreateBound(fourth, first));
+
+        //    var ceiling = Ceiling.Create(document, new List<CurveLoop> { profile }, ElementId.InvalidElementId, level.Id);
+        //    Parameter param = ceiling.get_Parameter(BuiltInParameter.CEILING_HEIGHTABOVELEVEL_PARAM);
+        //    param.Set(elevation);
+
+        //    return ceiling;
+        //}
+
+        public void CreateCeiling(Element elem)
+        {
+            CurveArray roomsCurves = new CurveArray();
+            Room r1 = (Room)elem;
+
+            SpatialElementBoundaryOptions bo = new SpatialElementBoundaryOptions();
+            IList<IList<BoundarySegment>> segments2 = r1.GetBoundarySegments(bo);
+
+
+            CurveArray temp = new CurveArray();
+
+            if (null != segments2)
+            {
+                IList<BoundarySegment> segmentList = segments2[0];
+
+
+                foreach (BoundarySegment boundarySegment in segmentList)
+                {
+                    Curve c = boundarySegment.GetCurve();
+                    temp.Append(c);
+                }
+                SortCurves(temp);
+                //sourr = _doc.Create.NewFloor(temp, floorType, r1.Level, false);
+
+            }
+
+            ElementId ceilingId = new ElementId(282885);
+
+            Element ceiling = _doc.GetElement(ceilingId);
+
+            //get ceiling sketch
+            ElementClassFilter filter =
+                new ElementClassFilter(typeof(Sketch));
+
+            ElementId sketchId =
+                ceiling.GetDependentElements(filter).First();
+
+            Sketch ceilingSketch =
+                _doc.GetElement(sketchId) as Sketch;
+
+            CurveArrArray ceilingProfile = ceilingSketch.Profile;
+
+            filter = new ElementClassFilter(typeof(CurveElement));
+
+            IEnumerable curves = ceiling.GetDependentElements(filter)
+                .Select(id => _doc.GetElement(id));
+
+            IEnumerable modelLines = curves.Where(e => e is ModelLine).Cast();//target
+
+            if (curves.Count() != modelLines.Count())
+                throw new Exception("The ceiling contains" +
+                                    " non straight lines");
+
+            IList<IList<ModelLine>> editableSketch = new List<IList<ModelLine>>();
+
+            foreach (CurveArray loop in ceilingProfile)
+            {
+                List<ModelLine> newLoop = new List<ModelLine>();
+
+                foreach (Curve edge in loop)
+                {
+
+                    foreach (ModelLine modelLine in modelLines)
+                    {
+
+                        Curve currentLine = ((modelLine as ModelLine)
+                          .Location as LocationCurve).Curve;
+
+                        if (currentLine.Intersect(edge)
+                             == SetComparisonResult.Equal)
+                        {
+
+                            newLoop.Add(modelLine);
+                            break;
+                        }
+
+                        editableSketch.Add(newLoop);
+                    }
+                }
+            }
+
+        }
 
         public void CreateFloorOpenings(Element elem)
         {
@@ -178,9 +286,8 @@ namespace BIMv2
             IList<Element> rooms;
             floorType = GetFloorTypeInProject();
             Floor sourr;
-            Floor sourr2;
-
-            GetRoomInProject(out rooms);
+           
+            //GetRoomInProject(out rooms);
 
             
                 CurveArray roomsCurves = new CurveArray();
