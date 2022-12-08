@@ -59,128 +59,140 @@ namespace BIMv2
             Element ceiling = _doc.GetElement(ceilingId);
 
             //get ceiling sketch
-            ElementClassFilter filter =
-                new ElementClassFilter(typeof(Sketch));
+            ElementClassFilter filter =new ElementClassFilter(typeof(Sketch));
 
-            ElementId sketchId =
-                ceiling.GetDependentElements(filter).First();
+            // ElementId sketchId =
+            //     ceiling.GetDependentElements(filter).First();
 
-            Sketch ceilingSketch =
-                _doc.GetElement(sketchId) as Sketch;
+            // Sketch ceilingSketch =
+            //     _doc.GetElement(sketchId) as Sketch;
 
-            CurveArrArray ceilingProfile = ceilingSketch.Profile;
+            // CurveArrArray ceilingProfile = ceilingSketch.Profile;
 
-            filter = new ElementClassFilter(typeof(CurveElement));
+            // filter = new ElementClassFilter(typeof(CurveElement));
 
-            IEnumerable curves = ceiling.GetDependentElements(filter).Select(id => _doc.GetElement(id));
+            // IEnumerable curves = ceiling.GetDependentElements(filter).Select(id => _doc.GetElement(id));
 
-            //IEnumerable modelLines = curves.Where(e => e is ModelLine).Cast();//target
+            // //IEnumerable modelLines = curves.Where(e => e is ModelLine).Cast();//target
 
-            IEnumerable modelLines = curves.Cast<ModelLine>();
+            //IEnumerable modelLines = curves.Cast<ModelLine>().Where(x => x != null);
 
-            //if (curves.Count() != modelLines.Count())
-            //    throw new Exception("The ceiling contains" +
-            //                        " non straight lines");
+            // //if (curves.Count() != modelLines.Count())
+            // //    throw new Exception("The ceiling contains" +
+            // //                        " non straight lines");
 
-            IList<IList<ModelLine>> editableSketch = new List<IList<ModelLine>>();
+            // IList<IList<ModelLine>> editableSketch = new List<IList<ModelLine>>();
 
-            foreach (CurveArray loop in ceilingProfile)
-            {
-                List<ModelLine> newLoop = new List<ModelLine>();
+            // foreach (CurveArray loop in ceilingProfile)
+            // {
+            //     List<ModelLine> newLoop = new List<ModelLine>();
 
-                foreach (Curve edge in loop)
-                {
+            //     foreach (Curve edge in loop)
+            //     {
 
-                    foreach (ModelLine modelLine in modelLines)
-                    {
+            //         foreach (ModelLine modelLine in modelLines)
+            //         {
 
-                        Curve currentLine = ((modelLine as ModelLine)
-                          .Location as LocationCurve).Curve;
+            //             Curve currentLine = ((modelLine as ModelLine)
+            //               .Location as LocationCurve).Curve;
 
-                        if (currentLine.Intersect(edge)
-                             == SetComparisonResult.Equal)
-                        {
+            //             if (currentLine.Intersect(edge)
+            //                  == SetComparisonResult.Equal)
+            //             {
 
-                            newLoop.Add(modelLine);
-                            break;
-                        }
+            //                 newLoop.Add(modelLine);
+            //                 break;
+            //             }
 
-                        editableSketch.Add(newLoop);
-                    }
-                }
-            }
+            //             editableSketch.Add(newLoop);
+            //         }
+            //     }
+            // }
 
-            IList<BoundarySegment> roomPerimeter = roomBoundary[0];
+            // IList<BoundarySegment> roomPerimeter = roomBoundary[0];
 
-            roomBoundary = roomBoundary.Skip(1)
-               .OrderByDescending(s => s.Count()).ToList();
+            // roomBoundary = roomBoundary.Skip(1)
+            //    .OrderByDescending(s => s.Count()).ToList();
 
-            roomBoundary.Insert(0, roomPerimeter);
+            // roomBoundary.Insert(0, roomPerimeter);
 
-            //sort ceiling boundary            
-            IList<ModelLine> ceilingPerimeter = editableSketch[0];
+            // //sort ceiling boundary            
+            // IList<ModelLine> ceilingPerimeter = editableSketch[0];
 
-            editableSketch = editableSketch.Skip(1)
-               .OrderByDescending(s => s.Count()).ToList();
+            // editableSketch = editableSketch.Skip(1)
+            //    .OrderByDescending(s => s.Count()).ToList();
 
-            editableSketch.Insert(0, ceilingPerimeter);
+            // editableSketch.Insert(0, ceilingPerimeter);
 
-            //compare the number of loops and edges
-            if (roomBoundary.Count() > editableSketch.Count()
-              || Enumerable.Range(0, Math.Min(roomBoundary.Count(),
-                                              editableSketch.Count()))
-              .Any(i => roomBoundary[0].Count() > editableSketch[0].Count()))
-            {
-                throw new Exception("The ceiling's sketch cannot be "+ "adapted to the room's shape.");
-            }
+            // //compare the number of loops and edges
+            // if (roomBoundary.Count() > editableSketch.Count()
+            //   || Enumerable.Range(0, Math.Min(roomBoundary.Count(),
+            //                                   editableSketch.Count()))
+            //   .Any(i => roomBoundary[0].Count() > editableSketch[0].Count()))
+            // {
+            //     throw new Exception("The ceiling's sketch cannot be "+ "adapted to the room's shape.");
+            // }
 
 
-            using (Transaction t = new Transaction(_doc, "Edit ceiling sketch"))
+            using (Transaction t = new Transaction(_doc,  "Edit ceiling sketch"))
             {
                 t.Start();
 
-                for (int i = 0; i < editableSketch.Count(); i++)
-                {
-                    IList<ModelLine> ceilingLoop = editableSketch[i];
+                XYZ point=new XYZ(1, 1, 1);
 
-                    if (i < roomBoundary.Count())
-                    {
-                        //edit the current loop
-                        IList<BoundarySegment> roomLoop = roomBoundary[i];
+                ICollection<ElementId> el =ElementTransformUtils.CopyElement(_doc, ceilingId, point);
 
-                        for (int j = 0; j < ceilingLoop.Count(); j++)
-                        {
-                            ModelLine currentEdge = ceilingLoop[j];
+                Element newcel = _doc.GetElement(el.FirstOrDefault());
 
-                            if (j < roomLoop.Count())
-                            {
-                                //edit the current edge
-                                BoundarySegment roomEdge = roomLoop[j];
+               
+                //newcel.get_Geometry(o);
 
-                                Curve newEdge = roomEdge.GetCurve().Clone();
+                //for (int i = 0; i < editableSketch.Count(); i++)
+                //{
+                //    IList<ModelLine> ceilingLoop = editableSketch[i];
 
-                                if (!(newEdge is Line))
-                                    throw new Exception(
-                                       "The room contains non straight lines");
+                //    if (i < roomBoundary.Count())
+                //    {
+                //        //edit the current loop
+                //        IList<BoundarySegment> roomLoop = roomBoundary[i];
 
-                                (currentEdge.Location as LocationCurve).Curve =newEdge;
-                            }
-                            else
-                            {
-                                //remove the current edge
-                                _doc.Delete(currentEdge.Id);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        //remove the current loop
-                        foreach (ModelLine line in ceilingLoop)
-                        {
-                            _doc.Delete(line.Id);
-                        }
-                    }
-                }
+                //        for (int j = 0; j < ceilingLoop.Count(); j++)
+                //        {
+                //            ModelLine currentEdge = ceilingLoop[j];
+
+                //            if (j < roomLoop.Count())
+                //            {
+                //                //edit the current edge
+                //                BoundarySegment roomEdge = roomLoop[j];
+
+                //                Curve newEdge = roomEdge.GetCurve().Clone();
+
+                //                if (!(newEdge is Line))
+                //                    throw new Exception(
+                //                       "The room contains non straight lines");
+
+                //                (currentEdge.Location as LocationCurve).Curve =
+                //                    newEdge;
+                //            }
+                //            else
+                //            {
+                //                //remove the current edge
+                //                _doc.Delete(currentEdge.Id);
+                //            }
+                //        }
+                //    }
+                //    else
+                //    {
+                //        try { 
+                //        //remove the current loop
+                //        foreach (ModelLine line in ceilingLoop)
+                //        {
+                //            _doc.Delete(line.Id);
+                //        }
+                //    }
+                //        catch { }
+                //    }
+                //}
 
                 t.Commit();
             }

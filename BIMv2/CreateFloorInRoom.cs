@@ -201,39 +201,39 @@ namespace BIMv2
             IEnumerable curves = ceiling.GetDependentElements(filter)
                 .Select(id => _doc.GetElement(id));
 
-            IEnumerable modelLines = curves.Where(e => e is ModelLine).Cast();//target
+            //IEnumerable modelLines = curves.Where(e => e is ModelLine).Cast();//target
 
-            if (curves.Count() != modelLines.Count())
-                throw new Exception("The ceiling contains" +
-                                    " non straight lines");
+            //if (curves.Count() != modelLines.Count())
+            //    throw new Exception("The ceiling contains" +
+            //                        " non straight lines");
 
             IList<IList<ModelLine>> editableSketch = new List<IList<ModelLine>>();
 
-            foreach (CurveArray loop in ceilingProfile)
-            {
-                List<ModelLine> newLoop = new List<ModelLine>();
+            //foreach (CurveArray loop in ceilingProfile)
+            //{
+            //    List<ModelLine> newLoop = new List<ModelLine>();
 
-                foreach (Curve edge in loop)
-                {
+            //    foreach (Curve edge in loop)
+            //    {
 
-                    foreach (ModelLine modelLine in modelLines)
-                    {
+            //        foreach (ModelLine modelLine in modelLines)
+            //        {
 
-                        Curve currentLine = ((modelLine as ModelLine)
-                          .Location as LocationCurve).Curve;
+            //            Curve currentLine = ((modelLine as ModelLine)
+            //              .Location as LocationCurve).Curve;
 
-                        if (currentLine.Intersect(edge)
-                             == SetComparisonResult.Equal)
-                        {
+            //            if (currentLine.Intersect(edge)
+            //                 == SetComparisonResult.Equal)
+            //            {
 
-                            newLoop.Add(modelLine);
-                            break;
-                        }
+            //                newLoop.Add(modelLine);
+            //                break;
+            //            }
 
-                        editableSketch.Add(newLoop);
-                    }
-                }
-            }
+            //            editableSketch.Add(newLoop);
+            //        }
+            //    }
+            //}
 
         }
 
