@@ -9,9 +9,6 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Selection;
-
-//using Microsoft.Office.Interop.Excel;
-
 using Floor = Autodesk.Revit.DB.Floor;
 
 #endregion
@@ -30,7 +27,7 @@ namespace BIMv2
         private CurveArray profile;
         //private Hashtable floorTypes;
         private List<string> floorTypesName;
-        private FloorType floorType;
+        public FloorType floorType;
         private Level level;
         private bool structural;
         private Autodesk.Revit.Creation.Application creApp;
@@ -51,17 +48,17 @@ namespace BIMv2
 
                 Element elem = SelectedElement(_doc); //select room
 
-                //CreateFloorInRooms(elem);
+                CreateFloorInRooms(elem);
 
-                CreateCeiling(elem);
+                //CreateCeiling(elem);
 
                 TaskDialog.Show("У тебя получилось", "Пол создан ☺☺☺");
                 t.Commit();
 
-                //t.Start();
-                //CreateFloorOpenings(elem);
+                t.Start();
+                CreateFloorOpenings(elem);
 
-                //var res = t.Commit();
+                var res = t.Commit();
 
             }
 
@@ -282,15 +279,17 @@ namespace BIMv2
         public void CreateFloorInRooms(Element elem)
         {
 
-            FloorType floorType;
+            FloorType floorType = GetFloorTypeInProject();
             IList<Element> rooms;
-            floorType = GetFloorTypeInProject();
+            
             Floor sourr;
-           
+
+            //FloorType= GetFloorTypeInProject();
+
             //GetRoomInProject(out rooms);
 
-            
-                CurveArray roomsCurves = new CurveArray();
+
+            CurveArray roomsCurves = new CurveArray();
                 Room r1 = (Room)elem;
 
                 SpatialElementBoundaryOptions bo = new SpatialElementBoundaryOptions();

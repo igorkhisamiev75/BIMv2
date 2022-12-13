@@ -14,15 +14,19 @@ namespace CreateFinishWallinRooms
 {
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]
-    [Journaling(JournalingMode.NoCommandData)]
+    //[Journaling(JournalingMode.NoCommandData)]
     public class CreteFinishWalls : Window, IExternalCommand
     {
         // Private Members
         IList<WallType> m_wallTypeCollection;         // Store all the wall types in current document
         IList<FloorType> m_FloorTypeCollection;
+        private const double PRECISION = 0.00000001;
+        private CurveArray profile;
+        private Autodesk.Revit.Creation.Application creApp;
 
         private Application _app;
         private Document _doc;
+
         
         public ICollection<Element> roomsCollection = new List<Element>();
 
@@ -37,8 +41,6 @@ namespace CreateFinishWallinRooms
         public ICollection<Element> unusedFiltersCollection = new List<Element>();
 
         public IList<WallType> typeCollectionWall = new List<WallType>();
-
-        public ICollection<int> filtersInViewsId = new List<int>();
 
         public int roomBoardingWall; //для границы помещений
         Level selectedLevelInForms; //выбор уровня
@@ -68,7 +70,9 @@ namespace CreateFinishWallinRooms
             }
         }
 
-        [Obsolete]
+        // an array of planar lines and arcs that represent the horizontal profile of the floor
+        
+       
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
 
@@ -107,8 +111,6 @@ namespace CreateFinishWallinRooms
                 roomsCollection2.Add((Room)rooms);
             }
 
-            
-
             //удаление дубликатов, групирруем по имени помещения
             List<Room> roomGroup = roomsCollection2.GroupBy(x => 
             x.get_Parameter(BuiltInParameter.ROOM_NAME).AsString()).Select(x => x.First()).ToList();
@@ -145,6 +147,9 @@ namespace CreateFinishWallinRooms
             //get selected walltype
             WallType selectedWallTpe = vpViewWpf.typeWallCollectionSelected;
 
+            //get selected floortype
+            FloorType selectedFloorType = vpViewWpf.typeFloorSelected;
+
             //get rooms checked
             List<String> checkRoomsString = vpViewWpf.checkRooms;
 
@@ -156,7 +161,6 @@ namespace CreateFinishWallinRooms
             //    TaskDialog.Show("2bim.ru", $"Level name selected {selectedLevelInForms.Name}");
             //}
             
-
 
             List<Room> checkRooms=new List<Room>();
 
@@ -223,6 +227,29 @@ namespace CreateFinishWallinRooms
                     }
                 }
 
+                //floor in selected room
+
+                if (whatsButton == "полыВыборомПомещения")
+                {
+
+                    //TaskDialog.Show("2bim.ru", $"{selectedFloorType.Name}");
+
+                    Element elem = SelectedElement(_doc); //select room
+                   
+                    try
+                    {
+                        CreateFloorInRooms((Room)elem, selectedFloorType);
+                       
+                        TaskDialog.Show("2bim.ru", "Полы созданы ☺☺☺");
+                    }
+
+                    catch
+                    {
+                        TaskDialog.Show("2bim.ru", "Error");
+                        
+                    }
+                }
+
                 if (whatsButton == "удалитьОтделку")
                 {
                     //TaskDialog.Show("2bim.ru", "3");
@@ -245,6 +272,127 @@ namespace CreateFinishWallinRooms
             }
 
             return Result.Succeeded;
+        }
+
+        public void CreateFloorInRooms(Room elem, FloorType selectedFloorType)
+        {
+            TaskDialog.Show("2bim.ru", "ЗАШЕЛ В метод");
+            
+            //IList<Element> rooms;
+            //GetRoomInProject(out rooms);
+
+            CurveArray roomsCurves = new CurveArray();
+            
+            Room r1 = (Room)elem;
+
+            SpatialElementBoundaryOptions bo = new SpatialElementBoundaryOptions();
+            IList<IList<BoundarySegment>> segments2 = r1.GetBoundarySegments(bo);
+            //TaskDialog.Show("2bim.ru", $"{segments2.Count} csegments");
+
+            CurveArray temp = new CurveArray();
+
+            if (null != segments2)
+            {
+                IList<BoundarySegment> segmentList = segments2[0];
+                TaskDialog.Show("2bim.ru", "ЗАШЕЛ go");
+
+                TaskDialog.Show("2bim.ru", $"{segmentList.Count} csegments");
+
+                foreach (BoundarySegment boundarySegment in segmentList)
+                {
+                    Curve c = boundarySegment.GetCurve();
+                    temp.Append(c);
+                }
+
+                SortCurves(temp);
+
+                TaskDialog.Show("2bim.ru", $"{temp.Size} ЗАШЕЛ после сортировки");
+
+                Floor sourr = _doc.Create.NewFloor(temp, selectedFloorType, r1.Level, true);
+                _doc.Regenerate();
+
+            }
+
+
+        }
+
+        public void SortCurves(CurveArray lines)
+        {
+            TaskDialog.Show("2bim.ru", "ЗАШЕЛ в метод сортировки курве эррей");
+            XYZ pointCurves = lines.get_Item(0).GetEndPoint(1);
+            Curve temCurve = lines.get_Item(0);
+
+
+            Profile = creApp.NewCurveArray();
+
+            Profile.Append(temCurve);
+
+            while (Profile.Size != lines.Size)
+            {
+
+                temCurve = GetNext(lines, pointCurves, temCurve);
+
+                if (Math.Abs(pointCurves.X - temCurve.GetEndPoint(0).X) < PRECISION
+                 && Math.Abs(pointCurves.Y - temCurve.GetEndPoint(0).Y) < PRECISION)
+                {
+                    pointCurves = temCurve.GetEndPoint(1);
+                }
+                else
+                {
+                    pointCurves = temCurve.GetEndPoint(0);
+                }
+
+                Profile.Append(temCurve);
+            }
+
+        }
+        public Curve GetNext(CurveArray profile, XYZ connected, Curve line)
+        {
+            foreach (Curve c in profile)
+            {
+                if (c.Equals(line))
+                {
+                    continue;
+                }
+                if ((Math.Abs(c.GetEndPoint(0).X - line.GetEndPoint(1).X) < PRECISION &&
+                    Math.Abs(c.GetEndPoint(0).Y - line.GetEndPoint(1).Y) < PRECISION &&
+                    Math.Abs(c.GetEndPoint(0).Z - line.GetEndPoint(1).Z) < PRECISION) &&
+                    (Math.Abs(c.GetEndPoint(1).X - line.GetEndPoint(0).X) < PRECISION &&
+                    Math.Abs(c.GetEndPoint(1).Y - line.GetEndPoint(0).Y) < PRECISION &&
+                    Math.Abs(c.GetEndPoint(1).Z - line.GetEndPoint(0).Z) < PRECISION) &&
+                    2 != profile.Size)
+                {
+                    continue;
+                }
+
+                if (Math.Abs(c.GetEndPoint(0).X - connected.X) < PRECISION &&
+                    Math.Abs(c.GetEndPoint(0).Y - connected.Y) < PRECISION &&
+                    Math.Abs(c.GetEndPoint(0).Z - connected.Z) < PRECISION)
+                {
+                    return c;
+                }
+                else if (Math.Abs(c.GetEndPoint(1).X - connected.X) < PRECISION &&
+                         Math.Abs(c.GetEndPoint(1).Y - connected.Y) < PRECISION &&
+                         Math.Abs(c.GetEndPoint(1).Z - connected.Z) < PRECISION)
+                {
+                    if (c.GetType().Name.Equals("Line"))
+                    {
+                        XYZ start = c.GetEndPoint(1);
+                        XYZ end = c.GetEndPoint(0);
+                        return Line.CreateBound(start, end);
+                    }
+                    else if (c.GetType().Name.Equals("Arc"))
+                    {
+                        int size = c.Tessellate().Count;
+                        XYZ start = c.Tessellate()[0];
+                        XYZ middle = c.Tessellate()[size / 2];
+                        XYZ end = c.Tessellate()[size];
+
+                        return Arc.Create(start, end, middle);
+                    }
+                }
+            }
+            throw new InvalidOperationException("The Room Boundary should be closed.");
         }
 
         public void CreateWallInRoom(Element elem, UIDocument uiDoc, int _roomBoardingWall, WallType wallType)
@@ -447,19 +595,7 @@ namespace CreateFinishWallinRooms
 
         }
 
-        //public WallType GetWallTypeInProject()
-        //{
-        //    WallType wallType;
-        //    //// Get a floor type for floor creation
-        //    FilteredElementCollector collector = new FilteredElementCollector(_doc);
-        //    collector.OfClass(typeof(WallType));
-        //    //wallType = collector.Where(x => x.Name == nameTypeWall) as WallType;
-        //    wallType = collector.FirstOrDefault()  as WallType;
-            
-
-        //    return wallType;
-        //}
-
+        
         //get all rooms
         public IList<Element> GetAllRooms(Document doc)
         {
@@ -473,26 +609,19 @@ namespace CreateFinishWallinRooms
             return allRooms;
         }
 
-        
-        //public WallType GetWallTypeInProject(string nameTypeWall)
-        //{
-        //    WallType wallType;
-        //    //// Get a floor type for floor creation
-        //    FilteredElementCollector collector = new FilteredElementCollector(_doc);
-        //    collector.OfClass(typeof(WallType));
-        //    wallType = collector.Where(x => x.Name == nameTypeWall) as WallType;
-        //    //as WallType;
+        public CurveArray Profile
+        {
+            get
+            {
+                return profile;
+            }
+            set
+            {
+                profile = value;
+            }
+        }
 
-        //    FilteredElementCollector a = new FilteredElementCollector(_doc).OfClass(typeof(WallType));
-        //    foreach (WallType wallType2 in a)
-        //    {
-        //        if (wallType2.Name == nameTypeWall)
-        //        {
-        //            return wallType2;
-        //        }
-        //    }
 
-        //    return wallType;
-        //}
+
     }
 }

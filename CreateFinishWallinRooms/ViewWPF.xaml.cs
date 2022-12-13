@@ -22,8 +22,11 @@ namespace CreateFinishWallinRooms
         //public RoutedEventHandler routEvent;
         public string whatsButton;
         public bool roomBoording;
+
         public WallType typeWallCollectionSelected;
+        public FloorType typeFloorSelected;
         public Level selectedLevel;
+
         public string heighWallUser;
 
         public ViewWPF(List<String> rooms, IList<WallType> typeWallCollection, List<Level> levels, IList<FloorType> typeFloorCollection)
@@ -43,7 +46,7 @@ namespace CreateFinishWallinRooms
             ComboBoxLevel.SelectedIndex = 0;
 
             ComboBoxFloor.ItemsSource = typeFloorCollection;
-            ComboBoxFloor.SelectedIndex = 2;
+            ComboBoxFloor.SelectedIndex = 0;
             ComboBoxFloor.DisplayMemberPath = "Name";
 
         }
@@ -136,7 +139,9 @@ namespace CreateFinishWallinRooms
             heighWallUser = heightWallNotRooms.Text;
             selectedLevel = ComboBoxLevel.SelectedItem as Level;
 
-            typeWallCollectionSelected = ComboBox.SelectedValue as WallType;
+            
+            typeFloorSelected = ComboBoxFloor.SelectedValue as FloorType;
+
             whatsButton = "отделкаПоСпекеПолы";
 
             if (chekRoomBoarding.IsChecked.GetValueOrDefault())
@@ -169,18 +174,9 @@ namespace CreateFinishWallinRooms
         {
             selectedLevel = ComboBoxLevel.SelectedItem as Level;
             typeWallCollectionSelected = ComboBox.SelectedValue as WallType;
-            heighWallUser = heightWallNotRooms.Text;
+            typeFloorSelected = ComboBoxFloor.SelectedValue as FloorType;
 
             whatsButton = "полыВыборомПомещения";
-
-            if (chekRoomBoarding.IsChecked.GetValueOrDefault())
-            {
-                roomBoording = true;
-            }
-            else
-            {
-                roomBoording = false;
-            }
 
             Close();
 
