@@ -19,13 +19,11 @@ namespace CreateFinishWallinRooms
     {
         // Private Members
         IList<WallType> m_wallTypeCollection;         // Store all the wall types in current document
+        IList<FloorType> m_FloorTypeCollection;
 
         private Application _app;
         private Document _doc;
-        //private ViewSet m_allViews = new ViewSet();
-
-        public ICollection<View> viewsInProject = new List<View>();
-
+        
         public ICollection<Element> roomsCollection = new List<Element>();
 
         public List<Level> levelCollection2 = new List<Level>();
@@ -58,6 +56,18 @@ namespace CreateFinishWallinRooms
             }
         }
 
+        // Properties
+        /// <summary>
+        /// Inform all the floor types can be created in current document
+        /// </summary>
+        public IList<FloorType> FloorTypes
+        {
+            get
+            {
+                return m_FloorTypeCollection;
+            }
+        }
+
         [Obsolete]
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -84,6 +94,11 @@ namespace CreateFinishWallinRooms
             filteredElementCollector.OfClass(typeof(WallType));
             m_wallTypeCollection = filteredElementCollector.Cast<WallType>().ToList<WallType>();
 
+            // Search all the floor types in the Revit
+            FilteredElementCollector filteredElementCollectorFloor = new FilteredElementCollector(_doc);
+            filteredElementCollectorFloor.OfClass(typeof(FloorType));
+            m_FloorTypeCollection = filteredElementCollectorFloor.Cast<FloorType>().ToList<FloorType>();
+
 
             roomsCollection = GetAllRooms(_doc);
            
@@ -104,7 +119,7 @@ namespace CreateFinishWallinRooms
             }
 
             //create form 
-            ViewWPF vpViewWpf = new ViewWPF(roomsNameInProject, WallTypes, levelCollection2);
+            ViewWPF vpViewWpf = new ViewWPF(roomsNameInProject, WallTypes, levelCollection2, FloorTypes);
 
             //show form
             vpViewWpf.WindowStartupLocation = WindowStartupLocation.CenterScreen;
