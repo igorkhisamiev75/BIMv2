@@ -127,5 +127,43 @@ namespace CreateFinishWallinRooms
 
         }
 
+        private void floorAll_Click(object sender, RoutedEventArgs e)
+        {
+            heighWallUser = heightWallNotRooms.Text;
+            selectedLevel = ComboBoxLevel.SelectedItem as Level;
+
+            typeWallCollectionSelected = ComboBox.SelectedValue as WallType;
+            whatsButton = "отделкаПоСпекеПолы";
+
+            if (chekRoomBoarding.IsChecked.GetValueOrDefault())
+            {
+                roomBoording = true;
+            }
+            else
+            {
+                roomBoording = false;
+            }
+
+            foreach (var room in roomCollection)
+            {
+                foreach (var variable in ListBox.SelectedItems)
+                {
+                    if (room.GetHashCode() == variable.GetHashCode())
+                    {
+                        checkRooms.Add(room);
+                        //MessageBox.Show("Выбрано" + element.Name);
+
+                    }
+                }
+            }
+            //MessageBox.Show("Выбрано " + checkRooms.Count + " комнат для отделки");
+            Close();
+
+        }
+
+        private void finishFloorInOneRoom_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

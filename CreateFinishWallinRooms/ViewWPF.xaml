@@ -50,7 +50,22 @@
                 VerticalAlignment="Top" 
                 Click="finish1_Click">
             <Button.Content>
-                <TextBlock Text="Выбрать помещение на плане" 
+                <TextBlock Text="Создать стены. Выбрать помещение на плане" 
+                           TextWrapping="Wrap" 
+                           TextAlignment="Center"/>
+            </Button.Content>
+        </Button>
+
+        <Button x:Name="finishFloorInOneRoom" 
+                Height="65" 
+                Grid.Column="1"
+                Grid.Row="1"
+                HorizontalAlignment="Stretch" 
+                Margin="10,80,10,10" 
+                VerticalAlignment="Top" Click="finishFloorInOneRoom_Click" 
+               >
+            <Button.Content>
+                <TextBlock Text="Создать пол. Выбрать помещение на плане" 
                            TextWrapping="Wrap" 
                            TextAlignment="Center"/>
             </Button.Content>
@@ -63,7 +78,18 @@
                 VerticalAlignment="Top" 
                 Click="finishAll_Click">
             <Button.Content>
-                <TextBlock Text="Отделка через список помещений" 
+                <TextBlock Text="Стены через список помещений" 
+                           TextWrapping="Wrap" 
+                           TextAlignment="Center"/>
+            </Button.Content>
+        </Button>
+        <Button Name="floorAll" 
+                Grid.Column="1"
+                Grid.Row="0"
+                Margin="10,60,10,10" 
+                VerticalAlignment="Top" Click="floorAll_Click">
+            <Button.Content>
+                <TextBlock Text="Полы через список помещений" 
                            TextWrapping="Wrap" 
                            TextAlignment="Center"/>
             </Button.Content>
@@ -103,6 +129,15 @@
             Width="195" 
             Height="28"/>
         <ComboBox 
+            Name="ComboBoxFloor" 
+            Grid.Column="0"
+            Grid.Row="3"
+            HorizontalAlignment="Left" 
+            VerticalAlignment="Top"
+            Margin="10,100,10,10"
+            Width="195" 
+            Height="28"/>
+        <ComboBox 
             Name="ComboBoxLevel"
             HorizontalAlignment="Right" 
             Margin="240,40,10,0" 
@@ -116,6 +151,16 @@
             VerticalAlignment="Top" 
             Margin="10,10,0,0"
             Content="Выбрать тип стен для отделки" 
+            HorizontalAlignment="Left"          
+            Width="221"
+            FontSize="12" 
+            FontWeight="Bold"/>
+        <Label 
+            Grid.Column="0"
+            Grid.Row="3"
+            VerticalAlignment="Top" 
+            Margin="10,70,0,0"
+            Content="Выбрать тип полов для отделки" 
             HorizontalAlignment="Left"          
             Width="221"
             FontSize="12" 
@@ -157,8 +202,8 @@
                   IsChecked="True"
                   Grid.Column="0" 
                   Grid.Row="3" 
-                  HorizontalAlignment="Left" 
-                  Margin="10,85,0,0" 
+                  HorizontalAlignment="Right" 
+                  Margin="0,85,10,10" 
                   VerticalAlignment="Top">
             <CheckBox.Content>
                 <TextBlock Text="Граница помещения"
