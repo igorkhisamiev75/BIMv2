@@ -280,6 +280,10 @@ namespace BIMv2
         {
 
             FloorType floorType = GetFloorTypeInProject();
+
+            TaskDialog.Show("У тебя получилось", $"{floorType.GetType()} Пол создан ☺☺☺");
+
+
             IList<Element> rooms;
             
             Floor sourr;
@@ -332,12 +336,23 @@ namespace BIMv2
 
         public FloorType GetFloorTypeInProject()
         {
-            FloorType floorType;
+            
             //// Get a floor type for floor creation
-            FilteredElementCollector collector = new FilteredElementCollector(_doc);
-            collector.OfClass(typeof(FloorType));
-            floorType = collector.FirstElement() as FloorType;
+            var  collector = new FilteredElementCollector(_doc)
+                .OfCategory(BuiltInCategory.OST_Floors)
+                .WhereElementIsElementType();
+
+
+            FloorType floorType = (FloorType)collector.ToElements();
             return floorType;
+
+            // List all Floor's
+            //            var floor_collector = new FilteredElementCollector(document)
+            //                .OfCategory(BuiltInCategory.OST_Walls)
+            //                .WhereElementIsNotElementType();
+
+            //            IList<Element> allFloors = floor_collector.ToElements();
+            //            return allFloors;
         }
 
         public void SortCurves(CurveArray lines)
