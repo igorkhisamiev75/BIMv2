@@ -147,8 +147,8 @@ namespace CreateFinishWallinRooms
             //get selected walltype
             WallType selectedWallTpe = vpViewWpf.typeWallCollectionSelected;
 
-            ////get selected floortype
-            //FloorType selectedFloorType = vpViewWpf.typeFloorSelected;
+            //get selected floortype
+            FloorType selectedFloorType = vpViewWpf.typeFloorSelected;
 
             //get rooms checked
             List<String> checkRoomsString = vpViewWpf.checkRooms;
@@ -232,13 +232,13 @@ namespace CreateFinishWallinRooms
                 if (whatsButton == "полыВыборомПомещения")
                 {
 
-                    TaskDialog.Show("2bim.ru", "полыВыборомПомещения");
+                    //TaskDialog.Show("2bim.ru", "полыВыборомПомещения");
 
                     Element elem = SelectedElement(_doc); //select room
                     
                     try
                     {
-                        CreateFloorInRooms(elem);
+                        CreateFloorInRooms(elem, selectedFloorType);
                        
                         TaskDialog.Show("2bim.ru", "Полы созданы ☺☺☺");
                     }
@@ -258,7 +258,7 @@ namespace CreateFinishWallinRooms
             return Result.Succeeded;
         }
 
-        public void CreateFloorInRooms(Element elem)
+        public void CreateFloorInRooms(Element elem, FloorType floorType3)
         {
 
             FloorType floorType2 = GetFloorTypeInProject(_doc);
@@ -288,7 +288,7 @@ namespace CreateFinishWallinRooms
                     temp.Append(c);
                 }
                 var newSortCurve=SortCurves(temp);
-                floor = _doc.Create.NewFloor(newSortCurve, floorType2, r1.Level, false);
+                floor = _doc.Create.NewFloor(newSortCurve, floorType3, r1.Level, false);
 
 
             }
@@ -298,7 +298,7 @@ namespace CreateFinishWallinRooms
 
         public CurveArray SortCurves(CurveArray lines)
         {
-            TaskDialog.Show("2bim.ru", "ЗАШЕЛ в метод сортировки курве эррей");
+            //TaskDialog.Show("2bim.ru", "ЗАШЕЛ в метод сортировки курве эррей");
 
             XYZ pointCurves = lines.get_Item(0).GetEndPoint(1);
             Curve temCurve = lines.get_Item(0);
@@ -334,7 +334,7 @@ namespace CreateFinishWallinRooms
 
             return profNew;
 
-            TaskDialog.Show("2bim.ru", "Вышел из метода");
+            //TaskDialog.Show("2bim.ru", "Вышел из метода");
 
         }
         public Curve GetNext(CurveArray profile, XYZ connected, Curve line)

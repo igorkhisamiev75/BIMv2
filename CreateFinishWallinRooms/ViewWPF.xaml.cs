@@ -46,7 +46,7 @@ namespace CreateFinishWallinRooms
             ComboBoxLevel.SelectedIndex = 0;
 
             ComboBoxFloor.ItemsSource = typeFloorCollection;
-            ComboBoxFloor.SelectedIndex = 0;
+            ComboBoxFloor.SelectedIndex = 1;
             ComboBoxFloor.DisplayMemberPath = "Name";
 
         }
