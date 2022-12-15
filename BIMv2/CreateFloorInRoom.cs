@@ -55,10 +55,10 @@ namespace BIMv2
                 TaskDialog.Show("У тебя получилось", "Пол создан ☺☺☺");
                 t.Commit();
 
-                t.Start();
-                CreateFloorOpenings(elem);
+                //t.Start();
+                //CreateFloorOpenings(elem);
 
-                var res = t.Commit();
+                //var res = t.Commit();
 
             }
 
@@ -281,12 +281,11 @@ namespace BIMv2
 
             FloorType floorType = GetFloorTypeInProject();
 
-            TaskDialog.Show("У тебя получилось", $"{floorType.GetType()} Пол создан ☺☺☺");
+            //TaskDialog.Show("У тебя получилось", $"{floorType.GetType()} Пол создан ☺☺☺");
 
 
-            IList<Element> rooms;
-            
-            Floor sourr;
+            //IList<Element> rooms;
+
 
             //FloorType= GetFloorTypeInProject();
 
@@ -294,13 +293,12 @@ namespace BIMv2
 
 
             CurveArray roomsCurves = new CurveArray();
-                Room r1 = (Room)elem;
+            Room r1 = (Room)elem;
 
-                SpatialElementBoundaryOptions bo = new SpatialElementBoundaryOptions();
-                IList<IList<BoundarySegment>> segments2 = r1.GetBoundarySegments(bo);
-
-
-                CurveArray temp = new CurveArray();
+            SpatialElementBoundaryOptions bo = new SpatialElementBoundaryOptions();
+            IList<IList<BoundarySegment>> segments2 = r1.GetBoundarySegments(bo);
+            
+            CurveArray temp = new CurveArray();
 
                 if (null != segments2)
                 {
@@ -313,9 +311,10 @@ namespace BIMv2
                         temp.Append(c);
                     }
                     SortCurves(temp);
-                    sourr = _doc.Create.NewFloor(temp, floorType, r1.Level, false);
+                _ = _doc.Create.NewFloor(temp, floorType, r1.Level, false);
 
-                }
+
+                }    
 
 
         }
@@ -336,23 +335,13 @@ namespace BIMv2
 
         public FloorType GetFloorTypeInProject()
         {
+            // Search all the floor types in the Revit
+            FilteredElementCollector filteredElementCollectorFloor = new FilteredElementCollector(_doc);
+            filteredElementCollectorFloor.OfClass(typeof(FloorType));
+            var m_FloorTypeCollection = filteredElementCollectorFloor.Cast<FloorType>().ToList<FloorType>();
+            FloorType g = m_FloorTypeCollection[3];
+            return g;
             
-            //// Get a floor type for floor creation
-            var  collector = new FilteredElementCollector(_doc)
-                .OfCategory(BuiltInCategory.OST_Floors)
-                .WhereElementIsElementType();
-            //error
-
-            FloorType floorType = (FloorType)collector.ToElements();
-            return floorType;
-
-            // List all Floor's
-            //            var floor_collector = new FilteredElementCollector(document)
-            //                .OfCategory(BuiltInCategory.OST_Walls)
-            //                .WhereElementIsNotElementType();
-
-            //            IList<Element> allFloors = floor_collector.ToElements();
-            //            return allFloors;
         }
 
         public void SortCurves(CurveArray lines)

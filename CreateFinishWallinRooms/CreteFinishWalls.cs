@@ -147,8 +147,8 @@ namespace CreateFinishWallinRooms
             //get selected walltype
             WallType selectedWallTpe = vpViewWpf.typeWallCollectionSelected;
 
-            //get selected floortype
-            FloorType selectedFloorType = vpViewWpf.typeFloorSelected;
+            ////get selected floortype
+            //FloorType selectedFloorType = vpViewWpf.typeFloorSelected;
 
             //get rooms checked
             List<String> checkRoomsString = vpViewWpf.checkRooms;
@@ -232,41 +232,25 @@ namespace CreateFinishWallinRooms
                 if (whatsButton == "полыВыборомПомещения")
                 {
 
-                    //TaskDialog.Show("2bim.ru", $"{selectedFloorType.Name}");
+                    TaskDialog.Show("2bim.ru", "полыВыборомПомещения");
 
                     Element elem = SelectedElement(_doc); //select room
-                   
+
                     try
                     {
-                        CreateFloorInRooms((Room)elem, selectedFloorType);
+                        CreateFloorInRooms(elem);
                        
                         TaskDialog.Show("2bim.ru", "Полы созданы ☺☺☺");
                     }
 
-                    catch
+                    catch(Exception ex)
                     {
-                        TaskDialog.Show("2bim.ru", "Error");
+                        TaskDialog.Show("2bim.ru", $"{ex} Error");
                         
                     }
                 }
 
-                if (whatsButton == "удалитьОтделку")
-                {
-                    //TaskDialog.Show("2bim.ru", "3");
-                    //Element elem = SelectedElement(_doc); //select room
-                    try
-                    {
-                        //удалить отделку
-                    }
-
-                    catch
-                    {
-                        //TaskDialog.Show("2bim.ru", "Отделка стен создана ☺☺☺");
-                        //TaskDialog.Show("2bim.ru", "Не сработало");
-                    }
-                }
-
-
+                
                 t.Commit();
 
             }
@@ -274,42 +258,38 @@ namespace CreateFinishWallinRooms
             return Result.Succeeded;
         }
 
-        public void CreateFloorInRooms(Room elem, FloorType selectedFloorType)
+        public void CreateFloorInRooms(Element elem)
         {
-            TaskDialog.Show("2bim.ru", "ЗАШЕЛ В метод");
-            
-            //IList<Element> rooms;
-            //GetRoomInProject(out rooms);
+
+            FloorType floorType2 = GetFloorTypeInProject();
+
+            //TaskDialog.Show("У тебя получилось", $"{floorType.GetType()} Пол создан ☺☺☺");
+            Floor floor; 
+
+            IList<Element> rooms;
+
 
             CurveArray roomsCurves = new CurveArray();
-            
             Room r1 = (Room)elem;
 
             SpatialElementBoundaryOptions bo = new SpatialElementBoundaryOptions();
             IList<IList<BoundarySegment>> segments2 = r1.GetBoundarySegments(bo);
-            //TaskDialog.Show("2bim.ru", $"{segments2.Count} csegments");
 
             CurveArray temp = new CurveArray();
 
             if (null != segments2)
             {
                 IList<BoundarySegment> segmentList = segments2[0];
-                TaskDialog.Show("2bim.ru", "ЗАШЕЛ go");
 
-                TaskDialog.Show("2bim.ru", $"{segmentList.Count} csegments");
 
                 foreach (BoundarySegment boundarySegment in segmentList)
                 {
                     Curve c = boundarySegment.GetCurve();
                     temp.Append(c);
                 }
-
                 SortCurves(temp);
+                floor = _doc.Create.NewFloor(temp, floorType2, r1.Level, false);
 
-                TaskDialog.Show("2bim.ru", $"{temp.Size} ЗАШЕЛ после сортировки");
-
-                Floor sourr = _doc.Create.NewFloor(temp, selectedFloorType, r1.Level, true);
-                _doc.Regenerate();
 
             }
 
@@ -318,10 +298,9 @@ namespace CreateFinishWallinRooms
 
         public void SortCurves(CurveArray lines)
         {
-            TaskDialog.Show("2bim.ru", "ЗАШЕЛ в метод сортировки курве эррей");
+            //TaskDialog.Show("2bim.ru", "ЗАШЕЛ в метод сортировки курве эррей");
             XYZ pointCurves = lines.get_Item(0).GetEndPoint(1);
             Curve temCurve = lines.get_Item(0);
-
 
             Profile = creApp.NewCurveArray();
 
@@ -619,6 +598,17 @@ namespace CreateFinishWallinRooms
             {
                 profile = value;
             }
+        }
+
+        public FloorType GetFloorTypeInProject()
+        {
+            // Search all the floor types in the Revit
+            FilteredElementCollector filteredElementCollectorFloor = new FilteredElementCollector(_doc);
+            filteredElementCollectorFloor.OfClass(typeof(FloorType));
+            var m_FloorTypeCollection = filteredElementCollectorFloor.Cast<FloorType>().ToList<FloorType>();
+            FloorType g = m_FloorTypeCollection[3];
+            return g;
+
         }
 
 
