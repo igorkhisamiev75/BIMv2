@@ -22,8 +22,8 @@ namespace CreateFinishWallinRooms
         IList<FloorType> m_FloorTypeCollection;
         private const double PRECISION = 0.00000001;
         private CurveArray profile;
-        private Autodesk.Revit.Creation.Application creApp;
-
+        public Autodesk.Revit.Creation.Application creApp;
+        public FloorType floorType;
         private Application _app;
         private Document _doc;
 
@@ -36,9 +36,9 @@ namespace CreateFinishWallinRooms
 
         public List<String> roomsNameInProject = new List<String>();
 
-        public ICollection<Element> filtersCollectionCopy = new List<Element>();
+        //public ICollection<Element> filtersCollectionCopy = new List<Element>();
 
-        public ICollection<Element> unusedFiltersCollection = new List<Element>();
+        //public ICollection<Element> unusedFiltersCollection = new List<Element>();
 
         public IList<WallType> typeCollectionWall = new List<WallType>();
 
@@ -235,7 +235,7 @@ namespace CreateFinishWallinRooms
                     TaskDialog.Show("2bim.ru", "полыВыборомПомещения");
 
                     Element elem = SelectedElement(_doc); //select room
-
+                    
                     try
                     {
                         CreateFloorInRooms(elem);
@@ -245,7 +245,7 @@ namespace CreateFinishWallinRooms
 
                     catch(Exception ex)
                     {
-                        TaskDialog.Show("2bim.ru", $"{ex} Error");
+                        TaskDialog.Show("2bim.ru", $"{ex} ");
                         
                     }
                 }
@@ -261,7 +261,7 @@ namespace CreateFinishWallinRooms
         public void CreateFloorInRooms(Element elem)
         {
 
-            FloorType floorType2 = GetFloorTypeInProject();
+            FloorType floorType2 = GetFloorTypeInProject(_doc);
 
             //TaskDialog.Show("У тебя получилось", $"{floorType.GetType()} Пол создан ☺☺☺");
             Floor floor; 
@@ -287,8 +287,8 @@ namespace CreateFinishWallinRooms
                     Curve c = boundarySegment.GetCurve();
                     temp.Append(c);
                 }
-                SortCurves(temp);
-                floor = _doc.Create.NewFloor(temp, floorType2, r1.Level, false);
+                var newSortCurve=SortCurves(temp);
+                floor = _doc.Create.NewFloor(newSortCurve, floorType2, r1.Level, false);
 
 
             }
@@ -296,17 +296,25 @@ namespace CreateFinishWallinRooms
 
         }
 
-        public void SortCurves(CurveArray lines)
+        public CurveArray SortCurves(CurveArray lines)
         {
-            //TaskDialog.Show("2bim.ru", "ЗАШЕЛ в метод сортировки курве эррей");
+            TaskDialog.Show("2bim.ru", "ЗАШЕЛ в метод сортировки курве эррей");
+
             XYZ pointCurves = lines.get_Item(0).GetEndPoint(1);
             Curve temCurve = lines.get_Item(0);
 
-            Profile = creApp.NewCurveArray();
+            //Profile = creApp.NewCurveArray();
 
-            Profile.Append(temCurve);
+            var ggg = _doc.Application.Create.NewCurveArray();
+            
 
-            while (Profile.Size != lines.Size)
+            CurveArray profNew = _doc.Application.Create.NewCurveArray();
+
+            profNew.Append(temCurve);
+
+            //rofile.Append(temCurve);
+
+            while (profNew.Size != lines.Size)
             {
 
                 temCurve = GetNext(lines, pointCurves, temCurve);
@@ -321,8 +329,12 @@ namespace CreateFinishWallinRooms
                     pointCurves = temCurve.GetEndPoint(0);
                 }
 
-                Profile.Append(temCurve);
+                profNew.Append(temCurve);
             }
+
+            return profNew;
+
+            TaskDialog.Show("2bim.ru", "Вышел из метода");
 
         }
         public Curve GetNext(CurveArray profile, XYZ connected, Curve line)
@@ -600,7 +612,7 @@ namespace CreateFinishWallinRooms
             }
         }
 
-        public FloorType GetFloorTypeInProject()
+        public FloorType GetFloorTypeInProject(Document _doc)
         {
             // Search all the floor types in the Revit
             FilteredElementCollector filteredElementCollectorFloor = new FilteredElementCollector(_doc);
