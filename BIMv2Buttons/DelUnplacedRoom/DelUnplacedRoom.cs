@@ -44,7 +44,7 @@ namespace BIMv2
                        
                     }
 
-                    TaskDialog.Show("2bim", $"Удвлено {k} ненужных помещений");
+                    TaskDialog.Show("2bim", $"Удалено {k} ненужных помещений");
                     t.Commit();
                     return Result.Succeeded;
 

@@ -18,7 +18,7 @@ namespace BIMv2Buttons
             application.CreateRibbonTab(tabNameB2);
 
             // Add a new ribbon panel
-            RibbonPanel ribbonPanelb2 = application.CreateRibbonPanel(tabNameB2, "Архитектурная мастерская Б2"); //подпись под кнопками
+            RibbonPanel ribbonPanelb2 = application.CreateRibbonPanel(tabNameB2, "Архитектурная мастерская"); //подпись под кнопками
 
             // create push button for CurveTotalLength  //namespace и класс
             PushButtonData b22Data = new PushButtonData("cmdCreateNotPlacedRooms.cs", "Создать"
