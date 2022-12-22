@@ -26,7 +26,7 @@ namespace CreateFinishWallinRooms
         public FloorType floorType;
         private Application _app;
         private Document _doc;
-
+        public Floor createdFloor;
         
         public ICollection<Element> roomsCollection = new List<Element>();
 
@@ -181,9 +181,10 @@ namespace CreateFinishWallinRooms
 
             bool rb = vpViewWpf.roomBoording;
 
-            using (var t = new Transaction(_doc))
+            using (Transaction t = new Transaction(_doc, "Создаем отделку"))
             {
-                t.Start("Run");
+                t.Start("Create a finish");
+
                 uiApp = commandData.Application;
                 uiDoc = uiApp.ActiveUIDocument;
 
@@ -232,7 +233,7 @@ namespace CreateFinishWallinRooms
                 if (whatsButton == "полыВыборомПомещения")
                 {
 
-                    //TaskDialog.Show("2bim.ru", "полыВыборомПомещения");
+                    //TaskDialog.Show("2bim.ru", "Выбери помещение на плане");
 
                     Element elem = SelectedElement(_doc); //select room
                     
@@ -241,21 +242,127 @@ namespace CreateFinishWallinRooms
                         CreateFloorInRooms(elem, selectedFloorType);
                        
                         TaskDialog.Show("2bim.ru", "Полы созданы ☺☺☺");
+
+                      
                     }
 
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         TaskDialog.Show("2bim.ru", $"{ex} ");
                         
                     }
+
+                    t.Commit();
+                    //_doc.Regenerate();
+
+                    try
+                    {
+                        
+                        t.Start();
+                        CreateFloorOpenings(elem);
+
+                        TransactionStatus res = t.Commit();
+                    }
+
+                    catch (Exception ex)
+                    {
+                        TaskDialog.Show("2bim.ru", $"{ex} ");
+
+                    }
+
+                   
+
+
                 }
 
-                
-                t.Commit();
+                //floors with schedule
+
+                if (whatsButton == "полыВыборомПомещения")
+                {
+
+                    //TaskDialog.Show("2bim.ru", "Выбери помещение на плане");
+
+                    Element elem = SelectedElement(_doc); //select room
+
+                    try
+                    {
+                        CreateFloorInRooms(elem, selectedFloorType);
+
+                        TaskDialog.Show("2bim.ru", "Полы созданы ☺☺☺");
+
+
+                    }
+
+                    catch (Exception ex)
+                    {
+                        TaskDialog.Show("2bim.ru", $"{ex} ");
+
+                    }
+
+                    t.Commit();
+                    //_doc.Regenerate();
+
+                    try
+                    {
+
+                        t.Start();
+                        CreateFloorOpenings(elem);
+
+                        TransactionStatus res = t.Commit();
+                    }
+
+                    catch (Exception ex)
+                    {
+                        TaskDialog.Show("2bim.ru", $"{ex} ");
+
+                    }
+
+
+
+
+                }
+
+                //t.Commit();
 
             }
 
             return Result.Succeeded;
+        }
+
+        public void CreateFloorOpenings(Element elem)
+        {
+            //CurveArray roomsCurves = new CurveArray();
+            var r1 = (Room)elem;
+           
+            SpatialElementBoundaryOptions bo = new SpatialElementBoundaryOptions();
+            IList<IList<BoundarySegment>> segments2 = r1.GetBoundarySegments(bo);
+
+            CurveArray temp2 = new CurveArray();
+
+            if (null != segments2)
+            {
+                for (int j = 1; j < segments2.Count; j++)
+                {
+                    IList<BoundarySegment> segmentList = segments2[j];
+
+                    foreach (BoundarySegment boundarySegment in segmentList)
+                    {
+                        Curve c = boundarySegment.GetCurve();
+                        temp2.Append(c);
+                    }
+                    //SortCurves(temp2);
+
+                    //Opening opening = _doc.Create.NewOpening(createdFloor, temp2, true); //create opening
+
+                   _doc.Create.NewOpening(createdFloor, temp2, true); //create opening
+
+                    //_doc.Regenerate();
+                }
+
+            }
+
+
+
         }
 
         public void CreateFloorInRooms(Element elem, FloorType floorType3)
@@ -289,7 +396,8 @@ namespace CreateFinishWallinRooms
                 }
                 var newSortCurve=SortCurves(temp);
                 floor = _doc.Create.NewFloor(newSortCurve, floorType3, r1.Level, false);
-
+                createdFloor=floor;
+                _doc.Regenerate();
 
             }
 

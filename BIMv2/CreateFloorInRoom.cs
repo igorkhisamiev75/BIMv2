@@ -55,10 +55,10 @@ namespace BIMv2
                 TaskDialog.Show("У тебя получилось", "Пол создан ☺☺☺");
                 t.Commit();
 
-                //t.Start();
-                //CreateFloorOpenings(elem);
+                t.Start();
+                CreateFloorOpenings(elem);
 
-                //var res = t.Commit();
+                var res = t.Commit();
 
             }
 
