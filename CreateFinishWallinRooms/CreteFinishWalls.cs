@@ -182,9 +182,17 @@ namespace CreateFinishWallinRooms
 
             bool rb = vpViewWpf.roomBoording;
 
-            using (Transaction t = new Transaction(_doc, "Создаем отделку"))
+            using (Transaction t = new Transaction(_doc))
             {
+                
+
                 t.Start("Create a finish");
+
+                FailureHandlingOptions options = t.GetFailureHandlingOptions();
+                MyPreProcessor preproccessor = new MyPreProcessor();
+                options.SetClearAfterRollback(true);
+                options.SetFailuresPreprocessor(preproccessor);
+                t.SetFailureHandlingOptions(options);
 
                 uiApp = commandData.Application;
                 uiDoc = uiApp.ActiveUIDocument;
@@ -253,7 +261,7 @@ namespace CreateFinishWallinRooms
                         
                     }
 
-                    t.Commit();
+                    t.Commit(options);
                     //_doc.Regenerate();
 
                     try
@@ -262,7 +270,7 @@ namespace CreateFinishWallinRooms
                         t.Start();
                         CreateFloorOpenings(elem);
 
-                        TransactionStatus res = t.Commit();
+                        TransactionStatus res = t.Commit(options);
                     }
 
                     catch (Exception ex)
@@ -298,7 +306,13 @@ namespace CreateFinishWallinRooms
                             TaskDialog.Show("2bim.ru", $"{ex} ");
                         }
 
-                        t.Commit();
+                        t.Commit(options);
+
+                        //if (failureHandler.ErrorMessage != "")
+                        //{
+                        //    MessageBox.Show(failureHandler.ErrorSeverity + " || "
+                        //      + failureHandler.ErrorMessage);
+                        //}
 
                         try
                         {
@@ -315,14 +329,6 @@ namespace CreateFinishWallinRooms
                             TaskDialog.Show("2bim.ru", $"{ex} ");
 
                         }
-
-                        //t.Commit();
-
-                        //if (t.Commit() == TransactionStatus.Committed)
-                        //{
-                        //    _doc.Regenerate();
-                        //}
-
 
                     }
          
@@ -746,7 +752,45 @@ namespace CreateFinishWallinRooms
 
         }
 
+        public class MyPreProcessor : IFailuresPreprocessor
+        {
+            FailureProcessingResult IFailuresPreprocessor.PreprocessFailures(FailuresAccessor failuresAccessor)
+            {
+                String transactionName = failuresAccessor.GetTransactionName();
 
+                IList<FailureMessageAccessor> fmas = failuresAccessor.GetFailureMessages();
+
+
+                if (fmas.Count == 0)
+                    return FailureProcessingResult.Continue;
+
+
+                if (transactionName.Equals("EXEMPLE"))
+                {
+                    foreach (FailureMessageAccessor fma in fmas)
+                    {
+                        if (fma.GetSeverity() == FailureSeverity.Error)
+                        {
+                            failuresAccessor.DeleteAllWarnings();
+                            return FailureProcessingResult.ProceedWithRollBack;
+                        }
+                        else
+                        {
+                            failuresAccessor.DeleteWarning(fma);
+                        }
+
+                    }
+                }
+                else
+                {
+                    foreach (FailureMessageAccessor fma in fmas)
+                    {
+                        failuresAccessor.DeleteAllWarnings();
+                    }
+                }
+                return FailureProcessingResult.Continue;
+            }
+        }
 
     }
 }
