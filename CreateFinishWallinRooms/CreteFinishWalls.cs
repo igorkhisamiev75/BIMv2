@@ -306,8 +306,9 @@ namespace CreateFinishWallinRooms
                             t.Start();
                             CreateFloorOpenings(elem);
 
-                            TransactionStatus res = t.Commit();
                         }
+
+                        
 
                         catch (Exception ex)
                         {
@@ -315,7 +316,13 @@ namespace CreateFinishWallinRooms
 
                         }
 
-                        //_doc.Regenerate();
+                        //t.Commit();
+
+                        //if (t.Commit() == TransactionStatus.Committed)
+                        //{
+                        //    _doc.Regenerate();
+                        //}
+
 
                     }
          
