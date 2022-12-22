@@ -215,11 +215,11 @@ namespace CreateFinishWallinRooms
                         
                         try
                         {
-                            Element element = (Element)room;
+                            Element element = room;
                             CreateWallInRoom(element, uiDoc, roomBoardingWall, selectedWallTpe);
                             _doc.Regenerate();
 
-                            TaskDialog.Show("2bim.ru", "Отделка стен создана ☺☺☺");
+                            //TaskDialog.Show("2bim.ru", "Отделка стен создана ☺☺☺");
                         }
 
                         catch
@@ -245,7 +245,6 @@ namespace CreateFinishWallinRooms
                        
                         TaskDialog.Show("2bim.ru", "Полы созданы ☺☺☺");
 
-                      
                     }
 
                     catch (Exception ex)
@@ -281,50 +280,46 @@ namespace CreateFinishWallinRooms
 
                 if (whatsButton == "отделкаПоСпекеПолы")
                 {
-
-                    //TaskDialog.Show("2bim.ru", "Выбери помещение на плане");
-
-                    Element elem = SelectedElement(_doc); //select room
-
-                    try
+                    foreach (Room room in checkRooms)
                     {
-                        CreateFloorInRooms(elem, selectedFloorType);
+                        Element elem = (Element)room; //select room
 
-                        TaskDialog.Show("2bim.ru", "Полы созданы ☺☺☺");
+                        try
+                        {
+                            CreateFloorInRooms(elem, selectedFloorType);
 
+                            //TaskDialog.Show("2bim.ru", "Пол создан ☺☺☺");
+                            //_doc.Regenerate();
+
+                        }
+
+                            catch (Exception ex)
+                        {
+                            TaskDialog.Show("2bim.ru", $"{ex} ");
+                        }
+
+                        t.Commit();
+
+                        try
+                        {
+
+                            t.Start();
+                            CreateFloorOpenings(elem);
+
+                            TransactionStatus res = t.Commit();
+                        }
+
+                        catch (Exception ex)
+                        {
+                            TaskDialog.Show("2bim.ru", $"{ex} ");
+
+                        }
+
+                        //_doc.Regenerate();
 
                     }
-
-                    catch (Exception ex)
-                    {
-                        TaskDialog.Show("2bim.ru", $"{ex} ");
-
-                    }
-
-                    t.Commit();
-                    //_doc.Regenerate();
-
-                    try
-                    {
-
-                        t.Start();
-                        CreateFloorOpenings(elem);
-
-                        TransactionStatus res = t.Commit();
-                    }
-
-                    catch (Exception ex)
-                    {
-                        TaskDialog.Show("2bim.ru", $"{ex} ");
-
-                    }
-
-
-
-
+         
                 }
-
-                //t.Commit();
 
             }
 
