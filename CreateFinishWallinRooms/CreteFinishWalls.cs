@@ -9,6 +9,7 @@ using Application = Autodesk.Revit.ApplicationServices.Application;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI.Selection;
 using System.Diagnostics;
+using System.Net.NetworkInformation;
 
 namespace CreateFinishWallinRooms
 {
@@ -204,6 +205,7 @@ namespace CreateFinishWallinRooms
                         //TaskDialog.Show("2bim.ru", "Отделка стен создана ☺☺☺");
                         //
                     }
+                    t.Commit();
                 }
 
                 if (whatsButton == "отделкаПоСпеке")
@@ -277,7 +279,7 @@ namespace CreateFinishWallinRooms
 
                 //floors with schedule
 
-                if (whatsButton == "полыВыборомПомещения")
+                if (whatsButton == "отделкаПоСпекеПолы")
                 {
 
                     //TaskDialog.Show("2bim.ru", "Выбери помещение на плане");
@@ -368,6 +370,7 @@ namespace CreateFinishWallinRooms
         public void CreateFloorInRooms(Element elem, FloorType floorType3)
         {
 
+
             FloorType floorType2 = GetFloorTypeInProject(_doc);
 
             //TaskDialog.Show("У тебя получилось", $"{floorType.GetType()} Пол создан ☺☺☺");
@@ -378,6 +381,11 @@ namespace CreateFinishWallinRooms
 
             CurveArray roomsCurves = new CurveArray();
             Room r1 = (Room)elem;
+
+            string ADSK_Primechanie = "a85b7661-26b0-412f-979c-66af80b4b2c3";
+            string numberRoom = r1.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();
+            string nameRoom = r1.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+
 
             SpatialElementBoundaryOptions bo = new SpatialElementBoundaryOptions();
             IList<IList<BoundarySegment>> segments2 = r1.GetBoundarySegments(bo);
@@ -396,7 +404,12 @@ namespace CreateFinishWallinRooms
                 }
                 var newSortCurve=SortCurves(temp);
                 floor = _doc.Create.NewFloor(newSortCurve, floorType3, r1.Level, false);
-                createdFloor=floor;
+
+                //set room name and number
+                floor.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
+                floor.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
+
+                createdFloor =floor;
                 _doc.Regenerate();
 
             }
