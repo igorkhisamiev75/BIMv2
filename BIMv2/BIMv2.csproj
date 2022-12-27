@@ -153,6 +153,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="BIMStandart.cs" />
+    <Compile Include="ChangeTypeParametersByExcel.cs" />
     <Compile Include="Create3DViewFromSpace.cs" />
     <Compile Include="CreateCeiling.cs" />
     <Compile Include="CreateFinishWallinRooms.cs" />
