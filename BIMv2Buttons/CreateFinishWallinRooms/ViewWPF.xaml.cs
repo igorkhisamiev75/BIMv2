@@ -5,10 +5,9 @@ using System.Windows;
 using System.Windows.Controls;
 
 namespace BIMv2Buttons.CreateFinishWallinRooms
-{
-    /// <summary>
-    /// Логика взаимодействия для UserControl1.xaml
-    /// </summary>
+{ /// <summary>
+  /// Логика взаимодействия для UserControl1.xaml
+  /// </summary>
     public partial class ViewWPF : Window
     {
         public List<String> checkRooms = new List<String>();
@@ -17,11 +16,14 @@ namespace BIMv2Buttons.CreateFinishWallinRooms
         //public RoutedEventHandler routEvent;
         public string whatsButton;
         public bool roomBoording;
+
         public WallType typeWallCollectionSelected;
+        public FloorType typeFloorSelected;
         public Level selectedLevel;
+
         public string heighWallUser;
 
-        public ViewWPF(List<String> rooms, IList<WallType> typeWallCollection, List<Level> levels)
+        public ViewWPF(List<String> rooms, IList<WallType> typeWallCollection, List<Level> levels, IList<FloorType> typeFloorCollection)
         {
             InitializeComponent();
             roomCollection = rooms;
@@ -36,6 +38,10 @@ namespace BIMv2Buttons.CreateFinishWallinRooms
             ComboBoxLevel.ItemsSource = levels;
             ComboBoxLevel.DisplayMemberPath = "Name";
             ComboBoxLevel.SelectedIndex = 0;
+
+            ComboBoxFloor.ItemsSource = typeFloorCollection;
+            ComboBoxFloor.SelectedIndex = 1;
+            ComboBoxFloor.DisplayMemberPath = "Name";
 
         }
 
@@ -119,7 +125,55 @@ namespace BIMv2Buttons.CreateFinishWallinRooms
             {
                 ListBox.UnselectAll();
             }
+
         }
 
+        private void floorAll_Click(object sender, RoutedEventArgs e)
+        {
+            heighWallUser = heightWallNotRooms.Text;
+            selectedLevel = ComboBoxLevel.SelectedItem as Level;
+
+
+            typeFloorSelected = ComboBoxFloor.SelectedValue as FloorType;
+
+            whatsButton = "отделкаПоСпекеПолы";
+
+            if (chekRoomBoarding.IsChecked.GetValueOrDefault())
+            {
+                roomBoording = true;
+            }
+            else
+            {
+                roomBoording = false;
+            }
+
+            foreach (var room in roomCollection)
+            {
+                foreach (var variable in ListBox.SelectedItems)
+                {
+                    if (room.GetHashCode() == variable.GetHashCode())
+                    {
+                        checkRooms.Add(room);
+                        //MessageBox.Show("Выбрано" + element.Name);
+
+                    }
+                }
+            }
+            //MessageBox.Show("Выбрано " + checkRooms.Count + " комнат для отделки");
+            Close();
+
+        }
+
+        private void finishFloorInOneRoom_Click(object sender, RoutedEventArgs e)
+        {
+            selectedLevel = ComboBoxLevel.SelectedItem as Level;
+            typeWallCollectionSelected = ComboBox.SelectedValue as WallType;
+            typeFloorSelected = ComboBoxFloor.SelectedValue as FloorType;
+
+            whatsButton = "полыВыборомПомещения";
+
+            Close();
+
+        }
     }
 }

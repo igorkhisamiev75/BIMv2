@@ -15,17 +15,19 @@ namespace BIMv2
 {
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]
-    [Journaling(JournalingMode.NoCommandData)]
+    //[Journaling(JournalingMode.NoCommandData)]
     public class CreteFinishWalls : Window, IExternalCommand
     {
         // Private Members
         IList<WallType> m_wallTypeCollection;         // Store all the wall types in current document
-
+        IList<FloorType> m_FloorTypeCollection;
+        private const double PRECISION = 0.00000001;
+        private CurveArray profile;
+        public Autodesk.Revit.Creation.Application creApp;
+        public FloorType floorType;
         private Application _app;
         private Document _doc;
-        //private ViewSet m_allViews = new ViewSet();
-
-        public ICollection<View> viewsInProject = new List<View>();
+        public Floor createdFloor;
 
         public ICollection<Element> roomsCollection = new List<Element>();
 
@@ -35,13 +37,11 @@ namespace BIMv2
 
         public List<String> roomsNameInProject = new List<String>();
 
-        public ICollection<Element> filtersCollectionCopy = new List<Element>();
+        //public ICollection<Element> filtersCollectionCopy = new List<Element>();
 
-        public ICollection<Element> unusedFiltersCollection = new List<Element>();
+        //public ICollection<Element> unusedFiltersCollection = new List<Element>();
 
         public IList<WallType> typeCollectionWall = new List<WallType>();
-
-        public ICollection<int> filtersInViewsId = new List<int>();
 
         public int roomBoardingWall; //для границы помещений
         Level selectedLevelInForms; //выбор уровня
@@ -59,7 +59,21 @@ namespace BIMv2
             }
         }
 
-        [Obsolete]
+        // Properties
+        /// <summary>
+        /// Inform all the floor types can be created in current document
+        /// </summary>
+        public IList<FloorType> FloorTypes
+        {
+            get
+            {
+                return m_FloorTypeCollection;
+            }
+        }
+
+        // an array of planar lines and arcs that represent the horizontal profile of the floor
+
+
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
 
@@ -85,6 +99,11 @@ namespace BIMv2
             filteredElementCollector.OfClass(typeof(WallType));
             m_wallTypeCollection = filteredElementCollector.Cast<WallType>().ToList<WallType>();
 
+            // Search all the floor types in the Revit
+            FilteredElementCollector filteredElementCollectorFloor = new FilteredElementCollector(_doc);
+            filteredElementCollectorFloor.OfClass(typeof(FloorType));
+            m_FloorTypeCollection = filteredElementCollectorFloor.Cast<FloorType>().ToList<FloorType>();
+
 
             roomsCollection = GetAllRooms(_doc);
 
@@ -92,8 +111,6 @@ namespace BIMv2
             {
                 roomsCollection2.Add((Room)rooms);
             }
-
-
 
             //удаление дубликатов, групирруем по имени помещения
             List<Room> roomGroup = roomsCollection2.GroupBy(x =>
@@ -105,7 +122,7 @@ namespace BIMv2
             }
 
             //create form 
-            ViewWPF vpViewWpf = new ViewWPF(roomsNameInProject, WallTypes, levelCollection2);
+            ViewWPF vpViewWpf = new ViewWPF(roomsNameInProject, WallTypes, levelCollection2, FloorTypes);
 
             //show form
             vpViewWpf.WindowStartupLocation = WindowStartupLocation.CenterScreen;
@@ -131,6 +148,9 @@ namespace BIMv2
             //get selected walltype
             WallType selectedWallTpe = vpViewWpf.typeWallCollectionSelected;
 
+            //get selected floortype
+            FloorType selectedFloorType = vpViewWpf.typeFloorSelected;
+
             //get rooms checked
             List<String> checkRoomsString = vpViewWpf.checkRooms;
 
@@ -141,7 +161,6 @@ namespace BIMv2
             //{
             //    TaskDialog.Show("2bim.ru", $"Level name selected {selectedLevelInForms.Name}");
             //}
-
 
 
             List<Room> checkRooms = new List<Room>();
@@ -163,9 +182,18 @@ namespace BIMv2
 
             bool rb = vpViewWpf.roomBoording;
 
-            using (var t = new Transaction(_doc))
+            using (Transaction t = new Transaction(_doc))
             {
-                t.Start("Run");
+
+
+                t.Start("Create a finish");
+
+                FailureHandlingOptions options = t.GetFailureHandlingOptions();
+                MyPreProcessor preproccessor = new MyPreProcessor();
+                options.SetClearAfterRollback(true);
+                options.SetFailuresPreprocessor(preproccessor);
+                t.SetFailureHandlingOptions(options);
+
                 uiApp = commandData.Application;
                 uiDoc = uiApp.ActiveUIDocument;
 
@@ -185,6 +213,7 @@ namespace BIMv2
                         //TaskDialog.Show("2bim.ru", "Отделка стен создана ☺☺☺");
                         //
                     }
+                    t.Commit();
                 }
 
                 if (whatsButton == "отделкаПоСпеке")
@@ -194,7 +223,7 @@ namespace BIMv2
 
                         try
                         {
-                            Element element = (Element)room;
+                            Element element = room;
                             CreateWallInRoom(element, uiDoc, roomBoardingWall, selectedWallTpe);
                             _doc.Regenerate();
 
@@ -209,28 +238,281 @@ namespace BIMv2
                     }
                 }
 
-                if (whatsButton == "удалитьОтделку")
+                //floor in selected room
+
+                if (whatsButton == "полыВыборомПомещения")
                 {
-                    //TaskDialog.Show("2bim.ru", "3");
-                    //Element elem = SelectedElement(_doc); //select room
+
+                    //TaskDialog.Show("2bim.ru", "Выбери помещение на плане");
+
+                    Element elem = SelectedElement(_doc); //select room
+
                     try
                     {
-                        //удалить отделку
+                        CreateFloorInRooms(elem, selectedFloorType);
+
+                        TaskDialog.Show("2bim.ru", "Полы созданы ☺☺☺");
+
                     }
 
-                    catch
+                    catch (Exception ex)
                     {
-                        //TaskDialog.Show("2bim.ru", "Отделка стен создана ☺☺☺");
-                        //TaskDialog.Show("2bim.ru", "Не сработало");
+                        TaskDialog.Show("2bim.ru", $"{ex} ");
+
                     }
+
+                    t.Commit(options);
+                    //_doc.Regenerate();
+
+                    try
+                    {
+
+                        t.Start();
+                        CreateFloorOpenings(elem);
+
+                        TransactionStatus res = t.Commit(options);
+                    }
+
+                    catch (Exception ex)
+                    {
+                        TaskDialog.Show("2bim.ru", $"{ex} ");
+
+                    }
+
+
+
+
                 }
 
+                //floors with schedule
 
-                t.Commit();
+                if (whatsButton == "отделкаПоСпекеПолы")
+                {
+                    foreach (Room room in checkRooms)
+                    {
+                        Element elem = (Element)room; //select room
+
+                        try
+                        {
+                            CreateFloorInRooms(elem, selectedFloorType);
+
+                            //TaskDialog.Show("2bim.ru", "Пол создан ☺☺☺");
+                            //_doc.Regenerate();
+
+                        }
+
+                        catch (Exception ex)
+                        {
+                            TaskDialog.Show("2bim.ru", $"{ex} ");
+                        }
+
+                        t.Commit(options);
+
+                        //if (failureHandler.ErrorMessage != "")
+                        //{
+                        //    MessageBox.Show(failureHandler.ErrorSeverity + " || "
+                        //      + failureHandler.ErrorMessage);
+                        //}
+
+                        try
+                        {
+
+                            t.Start();
+                            CreateFloorOpenings(elem);
+
+                        }
+
+
+
+                        catch (Exception ex)
+                        {
+                            TaskDialog.Show("2bim.ru", $"{ex} ");
+
+                        }
+
+                    }
+
+                }
 
             }
 
             return Result.Succeeded;
+        }
+
+        public void CreateFloorOpenings(Element elem)
+        {
+            //CurveArray roomsCurves = new CurveArray();
+            var r1 = (Room)elem;
+
+            SpatialElementBoundaryOptions bo = new SpatialElementBoundaryOptions();
+            IList<IList<BoundarySegment>> segments2 = r1.GetBoundarySegments(bo);
+
+            CurveArray temp2 = new CurveArray();
+
+            if (null != segments2)
+            {
+                for (int j = 1; j < segments2.Count; j++)
+                {
+                    IList<BoundarySegment> segmentList = segments2[j];
+
+                    foreach (BoundarySegment boundarySegment in segmentList)
+                    {
+                        Curve c = boundarySegment.GetCurve();
+                        temp2.Append(c);
+                    }
+                    //SortCurves(temp2);
+
+                    //Opening opening = _doc.Create.NewOpening(createdFloor, temp2, true); //create opening
+
+                    _doc.Create.NewOpening(createdFloor, temp2, true); //create opening
+
+                    //_doc.Regenerate();
+                }
+
+            }
+
+
+
+        }
+
+        public void CreateFloorInRooms(Element elem, FloorType floorType3)
+        {
+
+
+            FloorType floorType2 = GetFloorTypeInProject(_doc);
+
+            //TaskDialog.Show("У тебя получилось", $"{floorType.GetType()} Пол создан ☺☺☺");
+            Floor floor;
+
+            IList<Element> rooms;
+
+
+            CurveArray roomsCurves = new CurveArray();
+            Room r1 = (Room)elem;
+
+            string ADSK_Primechanie = "a85b7661-26b0-412f-979c-66af80b4b2c3";
+            string numberRoom = r1.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();
+            string nameRoom = r1.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+
+
+            SpatialElementBoundaryOptions bo = new SpatialElementBoundaryOptions();
+            IList<IList<BoundarySegment>> segments2 = r1.GetBoundarySegments(bo);
+
+            CurveArray temp = new CurveArray();
+
+            if (null != segments2)
+            {
+                IList<BoundarySegment> segmentList = segments2[0];
+
+
+                foreach (BoundarySegment boundarySegment in segmentList)
+                {
+                    Curve c = boundarySegment.GetCurve();
+                    temp.Append(c);
+                }
+                var newSortCurve = SortCurves(temp);
+                floor = _doc.Create.NewFloor(newSortCurve, floorType3, r1.Level, false);
+
+                //set room name and number
+                floor.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
+                floor.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
+
+                createdFloor = floor;
+                _doc.Regenerate();
+
+            }
+
+
+        }
+
+        public CurveArray SortCurves(CurveArray lines)
+        {
+            //TaskDialog.Show("2bim.ru", "ЗАШЕЛ в метод сортировки курве эррей");
+
+            XYZ pointCurves = lines.get_Item(0).GetEndPoint(1);
+            Curve temCurve = lines.get_Item(0);
+
+            //Profile = creApp.NewCurveArray();
+
+            var ggg = _doc.Application.Create.NewCurveArray();
+
+
+            CurveArray profNew = _doc.Application.Create.NewCurveArray();
+
+            profNew.Append(temCurve);
+
+            //rofile.Append(temCurve);
+
+            while (profNew.Size != lines.Size)
+            {
+
+                temCurve = GetNext(lines, pointCurves, temCurve);
+
+                if (Math.Abs(pointCurves.X - temCurve.GetEndPoint(0).X) < PRECISION
+                 && Math.Abs(pointCurves.Y - temCurve.GetEndPoint(0).Y) < PRECISION)
+                {
+                    pointCurves = temCurve.GetEndPoint(1);
+                }
+                else
+                {
+                    pointCurves = temCurve.GetEndPoint(0);
+                }
+
+                profNew.Append(temCurve);
+            }
+
+            return profNew;
+
+            //TaskDialog.Show("2bim.ru", "Вышел из метода");
+
+        }
+        public Curve GetNext(CurveArray profile, XYZ connected, Curve line)
+        {
+            foreach (Curve c in profile)
+            {
+                if (c.Equals(line))
+                {
+                    continue;
+                }
+                if ((Math.Abs(c.GetEndPoint(0).X - line.GetEndPoint(1).X) < PRECISION &&
+                    Math.Abs(c.GetEndPoint(0).Y - line.GetEndPoint(1).Y) < PRECISION &&
+                    Math.Abs(c.GetEndPoint(0).Z - line.GetEndPoint(1).Z) < PRECISION) &&
+                    (Math.Abs(c.GetEndPoint(1).X - line.GetEndPoint(0).X) < PRECISION &&
+                    Math.Abs(c.GetEndPoint(1).Y - line.GetEndPoint(0).Y) < PRECISION &&
+                    Math.Abs(c.GetEndPoint(1).Z - line.GetEndPoint(0).Z) < PRECISION) &&
+                    2 != profile.Size)
+                {
+                    continue;
+                }
+
+                if (Math.Abs(c.GetEndPoint(0).X - connected.X) < PRECISION &&
+                    Math.Abs(c.GetEndPoint(0).Y - connected.Y) < PRECISION &&
+                    Math.Abs(c.GetEndPoint(0).Z - connected.Z) < PRECISION)
+                {
+                    return c;
+                }
+                else if (Math.Abs(c.GetEndPoint(1).X - connected.X) < PRECISION &&
+                         Math.Abs(c.GetEndPoint(1).Y - connected.Y) < PRECISION &&
+                         Math.Abs(c.GetEndPoint(1).Z - connected.Z) < PRECISION)
+                {
+                    if (c.GetType().Name.Equals("Line"))
+                    {
+                        XYZ start = c.GetEndPoint(1);
+                        XYZ end = c.GetEndPoint(0);
+                        return Line.CreateBound(start, end);
+                    }
+                    else if (c.GetType().Name.Equals("Arc"))
+                    {
+                        int size = c.Tessellate().Count;
+                        XYZ start = c.Tessellate()[0];
+                        XYZ middle = c.Tessellate()[size / 2];
+                        XYZ end = c.Tessellate()[size];
+
+                        return Arc.Create(start, end, middle);
+                    }
+                }
+            }
+            throw new InvalidOperationException("The Room Boundary should be closed.");
         }
 
         public void CreateWallInRoom(Element elem, UIDocument uiDoc, int _roomBoardingWall, WallType wallType)
@@ -371,7 +653,7 @@ namespace BIMv2
                                 }
                                 catch (Autodesk.Revit.Exceptions.ArgumentException a)
                                 {
-                                    Debug.Print("Ошибка " + a.ToString());
+                                    Debug.Print("Ошибка" + a.ToString());
                                 }
                             }
 
@@ -386,7 +668,7 @@ namespace BIMv2
             }
 
             _doc.Regenerate();
-            
+
 
 
         }
@@ -433,18 +715,6 @@ namespace BIMv2
 
         }
 
-        //public WallType GetWallTypeInProject()
-        //{
-        //    WallType wallType;
-        //    //// Get a floor type for floor creation
-        //    FilteredElementCollector collector = new FilteredElementCollector(_doc);
-        //    collector.OfClass(typeof(WallType));
-        //    //wallType = collector.Where(x => x.Name == nameTypeWall) as WallType;
-        //    wallType = collector.FirstOrDefault()  as WallType;
-
-
-        //    return wallType;
-        //}
 
         //get all rooms
         public IList<Element> GetAllRooms(Document doc)
@@ -459,26 +729,68 @@ namespace BIMv2
             return allRooms;
         }
 
+        public CurveArray Profile
+        {
+            get
+            {
+                return profile;
+            }
+            set
+            {
+                profile = value;
+            }
+        }
 
-        //public WallType GetWallTypeInProject(string nameTypeWall)
-        //{
-        //    WallType wallType;
-        //    //// Get a floor type for floor creation
-        //    FilteredElementCollector collector = new FilteredElementCollector(_doc);
-        //    collector.OfClass(typeof(WallType));
-        //    wallType = collector.Where(x => x.Name == nameTypeWall) as WallType;
-        //    //as WallType;
+        public FloorType GetFloorTypeInProject(Document _doc)
+        {
+            // Search all the floor types in the Revit
+            FilteredElementCollector filteredElementCollectorFloor = new FilteredElementCollector(_doc);
+            filteredElementCollectorFloor.OfClass(typeof(FloorType));
+            var m_FloorTypeCollection = filteredElementCollectorFloor.Cast<FloorType>().ToList<FloorType>();
+            FloorType g = m_FloorTypeCollection[3];
+            return g;
 
-        //    FilteredElementCollector a = new FilteredElementCollector(_doc).OfClass(typeof(WallType));
-        //    foreach (WallType wallType2 in a)
-        //    {
-        //        if (wallType2.Name == nameTypeWall)
-        //        {
-        //            return wallType2;
-        //        }
-        //    }
+        }
 
-        //    return wallType;
-        //}
+        public class MyPreProcessor : IFailuresPreprocessor
+        {
+            FailureProcessingResult IFailuresPreprocessor.PreprocessFailures(FailuresAccessor failuresAccessor)
+            {
+                String transactionName = failuresAccessor.GetTransactionName();
+
+                IList<FailureMessageAccessor> fmas = failuresAccessor.GetFailureMessages();
+
+
+                if (fmas.Count == 0)
+                    return FailureProcessingResult.Continue;
+
+
+                if (transactionName.Equals("EXEMPLE"))
+                {
+                    foreach (FailureMessageAccessor fma in fmas)
+                    {
+                        if (fma.GetSeverity() == FailureSeverity.Error)
+                        {
+                            failuresAccessor.DeleteAllWarnings();
+                            return FailureProcessingResult.ProceedWithRollBack;
+                        }
+                        else
+                        {
+                            failuresAccessor.DeleteWarning(fma);
+                        }
+
+                    }
+                }
+                else
+                {
+                    foreach (FailureMessageAccessor fma in fmas)
+                    {
+                        failuresAccessor.DeleteAllWarnings();
+                    }
+                }
+                return FailureProcessingResult.Continue;
+            }
+        }
+
     }
 }
