@@ -165,6 +165,7 @@
     <Compile Include="DelUnplacedRoom.cs" />
     <Compile Include="FindNameRoomForFinishElementsRoomsInLink.cs" />
     <Compile Include="GetRoomForElementsFinishing.cs" />
+    <Compile Include="GroupByMarkEqupmentFurnitureAndWriteToComment.cs" />
     <Compile Include="JoinWalls.cs" />
     <Compile Include="PluginFinish2BIM\CeilingFinish.cs" />
     <Compile Include="ClearProjectBrowser.cs" />

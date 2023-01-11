@@ -14,11 +14,11 @@ namespace BIMv2Buttons
             // Get dll assembly path
             string thisAssemblyPath = Assembly.GetExecutingAssembly().Location;
 
-            String tabNameB2 = "amb2";    // создание вкладки
+            String tabNameB2 = "BIMv2AR";    // создание вкладки
             application.CreateRibbonTab(tabNameB2);
 
             // Add a new ribbon panel
-            RibbonPanel ribbonPanelb2 = application.CreateRibbonPanel(tabNameB2, "Архитектурная мастерская"); //подпись под кнопками
+            RibbonPanel ribbonPanelb2 = application.CreateRibbonPanel(tabNameB2, "Архитектурные надстройки"); //подпись под кнопками
 
             // create push button for CurveTotalLength  //namespace и класс
             PushButtonData b22Data = new PushButtonData("cmdCreateNotPlacedRooms.cs", "Создать"
@@ -142,6 +142,10 @@ namespace BIMv2Buttons
             PushButtonData pushButtonData3 = new PushButtonData("cmdGroupTypeWallsByNote.cs", "Сгруппировать стены", thisAssemblyPath, "BIMv2Buttons.GroupTypeWallsByNote");
             pushButtonData3.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-wall-32.png"));
 
+            // #4 
+            PushButtonData pushButtonData4 = new PushButtonData("cmdGroupByMarkEqupmentFurnitureAndWriteToComment.cs", "Сгруппировать оборудование и мебель", thisAssemblyPath, "BIMv2Buttons.GroupByMarkEqupmentFurnitureAndWriteToComment");
+            pushButtonData4.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-groupCoins-32.png"));
+
             // Make a split button now 
             SplitButtonData splitBtnData = new SplitButtonData("SplitButton", "Split Button");
             SplitButton splitBtn = ribbonPanel.AddItem(splitBtnData) as SplitButton;
@@ -149,16 +153,17 @@ namespace BIMv2Buttons
             splitBtn.AddPushButton(pushButtonData1);
             splitBtn.AddPushButton(pushButtonData2);
             splitBtn.AddPushButton(pushButtonData3);
+            splitBtn.AddPushButton(pushButtonData4);
 
             //create push button for CurveTotalLength  //namespace и класс
-           // PushButtonData b11Data = new PushButtonData("cmdCreateNumberRoomForFloors", "Записать"
-           //    + Environment.NewLine + "помещения в полы", thisAssemblyPath, "BIMv2.CreateNumberRoomForFloors");
+            // PushButtonData b11Data = new PushButtonData("cmdCreateNumberRoomForFloors", "Записать"
+            //    + Environment.NewLine + "помещения в полы", thisAssemblyPath, "BIMv2.CreateNumberRoomForFloors");
 
-           //PushButton pb11 = ribbonPanel.AddItem(b11Data) as PushButton;
-           // pb11.ToolTip = "Записать помещения в перекрытия";
+            //PushButton pb11 = ribbonPanel.AddItem(b11Data) as PushButton;
+            // pb11.ToolTip = "Записать помещения в перекрытия";
 
-           // BitmapImage pb11Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-floor-32.png"));
-           // pb11.LargeImage = pb11Image;
+            // BitmapImage pb11Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-floor-32.png"));
+            // pb11.LargeImage = pb11Image;
 
             //12 группировка полов
 
