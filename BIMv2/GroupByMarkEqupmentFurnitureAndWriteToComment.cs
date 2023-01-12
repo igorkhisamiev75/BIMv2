@@ -43,17 +43,24 @@ namespace BIMv2
         {
             var allElements = GetAllFloorElements(doc);
           
-
-
             //группировка по типу
             var groups = allElements.GroupBy(p => p.Name);
 
-            
-                
+            foreach (var group in groups)
+            {
+                List<Element> GroupByType = new List<Element>();
+                GroupByType.Clear();
 
-                foreach (IGrouping<string, Element> element in groups)
+                foreach (var element in group)
                 {
+                    GroupByType.Add(element);
+                }
 
+                //группировка по позиции
+                var groups2 = GroupByType.GroupBy(p => p.LookupParameter("Позиция").AsString());
+
+                foreach (IGrouping<string, Element> element in groups2)
+                {
                     IList<string> numroomList = new List<string>();
                     numroomList.Clear();
 
@@ -89,8 +96,9 @@ namespace BIMv2
                 }
 
 
-            
 
+
+            }
 
         }
 
@@ -103,49 +111,59 @@ namespace BIMv2
             //группировка по типу
             var groups = allElements.GroupBy(p => p.Name);
 
-
-
-
-            foreach (IGrouping<string, Element> element in groups)
+            foreach (var group in groups)
             {
+                List<Element> GroupByType = new List<Element>();
+                GroupByType.Clear();
 
-                IList<string> numroomList = new List<string>();
-                numroomList.Clear();
-
-                //создаем массив с номерами помещений
-
-                foreach (var t in element)
+                foreach (var element in group)
                 {
-                    var otd = t.LookupParameter("Номер помещения (Мебель и оборудование)").AsString();
-                    if (otd != null)
+                    GroupByType.Add(element);
+                }
+
+                //группировка по позиции
+                var groups2 = GroupByType.GroupBy(p => p.LookupParameter("Позиция").AsString());
+
+                foreach (IGrouping<string, Element> element in groups2)
+                {
+                    IList<string> numroomList = new List<string>();
+                    numroomList.Clear();
+
+                    //создаем массив с номерами помещений
+
+                    foreach (var t in element)
                     {
-                        string[] subs = otd.Split(' ');
-                        numroomList.Add(subs[0]);
+                        var otd = t.LookupParameter("Номер помещения (Мебель и оборудование)").AsString();
+                        if (otd != null)
+                        {
+                            string[] subs = otd.Split(' ');
+                            numroomList.Add(subs[0]);
+                        }
+
+                    }
+
+                    //clean list
+                    List<string> newList = new List<string>(numroomList.Distinct());
+
+                    newList.Sort();
+
+                    string numbersAllRoomString = string.Join(", ", newList.ToArray());
+
+                    numroomList.Clear();
+
+                    //и записываем это массив в каждый номер этого массива
+
+                    foreach (var t in element)
+                    {
+                        t.LookupParameter("Комментарии").Set(numbersAllRoomString);
                     }
 
                 }
 
-                //clean list
-                List<string> newList = new List<string>(numroomList.Distinct());
 
-                newList.Sort();
 
-                string numbersAllRoomString = string.Join(", ", newList.ToArray());
-
-                numroomList.Clear();
-
-                //и записываем это массив в каждый номер этого массива
-
-                foreach (var t in element)
-                {
-                    t.LookupParameter("Комментарии").Set(numbersAllRoomString);
-                }
 
             }
-
-
-
-
 
         }
 
