@@ -251,18 +251,28 @@ namespace BIMv2
                     foreach (var wall in wallsGroup)
                     {
                         //нужно найти сколько слоёв в стене
-                        square = "";
+                       
+                        string countProbels = "";
+
                         //MRGT_ПирогОбъединенная
                         string LayerInWall = wall.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).AsString();
                         int countLayerInWall = LayerInWall.Where(x => "\n".IndexOf(x) != -1).Count();
 
                         int countForSquare = countLayerInWall / 2;//5
 
-                        string countProbels = "";
-                        for (int i = 0; i < countForSquare; i++)
+                        if (countForSquare%2==0)
+
+                        for (int i = 0; i <= countForSquare; i++)
                         {
                             countProbels += " \n";
                         }
+
+                        if (countForSquare % 2 == 1)
+
+                            for (int i = 0; i < countForSquare; i++)
+                            {
+                                countProbels += " \n";
+                            }
 
                         pirog += wall.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).AsString() + "\n\n";
 
@@ -274,9 +284,8 @@ namespace BIMv2
                         //}
 
                         //MRGT_ВидОтделкиСтенаПлощадь суммарная по типу
-                        square = wall.get_Parameter(new Guid("2c097f7a-e32f-4455-9e8a-ac72e131b24c")).AsValueString();
-                        square += square + countProbels;
-
+                        square += countProbels+wall.get_Parameter(new Guid("2c097f7a-e32f-4455-9e8a-ac72e131b24c")).AsValueString()+ countProbels;
+                        
                     }
 
                     foreach (var wall in grouping)
