@@ -22,6 +22,9 @@ namespace BIMv2
             {
                 t.Start("Записываем суммарную площадь отделки");
 
+                //обнулить помещения
+                WriteToRoomsNull(doc);
+
                 //записываем суммарную площадь в каждую стену
                 WriteToWallSquare(doc);
 
@@ -369,6 +372,29 @@ namespace BIMv2
                     }
 
 
+
+                }
+            }
+
+        }
+
+        private void WriteToRoomsNull(Document doc)
+        {
+            //all rooms
+            var allRooms = GetAllRooms(doc);
+
+           
+
+            if (allRooms != null)
+            {
+                foreach (var room in allRooms)
+                {
+
+                            room.get_Parameter(new Guid("1e2bf482-d000-4acd-a903-17caa723e563")).Set(0);
+
+                            //получаем отделку
+                      
+                            room.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).Set(0);
 
                 }
             }

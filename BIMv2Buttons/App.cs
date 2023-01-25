@@ -60,7 +60,7 @@ namespace BIMv2Buttons
             ribbonPanelb2.AddSeparator(); //разделитель между кнопками
 
             // create push button for CurveTotalLength  //namespace и класс
-            PushButtonData b1DataB2_2 = new PushButtonData("cmdCreteFinishWalls.cs", "Создать стены"
+            PushButtonData b1DataB2_2 = new PushButtonData("cmdCreteFinishWalls.cs", "Создать отделку"
                 + Environment.NewLine + "в помещении", thisAssemblyPath, "BIMv2.CreteFinishWalls");
 
             PushButton pb1B2_2 = ribbonPanelb2.AddItem(b1DataB2_2) as PushButton;
