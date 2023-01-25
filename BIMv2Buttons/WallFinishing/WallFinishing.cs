@@ -390,11 +390,11 @@ namespace BIMv2Buttons
                 foreach (var room in allRooms)
                 {
 
-                    room.get_Parameter(new Guid("1e2bf482-d000-4acd-a903-17caa723e563")).Set(0);
+                    room.get_Parameter(new Guid("1e2bf482-d000-4acd-a903-17caa723e563")).Set("0");
 
                     //получаем отделку
 
-                    room.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).Set(0);
+                    room.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).Set("Нет отделки");
 
                 }
             }

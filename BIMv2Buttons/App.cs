@@ -114,7 +114,7 @@ namespace BIMv2Buttons
 
             // create push button for CurveTotalLength  //namespace и класс
             PushButtonData b21Data = new PushButtonData("cmdWallFinishing", "Посчитать"
-                + Environment.NewLine + "отделку", thisAssemblyPath, "BIMv2Buttons.WallFinishing");
+                + Environment.NewLine + "отделку", thisAssemblyPath, "BIMv2Buttons.WallFinishing2");
 
             PushButton pb21 = ribbonPanel.AddItem(b21Data) as PushButton;
             pb21.ToolTip = "Переписывает отделку в помещения";
