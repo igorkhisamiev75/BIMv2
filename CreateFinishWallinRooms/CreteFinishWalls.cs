@@ -213,7 +213,7 @@ namespace CreateFinishWallinRooms
                         //TaskDialog.Show("2bim.ru", "Отделка стен создана ☺☺☺");
                         //
                     }
-                    t.Commit();
+                    t.Commit(options);
                 }
 
                 if (whatsButton == "отделкаПоСпеке")
@@ -236,6 +236,7 @@ namespace CreateFinishWallinRooms
                             //TaskDialog.Show("2bim.ru", "Не сработало");
                         }
                     }
+                    t.Commit(options);
                 }
 
                 //floor in selected room
