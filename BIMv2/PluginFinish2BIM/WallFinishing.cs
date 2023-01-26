@@ -335,7 +335,7 @@ namespace BIMv2
 
                         int countForSquare = countLayerInWall / 2;//5
 
-                        if (countForSquare % 2 == 0)
+                        if (countForSquare % 2 == 0)  //четное чмсло
                         {
                             for (int i = 0; i <= countForSquare; i++)
                             {
@@ -343,9 +343,7 @@ namespace BIMv2
                             }
                         }
 
-                        
-
-                        if (countForSquare % 2 == 1)
+                        if (countForSquare % 2 == 1) //нечетное число
                         {
                             for (int i = 0; i <= countForSquare; i++)
                             {

@@ -7,6 +7,8 @@ using Autodesk.Revit.UI;
 
 using Microsoft.Office.Interop.Excel;
 
+using Parameter = Autodesk.Revit.DB.Parameter;
+
 namespace BIMv2
 {
     [Transaction(TransactionMode.Manual)]
@@ -66,13 +68,13 @@ namespace BIMv2
             foreach (var wall1 in AllFinishWall)
             {
                 //ADSK_Примечание
-                //var otd =wall1.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString();
+                var otd =wall1.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString();
                 
                 //Comments
                 //var otd = wall1.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).AsString();
 
                 //тип
-                var otd = wall1.get_Parameter(BuiltInParameter.ELEM_TYPE_PARAM).AsValueString();
+                //var otd = wall1.get_Parameter(BuiltInParameter.ELEM_TYPE_PARAM).AsValueString();
 
                 numroomList.Add(otd);
             }
@@ -119,12 +121,12 @@ namespace BIMv2
 
                        
 
-                        //string nameFilter = view.get_Parameter(BuiltInParameter.VIEW_NAME).AsString();
+                        string nameFilter = view.get_Parameter(BuiltInParameter.VIEW_NAME).AsString();
 
 
                         // Create filter element assocated to the input categories
                         ParameterFilterElement parameterFilterElement =
-                            ParameterFilterElement.Create(doc, "Фильтр " + nameRoom, categories);
+                            ParameterFilterElement.Create(doc, "Фильтр пом. " +  nameRoom+ "для вида " + nameFilter, categories);
 
                         // Criterion 1 - wall type Function is "Exterior"
                         //ElementId exteriorParamId = new ElementId(BuiltInParameter.FUNCTION_PARAM);
@@ -147,7 +149,7 @@ namespace BIMv2
 
                         if (wall != null)
                         {
-                            //Parameter sharedParam = wall.get_Parameter(spGuid);
+                            Parameter sharedParam = wall.get_Parameter(spGuid);
 
                             //comments
                             //var parameterComents = wall.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS);
@@ -155,16 +157,16 @@ namespace BIMv2
                             //типу стены
                             //.get_Parameter(BuiltInParameter.ELEM_TYPE_PARAM)
 
-                            var parameterComents = wall.get_Parameter(BuiltInParameter.ELEM_TYPE_PARAM);
+                            //var parameterComents = wall.get_Parameter(BuiltInParameter.ELEM_TYPE_PARAM);
 
-                            //ElementId sharedParamId = sharedParam.Id;
+                            ElementId sharedParamId = sharedParam.Id;
 
                             //comments
-                            ElementId elementId =parameterComents.Id;    
+                            //ElementId elementId =parameterComents.Id;    
 
 
-                            //filterRules.Add(ParameterFilterRuleFactory.CreateBeginsWithRule(sharedParamId, nameRoom, true));
-                            filterRules.Add(ParameterFilterRuleFactory.CreateBeginsWithRule(elementId, nameRoom, true));
+                            filterRules.Add(ParameterFilterRuleFactory.CreateBeginsWithRule(sharedParamId, nameRoom, true));
+                           // filterRules.Add(ParameterFilterRuleFactory.CreateBeginsWithRule(elementId, nameRoom, true));
 
                         }
 
