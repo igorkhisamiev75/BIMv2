@@ -27,13 +27,13 @@ namespace BIMv2
 
                 WriteToRoomsNull(doc); //ALl finish 
 
-                var allWallElements = GetAllWallElements(doc);
-                var allCeilingElements = GetAllCeilingElements(doc);
-                var allFloorElements = GetAllWFloorElements(doc);
+                var allWallElements2 = GetAllWallElements(doc);
+                var allCeilingElements2 = GetAllCeilingElements(doc);
+                var allFloorElements2 = GetAllWFloorElements(doc);
 
 
                 #region Walls
-                if(allWallElements.Count > 0)
+                if(allWallElements2.Count > 0)
                 {
                     //записываем суммарную площадь в каждую стену
                     WriteToWallSquare(doc);
@@ -58,7 +58,7 @@ namespace BIMv2
                 #endregion
 
                 #region Ceiling
-                if(allCeilingElements.Count > 0)
+                if(allCeilingElements2.Count > 0)
                 {
                     //записываем суммарную площадь 
                     WriteToCeilingSquare(doc);
@@ -80,7 +80,7 @@ namespace BIMv2
 
                 #region Floor
 
-                if (allFloorElements.Count > 0)
+                if (allFloorElements2.Count > 0)
                 {
 
                     //записываем суммарную площадь 
@@ -320,26 +320,6 @@ namespace BIMv2
                         .AsValueString())
                         .ToList();
 
-                    //newList.Distinct();
-                    //List<string> forName = new List<string>();
-                    //newList.Reverse();
-
-                    //foreach (var wall in newList2)
-                    //{
-                    //    //forName.Add(wall.Name.ToString());
-                    //    //TaskDialog.Show("Сделано", $"{wall.Name} name");
-                    //}
-
-                    //TaskDialog.Show("Сделано", $"{forName.ToArray()}   стены"); //90 5 
-
-
-                    //удаление дубликатов, групирруем по имени
-                    //var wallsGroup = listWall.GroupBy(x => x.Name).Select(x => x.FirstOrDefault()).ToList();
-
-                    //TaskDialog.Show("Сделано", $"{wallsGroup.Count} стен");
-
-                    //wallsGroup.Sort();
-
                     pirog = "";
                     square = "";
 
@@ -355,32 +335,39 @@ namespace BIMv2
 
                         int countForSquare = countLayerInWall / 2;//5
 
-                        if (countForSquare%2==0)
-
-                        for (int i = 0; i <= countForSquare; i++)
+                        if (countForSquare % 2 == 0)
                         {
-                            countProbels += " \n";
-                        }
-
-                        if (countForSquare % 2 == 1)
-
                             for (int i = 0; i <= countForSquare; i++)
                             {
                                 countProbels += " \n";
                             }
+                        }
+
+                        
+
+                        if (countForSquare % 2 == 1)
+                        {
+                            for (int i = 0; i <= countForSquare; i++)
+                            {
+                                countProbels += " \n";
+                            }
+                        }
+
+                           
 
                         pirog += wall.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).AsString() + "\n\n";
 
-                        //square += "\n";
 
-                        //for (int i = 0; i < countLayerInWall; i++)
-                        //{
-                        //    square += "\n\n";
-                        //}
+                        if (countLayerInWall == 0)
+                        {
+                            square += wall.get_Parameter(new Guid("2c097f7a-e32f-4455-9e8a-ac72e131b24c")).AsValueString() + "\n\n";
+                        }
 
-                        //MRGT_ВидОтделкиСтенаПлощадь суммарная по типу
-                        square += countProbels+wall.get_Parameter(new Guid("2c097f7a-e32f-4455-9e8a-ac72e131b24c")).AsValueString()+ countProbels;
-                        
+                        if (countLayerInWall > 0)
+                        {
+                            square += countProbels + wall.get_Parameter(new Guid("2c097f7a-e32f-4455-9e8a-ac72e131b24c")).AsValueString() + countProbels;
+                        }
+                          
                     }
 
                     foreach (var wall in grouping)
@@ -392,9 +379,6 @@ namespace BIMv2
 
 
                 }
-
-
-
 
 
             }
