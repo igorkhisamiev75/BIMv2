@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -39,7 +40,7 @@ namespace BIMv2Buttons
                 //записываем информацию в помещения
                 WriteToRooms(doc);
 
-                TaskDialog.Show("Сделано", "Отделка посчитана");
+                TaskDialog.Show("Сделано", "Отделка посчитана для стен");
 
                 t.Commit();
 
@@ -195,6 +196,7 @@ namespace BIMv2Buttons
             IEnumerable<IGrouping<string, Wall>> groupByRooms = AllFinishWall.GroupBy(p2 =>
                 p2.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString());
 
+
             foreach (var grouping in groupByRooms)
             {
                 string pirog = "";
@@ -240,18 +242,50 @@ namespace BIMv2Buttons
                 {
                     List<Wall> listWall = new List<Wall>();
 
-                    foreach (var wall2 in grouping)
+                    foreach (Wall wall2 in grouping)
                     {
                         listWall.Add(wall2);
                     }
 
+                    //TaskDialog.Show("Сделано", $"{listWall.Count} стен"); //90
+
+                    //listWall.Distinct();
+
+                    List<Wall> newList = listWall
+                        .GroupBy(x => x.get_Parameter(BuiltInParameter.ELEM_TYPE_PARAM)
+                        .AsValueString())
+                        .Select(x => x.First())
+                        .ToList();
+
+                    List<Wall> newList2 = newList
+                        .OrderBy(x => x.get_Parameter(BuiltInParameter.ELEM_TYPE_PARAM)
+                        .AsValueString())
+                        .ToList();
+
+                    //newList.Distinct();
+                    //List<string> forName = new List<string>();
+                    //newList.Reverse();
+
+                    //foreach (var wall in newList2)
+                    //{
+                    //    //forName.Add(wall.Name.ToString());
+                    //    //TaskDialog.Show("Сделано", $"{wall.Name} name");
+                    //}
+
+                    //TaskDialog.Show("Сделано", $"{forName.ToArray()}   стены"); //90 5 
+
+
                     //удаление дубликатов, групирруем по имени
-                    var wallsGroup = listWall.GroupBy(x => x.Name).Select(x => x.First()).ToList();
+                    //var wallsGroup = listWall.GroupBy(x => x.Name).Select(x => x.FirstOrDefault()).ToList();
+
+                    //TaskDialog.Show("Сделано", $"{wallsGroup.Count} стен");
+
+                    //wallsGroup.Sort();
 
                     pirog = "";
                     square = "";
 
-                    foreach (var wall in wallsGroup)
+                    foreach (Wall wall in newList2)
                     {
                         //нужно найти сколько слоёв в стене
 
@@ -272,7 +306,7 @@ namespace BIMv2Buttons
 
                         if (countForSquare % 2 == 1)
 
-                            for (int i = 0; i < countForSquare; i++)
+                            for (int i = 0; i <= countForSquare; i++)
                             {
                                 countProbels += " \n";
                             }
@@ -390,7 +424,7 @@ namespace BIMv2Buttons
                 foreach (var room in allRooms)
                 {
 
-                    room.get_Parameter(new Guid("1e2bf482-d000-4acd-a903-17caa723e563")).Set("0");
+                    room.get_Parameter(new Guid("1e2bf482-d000-4acd-a903-17caa723e563")).Set(" ");
 
                     //получаем отделку
 
@@ -424,6 +458,8 @@ namespace BIMv2Buttons
 
             return allRooms;
         }
+
+
 
     }
 }

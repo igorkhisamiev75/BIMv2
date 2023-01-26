@@ -61,7 +61,7 @@ namespace BIMv2
                 //создаем массив с номерами помещений
                 foreach (var t in element)
                 {
-                    var otd = t.LookupParameter("Номер помещения (отделка)").AsString();
+                    var otd = t.LookupParameter("ADSK_Примечание").AsString();
                     string[] subs = otd.Split(' ');
                     numroomList.Add(subs[0]);
                 }
@@ -80,7 +80,7 @@ namespace BIMv2
                 foreach (var t in element)
                 {
 
-                    t.LookupParameter("Комментарии").Set(numbersAllRoomString);
+                    t.LookupParameter("ADSK_Примечание").Set(numbersAllRoomString);
                 }
 
             }
@@ -144,10 +144,10 @@ namespace BIMv2
 
                 if (myRoom != null)
                 {
-                    nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
-                               myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+                    nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();/* + " " +
+                               myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();*/
 
-                    element.LookupParameter("Номер помещения (отделка)").Set(nameRoom);
+                    element.LookupParameter("ADSK_Примечание").Set(nameRoom);
 
                 }
 
@@ -164,15 +164,15 @@ namespace BIMv2
                         var room = FindRoom(linkDocument, targetPoint);
                         if (room != null)
                         {
-                            nameRoom = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
-                                       room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
-                            element.LookupParameter("Номер помещения (отделка)").Set(nameRoom);
+                            nameRoom = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();/* + " " +
+                                       room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();*/
+                            element.LookupParameter("ADSK_Примечание").Set(nameRoom);
                             break;
                         }
                         else
                         {
                             nameRoom = "";
-                            element.LookupParameter("Номер помещения (отделка)").Set(nameRoom);
+                            element.LookupParameter("ADSK_Примечание").Set(nameRoom);
                         }
                     }
                 }

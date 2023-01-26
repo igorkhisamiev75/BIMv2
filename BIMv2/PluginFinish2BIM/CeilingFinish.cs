@@ -36,7 +36,7 @@ namespace BIMv2
                 //записываем информацию в помещения
                 WriteToRoomsCeilingSquare(doc);
 
-                TaskDialog.Show("Сделано", "Потолки 2");
+                TaskDialog.Show("Сделано", "Потолки");
 
                 t.Commit();
 
