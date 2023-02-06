@@ -159,6 +159,7 @@
     <Compile Include="CreateFinishWallinRooms.cs" />
     <Compile Include="CreateFinishWallinSelectedRoom.cs" />
     <Compile Include="CreateFloorInRoom.cs" />
+    <Compile Include="CreateNewTypeAnnotation.cs" />
     <Compile Include="CreateNotPlacedRooms.cs" />
     <Compile Include="CreateRailingInRooms.cs" />
     <Compile Include="CreateScheduleRooms.cs" />
