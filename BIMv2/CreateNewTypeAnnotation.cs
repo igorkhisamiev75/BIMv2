@@ -41,21 +41,14 @@ namespace BIMv2
 
                 //get all type annotation
 
-                //FilteredElementCollector filteredElementCollector3 = new FilteredElementCollector(doc);
-                //filteredElementCollector3.OfClass(typeof(AnnotationSymbolType));
-                //List<AnnotationSymbolType> annotationSymbols = filteredElementCollector3.Cast<AnnotationSymbolType>().ToList<AnnotationSymbolType>();
-
-                ElementClassFilter filter1  = new ElementClassFilter(typeof(AnnotationSymbol));
-                List<AnnotationSymbol> ann  = new List<AnnotationSymbol>();
-
-
-                FilteredElementCollector coll1 = new FilteredElementCollector(doc);
-
-                coll1.WherePasses(filter1);
+                FilteredElementCollector filteredElementCollector3 = new FilteredElementCollector(doc);
+                filteredElementCollector3.OfClass(typeof(AnnotationSymbol));
+                List<AnnotationSymbol> annotationSymbols = filteredElementCollector3.Cast<AnnotationSymbol>().ToList<AnnotationSymbol>();
 
 
 
-                TaskDialog.Show("Сделано", $"{coll1} Типов пола ");
+
+                //TaskDialog.Show("Сделано", $"{annotationSymbols} Типов пола ");
 
 
 
