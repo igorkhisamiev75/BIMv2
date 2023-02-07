@@ -163,6 +163,12 @@ namespace BIMv2
                     foreach (var n in listNameAndDescription)
                     {
                         string nameType = n.Name; //имя типа перекрытия или
+                        string sostav = n.Description;
+
+                        //высчитываем состав
+                       
+                        
+
 
                         //Family family = new FilteredElementCollector(doc)
                         //.OfClass(typeof(Family))
@@ -174,7 +180,33 @@ namespace BIMv2
 
                         if (nameFlagok == nameType)
                         {
-                            TaskDialog.Show("Сделано", "проверить состав и переписать");
+                            //continue;
+
+                            //число строк
+                            //
+                            
+                            int count = sostav.Where(x => "\n".IndexOf(x) != -1).Count();
+
+                            if(count == 0)
+                            {
+                                type.LookupParameter("Число строк").Set(1);
+                                type.LookupParameter("01_Текст").Set(sostav);
+                                type.LookupParameter("02_Текст").Set("");
+                                type.LookupParameter("03_Текст").Set("");
+
+                            }
+
+                            else
+                            {
+                                type.LookupParameter("Число строк").Set(count+1);
+                            }
+
+
+                            //type.LookupParameter("01_Текст").Set("123");
+
+
+                            //TaskDialog.Show("Сделано", $"{count} число");
+
                             //проверить состав и переписать
                         }
 
@@ -187,7 +219,7 @@ namespace BIMv2
                                 FamilySymbol newFamSym = neededSymbol.Duplicate(nameType) as FamilySymbol;
                                 //t.Commit();
 
-                                //continue;
+                                continue;
 
                             }
 
