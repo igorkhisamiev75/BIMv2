@@ -37,18 +37,64 @@ namespace BIMv2
                 filteredElementCollector2.OfClass(typeof(RoofType));
                 List<RoofType> roofTypeCollection = filteredElementCollector2.Cast<RoofType>().ToList();
 
+
+
                 //пробежаться и сотавить только с составом
 
                 //get all type annotation
 
-                FilteredElementCollector filteredElementCollector3 = new FilteredElementCollector(doc);
-                filteredElementCollector3.OfClass(typeof(AnnotationSymbol));
-                List<AnnotationSymbol> annotationSymbols = filteredElementCollector3.Cast<AnnotationSymbol>().ToList<AnnotationSymbol>();
+                //FilteredElementCollector filteredElementCollector3 = new FilteredElementCollector(doc);
+                //filteredElementCollector3.OfClass(typeof(FamilyInstance));
+                //List<FamilyInstance> roofTypeCollection3 = filteredElementCollector3.Cast<FamilyInstance>().ToList();
+
+                //FilteredElementCollector filteredElementCollector3 = new FilteredElementCollector(doc);
+                ////filteredElementCollector3.OfClass(typeof(AnnotationSymbol));
+                //filteredElementCollector3.OfCategory(BuiltInCategory.OST_GenericAnnotation);
+                //var annotationSymbols = filteredElementCollector3.Cast<AnnotationSymbol>().ToList<AnnotationSymbol>();
+
+                IEnumerable<ElementType> dimTypes = new FilteredElementCollector(doc)
+                .WhereElementIsElementType()
+                .Cast<ElementType>()
+                .Where(x => x.FamilyName.Contains("Флажок"));
+
+                //List<ElementType> annotationFlag = new List<ElementType>();
+
+                //foreach (var item in dimTypes)
+                //{
+                //    if(item != null)
+                //    {
+                //        try
+                //        {
+                //            string adsk_naimenovanie = item.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString();
+
+                //            if (adsk_naimenovanie == "Флажок")
+                //            {
+                //                annotationFlag.Add(item);
+                //            }
+                //        }
+
+                //        catch
+                //        {
+                //            continue;
+                //        }
 
 
+                //    }
 
+                //}
 
-                //TaskDialog.Show("Сделано", $"{annotationSymbols} Типов пола ");
+                foreach(ElementType type in dimTypes)
+                {
+                    TaskDialog.Show("Сделано", $"{type.Name}  ");
+
+                    type.Name = type.Name+"12";
+
+                    type.LookupParameter("01_Текст").Set("123");
+
+                }
+
+                dimTypes.ToList();
+
 
 
 
