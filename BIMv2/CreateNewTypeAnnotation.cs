@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 
@@ -20,12 +21,15 @@ namespace BIMv2
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             Document doc = commandData.Application.ActiveUIDocument.Document;
+            //Application app = commandData.Application;
+
 
             using (var t = new Transaction(doc))
             {
                 t.Start("Записываем суммарную площадь отделки");
 
                 List<info> listNameAndDescription = new List<info>();
+                FamilySymbol neededSymbol = null;
 
                 //get all type floors
 
@@ -90,7 +94,7 @@ namespace BIMv2
                 //filteredElementCollector3.OfCategory(BuiltInCategory.OST_GenericAnnotation);
                 //var annotationSymbols = filteredElementCollector3.Cast<AnnotationSymbol>().ToList<AnnotationSymbol>();
 
-                IEnumerable<ElementType> dimTypes = new FilteredElementCollector(doc)
+                IEnumerable<ElementType> flagokTypes = new FilteredElementCollector(doc)
                 .WhereElementIsElementType()
                 .Cast<ElementType>()
                 .Where(x => x.FamilyName.Contains("Флажок"));
@@ -121,9 +125,87 @@ namespace BIMv2
 
                 //}
 
-                foreach (var type in dimTypes)
+                var families = new FilteredElementCollector(doc).OfClass(typeof(Family)).ToList();
+                foreach (Family family in families)
+                {
+                    foreach (ElementType type in flagokTypes)
+                    {
+
+                        string nameFlagok = type.FamilyName;
+                        if(!family.Name.Equals(nameFlagok)) continue;
+
+                        var symbolsId = family.GetFamilySymbolIds();
+
+
+                        foreach (var symbolId in symbolsId)
+                        {
+
+                            var symb = doc.GetElement(symbolId);
+                            //TaskDialog.Show("Сделано", $"{symb.Name}  ");
+                            //if (!symb.Name.Equals(nameFlagok)) continue;
+                            neededSymbol = symb as FamilySymbol;
+                        }
+                    }
+
+                        
+                }
+
+
+
+                foreach (ElementType type in flagokTypes)
                 {
                     
+                    string nameFlagok = type.Name;
+                    //string famName = type.FamilyName;
+
+                    //TaskDialog.Show("Сделано", $"{id}  ");
+
+                    foreach (var n in listNameAndDescription)
+                    {
+                        string nameType = n.Name; //имя типа перекрытия или
+
+                        //Family family = new FilteredElementCollector(doc)
+                        //.OfClass(typeof(Family))
+                        //.OfCategory(BuiltInCategory.OST_GenericAnnotation)
+                        //.Cast<Family>()
+                        //.FirstOrDefault(el => el.Name == famName);
+
+                        //FamilySymbol ff = (FamilySymbol)family.GetFamilySymbolIds();
+
+                        if (nameFlagok == nameType)
+                        {
+                            TaskDialog.Show("Сделано", "проверить состав и переписать");
+                            //проверить состав и переписать
+                        }
+
+                        else
+                        {
+                            
+                            try
+                            {
+                                 
+                                FamilySymbol newFamSym = neededSymbol.Duplicate(nameType) as FamilySymbol;
+                                //t.Commit();
+
+                                //continue;
+
+                            }
+
+                            catch
+                            {
+                                continue;
+                            }
+                            
+                            //дозаполнить параметры
+
+
+                            // set the radius to a new value:
+                            //Parameter par = newFamSym.LookupParameter("01_Текст");
+                            //par.Set(3);
+
+                        }
+
+                    }
 
                     //type.Name = type.Name + "12";
 
@@ -144,329 +226,7 @@ namespace BIMv2
             return Result.Succeeded;
 
         }
-        public void WriteToWallSquare(Document doc)
-        {
-            var allWallElements = GetAllWallElements(doc);
-            AllFinishWall.Clear();
-
-            foreach (var element in allWallElements)
-            {
-                try
-                {
-                    var wall = (Wall)element;
-
-                    var descriptionWallType = wall.WallType.LookupParameter("Описание").AsString();
-
-                    if (descriptionWallType == "Отделка")
-                    {
-                        AllFinishWall.Add(wall);
-                    }
-
-                }
-                catch (Exception e)
-                {
-                    continue;
-                }
-
-
-            }
-
-            //group by room
-            IEnumerable<IGrouping<string, Wall>> groups = AllFinishWall.GroupBy(p2 =>
-                p2.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString());
-
-            foreach (IGrouping<string, Wall> group in groups)
-            {
-                List<Wall> WallGroup = new List<Wall>();
-                WallGroup.Clear();
-
-                foreach (var elWall in group)
-                {
-                    WallGroup.Add(elWall);
-                }
-
-                //группировка по типу стены
-                var groupsN = WallGroup.GroupBy(p => p.Name);
-
-                //пробегаемся по сгруппированным значениям
-
-                foreach (IGrouping<string, Element> element in groupsN)
-                {
-
-                    IList<string> numroomList = new List<string>();
-                    numroomList.Clear();
-
-                    //суммируем площадь
-
-                    double squeWall = 0;
-
-                    foreach (var t in element)
-                    {
-                        var otd = t.get_Parameter(BuiltInParameter.HOST_AREA_COMPUTED).AsDouble();
-                        squeWall += otd;
-
-                    }
-
-                    //и записываем это массив в каждый номер этого массива
-
-                    foreach (var t in element)
-                    {
-                        //var r = sqFootToSquareM(squeWall);
-                        t.get_Parameter(new Guid("2c097f7a-e32f-4455-9e8a-ac72e131b24c")).Set(squeWall);
-                    }
-
-                }
-
-
-            }
-
-
-        }
-
-        public void WriteFinishToWall(Document doc)
-        {
-            var allWallElements = GetAllWallElements(doc);
-
-            //отделка только //мжно в запросе сразу попробовать отфильтровать
-            foreach (var element in allWallElements)
-            {
-                try
-                {
-                    var wall = (Wall)element;
-
-                    var descriptionWallType = wall.WallType.LookupParameter("Описание").AsString();
-
-                    if (descriptionWallType == "Отделка")
-                    {
-                        AllFinishWall.Add(wall);
-                    }
-
-                }
-                catch (Exception e)
-                {
-                    continue;
-                }
-
-
-            }
-
-            foreach (var wall in AllFinishWall)
-            {
-                var NameOfBaseFinish = wall.WallType.LookupParameter("MRGT_СлоиОтделки").AsString();
-
-                wall.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).Set(NameOfBaseFinish);
-            }
-
-        }
-
-        public void WriteToWallFinishAlliance(Document doc)
-        {
-            var allWallElements = GetAllWallElements(doc);
-
-            //отделка только //мжно в запросе сразу попробовать отфильтровать
-            foreach (var element in allWallElements)
-            {
-                try
-                {
-                    var wall = (Wall)element;
-
-                    var descriptionWallType = wall.WallType.LookupParameter("Описание").AsString();
-
-                    if (descriptionWallType == "Отделка")
-                    {
-                        AllFinishWall.Add(wall);
-                    }
-
-                }
-                catch (Exception e)
-                {
-                    continue;
-                }
-
-
-            }
-
-
-            //group by room
-            IEnumerable<IGrouping<string, Wall>> groupByRooms = AllFinishWall.GroupBy(p2 =>
-                p2.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString());
-
-            foreach (var grouping in groupByRooms)
-            {
-                string pirog = "";
-                string square = "";
-
-                //group by type wall
-                IEnumerable<IGrouping<string, Wall>> groupByType = grouping.GroupBy(p2 => p2.Name);
-
-
-                if (groupByType.Count() == 1)
-                {
-                    foreach (var wall in grouping)
-                    {
-                        pirog = wall.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).AsString();
-                        square = wall.get_Parameter(new Guid("2c097f7a-e32f-4455-9e8a-ac72e131b24c")).AsValueString();
-
-                        pirog = "1";
-                        square = "1";
-
-                        wall.get_Parameter(new Guid("6533b173-94cb-465e-964c-ed1e0dfce339")).Set(pirog);
-                        wall.get_Parameter(new Guid("1e2bf482-d000-4acd-a903-17caa723e563")).Set(square);
-                    }
-
-                    //continue;
-                }
-                else
-                {
-                    List<Wall> listWall = new List<Wall>();
-                    foreach (var wall2 in grouping)
-                    {
-                        listWall.Add(wall2);
-                    }
-
-                    //удаление дубликатов, групирруем по имени
-                    List<Wall> wallsGroup = listWall.GroupBy(x => x.Name).Select(x => x.First()).ToList();
-
-                    pirog = "";
-                    square = "";
-
-                    TaskDialog.Show("Сделано", $"типов стен {wallsGroup.Count}");
-
-                    foreach (var wall in wallsGroup)
-                    {
-                        //square = "";
-                        //нужно найти сколько слоёв в стене
-
-                        //MRGT_ВидОтделкиСтены
-                        string LayerInWall = wall.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).AsString();
-                        int countLayerInWall = LayerInWall.Where(x => "\n".IndexOf(x) != -1).Count();
-
-                        pirog += wall.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).AsString() + "\n";
-
-                        //MRGT_ВидОтделкиСтенаПлощадь
-                        square += wall.get_Parameter(new Guid("2c097f7a-e32f-4455-9e8a-ac72e131b24c")).AsValueString();
-
-                        //for (int i = 0; i <= countLayerInWall; i++)
-                        //{
-                        //    square += "\n";
-                        //}
-
-                    }
-
-                    foreach (var wall in grouping)
-                    {
-
-                        pirog = "1";
-                        square = "1";
-                        wall.get_Parameter(new Guid("6533b173-94cb-465e-964c-ed1e0dfce339")).Set(pirog);
-
-                        wall.get_Parameter(new Guid("1e2bf482-d000-4acd-a903-17caa723e563")).Set(square);
-                    }
-
-
-                }
-
-
-
-
-
-            }
-
-
-        }
-
-        private void WriteToRooms(Document doc)
-        {
-            //all rooms
-            var allRooms = GetAllRooms(doc);
-
-            var allWallElements = GetAllWallElements(doc);
-            AllFinishWall.Clear();
-
-            foreach (var VARIABLE in allWallElements)
-            {
-                try
-                {
-                    var wall = (Wall)VARIABLE;
-
-                    var descriptionWallType = wall.WallType.LookupParameter("Описание").AsString();
-
-                    if (descriptionWallType == "Отделка")
-                    {
-                        AllFinishWall.Add(wall);
-                    }
-
-                }
-                catch (Exception e)
-                {
-                    continue;
-                }
-
-
-            }
-
-            if (allRooms != null)
-            {
-                foreach (var room in allRooms)
-                {
-
-                    var numberRoom = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();
-
-                    //проходимся по всем стенам и находим совпадения по номеру
-                    foreach (var wall in AllFinishWall)
-                    {
-                        var numberRoomInWall = wall.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString();
-
-                        if (numberRoom == numberRoomInWall)
-                        {
-                            //получаем площадь
-                            //MRGT_ПлощадьОбъединенная
-                            var squareWall = wall.get_Parameter(new Guid("1e2bf482-d000-4acd-a903-17caa723e563"))
-                                .AsString();
-                            room.get_Parameter(new Guid("1e2bf482-d000-4acd-a903-17caa723e563")).Set(squareWall);
-
-                            //получаем отделку
-                            var finishWall = wall.get_Parameter(new Guid("6533b173-94cb-465e-964c-ed1e0dfce339"))
-                                .AsString();
-                            room.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).Set(finishWall);
-
-
-                            continue;
-                        }
-
-                    }
-
-
-
-                }
-            }
-
-        }
-
-        public IList<Element> GetAllWallElements(Document document)
-        {
-            // List all Floor's
-            var floor_collector = new FilteredElementCollector(document)
-                .OfCategory(BuiltInCategory.OST_Walls)
-                .WhereElementIsNotElementType();
-
-            IList<Element> allFloors = floor_collector.ToElements();
-            return allFloors;
-        }
-
-
-
-        public IList<Element> GetAllRooms(Document doc)
-        {
-            // List all Room's
-            var room_collector = new FilteredElementCollector(doc)
-                .OfCategory(BuiltInCategory.OST_Rooms)
-                .WhereElementIsNotElementType();
-            IList<ElementId> room_eids = room_collector.ToElementIds() as IList<ElementId>;
-            var allRooms = room_collector.ToElements();
-
-            return allRooms;
-        }
+       
 
     }
 
@@ -482,4 +242,6 @@ namespace BIMv2
         }
 
     }
+
+    
 }
