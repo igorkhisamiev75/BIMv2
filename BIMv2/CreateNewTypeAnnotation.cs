@@ -15,6 +15,8 @@ namespace BIMv2
     {
         public List<Wall> AllFinishWall = new List<Wall>();
 
+        
+
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             Document doc = commandData.Application.ActiveUIDocument.Document;
@@ -23,13 +25,33 @@ namespace BIMv2
             {
                 t.Start("Записываем суммарную площадь отделки");
 
+                List<info> listNameAndDescription = new List<info>();
+
                 //get all type floors
 
                 FilteredElementCollector filteredElementCollector = new FilteredElementCollector(doc);
                 filteredElementCollector.OfClass(typeof(FloorType));
                 List<FloorType> floorTypeCollection = filteredElementCollector.Cast<FloorType>().ToList();
 
-                //пробежаться и сотавить только с составом
+                foreach (var floorType in floorTypeCollection)
+                {
+                    try
+                    {
+                        var sostav = floorType.get_Parameter(new Guid("59c583bf-3ce9-41f1-9f7b-7c0fbe14d11d")).AsString();
+                        if (sostav != null)
+                        {
+                            listNameAndDescription.Add(new info(floorType.Name, sostav));
+                        }
+                    }
+
+                    catch
+                    {
+                        continue;
+                    }
+                    
+                }
+
+                //пробежаться и составить только с составом
 
                 //get all type roofs 
 
@@ -37,6 +59,22 @@ namespace BIMv2
                 filteredElementCollector2.OfClass(typeof(RoofType));
                 List<RoofType> roofTypeCollection = filteredElementCollector2.Cast<RoofType>().ToList();
 
+                foreach (var roofType in roofTypeCollection)
+                {
+                    try
+                    {
+                        var sostav = roofType.get_Parameter(new Guid("59c583bf-3ce9-41f1-9f7b-7c0fbe14d11d")).AsString();
+                    if (sostav != null)
+                    {
+                        listNameAndDescription.Add(new info(roofType.Name, sostav));
+                    }
+                    }
+
+                    catch
+                    {
+                        continue;
+                    }
+                }
 
 
                 //пробежаться и сотавить только с составом
@@ -83,19 +121,21 @@ namespace BIMv2
 
                 //}
 
-                foreach(ElementType type in dimTypes)
+                foreach (var type in dimTypes)
                 {
-                    TaskDialog.Show("Сделано", $"{type.Name}  ");
+                    
 
-                    type.Name = type.Name+"12";
+                    //type.Name = type.Name + "12";
 
-                    type.LookupParameter("01_Текст").Set("123");
+                    //type.LookupParameter("01_Текст").Set("123");
 
                 }
 
-                dimTypes.ToList();
 
 
+                //dimTypes.ToList();
+
+                //TaskDialog.Show("Сделано", $"{listNameAndDescription.Count}  ");
 
 
                 t.Commit();
@@ -426,6 +466,19 @@ namespace BIMv2
             var allRooms = room_collector.ToElements();
 
             return allRooms;
+        }
+
+    }
+
+    class info
+    {
+        public string Name { get; set; }
+        public string Description { get; set; }
+
+        public info(string Name, string DesDescription)
+        {
+            this.Name= Name;
+            this.Description= DesDescription;   
         }
 
     }
