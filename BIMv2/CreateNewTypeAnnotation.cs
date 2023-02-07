@@ -165,25 +165,10 @@ namespace BIMv2
                         string nameType = n.Name; //имя типа перекрытия или
                         string sostav = n.Description;
 
-                        //высчитываем состав
-                       
-                        
-
-
-                        //Family family = new FilteredElementCollector(doc)
-                        //.OfClass(typeof(Family))
-                        //.OfCategory(BuiltInCategory.OST_GenericAnnotation)
-                        //.Cast<Family>()
-                        //.FirstOrDefault(el => el.Name == famName);
-
-                        //FamilySymbol ff = (FamilySymbol)family.GetFamilySymbolIds();
 
                         if (nameFlagok == nameType)
                         {
-                            //continue;
-
                             //число строк
-                            //
                             
                             int count = sostav.Where(x => "\n".IndexOf(x) != -1).Count();
 
@@ -201,13 +186,6 @@ namespace BIMv2
                                 type.LookupParameter("Число строк").Set(count+1);
                             }
 
-
-                            //type.LookupParameter("01_Текст").Set("123");
-
-
-                            //TaskDialog.Show("Сделано", $"{count} число");
-
-                            //проверить состав и переписать
                         }
 
                         else
@@ -227,27 +205,14 @@ namespace BIMv2
                             {
                                 continue;
                             }
-                            
-                            //дозаполнить параметры
-
-
-                            // set the radius to a new value:
-                            //Parameter par = newFamSym.LookupParameter("01_Текст");
-                            //par.Set(3);
+                       
 
                         }
 
                     }
 
-                    //type.Name = type.Name + "12";
-
-                    //type.LookupParameter("01_Текст").Set("123");
-
+                  
                 }
-
-
-
-                //dimTypes.ToList();
 
                 //TaskDialog.Show("Сделано", $"{listNameAndDescription.Count}  ");
 
