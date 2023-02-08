@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;
@@ -112,74 +113,92 @@ namespace BIMv2
                 }
 
 
+                List<string> names = new List<string>();    
 
                 foreach (ElementType type in flagokTypes)
+                { 
+                    names.Add(type.Name);
+                }
+
+
+                //цикл для переноса параметров
+                foreach (info n in listNameAndDescription)
                 {
                     
-                    string nameFlagok = type.Name;
-                    //string famName = type.FamilyName;
 
-                    //TaskDialog.Show("Сделано", $"{id}  ");
-
-                    foreach (var n in listNameAndDescription)
+                    foreach (ElementType type in flagokTypes)
                     {
-                        string nameType = n.Name; //имя типа перекрытия или
-                        string sostav = n.Description;
-
-
-
-
-                        if (nameFlagok == nameType)
+                        
+                        if (type.Name == n.Name)
                         {
                             //число строк
 
                             int counutLine = n.countLine();
 
-                            //TaskDialog.Show("Сделано", $"{c} - строк ");
+                            //максимальная длина строки 
 
-                            int count = sostav.Where(x => "\n".IndexOf(x) != -1).Count();
+                            double maxCountLine = n.maxLenghtLine();
 
-                            if(count == 0)
+                            double maxDoubble = maxCountLine / 132;
+
+                            //TaskDialog.Show("Сделано", $"{maxCountLine} - число строк ");
+
+                            //int count = sostav.Where(x => "\n".IndexOf(x) != -1).Count();
+
+                            var gg=n.massLines;
+
+
+                            type.LookupParameter("Число строк").Set(counutLine);
+
+                            type.LookupParameter("Ширина").Set(maxDoubble);
+
+                            for(int i = 1; i <= counutLine; i++)
                             {
-                                type.LookupParameter("Число строк").Set(1);
-                                type.LookupParameter("01_Текст").Set(sostav);
-                                type.LookupParameter("02_Текст").Set("");
-                                type.LookupParameter("03_Текст").Set("");
+                                string nameParam = "";
+
+                                if (counutLine <= 9)
+                                {
+                                    nameParam = "0" + i + "_Текст";
+                                }
+
+                                if (counutLine > 9)
+                                {
+                                    nameParam = i + "_Текст";
+                                }
+
+                                type.LookupParameter(nameParam).Set(n.massLines[i-1]);
 
                             }
 
-                            else
-                            {
-                                type.LookupParameter("Число строк").Set(count+1);
-                            }
-
+                            
                         }
-
                         else
                         {
-                            
-                            try
-                            {
-                                 
-                                FamilySymbol newFamSym = neededSymbol.Duplicate(nameType) as FamilySymbol;
-                                //t.Commit();
+                            if(!names.Contains(n.Name))
 
-                                continue;
+                                try
+                                {
 
-                            }
+                                    FamilySymbol newFamSym = neededSymbol.Duplicate(n.Name) as FamilySymbol;
+                                    //t.Commit();
 
-                            catch
-                            {
-                                continue;
-                            }
-                       
+                                    continue;
+
+                                }
+
+                                catch
+                                {
+                                    continue;
+                                }
+
 
                         }
-
                     }
 
-                  
                 }
+
+
+
 
                 //TaskDialog.Show("Сделано", $"{listNameAndDescription.Count}  ");
 
@@ -199,25 +218,81 @@ namespace BIMv2
         public string Name { get; set; }
         public string Description { get; set; }
 
-        public int countLine ()
+        public List<string> massLines 
+        {
+
+            get { return MassLines(); }
+
+            set { }
+        
+        }
+
+        public int countLine () //сколько слоев
         {
             string[] mass = Description.Split('\n');
 
             return mass.Length;
         }
 
-        public int maxLenghtLine(string Descrtiption)
+        public double maxLenghtLine() //максимальная длина строки
         {
+            double maxCountLine = 0;
 
-            int count = 0;
+            List<string> mass = Description.Split('\n').ToList();
 
-            //for (int i = 0; i < mass.Length; i++)
-            //{
+            foreach(string line in mass)
+            {
+                double strLenght =line.Length;
 
-            //}
+                if (strLenght > maxCountLine)
+                {
+                    maxCountLine = strLenght;
+                }
+
+            }
+            
+            return maxCountLine;
+        }
+
+        public List<string> MassLines()
+        {
+            List<string> newString = new List<string>();
+
+            List<string> mass = Description.Split('\n').ToList(); //разделение описания на отдельные строки
+
+            foreach (string item in mass) //заходим в строку
+            {
+
+                string[] words = item.Split(' '); //строка разбита на слова
+
+                int n = words.Length; //количество слов
+
+                string newStr = "";
+
+                if (words[n - 1] == "мм\r" || words[n - 1] == "мм") //если в строке есть мм то удаляем 3 слова - 350 мм
+                {
+
+                    for(int i = 0; i < n-3; i++) //del 3 words
+                    {
+                        newStr += words[i]+" ";
+                    }
 
 
-            return count;
+                }
+
+                else
+                {
+                    newStr = item.Replace("\n", ""); 
+                    
+                }
+
+                newString.Add(newStr);
+
+            }
+
+            
+
+            return newString;
         }
 
         public info(string Name, string Description)
