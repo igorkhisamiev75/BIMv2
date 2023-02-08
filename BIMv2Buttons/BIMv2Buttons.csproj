@@ -169,6 +169,7 @@
     <Compile Include="CreateLightingInRoom\CreateLightingInRoom.cs" />
     <Compile Include="CreateModelTextRoomNameInRoom\CreateModelTextRoomNameInRoom.cs" />
     <Compile Include="CreateModelText\CreateModelText.cs" />
+    <Compile Include="CreateNewTypeAnnotation\CreateNewTypeAnnotation.cs" />
     <Compile Include="CreateNotPlacedRooms\CreateNotPlacedRooms.cs" />
     <Compile Include="CreateNumberRoomForFloors\CreateNumberRoomForFloors.cs" />
     <Compile Include="CreateWS\CreateWorksets.cs" />
@@ -293,6 +294,10 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\icons8-groupCoins-32.png" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Resources\icons8-flag-32.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -82,6 +82,19 @@ namespace BIMv2Buttons
             BitmapImage pb1ImageB2_1 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-2d-16.png"));
             pb1B2_1.LargeImage = pb1ImageB2_1;
 
+            //попробуем создать еще одну кнопку
+            ribbonPanelb2.AddSeparator(); //разделитель между кнопками
+
+            // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData b1DataB3_1 = new PushButtonData("cmdCreateNewTypeAnnotation", "Создать"
+                + Environment.NewLine + "флажок", thisAssemblyPath, "BIMv2.CreateNewTypeAnnotation");
+
+            PushButton pb1B3_1 = ribbonPanelb2.AddItem(b1DataB3_1) as PushButton;
+            pb1B3_1.ToolTip = "Создает и обновляет флажки";
+
+            BitmapImage pb1ImageB3_1 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-flag-32.png"));
+            pb1B3_1.LargeImage = pb1ImageB3_1;
+
 
             //кнопки 2BIM
 

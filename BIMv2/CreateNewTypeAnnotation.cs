@@ -151,14 +151,15 @@ namespace BIMv2
                             {
                                 string nameParam = "";
 
-                                if (counutLine <= 9)
+                                if (i <= 9)
                                 {
                                     nameParam = "0" + i + "_Текст";
                                 }
 
-                                if (counutLine > 9)
+                                if (i > 9)
                                 {
-                                    nameParam = i + "_Текст";
+                                    
+                                    nameParam = i.ToString() + "_Текст";
                                 }
 
                                 type.LookupParameter(nameParam).Set(n.massLines[i-1]);
@@ -171,14 +172,14 @@ namespace BIMv2
                             {
                                 string nameParam = "";
 
-                                if (counutLine <= 9)
+                                if (i <= 9)
                                 {
                                     nameParam = "0" + i + "_Толщина";
                                 }
 
-                                if (counutLine > 9)
+                                if (i > 9)
                                 {
-                                    nameParam = i + "_Толщина";
+                                    nameParam =  i.ToString() + "_Толщина";
                                 }
 
                                 type.LookupParameter(nameParam).Set(n.thinkness[i - 1]);
