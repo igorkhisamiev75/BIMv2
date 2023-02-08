@@ -16,8 +16,6 @@ namespace BIMv2
     {
         public List<Wall> AllFinishWall = new List<Wall>();
 
-        
-
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             Document doc = commandData.Application.ActiveUIDocument.Document;
@@ -26,7 +24,7 @@ namespace BIMv2
 
             using (var t = new Transaction(doc))
             {
-                t.Start("Записываем суммарную площадь отделки");
+                t.Start("Создаем флажки");
 
                 List<info> listNameAndDescription = new List<info>();
                 FamilySymbol neededSymbol = null;
@@ -81,49 +79,12 @@ namespace BIMv2
                 }
 
 
-                //пробежаться и сотавить только с составом
-
-                //get all type annotation
-
-                //FilteredElementCollector filteredElementCollector3 = new FilteredElementCollector(doc);
-                //filteredElementCollector3.OfClass(typeof(FamilyInstance));
-                //List<FamilyInstance> roofTypeCollection3 = filteredElementCollector3.Cast<FamilyInstance>().ToList();
-
-                //FilteredElementCollector filteredElementCollector3 = new FilteredElementCollector(doc);
-                ////filteredElementCollector3.OfClass(typeof(AnnotationSymbol));
-                //filteredElementCollector3.OfCategory(BuiltInCategory.OST_GenericAnnotation);
-                //var annotationSymbols = filteredElementCollector3.Cast<AnnotationSymbol>().ToList<AnnotationSymbol>();
-
                 IEnumerable<ElementType> flagokTypes = new FilteredElementCollector(doc)
                 .WhereElementIsElementType()
                 .Cast<ElementType>()
                 .Where(x => x.FamilyName.Contains("Флажок"));
 
-                //List<ElementType> annotationFlag = new List<ElementType>();
-
-                //foreach (var item in dimTypes)
-                //{
-                //    if(item != null)
-                //    {
-                //        try
-                //        {
-                //            string adsk_naimenovanie = item.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString();
-
-                //            if (adsk_naimenovanie == "Флажок")
-                //            {
-                //                annotationFlag.Add(item);
-                //            }
-                //        }
-
-                //        catch
-                //        {
-                //            continue;
-                //        }
-
-
-                //    }
-
-                //}
+                
 
                 var families = new FilteredElementCollector(doc).OfClass(typeof(Family)).ToList();
                 foreach (Family family in families)
@@ -166,10 +127,16 @@ namespace BIMv2
                         string sostav = n.Description;
 
 
+
+
                         if (nameFlagok == nameType)
                         {
                             //число строк
-                            
+
+                            int counutLine = n.countLine();
+
+                            //TaskDialog.Show("Сделано", $"{c} - строк ");
+
                             int count = sostav.Where(x => "\n".IndexOf(x) != -1).Count();
 
                             if(count == 0)
@@ -232,11 +199,35 @@ namespace BIMv2
         public string Name { get; set; }
         public string Description { get; set; }
 
-        public info(string Name, string DesDescription)
+        public int countLine ()
+        {
+            string[] mass = Description.Split('\n');
+
+            return mass.Length;
+        }
+
+        public int maxLenghtLine(string Descrtiption)
+        {
+
+            int count = 0;
+
+            //for (int i = 0; i < mass.Length; i++)
+            //{
+
+            //}
+
+
+            return count;
+        }
+
+        public info(string Name, string Description)
         {
             this.Name= Name;
-            this.Description= DesDescription;   
+            this.Description= Description;   
         }
+
+
+
 
     }
 
