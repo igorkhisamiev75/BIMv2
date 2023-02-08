@@ -139,18 +139,13 @@ namespace BIMv2
 
                             double maxCountLine = n.maxLenghtLine();
 
-                            double maxDoubble = maxCountLine / 132;
-
-                            //TaskDialog.Show("Сделано", $"{maxCountLine} - число строк ");
-
-                            //int count = sostav.Where(x => "\n".IndexOf(x) != -1).Count();
-
-                            var gg=n.massLines;
-
+                            double maxDoubble = maxCountLine / 190;
 
                             type.LookupParameter("Число строк").Set(counutLine);
 
                             type.LookupParameter("Ширина").Set(maxDoubble);
+
+                            //проставляем текст
 
                             for(int i = 1; i <= counutLine; i++)
                             {
@@ -170,7 +165,27 @@ namespace BIMv2
 
                             }
 
-                            
+                            //проставляем толщины
+
+                            for (int i = 1; i <= counutLine; i++)
+                            {
+                                string nameParam = "";
+
+                                if (counutLine <= 9)
+                                {
+                                    nameParam = "0" + i + "_Толщина";
+                                }
+
+                                if (counutLine > 9)
+                                {
+                                    nameParam = i + "_Толщина";
+                                }
+
+                                type.LookupParameter(nameParam).Set(n.thinkness[i - 1]);
+
+                            }
+
+
                         }
                         else
                         {
@@ -180,7 +195,7 @@ namespace BIMv2
                                 {
 
                                     FamilySymbol newFamSym = neededSymbol.Duplicate(n.Name) as FamilySymbol;
-                                    //t.Commit();
+                                   
 
                                     continue;
 
@@ -226,6 +241,18 @@ namespace BIMv2
             set { }
         
         }
+
+        public List<string> thinkness
+        {
+
+            get { return Thinkness(); }
+
+            set { }
+
+        }
+
+
+
 
         public int countLine () //сколько слоев
         {
@@ -291,6 +318,41 @@ namespace BIMv2
             }
 
             
+
+            return newString;
+        }
+
+        public List<string> Thinkness()
+        {
+            List<string> newString = new List<string>();
+
+            List<string> mass = Description.Split('\n').ToList(); //разделение описания на отдельные строки
+
+            foreach (string item in mass) //заходим в строку
+            {
+
+                string[] words = item.Split(' '); //строка разбита на слова
+
+                int n = words.Length; //количество слов
+
+                string newStr = "";
+
+                if (words[n - 1] == "мм\r" || words[n - 1] == "мм") //если в строке есть мм то удаляем 3 слова - 350 мм
+                {
+
+                        newStr = words[n-2]+"мм";
+                    
+                }
+
+                else
+                {
+                    newStr = "\n";
+
+                }
+
+                newString.Add(newStr);
+
+            }
 
             return newString;
         }
