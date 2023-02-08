@@ -20,17 +20,15 @@ namespace BIMv2
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             Document doc = commandData.Application.ActiveUIDocument.Document;
-            //Application app = commandData.Application;
-
+            UIApplication uiApp = commandData.Application;
 
             using (var t = new Transaction(doc))
             {
                 t.Start("Создаем флажки");
 
+
                 List<info> listNameAndDescription = new List<info>();
                 FamilySymbol neededSymbol = null;
-
-               
 
                 //get all type floors
 
@@ -82,10 +80,79 @@ namespace BIMv2
                 }
 
 
+                //находим пироги в линкованных
+                FilteredElementCollector collector = new FilteredElementCollector(doc);
+
+                IList<Element> elems = collector.OfCategory(BuiltInCategory.OST_RvtLinks)
+                    .OfClass(typeof(RevitLinkType)).ToElements();
+
+                foreach (Element e in elems)
+
+                {
+                    RevitLinkType linkType = e as RevitLinkType;
+
+                    foreach (Document linkedDoc in uiApp.Application.Documents)
+
+                    {
+
+
+                        //get all type floors
+
+                        FilteredElementCollector filteredElementCollector3 = new FilteredElementCollector(linkedDoc);
+                        filteredElementCollector3.OfClass(typeof(FloorType));
+                        List<FloorType> floorTypeCollection3 = filteredElementCollector3.Cast<FloorType>().ToList();
+
+                        foreach (var floorType in floorTypeCollection3)
+                        {
+                            try
+                            {
+                                var sostav = floorType.get_Parameter(new Guid("59c583bf-3ce9-41f1-9f7b-7c0fbe14d11d")).AsString();
+                                if (sostav != null)
+                                {
+                                    listNameAndDescription.Add(new info(floorType.Name, sostav));
+                                }
+                            }
+
+                            catch
+                            {
+                                continue;
+                            }
+
+                        }
+
+                        //get all type roofs 
+
+                        FilteredElementCollector filteredElementCollector4 = new FilteredElementCollector(linkedDoc);
+                        filteredElementCollector4.OfClass(typeof(RoofType));
+                        List<RoofType> roofTypeCollection4 = filteredElementCollector4.Cast<RoofType>().ToList();
+
+                        foreach (var roofType in roofTypeCollection4)
+                        {
+                            try
+                            {
+                                var sostav = roofType.get_Parameter(new Guid("59c583bf-3ce9-41f1-9f7b-7c0fbe14d11d")).AsString();
+                                if (sostav != null)
+                                {
+                                    listNameAndDescription.Add(new info(roofType.Name, sostav));
+                                }
+                            }
+
+                            catch
+                            {
+                                continue;
+                            }
+                        }
+
+
+                    }
+
+                }
+
+                //семейство флажка
                 IEnumerable<ElementType> flagokTypes = new FilteredElementCollector(doc)
-                .WhereElementIsElementType()
-                .Cast<ElementType>()
-                .Where(x => x.FamilyName.Contains("Флажок"));
+            .WhereElementIsElementType()
+            .Cast<ElementType>()
+            .Where(x => x.FamilyName.Contains("Флажок"));
 
 
 
@@ -224,9 +291,13 @@ namespace BIMv2
                 t.Commit();
 
             }
+
+            TaskDialog.Show("Сделано", "Флажки сделаны и обновлены");
+
             return Result.Succeeded;
 
         }
+
 
 
     }
@@ -370,6 +441,7 @@ namespace BIMv2
 
 
     }
+
 
 
 }
