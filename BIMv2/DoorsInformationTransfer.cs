@@ -32,12 +32,23 @@ namespace BIMv2
                 uiDoc = uiApp.ActiveUIDocument;
 
                 var allDoors = GetAllDoorElements(_doc);
+                var allMaterials= GetAllMaterials(_doc);
 
                 foreach (var door in allDoors)
                 {
-                    var str=door.LookupParameter("Материал_Полотно изнутри").AsValueString();
+                    string materСanvasInside = door.LookupParameter("Материал_Полотно изнутри").AsValueString(); //описание материала
 
-                    door.LookupParameter("Полотно изнутри").Set(str);
+                    string opisanie = "";
+
+                    foreach (var material in allMaterials)
+                    {
+                        if (material.Name == materСanvasInside)
+                        {
+                            opisanie = material.LookupParameter("Описание").AsString();
+                        }
+                    }
+
+                    door.LookupParameter("Полотно изнутри").Set(opisanie);
                 }
 
                 //откуда
@@ -58,6 +69,7 @@ namespace BIMv2
                 //Две створки Правая
                 //ADSK_Открывание
 
+                
 
                 TaskDialog.Show("Сделано!", $"посчитано для {allDoors.Count} дверей");
 
