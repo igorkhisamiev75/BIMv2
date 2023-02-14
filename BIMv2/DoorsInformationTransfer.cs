@@ -37,18 +37,10 @@ namespace BIMv2
                 foreach (var door in allDoors)
                 {
                     string materСanvasInside = door.LookupParameter("Материал_Полотно изнутри").AsValueString(); //описание материала
+                    string materСanvasOutside = door.LookupParameter("Материал_Полотно фасад").AsValueString();
 
-                    string opisanie = "";
-
-                    foreach (var material in allMaterials)
-                    {
-                        if (material.Name == materСanvasInside)
-                        {
-                            opisanie = material.LookupParameter("Описание").AsString();
-                        }
-                    }
-
-                    door.LookupParameter("Полотно изнутри").Set(opisanie);
+                    door.LookupParameter("Полотно изнутри").Set(GetDescriptionInMaterial(materСanvasInside));
+                    door.LookupParameter("Полотно фасад").Set(GetDescriptionInMaterial(materСanvasOutside));
                 }
 
                 //откуда
@@ -80,6 +72,22 @@ namespace BIMv2
 
 
             return Result.Succeeded;
+        }
+
+        public string GetDescriptionInMaterial(string nameMaterial)
+        {
+            var allMaterials = GetAllMaterials(_doc);
+            string opisanie = "";
+
+            foreach (var material in allMaterials)
+            {
+                if (material.Name == nameMaterial)
+                {
+                    opisanie = material.LookupParameter("Описание").AsString();
+                }
+            }
+
+            return opisanie;
         }
 
         public IList<Element> GetAllDoorElements(Document document)
