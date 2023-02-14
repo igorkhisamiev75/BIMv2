@@ -38,22 +38,19 @@ namespace BIMv2
                 {
                     string materСanvasInside = door.LookupParameter("Материал_Полотно изнутри").AsValueString(); //описание материала
                     string materСanvasOutside = door.LookupParameter("Материал_Полотно фасад").AsValueString();
+                    string nalInside = door.LookupParameter("Материал_НаличникВнутренний").AsValueString();
+                    string nalOutside = door.LookupParameter("Материал_НаличникНаружный").AsValueString();
 
                     door.LookupParameter("Полотно изнутри").Set(GetDescriptionInMaterial(materСanvasInside));
                     door.LookupParameter("Полотно фасад").Set(GetDescriptionInMaterial(materСanvasOutside));
+                    door.LookupParameter("Наличник изнутри").Set(GetDescriptionInMaterial(nalInside));
+                    door.LookupParameter("Наличник фасад").Set(GetDescriptionInMaterial(nalOutside));
+
+
                 }
 
-                //откуда
-                //Материал_Полотно изнутри
-                //Материал_Полотно фасад
-                //Материал_НаличникВнутренний
-                //Материал_НаличникНаружный
-
-                //куда
-                //Наличник изнутри
-                //Наличник фасад
-                //Полотно изнутри
-                //Полотно фасад
+               
+               
 
                 //
                 //Тип полотна
