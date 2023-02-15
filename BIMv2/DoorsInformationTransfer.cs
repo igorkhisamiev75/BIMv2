@@ -36,6 +36,7 @@ namespace BIMv2
 
                 foreach (var door in allDoors)
                 {
+
                     string materСanvasInside = door.LookupParameter("Материал_Полотно изнутри").AsValueString(); //описание материала
                     string materСanvasOutside = door.LookupParameter("Материал_Полотно фасад").AsValueString();
                     string nalInside = door.LookupParameter("Материал_НаличникВнутренний").AsValueString();
