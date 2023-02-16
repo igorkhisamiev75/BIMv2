@@ -34,7 +34,7 @@ namespace BIMv2
                 var allDoors = GetAllDoorElements(_doc);
                 var allMaterials= GetAllMaterials(_doc);
 
-                foreach (var door in allDoors)
+                foreach (Element door in allDoors)
                 {
 
                     string materСanvasInside = door.LookupParameter("Материал_Полотно изнутри").AsValueString(); //описание материала
@@ -47,6 +47,44 @@ namespace BIMv2
                     door.LookupParameter("Наличник изнутри").Set(GetDescriptionInMaterial(nalInside));
                     door.LookupParameter("Наличник фасад").Set(GetDescriptionInMaterial(nalOutside));
 
+                    ElementType typeDoor = _doc.GetElement(door.GetTypeId()) as ElementType;
+                    var n1 = typeDoor.LookupParameter("1.1").AsInteger();
+                    var n2 = typeDoor.LookupParameter("1.2").AsInteger();
+                    var n3 = typeDoor.LookupParameter("2.1").AsInteger();
+                    var n4 = typeDoor.LookupParameter("2.2").AsInteger();
+                    var n5 = typeDoor.LookupParameter("Равные полотна").AsInteger();
+
+                    string adsk_otkr = "";
+
+                    if(n1 == 1)
+                    {
+                        adsk_otkr = "Правая";
+                    }
+
+                    if (n2 == 1)
+                    {
+                        adsk_otkr = "Левая";
+                    }
+
+                    if (n3 == 1 && n5!=1)
+                    {
+                        adsk_otkr = "Правая, две стврки";
+                    }
+
+                    if (n4 == 1 && n5 != 1)
+                    {
+                        adsk_otkr = "Левая, две стврки";
+                    }
+
+                    if (n5 == 1)
+                    {
+                        adsk_otkr = "Равные полотна";
+                    }
+
+                    door.LookupParameter("ADSK_Открывание").Set(adsk_otkr);
+
+                    adsk_otkr = "";
+
                     string tipeDoor = door.LookupParameter("Тип полотна").AsValueString();
 
 
@@ -58,8 +96,6 @@ namespace BIMv2
                 //
                 //Тип полотна
 
-                //Две створки Правая
-                //ADSK_Открывание
 
                 
 
