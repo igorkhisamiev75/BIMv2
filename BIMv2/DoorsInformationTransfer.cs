@@ -47,6 +47,8 @@ namespace BIMv2
                     door.LookupParameter("Наличник изнутри").Set(GetDescriptionInMaterial(nalInside));
                     door.LookupParameter("Наличник фасад").Set(GetDescriptionInMaterial(nalOutside));
 
+                    string tipeDoor = door.LookupParameter("Тип полотна").AsValueString();
+
 
                 }
 
