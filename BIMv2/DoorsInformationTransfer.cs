@@ -54,6 +54,9 @@ namespace BIMv2
                     var n4 = typeDoor.LookupParameter("2.2").AsInteger();
                     var n5 = typeDoor.LookupParameter("Равные полотна").AsInteger();
 
+                    var n5 = typeDoor.LookupParameter("Равные полотна").AsInteger();
+
+
                     string adsk_otkr = "";
 
                     if(n1 == 1)
@@ -85,22 +88,14 @@ namespace BIMv2
 
                     adsk_otkr = "";
 
-                    string tipeDoor = door.LookupParameter("Тип полотна").AsValueString();
+                    //тип  полотна
+
+
 
 
                 }
 
-               
-               
-
-                //
-                //Тип полотна
-
-
-                
-
                 TaskDialog.Show("Сделано!", $"посчитано для {allDoors.Count} дверей");
-
 
                 t.Commit();
 

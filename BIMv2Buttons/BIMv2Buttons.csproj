@@ -185,6 +185,7 @@
     <Compile Include="DelUnUesdFilters\ViewWPF.xaml.cs">
       <DependentUpon>ViewWPF.xaml</DependentUpon>
     </Compile>
+    <Compile Include="DoorsInformationTransfer\DoorsInformationTransfer.cs" />
     <Compile Include="GroupByMarkEqupmentFurnitureAndWriteToComment\GroupByMarkEqupmentFurnitureAndWriteToComment.cs" />
     <Compile Include="GroupTypeCeilingAndWriteToComment\GroupTypeCeilingAndWriteToComment.cs" />
     <Compile Include="GroupTypeCeilingByNote\GroupTypeCeilingByNote.cs" />
@@ -298,6 +299,9 @@
   <ItemGroup />
   <ItemGroup>
     <Resource Include="Resources\icons8-flag-32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\icons8-door-32.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

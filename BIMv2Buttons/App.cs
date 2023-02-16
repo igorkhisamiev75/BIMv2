@@ -95,6 +95,19 @@ namespace BIMv2Buttons
             BitmapImage pb1ImageB3_1 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-flag-32.png"));
             pb1B3_1.LargeImage = pb1ImageB3_1;
 
+            //попробуем создать еще одну кнопку
+            ribbonPanelb2.AddSeparator(); //разделитель между кнопками
+
+            // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData b1DataB3_2 = new PushButtonData("cmdCDoorsInformationTransfer", "Заполнить"
+                + Environment.NewLine + "двери", thisAssemblyPath, "BIMv2.DoorsInformationTransfer");
+
+            PushButton pb1B3_2 = ribbonPanelb2.AddItem(b1DataB3_2) as PushButton;
+            pb1B3_2.ToolTip = "Заполняем дверь";
+
+            BitmapImage pb1ImageB3_2 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-door-32.png"));
+            pb1B3_2.LargeImage = pb1ImageB3_2;
+
 
             //кнопки 2BIM
 
