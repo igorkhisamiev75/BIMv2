@@ -41,11 +41,33 @@ namespace BIMv2
                     string materСanvasOutside = door.LookupParameter("Материал_Полотно фасад").AsValueString();
                     string nalInside = door.LookupParameter("Материал_НаличникВнутренний").AsValueString();
                     string nalOutside = door.LookupParameter("Материал_НаличникНаружный").AsValueString();
+                    var nVnutri = door.LookupParameter("Наличник внутри").AsInteger();
+                    var nSnarugi = door.LookupParameter("Наличник снаружи").AsInteger();
+
 
                     door.LookupParameter("Полотно изнутри").Set(GetDescriptionInMaterial(materСanvasInside));
                     door.LookupParameter("Полотно фасад").Set(GetDescriptionInMaterial(materСanvasOutside));
-                    door.LookupParameter("Наличник изнутри").Set(GetDescriptionInMaterial(nalInside));
-                    door.LookupParameter("Наличник фасад").Set(GetDescriptionInMaterial(nalOutside));
+                    if (nVnutri == 1)
+                    {
+                        door.LookupParameter("Наличник изнутри").Set(GetDescriptionInMaterial(nalInside));
+                    }
+
+                    if (nVnutri == 0)
+                    {
+                        door.LookupParameter("Наличник изнутри").Set("нет");
+                    }
+
+                    if (nSnarugi == 1)
+                    {
+                        door.LookupParameter("Наличник фасад").Set(GetDescriptionInMaterial(nalOutside));
+                    }
+
+                    if (nSnarugi == 0)
+                    {
+                        door.LookupParameter("Наличник фасад").Set("нет");
+                    }
+
+                    
 
                     ElementType typeDoor = _doc.GetElement(door.GetTypeId()) as ElementType;
                     var n1 = typeDoor.LookupParameter("1.1").AsInteger();
