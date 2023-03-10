@@ -26,7 +26,26 @@ namespace BIMv2
                 t.Start("Отделка балок");
 
                 //собрать все балки
+
+                var allBeamsElements=GetAllBeamsElements(doc);
+                Options options = new Options();
+                CurveArray curves = new CurveArray();
+                
                 //получить у от них  нижние линии
+
+                foreach (var beam in allBeamsElements)
+                {
+
+                    GeometryElement geomElem = beam.get_Geometry(options);
+
+                    foreach(var g in geomElem)
+                    {
+                        Solid solids = g as Solid;
+                    }
+
+                }
+
+
                 //получить высоту
                 //создать отделочные стены
                 //записать номера помещений в стены
@@ -449,6 +468,17 @@ namespace BIMv2
                 .WhereElementIsNotElementType();
 
             IList<Element> allFloors = floor_collector.ToElements();
+            return allFloors;
+        }
+
+        public IList<Element> GetAllBeamsElements(Document document)
+        {
+            // 
+            var _collector = new FilteredElementCollector(document)
+                .OfCategory(BuiltInCategory.OST_StructuralFraming)
+                .WhereElementIsNotElementType();
+
+            IList<Element> allFloors = _collector.ToElements();
             return allFloors;
         }
 
