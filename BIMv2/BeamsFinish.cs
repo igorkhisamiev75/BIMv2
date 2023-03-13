@@ -30,7 +30,9 @@ namespace BIMv2
                 var allBeamsElements=GetAllBeamsElements(doc);
                 Options options = new Options();
                 CurveArray curves = new CurveArray();
+
                 
+
                 //получить у от них  нижние линии
 
                 foreach (var beam in allBeamsElements)
@@ -40,7 +42,36 @@ namespace BIMv2
 
                     foreach(var g in geomElem)
                     {
-                        Solid solids = g as Solid;
+                        Solid solid = g as Solid;
+
+                        Curve curve = g as Curve;
+
+                        GeometryInstance geomInst = g as GeometryInstance;
+
+                        GeometryElement transformedGeomElem = geomInst.GetInstanceGeometry(geomInst.Transform);
+
+                        foreach (GeometryObject g2 in transformedGeomElem)
+                        {
+                            Solid solid2 = g2 as Solid;
+
+                            if (solid2.Id != -1)
+                            {
+                                var ed = solid2.Edges;
+
+                                foreach (var ed2 in ed)
+                                {
+                                    var c = ed2 as Curve;
+                                    curves.Append(c);
+                                }
+
+                                TaskDialog.Show("NEW", $"{curves.Size.ToString()}");
+                            }
+
+                            
+                        }
+
+                      
+
                     }
 
                 }

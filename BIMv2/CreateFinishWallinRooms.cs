@@ -95,7 +95,6 @@ namespace BIMv2
 
             //GetRoomInProject(out rooms);
 
-
             CurveArray roomsCurves = new CurveArray();
             Room room = elem;
 
