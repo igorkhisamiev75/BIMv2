@@ -21,6 +21,9 @@ namespace BIMv2
         {
             Document doc = commandData.Application.ActiveUIDocument.Document;
 
+            var uiApp = commandData.Application;
+            var uiDoc = uiApp.ActiveUIDocument;
+
             using (var t = new Transaction(doc))
             {
                 t.Start("Отделка балок");
@@ -31,7 +34,7 @@ namespace BIMv2
                 Options options = new Options();
                 CurveArray curves = new CurveArray();
 
-                
+                infoAboutBeams infoAboutBeams = new infoAboutBeams();
 
                 //получить у от них  нижние линии
 
@@ -40,11 +43,19 @@ namespace BIMv2
 
                     GeometryElement geomElem = beam.get_Geometry(options);
 
+                    var levelId=beam.LevelId;
+
                     var levelName = beam.get_Parameter(BuiltInParameter.INSTANCE_REFERENCE_LEVEL_PARAM).AsValueString();
 
-                    
+                    var level=FindlevelByName(levelName, doc);
 
-                    foreach(var g in geomElem)
+                    //infoAboutBeams.NameLevel.Add(level);
+
+                    double hightForWall = beam.get_Parameter(BuiltInParameter.STRUCTURAL_ELEVATION_AT_TOP).AsDouble() -
+                        beam.get_Parameter(BuiltInParameter.STRUCTURAL_ELEVATION_AT_BOTTOM).AsDouble();
+
+
+                    foreach (var g in geomElem)
                     {
                         Solid solid = g as Solid;
 
@@ -69,15 +80,49 @@ namespace BIMv2
                                     curves.Append(c);
                                 }
 
-                                TaskDialog.Show("NEW", $"{curves.Size.ToString()}");
+                                //TaskDialog.Show("NEW", $"{curves.Size.ToString()}");
                             }
 
                             
                         }
 
-                      
-
                     }
+
+                    foreach (Curve g in curves)
+                    {
+                        if (g != null) 
+                        
+                        if (!g.IsCyclic)
+                        {
+                            try {
+                                var wall = Wall.Create(doc, g, levelId, false);
+                                //wall.LookupParameter("Room Bounding").Set(0);
+                                wall.get_Parameter(BuiltInParameter.WALL_ATTR_ROOM_BOUNDING).Set(0);
+                                wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(hightForWall);
+                                wall.get_Parameter(BuiltInParameter.ELEM_FAMILY_AND_TYPE_PARAM).Set(320638);
+
+                                doc.Regenerate();
+
+                                IList<Reference> sideFaces = HostObjectUtils.GetSideFaces(wall, ShellLayerType.Interior);
+                                // MOVE WALL
+                                Face face = uiDoc.Document.GetElement(sideFaces[0])
+                                    .GetGeometryObjectFromReference(sideFaces[0]) as Face;
+                                PlanarFace pf = face as PlanarFace;
+                                XYZ normal_reverted = pf.FaceNormal;
+                                wall.Location.Move(-normal_reverted * (wall.WallType.Width / 2.0));
+
+                                
+
+                            }
+                            catch {
+                            
+                            continue;
+                                    }
+                            
+                        }
+                    }
+
+
 
                 }
 
@@ -97,9 +142,11 @@ namespace BIMv2
 
         class infoAboutBeams
         {
-            public Level NameLevel { get; set; }
+            public List<Level> NameLevel { get; set; }
 
             public List<CurveArray> Curvs { get; set; }
+
+            //public 
 
         }
 
