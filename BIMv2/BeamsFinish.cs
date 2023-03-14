@@ -58,9 +58,11 @@ namespace BIMv2
                         {
                             foreach (Edge curve in solid.Edges)
                             {
-                                if (curve.ApproximateLength > 2)
+                                if (curve.ApproximateLength > 3.3)
                                 {
-                                    curve.Tessellate().FirstOrDefault();
+                                    curve.Tessellate();
+
+
                                     curves.Append(curve.AsCurve());
                                 }
                                 
@@ -69,13 +71,15 @@ namespace BIMv2
                         }
                     }
 
+                    //for (int i = 0; i < 4; i++)
+                    //{
+                    //    if (i == 2 || i == 3)
+                    //        curves.set_Item(i, null);
+                    //}
 
 
-                    TaskDialog.Show("NEW", $"{curvesForWall.Size}");
 
-
-
-
+                    //TaskDialog.Show("NEW", $"{curvesForWall.Size}");
 
                     var levelName = beam.get_Parameter(BuiltInParameter.INSTANCE_REFERENCE_LEVEL_PARAM).AsValueString();
 
@@ -83,46 +87,12 @@ namespace BIMv2
 
                     var levelId = level.Id;
 
-                    double offset = beam.get_Parameter(BuiltInParameter.STRUCTURAL_BEAM_END0_ELEVATION).AsDouble();
-
-
                     //высота стены
                     double hightForWall = beam.get_Parameter(BuiltInParameter.STRUCTURAL_ELEVATION_AT_TOP).AsDouble() -
                         beam.get_Parameter(BuiltInParameter.STRUCTURAL_ELEVATION_AT_BOTTOM).AsDouble();
 
+                    double offset = beam.get_Parameter(BuiltInParameter.STRUCTURAL_BEAM_END0_ELEVATION).AsDouble()- hightForWall;
 
-                    //foreach (var g in geomElem)
-                    //{
-                    //    Solid solid = g as Solid;
-
-                    //    Curve curve = g as Curve;
-
-                    //    GeometryInstance geomInst = g as GeometryInstance;
-
-                    //    GeometryElement transformedGeomElem = geomInst.GetInstanceGeometry(geomInst.Transform);
-
-                    //    foreach (GeometryObject g2 in transformedGeomElem)
-                    //    {
-                    //        //Solid solid2 = g2 as Solid;
-
-                    //        if (solid.Id != null)
-                    //        {
-                    //            var ed = solid.Edges;
-
-                    //            foreach (var ed2 in ed)
-                    //            {
-                    //                var c = ed2 as Curve;
-
-                    //                curves.Append(c);
-                    //            }
-
-                    //            //TaskDialog.Show("NEW", $"{curves.Size.ToString()}");
-                    //        }
-
-
-                    //    }
-
-                    //}
 
                     foreach (Curve g in curves)
                     {
@@ -135,14 +105,14 @@ namespace BIMv2
                                     var wall = Wall.Create(doc, g, levelId, false);
                                     //wall.LookupParameter("Room Bounding").Set(0);
                                     wall.get_Parameter(BuiltInParameter.WALL_ATTR_ROOM_BOUNDING).Set(0);
-                                    wall.get_Parameter(BuiltInParameter.WALL_ATTR_ROOM_BOUNDING).Set(offset);
+                                    wall.get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(offset);
                                     wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(hightForWall);
-                                    wall.get_Parameter(BuiltInParameter.ELEM_FAMILY_AND_TYPE_PARAM).Set(320638);
+                                    wall.get_Parameter(BuiltInParameter.ELEM_FAMILY_AND_TYPE_PARAM).Set(412992); //412992 6065806
 
                                     doc.Regenerate();
 
                                     //IList<Reference> sideFaces = HostObjectUtils.GetSideFaces(wall, ShellLayerType.Interior);
-                                    // MOVE WALL
+                                    ////MOVE WALL
                                     //Face face = uiDoc.Document.GetElement(sideFaces[0])
                                     //    .GetGeometryObjectFromReference(sideFaces[0]) as Face;
                                     //PlanarFace pf = face as PlanarFace;
