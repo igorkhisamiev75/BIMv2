@@ -32,6 +32,8 @@ namespace BIMv2
 
                 var allBeamsElements=GetAllBeamsElements(doc);
                 Options options = new Options();
+                options.ComputeReferences = true;
+                options.View = doc.ActiveView;
                 CurveArray curves = new CurveArray();
 
                 infoAboutBeams infoAboutBeams = new infoAboutBeams();
@@ -40,88 +42,123 @@ namespace BIMv2
 
                 foreach (var beam in allBeamsElements)
                 {
+                    GeometryElement geometryElement = beam.get_Geometry(options);
 
-                    GeometryElement geomElem = beam.get_Geometry(options);
+                    CurveArray curves2 = new CurveArray();
+                    List<Solid> solids2 = new List<Solid>();
 
-                    var levelId=beam.LevelId;
+                    //Find all solids and insert them into solid array
+                    AddCurvesAndSolids(geometryElement, ref curves2, ref solids2);
+
+                    foreach (Solid solid in solids2)
+                    {
+                        if (solid.SurfaceArea > 0)
+                        {
+                            foreach (Edge curve in solid.Edges)
+                            {
+                                if (curve.ApproximateLength > 2)
+                                {
+                                    curves.Append(curve.AsCurve());
+                                }
+                                
+                            }
+                            
+                        }
+                    }
+
+
+                    //TaskDialog.Show("NEW", $"{curves.Size}");
+
+
+
+                    
 
                     var levelName = beam.get_Parameter(BuiltInParameter.INSTANCE_REFERENCE_LEVEL_PARAM).AsValueString();
 
                     var level=FindlevelByName(levelName, doc);
 
-                    //infoAboutBeams.NameLevel.Add(level);
+                    var levelId = level.Id;
+
+
+
+
 
                     double hightForWall = beam.get_Parameter(BuiltInParameter.STRUCTURAL_ELEVATION_AT_TOP).AsDouble() -
                         beam.get_Parameter(BuiltInParameter.STRUCTURAL_ELEVATION_AT_BOTTOM).AsDouble();
 
 
-                    foreach (var g in geomElem)
-                    {
-                        Solid solid = g as Solid;
+                    //foreach (var g in geomElem)
+                    //{
+                    //    Solid solid = g as Solid;
 
-                        Curve curve = g as Curve;
+                    //    Curve curve = g as Curve;
 
-                        GeometryInstance geomInst = g as GeometryInstance;
+                    //    GeometryInstance geomInst = g as GeometryInstance;
 
-                        GeometryElement transformedGeomElem = geomInst.GetInstanceGeometry(geomInst.Transform);
+                    //    GeometryElement transformedGeomElem = geomInst.GetInstanceGeometry(geomInst.Transform);
 
-                        foreach (GeometryObject g2 in transformedGeomElem)
-                        {
-                            Solid solid2 = g2 as Solid;
+                    //    foreach (GeometryObject g2 in transformedGeomElem)
+                    //    {
+                    //        //Solid solid2 = g2 as Solid;
 
-                            if (solid2.Id != -1)
-                            {
-                                var ed = solid2.Edges;
+                    //        if (solid.Id != null)
+                    //        {
+                    //            var ed = solid.Edges;
 
-                                foreach (var ed2 in ed)
-                                {
-                                    var c = ed2 as Curve;
+                    //            foreach (var ed2 in ed)
+                    //            {
+                    //                var c = ed2 as Curve;
 
-                                    curves.Append(c);
-                                }
+                    //                curves.Append(c);
+                    //            }
 
-                                //TaskDialog.Show("NEW", $"{curves.Size.ToString()}");
-                            }
+                    //            //TaskDialog.Show("NEW", $"{curves.Size.ToString()}");
+                    //        }
 
-                            
-                        }
 
-                    }
+                    //    }
+
+                    //}
 
                     foreach (Curve g in curves)
                     {
-                        if (g != null) 
-                        
-                        if (!g.IsCyclic)
-                        {
-                            try {
-                                var wall = Wall.Create(doc, g, levelId, false);
-                                //wall.LookupParameter("Room Bounding").Set(0);
-                                wall.get_Parameter(BuiltInParameter.WALL_ATTR_ROOM_BOUNDING).Set(0);
-                                wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(hightForWall);
-                                wall.get_Parameter(BuiltInParameter.ELEM_FAMILY_AND_TYPE_PARAM).Set(320638);
+                        if (g != null)
 
-                                doc.Regenerate();
+                            if (!g.IsCyclic)
+                            {
+                                try
+                                {
+                                    var wall = Wall.Create(doc, g, levelId, false);
+                                    //wall.LookupParameter("Room Bounding").Set(0);
+                                    wall.get_Parameter(BuiltInParameter.WALL_ATTR_ROOM_BOUNDING).Set(0);
+                                    wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(hightForWall);
+                                    wall.get_Parameter(BuiltInParameter.ELEM_FAMILY_AND_TYPE_PARAM).Set(320638);
 
-                                IList<Reference> sideFaces = HostObjectUtils.GetSideFaces(wall, ShellLayerType.Interior);
-                                // MOVE WALL
-                                Face face = uiDoc.Document.GetElement(sideFaces[0])
-                                    .GetGeometryObjectFromReference(sideFaces[0]) as Face;
-                                PlanarFace pf = face as PlanarFace;
-                                XYZ normal_reverted = pf.FaceNormal;
-                                wall.Location.Move(-normal_reverted * (wall.WallType.Width / 2.0));
+                                    doc.Regenerate();
 
-                                
+                                    IList<Reference> sideFaces = HostObjectUtils.GetSideFaces(wall, ShellLayerType.Interior);
+                                    // MOVE WALL
+                                    Face face = uiDoc.Document.GetElement(sideFaces[0])
+                                        .GetGeometryObjectFromReference(sideFaces[0]) as Face;
+                                    PlanarFace pf = face as PlanarFace;
+                                    XYZ normal_reverted = pf.FaceNormal;
+                                    wall.Location.Move(-normal_reverted * (wall.WallType.Width / 2.0));
+
+
+
+                                }
+                                catch
+                                {
+
+                                    continue;
+                                }
 
                             }
-                            catch {
-                            
-                            continue;
-                                    }
-                            
-                        }
+
+
                     }
 
+                    curves.Clear();
 
 
                 }
@@ -218,6 +255,37 @@ namespace BIMv2
             }
            return findLevel;
 
+        }
+
+        
+        public void AddCurvesAndSolids(GeometryElement geomElem,
+                                ref CurveArray curves2,
+                                ref List<Solid> solids2)
+        {
+            foreach (GeometryObject geomObj in geomElem)
+            {
+                Curve curve2 = geomObj as Curve;
+                if (null != curve2)
+                {
+                    curves2.Append(curve2);
+                    continue;
+                }
+                Solid solid = geomObj as Solid;
+                if (null != solid)
+                {
+                    solids2.Add(solid);
+                    continue;
+                }
+
+                //If this GeometryObject is Instance, call AddCurvesAndSolids
+                GeometryInstance geomInst = geomObj as GeometryInstance;
+                if (null != geomInst)
+                {
+                    GeometryElement transformedGeomElem
+                      = geomInst.GetInstanceGeometry(geomInst.Transform);
+                    AddCurvesAndSolids(transformedGeomElem, ref curves2, ref solids2);
+                }
+            }
         }
 
     }
