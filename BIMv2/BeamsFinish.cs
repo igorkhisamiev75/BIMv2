@@ -36,6 +36,8 @@ namespace BIMv2
                 options.View = doc.ActiveView;
                 CurveArray curves = new CurveArray();
 
+                CurveArray curvesForWall = new CurveArray();
+
                 infoAboutBeams infoAboutBeams = new infoAboutBeams();
 
                 //получить у от них  нижние линии
@@ -52,12 +54,13 @@ namespace BIMv2
 
                     foreach (Solid solid in solids2)
                     {
-                        if (solid.SurfaceArea > 0)
+                        if (solid.SurfaceArea > 0 && solid.Id!=-1)
                         {
                             foreach (Edge curve in solid.Edges)
                             {
                                 if (curve.ApproximateLength > 2)
                                 {
+                                    curve.Tessellate().FirstOrDefault();
                                     curves.Append(curve.AsCurve());
                                 }
                                 
@@ -67,11 +70,12 @@ namespace BIMv2
                     }
 
 
-                    //TaskDialog.Show("NEW", $"{curves.Size}");
+
+                    TaskDialog.Show("NEW", $"{curvesForWall.Size}");
 
 
 
-                    
+
 
                     var levelName = beam.get_Parameter(BuiltInParameter.INSTANCE_REFERENCE_LEVEL_PARAM).AsValueString();
 
@@ -79,10 +83,10 @@ namespace BIMv2
 
                     var levelId = level.Id;
 
+                    double offset = beam.get_Parameter(BuiltInParameter.STRUCTURAL_BEAM_END0_ELEVATION).AsDouble();
 
 
-
-
+                    //высота стены
                     double hightForWall = beam.get_Parameter(BuiltInParameter.STRUCTURAL_ELEVATION_AT_TOP).AsDouble() -
                         beam.get_Parameter(BuiltInParameter.STRUCTURAL_ELEVATION_AT_BOTTOM).AsDouble();
 
@@ -131,18 +135,19 @@ namespace BIMv2
                                     var wall = Wall.Create(doc, g, levelId, false);
                                     //wall.LookupParameter("Room Bounding").Set(0);
                                     wall.get_Parameter(BuiltInParameter.WALL_ATTR_ROOM_BOUNDING).Set(0);
+                                    wall.get_Parameter(BuiltInParameter.WALL_ATTR_ROOM_BOUNDING).Set(offset);
                                     wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(hightForWall);
                                     wall.get_Parameter(BuiltInParameter.ELEM_FAMILY_AND_TYPE_PARAM).Set(320638);
 
                                     doc.Regenerate();
 
-                                    IList<Reference> sideFaces = HostObjectUtils.GetSideFaces(wall, ShellLayerType.Interior);
+                                    //IList<Reference> sideFaces = HostObjectUtils.GetSideFaces(wall, ShellLayerType.Interior);
                                     // MOVE WALL
-                                    Face face = uiDoc.Document.GetElement(sideFaces[0])
-                                        .GetGeometryObjectFromReference(sideFaces[0]) as Face;
-                                    PlanarFace pf = face as PlanarFace;
-                                    XYZ normal_reverted = pf.FaceNormal;
-                                    wall.Location.Move(-normal_reverted * (wall.WallType.Width / 2.0));
+                                    //Face face = uiDoc.Document.GetElement(sideFaces[0])
+                                    //    .GetGeometryObjectFromReference(sideFaces[0]) as Face;
+                                    //PlanarFace pf = face as PlanarFace;
+                                    //XYZ normal_reverted = pf.FaceNormal;
+                                    //wall.Location.Move(-normal_reverted * (wall.WallType.Width / 2.0));
 
 
 

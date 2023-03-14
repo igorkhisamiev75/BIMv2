@@ -564,7 +564,7 @@ namespace CreateFinishWallinRooms
 
                     foreach (BoundarySegment boundarySegment in segmentList)
                     {
-                        Curve c = boundarySegment.GetCurve();
+                        Curve c = boundarySegment.GetCurve();                     
                         roomsCurves.Append(c);
                     }
                 }
@@ -577,6 +577,7 @@ namespace CreateFinishWallinRooms
                 if (g == null) continue;
                 if (g.IsCyclic)
                 {
+                    Curve prog=g.
                     var wall = Wall.Create(_doc, g, levelId, false);
 
                     //set bounding граница помещения
