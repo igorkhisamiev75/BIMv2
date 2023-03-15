@@ -36,6 +36,9 @@ namespace BIMv2
                 options.View = doc.ActiveView;
                 CurveArray curves = new CurveArray();
 
+                 IList<Line> AllLine = new List<Line>();
+                IList<Line> AllLine2 = new List<Line>();
+
                 CurveArray curvesForWall = new CurveArray();
 
                 infoAboutBeams infoAboutBeams = new infoAboutBeams();
@@ -49,6 +52,8 @@ namespace BIMv2
                     CurveArray curves2 = new CurveArray();
                     List<Solid> solids2 = new List<Solid>();
 
+                    CurveArray curves3 = new CurveArray();
+
                     //Find all solids and insert them into solid array
                     AddCurvesAndSolids(geometryElement, ref curves2, ref solids2);
 
@@ -60,7 +65,7 @@ namespace BIMv2
                             {
                                 if (curve.ApproximateLength > 3.3)
                                 {
-                                    curve.Tessellate();
+                                    curve.AsCurve().Tessellate();
 
 
                                     curves.Append(curve.AsCurve());
@@ -71,15 +76,98 @@ namespace BIMv2
                         }
                     }
 
-                    //for (int i = 0; i < 4; i++)
+                    XYZ start = new XYZ(0, 0, 0);
+                    XYZ end = new XYZ(10, 10, 0);
+                    Line geomLine = Line.CreateBound(start, end);
+
+                    List<int> delNumber= new List<int>();
+
+
+                    foreach (Line curve in curves)
+                    {
+                        AllLine.Add(curve);
+                    }
+
+
+                    for (int j = 0; j < AllLine.Count; j++)
+                    {
+                       
+                            XYZ first = AllLine[j].Tessellate().First(); //получили первую
+                            XYZ second = AllLine[j].Tessellate().Last(); // вторую
+
+                            var x1 = Math.Abs(first.X); var y1 = Math.Abs(first.Y);
+                            var x2 = Math.Abs(second.X); var y2 = Math.Abs(second.Y);
+
+                            for (int i = 0; i < AllLine.Count; i++)
+                            {
+                            if (j != i && i>j)
+                            {
+                                var lin2 = AllLine[i];
+
+                                XYZ first2 = lin2.Tessellate().First(); //получили первую
+                                XYZ second2 = lin2.Tessellate().Last(); // вторую
+
+                                var x11 = Math.Abs(first2.X); var y11 = Math.Abs(first2.Y);
+                                var x22 = Math.Abs(second2.X); var y22 = Math.Abs(second2.Y);
+
+                                if (x1 == x22 && y1 == y22 && x2 == x11 && y2 == y11 ||
+                                    x1 == x11 && y1 == y11 && x2 == x22 && y2 == y22)
+                                {
+                                    delNumber.Add(i); //3 
+                                }
+                            }
+                                
+
+                            }
+                      
+                        
+                    }
+
+
+                   
+                   var nedDel = delNumber.Distinct();
+
+                  
+                    foreach(var i in nedDel)
+                    {
+                        if(i != null)
+                            try { AllLine.Remove(AllLine[i]); }
+                            catch { }
+                        
+                    }
+
+                    //TaskDialog.Show("N", $"{delNumber.Count}"); 
+
+
+                    //var gpou1 = AllLine.GroupBy(p => p.Direction.Z).ToList();
+
+                    //foreach (IGrouping<double, Line> gpou2 in gpou1)
                     //{
-                    //    if (i == 2 || i == 3)
-                    //        curves.set_Item(i, null);
+                    //    //foreach (Line line in gpou2)
+                    //    //{
+
+                    //    //}
+                    //    AllLine2.Add(gpou2.First());continue;
+                    //    //foreach (Line line in gpou2)
+                    //    //{
+                            
+                    //    //}
+                        
                     //}
 
+                    //AllLine.Distinct();
 
+                    foreach (Line line in AllLine)
+                    {
 
-                    //TaskDialog.Show("NEW", $"{curvesForWall.Size}");
+                        //XYZ start = line.Tessellate().First();
+                        //XYZ end = line.Tessellate().();
+                        //Line geomLine = Line.CreateBound(start, end);
+
+                        curves3.Append(line);
+                    }
+
+                    //TaskDialog.Show("NEW", $"{AllLine2.Count}");
 
                     var levelName = beam.get_Parameter(BuiltInParameter.INSTANCE_REFERENCE_LEVEL_PARAM).AsValueString();
 
@@ -94,7 +182,7 @@ namespace BIMv2
                     double offset = beam.get_Parameter(BuiltInParameter.STRUCTURAL_BEAM_END0_ELEVATION).AsDouble()- hightForWall;
 
 
-                    foreach (Curve g in curves)
+                    foreach (Curve g in curves3)
                     {
                         if (g != null)
 
@@ -132,8 +220,10 @@ namespace BIMv2
 
 
                     }
-
                     curves.Clear();
+                    curves3.Clear();
+                    AllLine.Clear();
+                    delNumber.Clear();
 
 
                 }
@@ -158,7 +248,7 @@ namespace BIMv2
 
             public List<CurveArray> Curvs { get; set; }
 
-            //public 
+            
 
         }
 
