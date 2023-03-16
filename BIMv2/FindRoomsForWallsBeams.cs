@@ -56,7 +56,17 @@ namespace BIMv2
                 {
                     var wall = (Wall)element;
 
+                    //var descriptionWallType = wall.LookupParameter("ADSK_Позиция").AsString();
+                    //var roomName2 = wall.LookupParameter("ADSK_Примечание").AsString();
+
                     var descriptionWallType = wall.LookupParameter("ADSK_Позиция").AsString();
+                    
+
+                    //if (descriptionWallType == "Балка" && roomName2==null)
+                    //{
+                    //    AllFinishWall.Add(wall);
+                    //}
+
 
                     if (descriptionWallType == "Балка")
                     {
@@ -86,8 +96,10 @@ namespace BIMv2
                 var pointPF1 = wallPoints[0];
                 var pointPF2 = wallPoints[1];
 
+                XYZ pointPF3 = new XYZ(0,0,5);
 
-                var pointPF = (pointPF1 + pointPF2) / 2;
+
+                var pointPF = (pointPF1 + pointPF2) / 2 - pointPF3;
 
 
                 var myRoom = FindRoom(_doc, pointPF);
@@ -133,10 +145,14 @@ namespace BIMv2
         }
         private static Room FindRoom(Document document, XYZ point)
         {
+            PhaseArray nn = document.Phases;
+
+            Phase g = nn.get_Item(0);
+
             return document
                 .Phases
                 .Cast<Phase>()
-                .Select(x => document.GetRoomAtPoint(point, x))
+                .Select(x => document.GetRoomAtPoint(point, g))
                 .FirstOrDefault(x => x != null);
         }
 

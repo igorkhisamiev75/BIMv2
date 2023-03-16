@@ -166,6 +166,7 @@
     <Compile Include="CreateScheduleRooms.cs" />
     <Compile Include="DelUnplacedRoom.cs" />
     <Compile Include="DoorsInformationTransfer.cs" />
+    <Compile Include="DuplicateSheets.cs" />
     <Compile Include="FindNameRoomForFinishElementsRoomsInLink.cs" />
     <Compile Include="FindRoomsForWallsBeams.cs" />
     <Compile Include="GetRoomForElementsFinishing.cs" />
