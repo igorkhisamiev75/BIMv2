@@ -147,7 +147,7 @@ namespace BIMv2
         {
             PhaseArray nn = document.Phases;
 
-            Phase g = nn.get_Item(0);
+            Phase g = nn.get_Item(1);
 
             return document
                 .Phases
