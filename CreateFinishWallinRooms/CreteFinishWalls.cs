@@ -577,7 +577,7 @@ namespace CreateFinishWallinRooms
                 if (g == null) continue;
                 if (g.IsCyclic)
                 {
-                    Curve prog=g.
+                    //Curve prog=g.
                     var wall = Wall.Create(_doc, g, levelId, false);
 
                     //set bounding граница помещения

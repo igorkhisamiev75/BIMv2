@@ -17,6 +17,8 @@ namespace BIMv2
     {
         public List<Wall> AllFinishWall = new List<Wall>();
 
+        public List<string> AllFinishWall2 = new List<string>();
+
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             Document doc = commandData.Application.ActiveUIDocument.Document;
@@ -41,20 +43,22 @@ namespace BIMv2
         {
             //собираем все стены отделок
 
-            var allWallElements = GetAllWallElements(doc);
+            var allWallElements = GetAllRooms(doc);
 
             foreach (var element in allWallElements)
             {
                 try
                 {
-                    var wall2 = (Wall)element;
+                    //var wall2 = (Wall)element;
 
-                    var descriptionWallType = wall2.WallType.LookupParameter("ADSK_Наименование краткое").AsString();
+                    //var descriptionWallType = wall2.WallType.LookupParameter("ADSK_Наименование краткое").AsString();
 
-                    if (descriptionWallType == "Отделка")
-                    {
-                        AllFinishWall.Add(wall2);
-                    }
+                    var descriptionWallType2 = element.LookupParameter("Номер").AsString()+" "+
+                        element.LookupParameter("Имя").AsString();
+
+                    
+                        AllFinishWall2.Add(descriptionWallType2);
+                    
 
                 }
                 catch (Exception e)
@@ -65,22 +69,22 @@ namespace BIMv2
 
             IList<string> numroomList = new List<string>();
 
-            foreach (var wall1 in AllFinishWall)
-            {
-                //ADSK_Примечание
-                var otd =wall1.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString();
+            //foreach (var wall1 in AllFinishWall2)
+            //{
+            //    //ADSK_Примечание
+            //    var otd =wall1.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString();
                 
-                //Comments
-                //var otd = wall1.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).AsString();
+            //    //Comments
+            //    //var otd = wall1.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).AsString();
 
-                //тип
-                //var otd = wall1.get_Parameter(BuiltInParameter.ELEM_TYPE_PARAM).AsValueString();
+            //    //тип
+            //    //var otd = wall1.get_Parameter(BuiltInParameter.ELEM_TYPE_PARAM).AsValueString();
 
-                numroomList.Add(otd);
-            }
+            //    numroomList.Add(otd);
+            //}
 
             //clean list
-            List<string> newList = new List<string>(numroomList.Distinct());
+            List<string> newList = new List<string>(AllFinishWall2.Distinct());
 
             newList.Sort();
 
@@ -93,7 +97,7 @@ namespace BIMv2
             Color color = new Color((byte)r, (byte)g, (byte)b);
 
 
-            foreach (string nameRoom in newList)
+            foreach (string nameRoom in AllFinishWall2)
             {
                 try
                 {
@@ -214,6 +218,18 @@ namespace BIMv2
 
             IList<Element> allFloors = floor_collector.ToElements();
             return allFloors;
+        }
+
+        public IList<Element> GetAllRooms(Document doc)
+        {
+            // List all Room's
+            var room_collector = new FilteredElementCollector(doc)
+                .OfCategory(BuiltInCategory.OST_Rooms)
+                .WhereElementIsNotElementType();
+            IList<ElementId> room_eids = room_collector.ToElementIds() as IList<ElementId>;
+            var allRooms = room_collector.ToElements();
+
+            return allRooms;
         }
 
     }
