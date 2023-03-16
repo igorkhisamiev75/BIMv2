@@ -208,6 +208,7 @@
     <Compile Include="PluginFinish2BIM\Test\WallFinishComposition.cs" />
     <Compile Include="PluginFinish2BIM\WallFinishing.cs" />
     <Compile Include="PluginFinish2BIM\Test\WriteNameRoomInPlumbingFixtures.cs" />
+    <Compile Include="TransferParamRoonToWalls.cs" />
     <Compile Include="WallFinishing.cs" />
     <Compile Include="WriteTypeRooms.cs" />
   </ItemGroup>
