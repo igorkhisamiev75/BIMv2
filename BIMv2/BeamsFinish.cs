@@ -195,7 +195,7 @@ namespace BIMv2
                                     wall.get_Parameter(BuiltInParameter.WALL_ATTR_ROOM_BOUNDING).Set(0);
                                     wall.get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(offset);
                                     wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(hightForWall);
-                                    wall.get_Parameter(BuiltInParameter.ELEM_FAMILY_AND_TYPE_PARAM).Set(412992); //412992 6065806
+                                    wall.get_Parameter(BuiltInParameter.ELEM_FAMILY_AND_TYPE_PARAM).Set(6074159); //412992 6065806
 
                                     doc.Regenerate();
 
