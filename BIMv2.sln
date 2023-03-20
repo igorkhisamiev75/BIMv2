@@ -24,6 +24,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateScheduleWPF", "Create
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateFinishWallinRooms", "CreateFinishWallinRooms\CreateFinishWallinRooms.csproj", "{DC7965C1-8323-4CEA-A23E-8BD503BBE86A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DublicateScheetsVPF", "DublicateScheetsVPF\DublicateScheetsVPF.csproj", "{0F99DB7E-B1C3-4987-90CC-A82153D13757}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -166,6 +168,18 @@ Global
 		{DC7965C1-8323-4CEA-A23E-8BD503BBE86A}.R2022|Any CPU.Build.0 = Release|Any CPU
 		{DC7965C1-8323-4CEA-A23E-8BD503BBE86A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DC7965C1-8323-4CEA-A23E-8BD503BBE86A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0F99DB7E-B1C3-4987-90CC-A82153D13757}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F99DB7E-B1C3-4987-90CC-A82153D13757}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0F99DB7E-B1C3-4987-90CC-A82153D13757}.R2019|Any CPU.ActiveCfg = Release|Any CPU
+		{0F99DB7E-B1C3-4987-90CC-A82153D13757}.R2019|Any CPU.Build.0 = Release|Any CPU
+		{0F99DB7E-B1C3-4987-90CC-A82153D13757}.R2020|Any CPU.ActiveCfg = Release|Any CPU
+		{0F99DB7E-B1C3-4987-90CC-A82153D13757}.R2020|Any CPU.Build.0 = Release|Any CPU
+		{0F99DB7E-B1C3-4987-90CC-A82153D13757}.R2021|Any CPU.ActiveCfg = Release|Any CPU
+		{0F99DB7E-B1C3-4987-90CC-A82153D13757}.R2021|Any CPU.Build.0 = Release|Any CPU
+		{0F99DB7E-B1C3-4987-90CC-A82153D13757}.R2022|Any CPU.ActiveCfg = Release|Any CPU
+		{0F99DB7E-B1C3-4987-90CC-A82153D13757}.R2022|Any CPU.Build.0 = Release|Any CPU
+		{0F99DB7E-B1C3-4987-90CC-A82153D13757}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0F99DB7E-B1C3-4987-90CC-A82153D13757}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

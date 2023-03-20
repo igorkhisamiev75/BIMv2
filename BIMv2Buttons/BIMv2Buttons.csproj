@@ -186,6 +186,7 @@
       <DependentUpon>ViewWPF.xaml</DependentUpon>
     </Compile>
     <Compile Include="DoorsInformationTransfer\DoorsInformationTransfer.cs" />
+    <Compile Include="DuplicateSheets\DuplicateSheets.cs" />
     <Compile Include="GroupByMarkEqupmentFurnitureAndWriteToComment\GroupByMarkEqupmentFurnitureAndWriteToComment.cs" />
     <Compile Include="GroupTypeCeilingAndWriteToComment\GroupTypeCeilingAndWriteToComment.cs" />
     <Compile Include="GroupTypeCeilingByNote\GroupTypeCeilingByNote.cs" />
