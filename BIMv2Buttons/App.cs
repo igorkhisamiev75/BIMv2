@@ -11,8 +11,11 @@ namespace BIMv2Buttons
         // define a method that will create our tab and button
         static void AddRibbonPanel(UIControlledApplication application)
         {
+
             // Get dll assembly path
             string thisAssemblyPath = Assembly.GetExecutingAssembly().Location;
+
+            #region BIMv2AR
 
             String tabNameB2 = "BIMv2AR";    // создание вкладки
             application.CreateRibbonTab(tabNameB2);
@@ -108,9 +111,11 @@ namespace BIMv2Buttons
             BitmapImage pb1ImageB3_2 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-door-32.png"));
             pb1B3_2.LargeImage = pb1ImageB3_2;
 
+            #endregion
 
             //кнопки 2BIM
 
+            #region BIMv2
 
 
             String tabName = "BIMv2";    // создание вкладки
@@ -457,6 +462,20 @@ namespace BIMv2Buttons
             //попробуем создать еще одну кнопку
             ribbonPanel4.AddSeparator(); //разделитель между кнопками
 
+
+            PushButtonData b25Data = new PushButtonData("cmdDuplicateSheets.cs", "Скопировать"
+                + Environment.NewLine + "лист с видами", thisAssemblyPath, "BIMv2.DuplicateSheets");
+
+            PushButton pb25 = ribbonPanel4.AddItem(b25Data) as PushButton;
+            pb25.ToolTip = "Скопировать лист с видами размещенным на нем";
+
+            BitmapImage pb25Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-groupCoins-32.png"));
+            pb25.LargeImage = pb25Image;
+
+            //попробуем создать еще одну кнопку
+            ribbonPanel4.AddSeparator(); //разделитель между кнопками
+
+
             // Create three push buttons for split button drop down 
 
             //// #1 
@@ -477,9 +496,10 @@ namespace BIMv2Buttons
             //// Add the buttons to the panel
             //List<RibbonItem> projectButtons = new List<RibbonItem>();
             //projectButtons.AddRange(m_projectPanel.AddStackedItems(ribbonItemData1, ribbonItemData2, ribbonItemData3));
-            
+
             //m_projectPanel.AddSeparator();
 
+            #endregion
         }
 
         public Result OnShutdown(UIControlledApplication application)
