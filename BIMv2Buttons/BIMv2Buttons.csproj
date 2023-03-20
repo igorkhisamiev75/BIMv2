@@ -297,7 +297,9 @@
   <ItemGroup>
     <Resource Include="Resources\icons8-groupCoins-32.png" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Resources\icons8-sheets-32.png" />
+  </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\icons8-flag-32.png" />
   </ItemGroup>

@@ -113,29 +113,23 @@ namespace BIMv2
                 // Retrieve and copy schedules
                 foreach (ScheduleSheetInstance sch in schedules)
                 {
-                    // Retrieve center of schedule
-                    XYZ schCenter = sch.Point;
-                    // Create schedule in the same position
-                    ScheduleSheetInstance newSch = ScheduleSheetInstance
-                        .Create(doc, newsheet.Id, sch.Id, schCenter);
-
-                    //// Check schedule is not a revision inside titleblock
-                    //if (!sch.IsTitleblockRevisionSchedule)
-                    //{
-                    //    foreach (ViewSchedule vsc in viewSchedules)
-                    //    {
-                    //        if (sch.ScheduleId == vsc.Id)
-                    //        {
-                    //            //// Retrieve center of schedule
-                    //            //XYZ schCenter = sch.Point;
-                    //            //// Create schedule in the same position
-                    //            //ScheduleSheetInstance newSch = ScheduleSheetInstance
-                    //            //    .Create(doc, newsheet.Id, vsc.Id, schCenter);
-                    //        }
-                    //        copiedElementIds.Add(vsc.Id);
-                    //    }
-                    //}
+                    // Check schedule is not a revision inside titleblock
+                    if (!sch.IsTitleblockRevisionSchedule)
+                    {
+                        foreach (ViewSchedule vsc in viewSchedules)
+                        {
+                            if (sch.ScheduleId == vsc.Id)
+                            {
+                                // Retrieve center of schedule
+                                XYZ schCenter = sch.Point;
+                                // Create schedule in the same position
+                                ScheduleSheetInstance newSch = ScheduleSheetInstance.Create(doc, newsheet.Id, vsc.Id, schCenter);
+                            }
+                            copiedElementIds.Add(vsc.Id);
+                        }
+                    }
                 }
+
 
                 // Duplicate annotation elements
                 foreach (ElementId eId in elementsInViewId)

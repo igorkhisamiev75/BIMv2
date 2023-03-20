@@ -469,7 +469,7 @@ namespace BIMv2Buttons
             PushButton pb25 = ribbonPanel4.AddItem(b25Data) as PushButton;
             pb25.ToolTip = "Скопировать лист с видами размещенным на нем";
 
-            BitmapImage pb25Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-groupCoins-32.png"));
+            BitmapImage pb25Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-sheets-32.png"));
             pb25.LargeImage = pb25Image;
 
             //попробуем создать еще одну кнопку

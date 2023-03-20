@@ -2,11 +2,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
+
+
+
 
 #endregion
 
@@ -79,12 +84,12 @@ namespace BIMv2
                             if (room.get_Parameter((BuiltInParameter.ROOM_NAME)).AsString() == "Кухня-гостиная" ||
                                room.get_Parameter((BuiltInParameter.ROOM_NAME)).AsString() == "Кухня")
                             {
-                                koefRoom = koefRoom + 0.5;
+                                koefRoom = koefRoom + 0.8;
                             }
 
                             if (room.get_Parameter((BuiltInParameter.ROOM_NAME)).AsString() == "Кухня-ниша")
                             {
-                                koefRoom = koefRoom - 0.5;
+                                koefRoom = koefRoom + 0.5;
                             }
 
                         }
@@ -92,17 +97,27 @@ namespace BIMv2
 
                         //int i = variable.Count();
 
-                        if (koefRoom == 1 || koefRoom == 0.5)
+                        if (koefRoom == 1.5)
                         {
                             foreach (var room in variable)
                             {
-                                room.get_Parameter(new Guid(adsk_typeRoom)).Set("СТ");
+                                room.get_Parameter(new Guid(adsk_typeRoom)).Set("Ст");
                             }
                             continue;
 
                         }
 
-                        if (koefRoom == 1.5)
+                        if (koefRoom == 2.5)
+                        {
+                            foreach (var room in variable)
+                            {
+                                room.get_Parameter(new Guid(adsk_typeRoom)).Set("2(1С)");
+                            }
+                            continue;
+
+                        }
+
+                        if (koefRoom == 1.8)
                         {
                             foreach (var room in variable)
                             {
@@ -112,7 +127,7 @@ namespace BIMv2
 
                         }
 
-                        if (koefRoom == 2.5)
+                        if (koefRoom == 2.8)
                         {
                             foreach (var room in variable)
                             {
@@ -126,17 +141,17 @@ namespace BIMv2
                         {
                             foreach (var room in variable)
                             {
-                                room.get_Parameter(new Guid(adsk_typeRoom)).Set("3(3С)");
+                                room.get_Parameter(new Guid(adsk_typeRoom)).Set("3(2С)");
                             }
                             continue;
 
                         }
 
-                        if (koefRoom == 4.5)
+                        if (koefRoom == 3.8)
                         {
                             foreach (var room in variable)
                             {
-                                room.get_Parameter(new Guid(adsk_typeRoom)).Set("4(4С)");
+                                room.get_Parameter(new Guid(adsk_typeRoom)).Set("3(3С)");
                             }
                         }
 
