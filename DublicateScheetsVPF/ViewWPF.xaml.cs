@@ -12,10 +12,10 @@ namespace DublicateScheetsVPF
     {
 
         //public readonly DeletedFilter m_data_filters;  // Filters data for current active document
-        public List<Element> checkFilters=new List<Element>();
+        public List<ViewSheet> checkFilters=new List<ViewSheet>();
 
-        private readonly ICollection<Element> filterCollection;
-        public ViewWPF(ICollection<Element> elements)
+        private readonly ICollection<ViewSheet> filterCollection;
+        public ViewWPF(ICollection<ViewSheet> elements)
         {
             InitializeComponent();
             filterCollection = elements;

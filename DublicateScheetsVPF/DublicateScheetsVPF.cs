@@ -21,9 +21,9 @@ namespace DublicateScheetsVPF
 
         public ICollection<ViewSheet> scheetsInProject = new List<ViewSheet>();
 
-        public ICollection<Element> filtersCollection = new List<Element>();
+        public ICollection<ViewSheet> filtersCollection = new List<ViewSheet>();
 
-        public ICollection<Element> filtersCollectionCopy = new List<Element>();
+        public ICollection<ViewSheet> filtersCollectionCopy = new List<ViewSheet>();
 
         public ICollection<View> onlyViewPlan3DSection = new List<View>();
 
@@ -42,17 +42,7 @@ namespace DublicateScheetsVPF
 
             ICollection<ViewSheet> allView = GetAllSheets(_doc);
 
-            foreach (var item in allView)
-            {
-                if (item!=null)
-                {
-                    filtersCollectionCopy.Add(item);
-                }
-            }
-
-
-
-            ViewWPF vpViewWpf = new ViewWPF(filtersCollectionCopy);
+            ViewWPF vpViewWpf = new ViewWPF(allView);
 
             vpViewWpf.ShowDialog();
 
@@ -70,7 +60,7 @@ namespace DublicateScheetsVPF
 
                 CreateCopySheets(_doc, checkFilters);
 
-                TaskDialog.Show("2BIM.RU", $"Sheet with view, scheduls and legend copy done!");
+                TaskDialog.Show("2BIM.RU", "Sheet with view, scheduls and legend copy done!");
 
                 t.Commit();
 
@@ -79,7 +69,7 @@ namespace DublicateScheetsVPF
             return Result.Succeeded;
         }
 
-        public void CreateCopySheets(Document doc, List<Element> checkFilters)
+        public void CreateCopySheets(Document doc, List<ViewSheet> checkFilters)
         {
 
             foreach (Element el in checkFilters)
@@ -94,15 +84,6 @@ namespace DublicateScheetsVPF
                     FamilyInstance titleblock = new FilteredElementCollector(doc).OfClass(typeof(FamilyInstance))
                                     .OfCategory(BuiltInCategory.OST_TitleBlocks).Cast<FamilyInstance>()
                                     .FirstOrDefault(q => q.OwnerViewId == vSheet.Id);
-
-
-                    //FamilyInstance titleblock = new FilteredElementCollector(doc).OfClass(typeof(FamilyInstance))
-                    //               .OfCategory(BuiltInCategory.OST_TitleBlocks).Cast<FamilyInstance>()
-                    //               .FirstOrDefault();
-
-                    //var titleblock = new FilteredElementCollector(doc).OfClass(typeof(FamilyInstance))
-                    //               .OfCategory(BuiltInCategory.OST_TitleBlocks).Cast<FamilyInstance>()
-                    //               . GetEnumerator(q => q.Name == "нет");
 
                     var elementsInViewId = new FilteredElementCollector(doc, selView.Id).ToElementIds();
 
@@ -258,6 +239,7 @@ namespace DublicateScheetsVPF
             FilteredElementCollector collector = new FilteredElementCollector(doc);
             FilteredElementIterator itor = collector.OfClass(typeof(ViewSheet)).GetElementIterator();
             itor.Reset();
+
             while (itor.MoveNext())
             {
                 ViewSheet view = itor.Current as ViewSheet;
