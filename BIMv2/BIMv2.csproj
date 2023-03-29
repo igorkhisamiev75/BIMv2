@@ -164,6 +164,7 @@
     <Compile Include="CreateNotPlacedRooms.cs" />
     <Compile Include="CreateRailingInRooms.cs" />
     <Compile Include="CreateScheduleRooms.cs" />
+    <Compile Include="CreateViewByLinkedFiles.cs" />
     <Compile Include="DelUnplacedRoom.cs" />
     <Compile Include="DoorsInformationTransfer.cs" />
     <Compile Include="DuplicateSheets.cs" />
