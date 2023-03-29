@@ -22,10 +22,7 @@ namespace BIMv2
             var uiDoc = uiApp.ActiveUIDocument;
             _app = uiApp.Application;
             _doc = uiDoc.Document;
-            ViewSet m_allViews = new ViewSet();
-
-            
-
+           
 
             // get a ViewFamilyType for a 3D View
             ViewFamilyType viewFamilyType =
@@ -33,25 +30,64 @@ namespace BIMv2
                  where v.ViewFamily == ViewFamily.ThreeDimensional
                  select v).First();
 
-           
+            //find the linked files
+            FilteredElementCollector collector = new FilteredElementCollector(_doc);
+            ICollection<ElementId> elementIdSet = collector.OfCategory(BuiltInCategory.OST_RvtLinks)
+              .OfClass(typeof(RevitLinkInstance)).ToElementIds();
 
-                using (Transaction t = new Transaction(_doc, "Create view "))
+            List<ElementId> elementIds = new List<ElementId>();
+
+
+            using (Transaction t = new Transaction(_doc, "Create view "))
             {
-                var linkedInstances = FindLinkedInstances();
+                IEnumerable<RevitLinkInstance> linkedInstances = FindLinkedInstances();
+
+                foreach (RevitLinkInstance linkedInstance in linkedInstances)
+                {
+                    var idd=linkedInstance.Id;
+
+                    elementIds.Add(idd);
+                }
               
 
                 // loop through all levels
-                foreach (var linkFile in linkedInstances)
+                foreach (RevitLinkInstance linkFile in linkedInstances)
                 {
                     t.Start();
 
+
+
                     try
                     {
+
                         // Create the 3d view
                         View3D view = View3D.CreateIsometric(_doc, viewFamilyType.Id);
 
                         // Set the name of the view
-                        view.Name = "3D View" + linkFile.Name;
+                        view.Name = "3D View " + linkFile.get_Parameter(BuiltInParameter.ELEM_TYPE_PARAM).AsValueString();
+
+                        ElementId notForDel = linkFile.GetTypeId();
+
+                        List<ElementId> elementIds2 = new List<ElementId>();
+
+                        foreach (RevitLinkInstance notForDel3 in linkedInstances)
+                        {
+
+                            if(notForDel != notForDel3.GetTypeId())
+                            {
+                                elementIds2.Add(linkFile.Id);
+                            }
+                            
+                        }
+
+
+                           
+
+                        view.HideElements(elementIds2);
+
+
+                        elementIds2.Clear();
+
 
                         // Set the name of the transaction
                         // A transaction can be renamed after it has been started
