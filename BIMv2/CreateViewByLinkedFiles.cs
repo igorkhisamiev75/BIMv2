@@ -75,7 +75,7 @@ namespace BIMv2
 
                             if(notForDel != notForDel3.GetTypeId())
                             {
-                                elementIds2.Add(linkFile.Id);
+                                elementIds2.Add(notForDel3.Id);
                             }
                             
                         }
