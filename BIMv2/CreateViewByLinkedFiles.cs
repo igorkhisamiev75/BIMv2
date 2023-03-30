@@ -35,8 +35,16 @@ namespace BIMv2
             ICollection<ElementId> elementIdSet = collector.OfCategory(BuiltInCategory.OST_RvtLinks)
               .OfClass(typeof(RevitLinkInstance)).ToElementIds();
 
+            //FilteredElementCollector collector = new FilteredElementCollector(doc);
+            //ICollection<ElementId> elementIdSet =
+            //  collector
+            //  .OfCategory(BuiltInCategory.OST_RvtLinks)
+            //  .OfClass(typeof(RevitLinkType))
+            //  .ToElementIds();
+
             List<ElementId> elementIds = new List<ElementId>();
 
+            Category sectionsCate = _doc.Settings.Categories.get_Item(BuiltInCategory.OST_Levels); //категория для скрытия элементов
 
             using (Transaction t = new Transaction(_doc, "Create view "))
             {
@@ -84,7 +92,10 @@ namespace BIMv2
                            
 
                         view.HideElements(elementIds2);
-
+                        
+                        view.DetailLevel = ViewDetailLevel.Fine;
+                        view.DisplayStyle = DisplayStyle.FlatColors;
+                        view.SetCategoryHidden(sectionsCate.Id, true);
 
                         elementIds2.Clear();
 
