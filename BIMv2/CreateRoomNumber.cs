@@ -20,27 +20,33 @@ namespace BIMv2
         {
             Document doc = commandData.Application.ActiveUIDocument.Document;
             IList<Element> rooms = GetAllRooms(doc);
+            IList<Element> rooms2=new List<Element>();
+
+            foreach (var f in rooms)
+            {
+                if (f.get_Parameter(BuiltInParameter.ROOM_DEPARTMENT).AsString() == "Квартиры")
+                {
+                    rooms2.Add(f);
+                }
+            }
 
             using (var t = new Transaction(doc))
             {
-                t.Start("Del unplaced Rooms");
+                t.Start("CreateRoomNumber");
 
 
                 try
                 {
-                    // del rooms
-
-                    int k = 0;
-
-                    foreach (var room in rooms)
+                  
+                    foreach (var room in rooms2)
                     {
-                        double roomSquare = room.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble();
+                        var str1=room.LookupParameter("ADSK_Номер квартиры").AsString();
+                        var str2 = room.LookupParameter("ADSK_Номер секции").AsString();
+                        var str3 = room.LookupParameter("Уровень").AsValueString();
+                        string[] words = str3.Split(' ');
+                        var str4 = words[1];
 
-                        if (roomSquare <= 0)
-                        {
-                            k++;
-                            doc.Delete(room.Id);
-                        }
+                        room.LookupParameter("ADSK_Индекс квартиры").Set(str1+"-"+ str2+ "-" + str4);
 
 
                     }
