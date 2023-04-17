@@ -163,6 +163,7 @@
     <Compile Include="CreateNewTypeAnnotation.cs" />
     <Compile Include="CreateNotPlacedRooms.cs" />
     <Compile Include="CreateRailingInRooms.cs" />
+    <Compile Include="CreateRoomNumber.cs" />
     <Compile Include="CreateScheduleRooms.cs" />
     <Compile Include="CreateViewByLinkedFiles.cs" />
     <Compile Include="DelUnplacedRoom.cs" />
