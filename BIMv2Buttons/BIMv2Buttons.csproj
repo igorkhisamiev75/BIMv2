@@ -172,6 +172,7 @@
     <Compile Include="CreateNewTypeAnnotation\CreateNewTypeAnnotation.cs" />
     <Compile Include="CreateNotPlacedRooms\CreateNotPlacedRooms.cs" />
     <Compile Include="CreateNumberRoomForFloors\CreateNumberRoomForFloors.cs" />
+    <Compile Include="CreateViewByLinkedFiles\CreateViewByLinkedFiles.cs" />
     <Compile Include="CreateWS\CreateWorksets.cs" />
     <Compile Include="CreateWS\ViewWPF.xaml.cs">
       <DependentUpon>ViewWPF.xaml</DependentUpon>
@@ -305,6 +306,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\icons8-door-32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\icons8-3d-modeling-32.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

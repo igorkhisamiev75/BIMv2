@@ -79,6 +79,29 @@ namespace BIMv2
                     }
                 }
 
+                //get all type roofs 
+
+                FilteredElementCollector filteredElementCollector3 = new FilteredElementCollector(doc);
+                filteredElementCollector3.OfClass(typeof(WallType));
+                List<WallType> wallTypeCollection = filteredElementCollector3.Cast<WallType>().ToList();
+
+                foreach (var wallType in wallTypeCollection)
+                {
+                    try
+                    {
+                        var sostav = wallType.get_Parameter(new Guid("59c583bf-3ce9-41f1-9f7b-7c0fbe14d11d")).AsString();
+                        if (sostav != null)
+                        {
+                            listNameAndDescription.Add(new info(wallType.Name, sostav));
+                        }
+                    }
+
+                    catch
+                    {
+                        continue;
+                    }
+                }
+
 
                 //находим пироги в линкованных
                 FilteredElementCollector collector =new FilteredElementCollector(doc);
@@ -94,15 +117,13 @@ namespace BIMv2
                     foreach (Document linkedDoc in uiApp.Application.Documents)
 
                     {
-
-
                             //get all type floors
 
-                            FilteredElementCollector filteredElementCollector3 = new FilteredElementCollector(linkedDoc);
-                            filteredElementCollector3.OfClass(typeof(FloorType));
-                            List<FloorType> floorTypeCollection3 = filteredElementCollector3.Cast<FloorType>().ToList();
+                            FilteredElementCollector filteredElementCollector31 = new FilteredElementCollector(linkedDoc);
+                            filteredElementCollector31.OfClass(typeof(FloorType));
+                            List<FloorType> floorTypeCollection31 = filteredElementCollector31.Cast<FloorType>().ToList();
 
-                            foreach (var floorType in floorTypeCollection3)
+                            foreach (var floorType in floorTypeCollection31)
                             {
                                 try
                                 {

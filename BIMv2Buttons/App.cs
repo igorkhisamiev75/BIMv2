@@ -475,6 +475,18 @@ namespace BIMv2Buttons
             //попробуем создать еще одну кнопку
             ribbonPanel4.AddSeparator(); //разделитель между кнопками
 
+            PushButtonData b26Data = new PushButtonData("cmdCreateViewByLinkedFiles.cs", "Создать 3D"
+               + Environment.NewLine + "связей", thisAssemblyPath, "BIMv2.CreateViewByLinkedFiles");
+
+            PushButton pb26 = ribbonPanel4.AddItem(b26Data) as PushButton;
+            pb26.ToolTip = "Создать 3D виды для связанных файлов";
+
+            BitmapImage pb26Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-3d-modeling-32.png"));
+            pb26.LargeImage = pb26Image;
+
+            //попробуем создать еще одну кнопку
+            ribbonPanel4.AddSeparator(); //разделитель между кнопками
+
 
             // Create three push buttons for split button drop down 
 
