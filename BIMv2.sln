@@ -26,6 +26,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateFinishWallinRooms", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DublicateScheetsVPF", "DublicateScheetsVPF\DublicateScheetsVPF.csproj", "{0F99DB7E-B1C3-4987-90CC-A82153D13757}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Filters2BimRu", "Filters2BimRu\Filters2BimRu.csproj", "{2696E2E7-AD0B-4E94-AB72-A72C9B42D19E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -180,6 +182,18 @@ Global
 		{0F99DB7E-B1C3-4987-90CC-A82153D13757}.R2022|Any CPU.Build.0 = Release|Any CPU
 		{0F99DB7E-B1C3-4987-90CC-A82153D13757}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0F99DB7E-B1C3-4987-90CC-A82153D13757}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2696E2E7-AD0B-4E94-AB72-A72C9B42D19E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2696E2E7-AD0B-4E94-AB72-A72C9B42D19E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2696E2E7-AD0B-4E94-AB72-A72C9B42D19E}.R2019|Any CPU.ActiveCfg = Release|Any CPU
+		{2696E2E7-AD0B-4E94-AB72-A72C9B42D19E}.R2019|Any CPU.Build.0 = Release|Any CPU
+		{2696E2E7-AD0B-4E94-AB72-A72C9B42D19E}.R2020|Any CPU.ActiveCfg = Release|Any CPU
+		{2696E2E7-AD0B-4E94-AB72-A72C9B42D19E}.R2020|Any CPU.Build.0 = Release|Any CPU
+		{2696E2E7-AD0B-4E94-AB72-A72C9B42D19E}.R2021|Any CPU.ActiveCfg = Release|Any CPU
+		{2696E2E7-AD0B-4E94-AB72-A72C9B42D19E}.R2021|Any CPU.Build.0 = Release|Any CPU
+		{2696E2E7-AD0B-4E94-AB72-A72C9B42D19E}.R2022|Any CPU.ActiveCfg = Release|Any CPU
+		{2696E2E7-AD0B-4E94-AB72-A72C9B42D19E}.R2022|Any CPU.Build.0 = Release|Any CPU
+		{2696E2E7-AD0B-4E94-AB72-A72C9B42D19E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2696E2E7-AD0B-4E94-AB72-A72C9B42D19E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
