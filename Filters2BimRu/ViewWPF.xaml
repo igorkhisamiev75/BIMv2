@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:Filters2BimRu"
              mc:Ignorable="d" 
             Title="Filters2BimRu"
-             d:DesignHeight="500" 
+             d:DesignHeight="100" 
         d:DesignWidth="500">
     <Grid>
         <Grid.ColumnDefinitions>
@@ -26,6 +26,10 @@
                 Grid.Column="1" Height="21" Click="Button_Click_1"/>
         <ComboBox HorizontalAlignment="Left" 
                   Margin="35,36,0,0" 
+                  VerticalAlignment="Top" 
+                  Width="120"/>
+        <ComboBox HorizontalAlignment="Left" 
+                  Margin="222,36,0,0" 
                   VerticalAlignment="Top" 
                   Width="120"/>
     </Grid>

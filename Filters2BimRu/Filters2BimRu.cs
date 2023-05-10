@@ -110,7 +110,7 @@ namespace Filters2BimRu
                 uiDoc = uiApp.ActiveUIDocument;
 
                 //del filters checked
-                ViewFiltersDelete(_doc, checkFilters);
+                ViewFiltersDelete(_doc, (List<Element>)checkFilters);
                 t.Commit();
 
             }
@@ -211,4 +211,4 @@ namespace Filters2BimRu
 
 
 }
-}
+

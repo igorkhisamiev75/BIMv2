@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Autodesk.Revit.DB;
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,9 +22,17 @@ namespace Filters2BimRu
     /// </summary>
     public partial class ViewWPF : Window
     {
+        internal object checkFilters;
+        private ICollection<Element> filtersCollectionCopy;
+
         public ViewWPF()
         {
             InitializeComponent();
+        }
+
+        public ViewWPF(ICollection<Element> filtersCollectionCopy)
+        {
+            this.filtersCollectionCopy = filtersCollectionCopy;
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
