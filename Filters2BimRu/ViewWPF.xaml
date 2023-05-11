@@ -6,8 +6,8 @@
              xmlns:local="clr-namespace:Filters2BimRu"
              mc:Ignorable="d" 
             Title="Filters2BimRu"
-             d:DesignHeight="100" 
-        d:DesignWidth="500">
+             d:Height="100" 
+        d:Width="500">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
@@ -18,19 +18,23 @@
                 Margin="0,10,0,0" 
                 VerticalAlignment="Top" 
                 Width="75" Height="21" 
-                Grid.Column="1" Click="Button_Click"/>
+                Grid.Column="1" 
+                Click="Button_Click"/>
         <Button Content="CANCEL" 
                 HorizontalAlignment="Left" 
                 Margin="0,36,0,0" 
                 VerticalAlignment="Top" Width="75" 
-                Grid.Column="1" Height="21" Click="Button_Click_1"/>
+                Grid.Column="1" Height="21" 
+                Click="Button_Click_1"/>
         <ComboBox HorizontalAlignment="Left" 
                   Margin="35,36,0,0" 
                   VerticalAlignment="Top" 
+                  Grid.Column="0"
                   Width="120"/>
         <ComboBox HorizontalAlignment="Left" 
                   Margin="222,36,0,0" 
                   VerticalAlignment="Top" 
+                  Grid.Column="0"
                   Width="120"/>
     </Grid>
 </Window>

@@ -22,26 +22,21 @@ namespace Filters2BimRu
     /// </summary>
     public partial class ViewWPF : Window
     {
-        internal object checkFilters;
-        private ICollection<Element> filtersCollectionCopy;
-
+        
         public ViewWPF()
         {
             InitializeComponent();
         }
 
-        public ViewWPF(ICollection<Element> filtersCollectionCopy)
-        {
-            this.filtersCollectionCopy = filtersCollectionCopy;
-        }
-
+        
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-
+            Close();
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
+            Close();
 
         }
     }

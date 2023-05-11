@@ -5,6 +5,9 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Selection;
 
+using System.Collections.Generic;
+using System.Linq;
+
 using OperationCanceledException = Autodesk.Revit.Exceptions.OperationCanceledException;
 #endregion
 
@@ -32,30 +35,49 @@ namespace BIMv2
         {
             UIApplication uiapp = commandData.Application;
             UIDocument uidoc = uiapp.ActiveUIDocument;
-            Document doc = uidoc.Document;
+            Document _doc = uidoc.Document;
 
-            doc.EnableWorksharing("00_Общие уровни и оси", "00_Рабочий набор 1");
+            List<string> _elements = new List<string>();
 
-            Workset newWorkset = null;
-            // Worksets can only be created in a document with worksharing enabled
-            if (doc.IsWorkshared)
+            using (var t = new Transaction(_doc))
             {
-                string worksetName = "New Workset";
-                // Workset name must not be in use by another workset
-                if (WorksetTable.IsWorksetNameUnique(doc, worksetName))
+                t.Start("Run");
+               
+
+                //get all elements on ActiveView
+                var col = new FilteredElementCollector(_doc, _doc.ActiveView.Id).Cast<Element>().ToList();
+
+                foreach (var element in col)
                 {
-                    using (Transaction worksetTransaction = new Transaction(doc, "Set preview view id"))
+                    if(element.Category != null)
                     {
-                        worksetTransaction.Start();
-                        newWorkset = Workset.Create(doc, worksetName);
-                        worksetTransaction.Commit();
+                        var g = element.Category.Name;
+                        _elements.Add(g);
                     }
+                    
+                    
                 }
+
+                List<string> distinct2 = _elements.Distinct().ToList() ;
+
+                _elements.Distinct().ToList();
+
+
+                var filtersInViewsId2 = col.GroupBy(x => x.Category);
+
+                filtersInViewsId2.Distinct().ToList();
+
+
+                TaskDialog.Show("111", distinct2.Count().ToString());
+
+                //TaskDialog.Show("123", "123");
+
+                //del filters checked
+                //ViewFiltersDelete(_doc, (List<Element>)checkFilters);
+                t.Commit();
+
             }
 
-            var daf= doc.GetWorksetTable();
-
-            daf.SetActiveWorksetId(newWorkset.Id);
 
             return Result.Succeeded;
         }
