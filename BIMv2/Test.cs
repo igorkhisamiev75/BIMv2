@@ -13,20 +13,20 @@ using OperationCanceledException = Autodesk.Revit.Exceptions.OperationCanceledEx
 
 namespace BIMv2
 {
-    #region LightPickFilter
-    public class LightPickFilter : ISelectionFilter
-    {
-        public bool AllowElement(Element e)
-        {
-            return e.Category.Id.IntegerValue.Equals((int)BuiltInCategory.OST_LightingFixtures);
-        }
+    //#region LightPickFilter
+    //public class LightPickFilter : ISelectionFilter
+    //{
+    //    public bool AllowElement(Element e)
+    //    {
+    //        return e.Category.Id.IntegerValue.Equals((int)BuiltInCategory.OST_LightingFixtures);
+    //    }
 
-        public bool AllowReference(Reference r, XYZ p)
-        {
-            return false;
-        }
-    }
-    #endregion // LightPickFilter
+    //    public bool AllowReference(Reference r, XYZ p)
+    //    {
+    //        return false;
+    //    }
+    //}
+    //#endregion // LightPickFilter
 
     [Transaction(TransactionMode.Manual)]
     public class Test : IExternalCommand
@@ -37,43 +37,94 @@ namespace BIMv2
             UIDocument uidoc = uiapp.ActiveUIDocument;
             Document _doc = uidoc.Document;
 
-            List<string> _elements = new List<string>();
-
+            List<string> listAllElementsOnView = new List<string>();
+                       
             using (var t = new Transaction(_doc))
             {
                 t.Start("Run");
                
 
                 //get all elements on ActiveView
-                var col = new FilteredElementCollector(_doc, _doc.ActiveView.Id).Cast<Element>().ToList();
+                var allElementOnView = new FilteredElementCollector(_doc, _doc.ActiveView.Id).Cast<Element>().ToList();
 
-                foreach (var element in col)
+                foreach (var element in allElementOnView)
                 {
                     if(element.Category != null)
                     {
                         var g = element.Category.Name;
-                        _elements.Add(g);
+                        listAllElementsOnView.Add(g);
                     }
                     
                     
                 }
 
-                List<string> distinct2 = _elements.Distinct().ToList() ;
+                //TaskDialog.Show("Общий", listAllElementsOnView.Count().ToString());
 
-                _elements.Distinct().ToList();
+                List<string> distinctListElement = listAllElementsOnView.Distinct().ToList() ;
+
+                //TaskDialog.Show("Почищенный", distinctListElement.Count().ToString());
+
+                DataCategory dataCategory = new DataCategory();
 
 
-                var filtersInViewsId2 = col.GroupBy(x => x.Category);
+                foreach(var el in distinctListElement)
+                {
+                    if(el=="Стены")
+                    foreach (var element in allElementOnView)
+                    {
+                        if (element.Category != null)
+                        {
+                            string g = element.Category.Name;
 
-                filtersInViewsId2.Distinct().ToList();
+                            if (element.Category != null && el == g)
+                            {
+                                dataCategory.Name = element.Category.Name;
+
+                                ParameterSet pSet = element.Parameters;
+
+                                IList<Parameter> ps = element.GetOrderedParameters();
+
+                                foreach (var param in ps)
+                                {
+
+                                    if (param != null)
+                                    {
+                                        try
+                                        {
+                                                var st = param.Definition.Name.ToString();
+                                                TaskDialog.Show("Имя параметра", st);
+
+                                                //dataCategory.parametersCategory.Add(st);
+                                        }
+
+                                        catch
+                                        {
+
+                                        }
 
 
-                TaskDialog.Show("111", distinct2.Count().ToString());
+                                    }
 
-                //TaskDialog.Show("123", "123");
+                                }
 
-                //del filters checked
-                //ViewFiltersDelete(_doc, (List<Element>)checkFilters);
+
+
+                            }
+
+
+                        }
+                           
+                    }
+
+                }
+
+
+                //string Something = string.Join(",", dataCategory.parametersCategory);
+
+
+                TaskDialog.Show("Почищенный", "1");
+
+
                 t.Commit();
 
             }
@@ -82,4 +133,16 @@ namespace BIMv2
             return Result.Succeeded;
         }
     }
+
+
+    public class DataCategory
+    {
+        public string Name { get; set; }
+        public List<string> parametersCategory { get; set; }
+
+
+    }
+
+
+
 }
