@@ -36,81 +36,101 @@ namespace BIMv2
 
                 foreach (Element door in allDoors)
                 {
-
-                    string materСanvasInside = door.LookupParameter("Материал_Полотно изнутри").AsValueString(); //описание материала
-                    string materСanvasOutside = door.LookupParameter("Материал_Полотно фасад").AsValueString();
-                    string nalInside = door.LookupParameter("Материал_НаличникВнутренний").AsValueString();
-                    string nalOutside = door.LookupParameter("Материал_НаличникНаружный").AsValueString();
-                    var nVnutri = door.LookupParameter("Наличник внутри").AsInteger();
-                    var nSnarugi = door.LookupParameter("Наличник снаружи").AsInteger();
-
-
-                    door.LookupParameter("Полотно изнутри").Set(GetDescriptionInMaterial(materСanvasInside));
-                    door.LookupParameter("Полотно фасад").Set(GetDescriptionInMaterial(materСanvasOutside));
-                    if (nVnutri == 1)
+                    try
                     {
-                        door.LookupParameter("Наличник изнутри").Set(GetDescriptionInMaterial(nalInside));
+                        string materСanvasInside = door.LookupParameter("Материал_Полотно изнутри").AsValueString(); //описание материала
+                        string materСanvasOutside = door.LookupParameter("Материал_Полотно фасад").AsValueString();
+                        string nalInside = door.LookupParameter("Материал_НаличникВнутренний").AsValueString();
+                        string nalOutside = door.LookupParameter("Материал_НаличникНаружный").AsValueString();
+                        var nVnutri = door.LookupParameter("Наличник внутри").AsInteger();
+                        var nSnarugi = door.LookupParameter("Наличник снаружи").AsInteger();
+
+
+                        door.LookupParameter("Полотно изнутри").Set(GetDescriptionInMaterial(materСanvasInside));
+                        door.LookupParameter("Полотно фасад").Set(GetDescriptionInMaterial(materСanvasOutside));
+                        if (nVnutri == 1)
+                        {
+                            door.LookupParameter("Наличник изнутри").Set(GetDescriptionInMaterial(nalInside));
+                        }
+
+                        if (nVnutri == 0)
+                        {
+                            door.LookupParameter("Наличник изнутри").Set("нет");
+                        }
+
+                        if (nSnarugi == 1)
+                        {
+                            door.LookupParameter("Наличник фасад").Set(GetDescriptionInMaterial(nalOutside));
+                        }
+
+                        if (nSnarugi == 0)
+                        {
+                            door.LookupParameter("Наличник фасад").Set("нет");
+                        }
+
+
+
+                        ElementType typeDoor = _doc.GetElement(door.GetTypeId()) as ElementType;
+                        var n1 = typeDoor.LookupParameter("1.1").AsInteger();
+                        var n2 = typeDoor.LookupParameter("1.2").AsInteger();
+                        var n3 = typeDoor.LookupParameter("2.1").AsInteger();
+                        var n4 = typeDoor.LookupParameter("2.2").AsInteger();
+
+
+
+                        //var n5 = typeDoor.LookupParameter("Равные полотна").AsInteger();
+
+                        //var n6 = typeDoor.LookupParameter("Равные полотна").AsInteger();
+
+
+                        string adsk_otkr = "";
+
+                        if (n1 == 1)
+                        {
+                            adsk_otkr = "Правая";
+                        }
+
+                        if (n2 == 1)
+                        {
+                            adsk_otkr = "Левая";
+                        }
+
+                        if (n3 == 1)
+                        {
+                            adsk_otkr = "Правая";
+                        }
+
+                        if (n4 == 1)
+                        {
+                            adsk_otkr = "Левая";
+                        }
+
+                        //Равнопольная. Рабочая створка Правая.
+
+                        //if (n3 == 1 && n5 != 1)
+                        //{
+                        //    adsk_otkr = "Правая, две стврки";
+                        //}
+
+                        //if (n4 == 1 && n5 != 1)
+                        //{
+                        //    adsk_otkr = "Левая, две стврки";
+                        //}
+
+                        //if (n5 == 1)
+                        //{
+                        //    adsk_otkr = "Равные полотна";
+                        //}
+
+                        door.LookupParameter("ADSK_Открывание").Set(adsk_otkr);
+
+                        adsk_otkr = "";
+
+                        //тип  полотна
                     }
 
-                    if (nVnutri == 0)
-                    {
-                        door.LookupParameter("Наличник изнутри").Set("Отсутствует");
-                    }
+                    catch { }
 
-                    if (nSnarugi == 1)
-                    {
-                        door.LookupParameter("Наличник фасад").Set(GetDescriptionInMaterial(nalOutside));
-                    }
-
-                    if (nSnarugi == 0)
-                    {
-                        door.LookupParameter("Наличник фасад").Set("Отсутствует");
-                    }
-
-
-
-                    ElementType typeDoor = _doc.GetElement(door.GetTypeId()) as ElementType;
-                    var n1 = typeDoor.LookupParameter("1.1").AsInteger();
-                    var n2 = typeDoor.LookupParameter("1.2").AsInteger();
-                    var n3 = typeDoor.LookupParameter("2.1").AsInteger();
-                    var n4 = typeDoor.LookupParameter("2.2").AsInteger();
-                    var n5 = typeDoor.LookupParameter("Равные полотна").AsInteger();
-
-                    var n6 = typeDoor.LookupParameter("Равные полотна").AsInteger();
-
-
-                    string adsk_otkr = "";
-
-                    if (n1 == 1)
-                    {
-                        adsk_otkr = "Правая";
-                    }
-
-                    if (n2 == 1)
-                    {
-                        adsk_otkr = "Левая";
-                    }
-
-                    if (n3 == 1 && n5 != 1)
-                    {
-                        adsk_otkr = "Правая, две стврки";
-                    }
-
-                    if (n4 == 1 && n5 != 1)
-                    {
-                        adsk_otkr = "Левая, две стврки";
-                    }
-
-                    if (n5 == 1)
-                    {
-                        adsk_otkr = "Равные полотна";
-                    }
-
-                    door.LookupParameter("ADSK_Открывание").Set(adsk_otkr);
-
-                    adsk_otkr = "";
-
-                    //тип  полотна
 
 
 

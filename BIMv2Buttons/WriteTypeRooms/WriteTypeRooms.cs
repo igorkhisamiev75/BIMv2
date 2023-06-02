@@ -142,6 +142,7 @@ namespace BIMv2
                             foreach (var room in variable)
                             {
                                 room.get_Parameter(new Guid(adsk_typeRoom)).Set("3(2С)");
+
                             }
                             continue;
 
@@ -152,17 +153,42 @@ namespace BIMv2
                             foreach (var room in variable)
                             {
                                 room.get_Parameter(new Guid(adsk_typeRoom)).Set("3(3С)");
+
                             }
+                            continue;
+
+                        }
+
+                        if (koefRoom == 4.5)
+                        {
+                            foreach (var room in variable)
+                            {
+                                room.get_Parameter(new Guid(adsk_typeRoom)).Set("4(3С)");
+
+                            }
+                            continue;
+
+                        }
+
+                        if (koefRoom == 4.8)
+                        {
+                            foreach (var room in variable)
+                            {
+                                room.get_Parameter(new Guid(adsk_typeRoom)).Set("4(4С)");
+
+                            }
+                            continue;
                         }
 
                         else
                         {
+                            TaskDialog.Show("Revit", $" {koefRoom} - получился");
                             foreach (var room in variable)
                             {
                                 if ((room.get_Parameter(BuiltInParameter.ROOM_DEPARTMENT)).AsString() == "Квартиры")
                                 {
-                                    room.get_Parameter(new Guid(adsk_typeRoom)).Set("работай");
-                                    continue;
+                                    room.get_Parameter(new Guid(adsk_typeRoom)).Set("ERROR");
+
                                 }
                                 continue;
                             }
