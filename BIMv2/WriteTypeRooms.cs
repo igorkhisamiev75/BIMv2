@@ -182,7 +182,7 @@ namespace BIMv2
 
                         else
                         {
-                            TaskDialog.Show("Revit", $" {koefRoom} - получился");
+                            
                             foreach (var room in variable)
                             {
                                 if ((room.get_Parameter(BuiltInParameter.ROOM_DEPARTMENT)).AsString() == "Квартиры")

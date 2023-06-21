@@ -76,7 +76,12 @@ namespace BIMv2
                         var n3 = typeDoor.LookupParameter("2.1").AsInteger();
                         var n4 = typeDoor.LookupParameter("2.2").AsInteger();
 
-                        
+                        var n5 = typeDoor.LookupParameter("3.1").AsInteger();
+                        var n6 = typeDoor.LookupParameter("3.2").AsInteger();
+                        var n7 = typeDoor.LookupParameter("3.3").AsInteger();
+                        var n8 = typeDoor.LookupParameter("3.4").AsInteger();
+
+
 
                         //var n5 = typeDoor.LookupParameter("Равные полотна").AsInteger();
 
@@ -103,6 +108,26 @@ namespace BIMv2
                         if (n4 == 1)
                         {
                             adsk_otkr = "Левая";
+                        }
+
+                        if (n5 == 1)
+                        {
+                            adsk_otkr = "Левая, обратная";
+                        }
+
+                        if (n6 == 1)
+                        {
+                            adsk_otkr = "Правая, обратная";
+                        }
+
+                        if (n7 == 1)
+                        {
+                            adsk_otkr = "Левая, обратная";
+                        }
+
+                        if (n8 == 1)
+                        {
+                            adsk_otkr = "Правая, обратная";
                         }
 
                         //Равнопольная. Рабочая створка Правая.
