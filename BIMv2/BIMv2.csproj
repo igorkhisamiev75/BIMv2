@@ -175,6 +175,7 @@
     <Compile Include="GroupByMarkEqupmentFurnitureAndWriteToComment.cs" />
     <Compile Include="GroupWallsBeams.cs" />
     <Compile Include="JoinWalls.cs" />
+    <Compile Include="MakingHolesForWindows.cs" />
     <Compile Include="PluginFinish2BIM\CeilingFinish.cs" />
     <Compile Include="ClearProjectBrowser.cs" />
     <Compile Include="ClearProjectBrowserViewsNotSheets.cs" />
