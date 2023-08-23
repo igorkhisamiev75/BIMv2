@@ -57,17 +57,18 @@ namespace BIMv2
                             Document linkDocument = linkInstance.GetLinkDocument();
                             Transform transform = linkInstance.GetTotalTransform();
 
-                            //List<Room> roomsLink = GetAllRoomsLinked(linkDocument);
+                            
 
+                            //собрать окна из связанной модели FCD
                             var listWindows = GetAllWindowsLinked(linkDocument);
 
-                            TaskDialog.Show("N",$"{listWindows.Count}");
+                            //TaskDialog.Show("N",$"{listWindows.Count}");
 
 
                         }
                     }
                 }
-                //собрать окна из связанной модели FCD
+               
 
                
 
@@ -85,7 +86,7 @@ namespace BIMv2
                 //CreateAnyElementInRooms(elem);
                 //CreateAnyElementInLinkedFiles(elem);
 
-                TaskDialog.Show("Complite!", $"Размещено {countlightComplite} элементов");
+                //TaskDialog.Show("Complite!", $"Размещено {countlightComplite} элементов");
                 t.Commit();
 
             }
