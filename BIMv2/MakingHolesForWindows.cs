@@ -31,7 +31,7 @@ namespace BIMv2
         public List<Room> projectRooms = new List<Room>();
 
         public List<XYZ> pointsList = new List<XYZ>();
-
+        
 
         int countlightComplite = 0;
 
@@ -69,32 +69,47 @@ namespace BIMv2
 
                             //получить координаты этих окон
 
-                            XYZ locacionForWall=new XYZ();
-
                             foreach (var element in listWindows)
                             {
+                                XYZ locacionForWall = new XYZ();
+                               
                                 LocationPoint location = element.Location as LocationPoint;
 
                                 string x = location.Point.X.ToString();
                                 string y = location.Point.Y.ToString();
                                 string z = location.Point.Z.ToString();
-                                                                
 
+                                double x2 = location.Point.X;
+                                double y2 = location.Point.Y+1;
+                                double z2 = location.Point.Z;
+
+                                XYZ locacionForWall2 = new XYZ(x2, y2, z2);
+                               
                                 locacionForWall =location.Point;
 
-                                pointsList.Add(locacionForWall);
+                                //pointsList.Add(locacionForWall);
 
-                                //TaskDialog.Show("N",$"{x} {y} {z}");
+                                // Find a Window type for the new windows
+                                FilteredElementCollector winCollector = new FilteredElementCollector(_doc);
+                                IList<Element> windowTypes = winCollector.OfCategory(BuiltInCategory.OST_Windows)
+                                    .WhereElementIsElementType().ToElements();
+                                FamilySymbol winType = windowTypes.First() as FamilySymbol;
+
+                                // Find a Generic model
+                                FilteredElementCollector winCollector2 = new FilteredElementCollector(_doc);
+                                IList<Element> windowTypes2 = winCollector2.OfCategory(BuiltInCategory.OST_StructuralColumns)
+                                    .WhereElementIsElementType().ToElements();
+                                FamilySymbol winType2 = windowTypes2.First() as FamilySymbol;
+
+                                FamilyInstance instance =
+                                   _doc.Create.NewFamilyInstance(locacionForWall2, winType2, /*newWall,*/ StructuralType.NonStructural);
+
+                                _doc.Regenerate();
+
+                                //TaskDialog.Show("N",/*$"{x} {y} {z}"*/"new");
                             }
 
-                            // Find a Window type for the new windows
-                            FilteredElementCollector winCollector = new FilteredElementCollector(_doc);
-                            IList<Element> windowTypes = winCollector.OfCategory(BuiltInCategory.OST_Windows)
-                                .WhereElementIsElementType().ToElements();
-                            FamilySymbol winType = windowTypes.First() as FamilySymbol;
-
-                            FamilyInstance instance = 
-                               _doc.Create.NewFamilyInstance(locacionForWall, winType, newWall, StructuralType.NonStructural);
+                           
 
                             //TaskDialog.Show("N",$"{listWindows.Count}");
 
@@ -103,14 +118,13 @@ namespace BIMv2
                     }
                 }
                
-
-               
-
                 
                 // получить ID окна
+                //получить размер окна
+                //записать в созданный класс
                 // создать проемы в стенаъ по координатам каждого окна
                 //записать ID окна в ID отверстия
-                //
+                //обновлять координаты для уже созданных отверстий
 
 
 
