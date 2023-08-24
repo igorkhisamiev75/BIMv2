@@ -12,9 +12,10 @@ using Autodesk.Revit.DB.Structure;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Selection;
 
-using Microsoft.Office.Interop.Excel;
+
 
 using Application = Autodesk.Revit.ApplicationServices.Application;
+//using Point = Autodesk.Revit.DB.Point;
 
 #endregion
 
@@ -28,6 +29,10 @@ namespace BIMv2
         public ElementId linkDocId = new ElementId(BuiltInCategory.OST_RvtLinks);
         public List<ElementId> roomids = new List<ElementId>();
         public List<Room> projectRooms = new List<Room>();
+
+        public List<XYZ> pointsList = new List<XYZ>();
+
+
         int countlightComplite = 0;
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
@@ -64,6 +69,8 @@ namespace BIMv2
 
                             //получить координаты этих окон
 
+                            XYZ locacionForWall=new XYZ();
+
                             foreach (var element in listWindows)
                             {
                                 LocationPoint location = element.Location as LocationPoint;
@@ -71,11 +78,23 @@ namespace BIMv2
                                 string x = location.Point.X.ToString();
                                 string y = location.Point.Y.ToString();
                                 string z = location.Point.Z.ToString();
+                                                                
 
+                                locacionForWall =location.Point;
 
-                                TaskDialog.Show("N",$"{x} {y} {z}");
+                                pointsList.Add(locacionForWall);
+
+                                //TaskDialog.Show("N",$"{x} {y} {z}");
                             }
 
+                            // Find a Window type for the new windows
+                            FilteredElementCollector winCollector = new FilteredElementCollector(_doc);
+                            IList<Element> windowTypes = winCollector.OfCategory(BuiltInCategory.OST_Windows)
+                                .WhereElementIsElementType().ToElements();
+                            FamilySymbol winType = windowTypes.First() as FamilySymbol;
+
+                            FamilyInstance instance = 
+                               _doc.Create.NewFamilyInstance(locacionForWall, winType, newWall, StructuralType.NonStructural);
 
                             //TaskDialog.Show("N",$"{listWindows.Count}");
 
