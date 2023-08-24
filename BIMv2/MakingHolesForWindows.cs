@@ -62,6 +62,21 @@ namespace BIMv2
                             //собрать окна из связанной модели FCD
                             var listWindows = GetAllWindowsLinked(linkDocument);
 
+                            //получить координаты этих окон
+
+                            foreach (var element in listWindows)
+                            {
+                                LocationPoint location = element.Location as LocationPoint;
+
+                                string x = location.Point.X.ToString();
+                                string y = location.Point.Y.ToString();
+                                string z = location.Point.Z.ToString();
+
+
+                                TaskDialog.Show("N",$"{x} {y} {z}");
+                            }
+
+
                             //TaskDialog.Show("N",$"{listWindows.Count}");
 
 
@@ -72,7 +87,7 @@ namespace BIMv2
 
                
 
-                //получить координаты этих окон
+                
                 // получить ID окна
                 // создать проемы в стенаъ по координатам каждого окна
                 //записать ID окна в ID отверстия
