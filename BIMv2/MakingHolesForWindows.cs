@@ -31,7 +31,7 @@ namespace BIMv2
         public List<Room> projectRooms = new List<Room>();
 
         public List<XYZ> pointsList = new List<XYZ>();
-        
+
 
         int countlightComplite = 0;
 
@@ -56,13 +56,13 @@ namespace BIMv2
 
                     if (linkedInstances != null)
                     {
-                       
+
                         foreach (var linkInstance in linkedInstances)
                         {
                             Document linkDocument = linkInstance.GetLinkDocument();
                             Transform transform = linkInstance.GetTotalTransform();
 
-                            
+
 
                             //собрать окна из связанной модели FCD
                             var listWindows = GetAllWindowsLinked(linkDocument);
@@ -72,7 +72,7 @@ namespace BIMv2
                             foreach (var element in listWindows)
                             {
                                 XYZ locacionForWall = new XYZ();
-                               
+
                                 LocationPoint location = element.Location as LocationPoint;
 
                                 string x = location.Point.X.ToString();
@@ -80,12 +80,12 @@ namespace BIMv2
                                 string z = location.Point.Z.ToString();
 
                                 double x2 = location.Point.X;
-                                double y2 = location.Point.Y+1;
+                                double y2 = location.Point.Y + 1;
                                 double z2 = location.Point.Z;
 
                                 XYZ locacionForWall2 = new XYZ(x2, y2, z2);
-                               
-                                locacionForWall =location.Point;
+
+                                locacionForWall = location.Point;
 
                                 //pointsList.Add(locacionForWall);
 
@@ -95,21 +95,44 @@ namespace BIMv2
                                     .WhereElementIsElementType().ToElements();
                                 FamilySymbol winType = windowTypes.First() as FamilySymbol;
 
-                                // Find a Generic model
+                                // Find a StructuralColumns
                                 FilteredElementCollector winCollector2 = new FilteredElementCollector(_doc);
                                 IList<Element> windowTypes2 = winCollector2.OfCategory(BuiltInCategory.OST_StructuralColumns)
                                     .WhereElementIsElementType().ToElements();
                                 FamilySymbol winType2 = windowTypes2.First() as FamilySymbol;
 
+                                //создае несущую колонну
+
                                 FamilyInstance instance =
                                    _doc.Create.NewFamilyInstance(locacionForWall2, winType2, /*newWall,*/ StructuralType.NonStructural);
+
+                                var allWalls = GetAllWall(_doc);
+
+                                foreach (Element wall in allWalls)
+                                {
+                                    BoundingBoxXYZ boundingBoxXYZ = wall.get_BoundingBox(null);
+                                    BoundingBoxXYZ boundingBoxXYZ2 = instance.get_BoundingBox(null);
+
+                                    if (bbIntersect(boundingBoxXYZ, boundingBoxXYZ2))
+                                    {
+                                        FamilyInstance instance2 =
+                                            _doc.Create.NewFamilyInstance(locacionForWall2, winType, wall, StructuralType.NonStructural);
+
+                                        TaskDialog.Show("N", "отверстие сделано");
+
+                                    }
+
+
+                                }
+
+
 
                                 _doc.Regenerate();
 
                                 //TaskDialog.Show("N",/*$"{x} {y} {z}"*/"new");
                             }
 
-                           
+
 
                             //TaskDialog.Show("N",$"{listWindows.Count}");
 
@@ -117,8 +140,8 @@ namespace BIMv2
                         }
                     }
                 }
-               
-                
+
+
                 // получить ID окна
                 //получить размер окна
                 //записать в созданный класс
@@ -324,6 +347,18 @@ namespace BIMv2
             return allRooms;
         }
 
+        public IList<Element> GetAllWall(Document document)
+        {
+               var room_collector = new FilteredElementCollector(_doc)
+                                    .OfCategory(BuiltInCategory.OST_Walls)
+                                    .WhereElementIsNotElementType();
+        IList<ElementId> room_eids = room_collector.ToElementIds() as IList<ElementId>;
+        IList<Element> allWalls = room_collector.ToElements();
+
+            return allWalls;
+
+    }
+
         private IEnumerable<RevitLinkInstance> FindLinkedInstances()
         {
             var collector = new FilteredElementCollector(_doc);
@@ -331,6 +366,23 @@ namespace BIMv2
                 .OfClass(typeof(RevitLinkInstance))
                 .Cast<RevitLinkInstance>()
                 .ToList();
+        }
+
+        public bool bbIntersect(BoundingBoxXYZ BoxXYZ, BoundingBoxXYZ BoxXYZ2)
+        {
+            if (BoxXYZ != null && BoxXYZ2 != null)
+            {
+                Outline outline1 = new Outline(BoxXYZ.Min, BoxXYZ.Max);
+                Outline outline2 = new Outline(BoxXYZ2.Min, BoxXYZ2.Max);
+
+                if (outline1.Intersects(outline2, 0))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+
         }
 
 
