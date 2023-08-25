@@ -62,15 +62,20 @@ namespace BIMv2
                             Document linkDocument = linkInstance.GetLinkDocument();
                             Transform transform = linkInstance.GetTotalTransform();
 
-
-
                             //собрать окна из связанной модели FCD
                             var listWindows = GetAllWindowsLinked(linkDocument);
+
+                            //собрать отверстия елси они есть и получить марку
+
+                            var listOpenings = GetAllWindowsLinked(_doc);
 
                             //получить координаты этих окон
 
                             foreach (var windowsElement in listWindows)
                             {
+
+                             
+
                                 XYZ locacionForWall = new XYZ();
 
                                 LocationPoint location = windowsElement.Location as LocationPoint;
@@ -103,65 +108,99 @@ namespace BIMv2
 
                                 double x2 = location.Point.X;
                                 double y2 = location.Point.Y ;
-                                double z2 = location.Point.Z- 2.62467;
+                                double z2 = location.Point.Z;
+                                //double z2 = location.Point.Z - 2.62467;
 
                                 XYZ locacionForWall2 = new XYZ(x2, y2, z2);
 
                                 locacionForWall = location.Point;
 
-                                //pointsList.Add(locacionForWall);
+                                int moveI = 0;
 
-                                // Find a Window type for the new windows
-                                FilteredElementCollector winCollector = new FilteredElementCollector(_doc);
-                                IList<Element> windowTypes = winCollector.OfCategory(BuiltInCategory.OST_Windows)
-                                    .WhereElementIsElementType().ToElements();
-                                FamilySymbol winType = windowTypes.First() as FamilySymbol;
+                                //находим одинаковые отверстия и окна по ID
 
-                                // Find a StructuralColumns
-                                FilteredElementCollector winCollector2 = new FilteredElementCollector(_doc);
-                                IList<Element> windowTypes2 = winCollector2.OfCategory(BuiltInCategory.OST_StructuralColumns)
-                                    .WhereElementIsElementType().ToElements();
-                                FamilySymbol winType2 = windowTypes2.First() as FamilySymbol;
-
-                                //создае несущую колонну
-
-                                FamilyInstance instance =
-                                   _doc.Create.NewFamilyInstance(locacionForWall2, winType2, /*newWall,*/ StructuralType.NonStructural);
-
-                                var allWalls = GetAllWall(_doc);
-
-                                _doc.Regenerate();
-
-                                foreach (Element wall in allWalls)
+                                foreach (var openingElement in listOpenings)
                                 {
-                                    BoundingBoxXYZ boundingBoxXYZ = wall.get_BoundingBox(_doc.ActiveView);
-                                    BoundingBoxXYZ boundingBoxXYZ2 = instance.get_BoundingBox(_doc.ActiveView);
+                                    string markOpenings = openingElement.LookupParameter("Марка").AsString();
 
-                                    if (bbIntersect(boundingBoxXYZ, boundingBoxXYZ2))
+                                    if (markOpenings == markForWindos)
                                     {
-                                        //создаем окно
-                                        FamilyInstance instance2 =
-                                            _doc.Create.NewFamilyInstance(locacionForWall2, winType, wall, StructuralType.NonStructural);
-                                        instance2.LookupParameter("Ширина").Set(widhtWindows);
-                                        instance2.LookupParameter("Высота").Set(heightWindows);
+                                        //проверить координаты
 
-                                        instance2.LookupParameter("Марка").Set(markForWindos);
+                                        LocationPoint locationOpenings = openingElement.Location as LocationPoint;
 
-                                        //TaskDialog.Show("N", "отверстие сделано");
+                                        if (location != locationOpenings)
+                                        {
+                                            ElementTransformUtils.MoveElement(_doc, openingElement.Id, locacionForWall2);
+
+                                            _doc.Regenerate();
+                                        }
+
+                                       
+
+                                        moveI = 1;
+                                        continue;
+                                    }
+
+                                   
+                                }
+
+                                if(moveI == 0)
+                                {
+                                    // Find a Window type for the new windows
+                                    FilteredElementCollector winCollector = new FilteredElementCollector(_doc);
+                                    IList<Element> windowTypes = winCollector.OfCategory(BuiltInCategory.OST_Windows)
+                                        .WhereElementIsElementType().ToElements();
+                                    FamilySymbol winType = windowTypes.First() as FamilySymbol;
+
+                                    // Find a StructuralColumns
+                                    FilteredElementCollector winCollector2 = new FilteredElementCollector(_doc);
+                                    IList<Element> windowTypes2 = winCollector2.OfCategory(BuiltInCategory.OST_StructuralColumns)
+                                        .WhereElementIsElementType().ToElements();
+                                    FamilySymbol winType2 = windowTypes2.First() as FamilySymbol;
+
+                                    //создае несущую колонну
+
+                                    FamilyInstance instance =
+                                       _doc.Create.NewFamilyInstance(locacionForWall2, winType2, /*newWall,*/ StructuralType.NonStructural);
+
+                                    var allWalls = GetAllWall(_doc);
+
+                                    _doc.Regenerate();
+
+                                    foreach (Element wall in allWalls)
+                                    {
+                                        BoundingBoxXYZ boundingBoxXYZ = wall.get_BoundingBox(_doc.ActiveView);
+                                        BoundingBoxXYZ boundingBoxXYZ2 = instance.get_BoundingBox(_doc.ActiveView);
+
+                                        if (bbIntersect(boundingBoxXYZ, boundingBoxXYZ2))
+                                        {
+                                            //создаем окно
+                                            FamilyInstance instance2 =
+                                                _doc.Create.NewFamilyInstance(locacionForWall2, winType, wall, StructuralType.NonStructural);
+                                            instance2.LookupParameter("Ширина").Set(widhtWindows);
+                                            instance2.LookupParameter("Высота").Set(heightWindows);
+
+                                            instance2.LookupParameter("Марка").Set(markForWindos);
+
+                                            //TaskDialog.Show("N", "отверстие сделано");
+
+                                        }
+
 
                                     }
 
+                                    //_doc.Delete(element.Id);
+
+
+                                    _doc.Regenerate();
+
+                                    _doc.Delete(instance.Id);
+
+                                    _doc.Regenerate();
 
                                 }
-
-                                //_doc.Delete(element.Id);
-
-
-                                _doc.Regenerate();
-
-                                _doc.Delete(instance.Id);
-
-                                _doc.Regenerate();
+                               
 
 
                                 //TaskDialog.Show("N",/*$"{x} {y} {z}"*/"new");
