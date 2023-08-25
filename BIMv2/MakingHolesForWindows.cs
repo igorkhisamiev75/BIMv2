@@ -75,8 +75,20 @@ namespace BIMv2
 
                                 LocationPoint location = windowsElement.Location as LocationPoint;
 
-                                double heightWindows = windowsElement.LookupParameter("Высота").AsDouble();
-                                double widhtWindows = windowsElement.LookupParameter("Ширина").AsDouble();
+                                ElementType type = linkDocument.GetElement(windowsElement.GetTypeId()) as ElementType;
+
+                                double heightWindows = 10;
+                                double widhtWindows = 10;
+
+
+                                if (type != null)
+                                {
+                                    heightWindows = type.LookupParameter("Высота").AsDouble();
+                                    widhtWindows = type.LookupParameter("Ширина").AsDouble();
+                                }
+
+
+                               
 
 
                                 //string x = location.Point.X.ToString();
@@ -124,6 +136,8 @@ namespace BIMv2
                                         //создаем окно
                                         FamilyInstance instance2 =
                                             _doc.Create.NewFamilyInstance(locacionForWall2, winType, wall, StructuralType.NonStructural);
+                                        instance2.LookupParameter("Ширина").Set(widhtWindows);
+                                        instance2.LookupParameter("Высота").Set(heightWindows);
 
                                         //TaskDialog.Show("N", "отверстие сделано");
 
