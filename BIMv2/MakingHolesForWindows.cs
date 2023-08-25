@@ -74,8 +74,6 @@ namespace BIMv2
                             foreach (var windowsElement in listWindows)
                             {
 
-                             
-
                                 XYZ locacionForWall = new XYZ();
 
                                 LocationPoint location = windowsElement.Location as LocationPoint;
@@ -108,10 +106,10 @@ namespace BIMv2
 
                                 double x2 = location.Point.X;
                                 double y2 = location.Point.Y ;
-                                double z2 = location.Point.Z;
-                                //double z2 = location.Point.Z - 2.62467;
+                                //double z2 = location.Point.Z;
+                                double z2 = location.Point.Z - 2.62467;
 
-                                XYZ locacionForWall2 = new XYZ(x2, y2, z2);
+                                XYZ locationWindow = new XYZ(x2, y2, z2);
 
                                 locacionForWall = location.Point;
 
@@ -131,7 +129,13 @@ namespace BIMv2
 
                                         if (location != locationOpenings)
                                         {
-                                            ElementTransformUtils.MoveElement(_doc, openingElement.Id, locacionForWall2);
+                                            double x3 = locationOpenings.Point.X;
+                                            double y3 = locationOpenings.Point.Y;
+                                            double z3 = locationOpenings.Point.Z;
+
+                                            XYZ locationMove = new XYZ(x2-x3, y2-y3, z2-z3);
+
+                                            ElementTransformUtils.MoveElement(_doc, openingElement.Id, locationMove);
 
                                             _doc.Regenerate();
                                         }
@@ -162,7 +166,7 @@ namespace BIMv2
                                     //создае несущую колонну
 
                                     FamilyInstance instance =
-                                       _doc.Create.NewFamilyInstance(locacionForWall2, winType2, /*newWall,*/ StructuralType.NonStructural);
+                                       _doc.Create.NewFamilyInstance(locationWindow, winType2, /*newWall,*/ StructuralType.NonStructural);
 
                                     var allWalls = GetAllWall(_doc);
 
@@ -177,7 +181,7 @@ namespace BIMv2
                                         {
                                             //создаем окно
                                             FamilyInstance instance2 =
-                                                _doc.Create.NewFamilyInstance(locacionForWall2, winType, wall, StructuralType.NonStructural);
+                                                _doc.Create.NewFamilyInstance(locationWindow, winType, wall, StructuralType.NonStructural);
                                             instance2.LookupParameter("Ширина").Set(widhtWindows);
                                             instance2.LookupParameter("Высота").Set(heightWindows);
 
