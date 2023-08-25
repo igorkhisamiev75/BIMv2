@@ -69,18 +69,22 @@ namespace BIMv2
 
                             //получить координаты этих окон
 
-                            foreach (var element in listWindows)
+                            foreach (var windowsElement in listWindows)
                             {
                                 XYZ locacionForWall = new XYZ();
 
-                                LocationPoint location = element.Location as LocationPoint;
+                                LocationPoint location = windowsElement.Location as LocationPoint;
 
-                                string x = location.Point.X.ToString();
-                                string y = location.Point.Y.ToString();
-                                string z = location.Point.Z.ToString();
+                                double heightWindows = windowsElement.LookupParameter("Высота").AsDouble();
+                                double widhtWindows = windowsElement.LookupParameter("Ширина").AsDouble();
+
+
+                                //string x = location.Point.X.ToString();
+                                //string y = location.Point.Y.ToString();
+                                //string z = location.Point.Z.ToString();
 
                                 double x2 = location.Point.X;
-                                double y2 = location.Point.Y + 1;
+                                double y2 = location.Point.Y ;
                                 double z2 = location.Point.Z;
 
                                 XYZ locacionForWall2 = new XYZ(x2, y2, z2);
@@ -108,23 +112,27 @@ namespace BIMv2
 
                                 var allWalls = GetAllWall(_doc);
 
+                                _doc.Regenerate();
+
                                 foreach (Element wall in allWalls)
                                 {
-                                    BoundingBoxXYZ boundingBoxXYZ = wall.get_BoundingBox(null);
-                                    BoundingBoxXYZ boundingBoxXYZ2 = instance.get_BoundingBox(null);
+                                    BoundingBoxXYZ boundingBoxXYZ = wall.get_BoundingBox(_doc.ActiveView);
+                                    BoundingBoxXYZ boundingBoxXYZ2 = instance.get_BoundingBox(_doc.ActiveView);
 
                                     if (bbIntersect(boundingBoxXYZ, boundingBoxXYZ2))
                                     {
+                                        //создаем окно
                                         FamilyInstance instance2 =
                                             _doc.Create.NewFamilyInstance(locacionForWall2, winType, wall, StructuralType.NonStructural);
 
-                                        TaskDialog.Show("N", "отверстие сделано");
+                                        //TaskDialog.Show("N", "отверстие сделано");
 
                                     }
 
 
                                 }
 
+                                //_doc.Delete(element.Id);
 
 
                                 _doc.Regenerate();
@@ -349,7 +357,7 @@ namespace BIMv2
 
         public IList<Element> GetAllWall(Document document)
         {
-               var room_collector = new FilteredElementCollector(_doc)
+               var room_collector = new FilteredElementCollector(document)
                                     .OfCategory(BuiltInCategory.OST_Walls)
                                     .WhereElementIsNotElementType();
         IList<ElementId> room_eids = room_collector.ToElementIds() as IList<ElementId>;
