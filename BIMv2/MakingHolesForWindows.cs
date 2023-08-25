@@ -75,6 +75,16 @@ namespace BIMv2
 
                                 LocationPoint location = windowsElement.Location as LocationPoint;
 
+                                //получаем ID окна
+
+                                ElementId idWindows = windowsElement.Id;
+
+                                string markForWindos = idWindows.ToString();
+
+                                //TaskDialog.Show("N", $"{idWindows}");
+
+
+                                //получаем размеры окна
                                 ElementType type = linkDocument.GetElement(windowsElement.GetTypeId()) as ElementType;
 
                                 double heightWindows = 10;
@@ -87,17 +97,13 @@ namespace BIMv2
                                     widhtWindows = type.LookupParameter("Ширина").AsDouble();
                                 }
 
-
-                               
-
-
                                 //string x = location.Point.X.ToString();
                                 //string y = location.Point.Y.ToString();
                                 //string z = location.Point.Z.ToString();
 
                                 double x2 = location.Point.X;
                                 double y2 = location.Point.Y ;
-                                double z2 = location.Point.Z;
+                                double z2 = location.Point.Z- 2.62467;
 
                                 XYZ locacionForWall2 = new XYZ(x2, y2, z2);
 
@@ -139,6 +145,8 @@ namespace BIMv2
                                         instance2.LookupParameter("Ширина").Set(widhtWindows);
                                         instance2.LookupParameter("Высота").Set(heightWindows);
 
+                                        instance2.LookupParameter("Марка").Set(markForWindos);
+
                                         //TaskDialog.Show("N", "отверстие сделано");
 
                                     }
@@ -150,6 +158,11 @@ namespace BIMv2
 
 
                                 _doc.Regenerate();
+
+                                _doc.Delete(instance.Id);
+
+                                _doc.Regenerate();
+
 
                                 //TaskDialog.Show("N",/*$"{x} {y} {z}"*/"new");
                             }
