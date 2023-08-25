@@ -111,6 +111,19 @@ namespace BIMv2Buttons
             BitmapImage pb1ImageB3_2 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-door-32.png"));
             pb1B3_2.LargeImage = pb1ImageB3_2;
 
+            //попробуем создать еще одну кнопку
+            ribbonPanelb2.AddSeparator(); //разделитель между кнопками
+
+            // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData b1DataB3_3 = new PushButtonData("cmdMakingHolesForWindows", "Отверстия"
+                + Environment.NewLine + "для окон", thisAssemblyPath, "BIMv2.MakingHolesForWindows");
+
+            PushButton pb1B3_3 = ribbonPanelb2.AddItem(b1DataB3_3) as PushButton;
+            pb1B3_3.ToolTip = "Создаем отверстия и обновляем тут";
+
+            BitmapImage pb1ImageB3_3 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-win-32.png"));
+            pb1B3_3.LargeImage = pb1ImageB3_3;
+
             #endregion
 
             //кнопки 2BIM

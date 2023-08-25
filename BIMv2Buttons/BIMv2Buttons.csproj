@@ -198,6 +198,7 @@
     <Compile Include="GroupTypeWallSweepsAndWriteToComment\GroupTypeWallSweepsAndWriteToComment.cs" />
     <Compile Include="HelpBIM\HelpBIM.cs" />
     <Compile Include="LightingFixtures\SumAllLightingFixtureInRoom.cs" />
+    <Compile Include="MakingHolesForWindows\MakingHolesForWindows.cs" />
     <Compile Include="NormalIlluminationForLightFix.cs\NormalIlluminationForLightFix.cs" />
     <Compile Include="PowerFactorElectrical\PowerFactorElectrical.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -309,6 +310,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\icons8-3d-modeling-32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\icons8-win-32.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

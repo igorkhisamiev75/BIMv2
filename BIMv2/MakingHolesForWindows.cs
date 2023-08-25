@@ -235,7 +235,8 @@ namespace BIMv2
                 //CreateAnyElementInRooms(elem);
                 //CreateAnyElementInLinkedFiles(elem);
 
-                //TaskDialog.Show("Complite!", $"Размещено {countlightComplite} элементов");
+                TaskDialog.Show("Complite!", $"Отверстия под окна сделаны");
+
                 t.Commit();
 
             }
