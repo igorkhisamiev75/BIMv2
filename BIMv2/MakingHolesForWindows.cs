@@ -123,6 +123,11 @@ namespace BIMv2
 
                                     if (markOpenings == markForWindos)
                                     {
+                                        //проверяем размеры и забиваем нужные
+
+                                        openingElement.LookupParameter("Ширина").Set(widhtWindows);
+                                        openingElement.LookupParameter("Высота").Set(heightWindows);
+
                                         //проверить координаты
 
                                         LocationPoint locationOpenings = openingElement.Location as LocationPoint;
@@ -212,9 +217,6 @@ namespace BIMv2
 
 
 
-                            //TaskDialog.Show("N",$"{listWindows.Count}");
-
-
                         }
                     }
                 }
@@ -234,6 +236,9 @@ namespace BIMv2
 
                 //CreateAnyElementInRooms(elem);
                 //CreateAnyElementInLinkedFiles(elem);
+
+
+
 
                 TaskDialog.Show("Complite!", $"Отверстия под окна сделаны");
 
