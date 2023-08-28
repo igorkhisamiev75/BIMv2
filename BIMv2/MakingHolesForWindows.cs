@@ -81,7 +81,7 @@ namespace BIMv2
 
                             foreach (Element element in listOpenings)
                             {
-                                if(element != null && element.Name == "ADSK_/////////")
+                                if(element != null && element.Name == "ADSK_Окно_ПроемПрямоугольный")
                                 {
                                     listOpeningsClear.Add(element);
                                 }
@@ -94,20 +94,13 @@ namespace BIMv2
 
                                 //если есть отверстия по ID то передвигаем, если нет то создаем новое
 
-
-
-                                XYZ locacionForWall = new XYZ();
-
-                                LocationPoint location = windowsElement.Location as LocationPoint;
-
                                 //получаем ID окна
 
                                 ElementId idWindows = windowsElement.Id;
-
                                 string markForWindos = idWindows.ToString();
 
-                                //TaskDialog.Show("N", $"{idWindows}");
-
+                                XYZ locacionForWall = new XYZ();
+                                LocationPoint location = windowsElement.Location as LocationPoint;
 
                                 //получаем размеры окна
                                 ElementType type = linkDocument.GetElement(windowsElement.GetTypeId()) as ElementType;
@@ -132,13 +125,8 @@ namespace BIMv2
 
                                 }
 
-                                //string x = location.Point.X.ToString();
-                                //string y = location.Point.Y.ToString();
-                                //string z = location.Point.Z.ToString();
-
                                 double x2 = location.Point.X;
                                 double y2 = location.Point.Y ;
-                                //double z2 = location.Point.Z;
                                 double z2 = location.Point.Z - 2.62467;
 
                                 XYZ locationWindow = new XYZ(x2, y2, z2);
@@ -245,26 +233,63 @@ namespace BIMv2
                                     _doc.Regenerate();
 
                                 }
-                               
-                                //удалить отверстия при удалении окна 
+
+                                
 
 
                                 //TaskDialog.Show("N",/*$"{x} {y} {z}"*/"new");
                             }
 
+                            //удалить отверстия при удалении окна 
+
+                            //все отверстия
+                            IList<Element> listOpeningsNew = GetAllWindows(_doc);
+
+                            //все окна
+                            IList<Element> listWindows4 = GetAllWindows(linkDocument);
+
+                            IList<string> listWindowsSt=new List<string>();
+
+                            foreach (Element element2 in listWindows4)
+                            {
+                                ElementId idWindowsNew5 = element2.Id;
+                                string markOpenings5 = idWindowsNew5.ToString();
+
+                                listWindowsSt.Add(markOpenings5);
+
+
+                            }
+
+                            foreach (Element element in listOpeningsNew)
+                            {
+                                string markOpenings = element.LookupParameter("Марка").AsString();
+
+                                if (listWindowsSt.Contains(markOpenings))
+                                {
+                                    continue;
+                                       
+                                }
+                                else
+                                {
+                                    _doc.Delete(element.Id);
+                                }
+                                
+
+                            }
 
 
                         }
+
+                        
                     }
                 }
 
 
-                // получить ID окна
-                //получить размер окна
-            
-                // создать проемы в стенаъ по координатам каждого окна
-                //записать ID окна в ID отверстия
-              
+
+
+
+
+
 
                 TaskDialog.Show("Complite!", $"Отверстия под окна сделаны");
 
