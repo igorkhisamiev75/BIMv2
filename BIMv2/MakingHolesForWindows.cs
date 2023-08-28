@@ -55,8 +55,6 @@ namespace BIMv2
 
                 //получить связанную модель FCD
 
-
-
                 IEnumerable<RevitLinkInstance> linkedInstances = FindLinkedInstances();
 
                 foreach (RevitLinkInstance linkedInstance in linkedInstances)
@@ -68,19 +66,35 @@ namespace BIMv2
                         foreach (var linkInstance in linkedInstances)
                         {
                             Document linkDocument = linkInstance.GetLinkDocument();
-                            Transform transform = linkInstance.GetTotalTransform();
+                            //Transform transform = linkInstance.GetTotalTransform();
 
                             //собрать окна из связанной модели FCD
-                            var listWindows = GetAllWindowsLinked(linkDocument);
+                            IList<Element> listWindows = GetAllWindows(linkDocument);
 
                             //собрать отверстия елси они есть и получить марку
 
-                            var listOpenings = GetAllWindowsLinked(_doc);
+                            IList<Element> listOpenings = GetAllWindows(_doc);
+
+                            IList<Element> listOpeningsClear=new List<Element>();   
+
+                            //оставим только отверстия
+
+                            foreach (Element element in listOpenings)
+                            {
+                                if(element != null && element.Name == "ADSK_/////////")
+                                {
+                                    listOpeningsClear.Add(element);
+                                }
+                            }
 
                             //получить координаты этих окон
 
                             foreach (var windowsElement in listWindows)
                             {
+
+                                //если есть отверстия по ID то передвигаем, если нет то создаем новое
+
+
 
                                 XYZ locacionForWall = new XYZ();
 
@@ -135,7 +149,7 @@ namespace BIMv2
 
                                 //находим одинаковые отверстия и окна по ID
 
-                                foreach (var openingElement in listOpenings)
+                                foreach (var openingElement in listOpeningsClear)
                                 {
                                     string markOpenings = openingElement.LookupParameter("Марка").AsString();
 
@@ -161,14 +175,20 @@ namespace BIMv2
                                             ElementTransformUtils.MoveElement(_doc, openingElement.Id, locationMove);
 
                                             _doc.Regenerate();
+
+                                            moveI = 1;
                                         }
 
                                        
 
-                                        moveI = 1;
-                                        continue;
+                                        
+                                        //continue;
                                     }
 
+                                    if(moveI == 1)
+                                    {
+                                        continue;
+                                    }
                                    
                                 }
 
@@ -256,7 +276,7 @@ namespace BIMv2
         }
 
 
-        public IList<Element> GetAllWindowsLinked(Document document)
+        public IList<Element> GetAllWindows(Document document)
         {
             // List all Room's
             var room_collector = new FilteredElementCollector(document)
