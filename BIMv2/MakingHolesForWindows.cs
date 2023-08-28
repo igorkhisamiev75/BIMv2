@@ -96,8 +96,18 @@ namespace BIMv2
 
                                 if (type != null)
                                 {
-                                    heightWindows = type.LookupParameter("Высота").AsDouble();
-                                    widhtWindows = type.LookupParameter("Ширина").AsDouble();
+                                    try
+                                    {
+                                        heightWindows = type.LookupParameter("Высота").AsDouble();
+                                        widhtWindows = type.LookupParameter("Ширина").AsDouble();
+                                    }
+
+                                    catch
+                                    {
+                                        heightWindows = type.LookupParameter("Примерная высота").AsDouble();
+                                        widhtWindows = type.LookupParameter("Примерная ширина").AsDouble();
+                                    }
+
                                 }
 
                                 //string x = location.Point.X.ToString();
