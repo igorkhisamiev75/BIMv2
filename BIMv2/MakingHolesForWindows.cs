@@ -32,9 +32,6 @@ namespace BIMv2
 
         public List<XYZ> pointsList = new List<XYZ>();
 
-
-        int countlightComplite = 0;
-
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             var uiApp = commandData.Application;
@@ -47,7 +44,18 @@ namespace BIMv2
             {
                 t.Start("Create");
 
+                //все стены                   
+                IList<Element> allWalls = GetAllWall(_doc);
+
+                //семйество для вставки
+
+                FamilySymbol symbol = GetSymbol(_doc, "2bimRU_SC", "2bimRU_SC");
+
+                FamilySymbol symbol2 = GetSymbol(_doc, "ADSK_Окно_ПроемПрямоугольный", "ADSK_Окно_ПроемПрямоугольный");
+
                 //получить связанную модель FCD
+
+
 
                 IEnumerable<RevitLinkInstance> linkedInstances = FindLinkedInstances();
 
@@ -167,23 +175,21 @@ namespace BIMv2
                                 if(moveI == 0)
                                 {
                                     // Find a Window type for the new windows
-                                    FilteredElementCollector winCollector = new FilteredElementCollector(_doc);
-                                    IList<Element> windowTypes = winCollector.OfCategory(BuiltInCategory.OST_Windows)
-                                        .WhereElementIsElementType().ToElements();
-                                    FamilySymbol winType = windowTypes.First() as FamilySymbol;
+                                    //FilteredElementCollector winCollector = new FilteredElementCollector(_doc);
+                                    //IList<Element> windowTypes = winCollector.OfCategory(BuiltInCategory.OST_Windows)
+                                    //    .WhereElementIsElementType().ToElements();
+                                    //FamilySymbol winType = windowTypes.First() as FamilySymbol;
 
-                                    // Find a StructuralColumns
-                                    FilteredElementCollector winCollector2 = new FilteredElementCollector(_doc);
-                                    IList<Element> windowTypes2 = winCollector2.OfCategory(BuiltInCategory.OST_StructuralColumns)
-                                        .WhereElementIsElementType().ToElements();
-                                    FamilySymbol winType2 = windowTypes2.First() as FamilySymbol;
+                                    //// Find a StructuralColumns
+                                    //FilteredElementCollector winCollector2 = new FilteredElementCollector(_doc);
+                                    //IList<Element> windowTypes2 = winCollector2.OfCategory(BuiltInCategory.OST_StructuralColumns)
+                                    //    .WhereElementIsElementType().ToElements();
+                                    //FamilySymbol winType2 = windowTypes2.First() as FamilySymbol;
 
                                     //создае несущую колонну
 
                                     FamilyInstance instance =
-                                       _doc.Create.NewFamilyInstance(locationWindow, winType2, /*newWall,*/ StructuralType.NonStructural);
-
-                                    var allWalls = GetAllWall(_doc);
+                                       _doc.Create.NewFamilyInstance(locationWindow, symbol, /*newWall,*/ StructuralType.NonStructural);
 
                                     _doc.Regenerate();
 
@@ -196,7 +202,7 @@ namespace BIMv2
                                         {
                                             //создаем окно
                                             FamilyInstance instance2 =
-                                                _doc.Create.NewFamilyInstance(locationWindow, winType, wall, StructuralType.NonStructural);
+                                                _doc.Create.NewFamilyInstance(locationWindow, symbol2, wall, StructuralType.NonStructural);
                                             instance2.LookupParameter("Ширина").Set(widhtWindows);
                                             instance2.LookupParameter("Высота").Set(heightWindows);
 
@@ -220,6 +226,7 @@ namespace BIMv2
 
                                 }
                                
+                                //удалить отверстия при удалении окна 
 
 
                                 //TaskDialog.Show("N",/*$"{x} {y} {z}"*/"new");
@@ -234,21 +241,10 @@ namespace BIMv2
 
                 // получить ID окна
                 //получить размер окна
-                //записать в созданный класс
+            
                 // создать проемы в стенаъ по координатам каждого окна
                 //записать ID окна в ID отверстия
-                //обновлять координаты для уже созданных отверстий
-
-
-
-                //Reference r = uiDoc.Selection.PickObject(ObjectType.Element, "Выбрать элемент для размещения во всех помещениях");
-                //Element elem = uiDoc.Document.GetElement(r);
-
-                //CreateAnyElementInRooms(elem);
-                //CreateAnyElementInLinkedFiles(elem);
-
-
-
+              
 
                 TaskDialog.Show("Complite!", $"Отверстия под окна сделаны");
 
@@ -259,175 +255,6 @@ namespace BIMv2
             return Result.Succeeded;
         }
 
-        private void CreateAnyElementInRooms(Element elem)
-        {
-            FamilyInstance familyInstance = elem as FamilyInstance;
-            FamilySymbol familySymbol = familyInstance.Symbol;
-
-            var Rooms = GetAllRooms();
-
-            if (Rooms != null)
-            {
-                int i = 0;
-                foreach (var room in Rooms)
-                {
-                    var areaRoom = room.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble();
-                    var volumeRoom = room.get_Parameter(BuiltInParameter.ROOM_VOLUME).AsDouble();
-                    var heighRoom = volumeRoom / areaRoom;
-
-                    if (areaRoom != 0)
-                    {
-                        var level = room.LevelId;
-
-                        Level level1 = GetLevelFromRoom(level);
-
-                        LocationPoint lpPoint = (LocationPoint)room.Location;
-
-                        XYZ pointFoLigh = lpPoint.Point;
-
-                        XYZ placeXyzPoint = new XYZ(pointFoLigh.X, pointFoLigh.Y, heighRoom);
-
-                        FamilyInstance instLight = _doc.Create.NewFamilyInstance(
-                                placeXyzPoint, familySymbol, level1, StructuralType.NonStructural);
-                        i++;
-                    }
-
-                }
-
-                countlightComplite = i;
-            }
-
-        }
-
-        private void CreateAnyElementInLinkedFiles(Element elem)
-        {
-            FamilyInstance familyInstance = elem as FamilyInstance;
-            FamilySymbol familySymbol = familyInstance.Symbol;
-
-            IEnumerable<RevitLinkInstance> linkedInstances = FindLinkedInstances();
-
-            if (linkedInstances != null)
-            {
-                int j = 0;
-                foreach (var linkInstance in linkedInstances)
-                {
-                    Document linkDocument = linkInstance.GetLinkDocument();
-                    Transform transform = linkInstance.GetTotalTransform();
-
-                    List<Room> roomsLink = GetAllRoomsLinked(linkDocument);
-
-                    if (roomsLink != null)
-                    {
-                        foreach (var room in roomsLink)
-                        {
-
-                            var areaRoom = room.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble();
-                            var volumeRoom = room.get_Parameter(BuiltInParameter.ROOM_VOLUME).AsDouble();
-                            var heightRoom = volumeRoom / areaRoom;
-
-                            if (areaRoom != 0)
-                            {
-                                var level = room.LevelId;
-
-                                Level level1 = GetLevelFromRoom(level);
-
-                                if (level1 == null)
-                                {
-                                    level1 = GetLevelFromRoomByName(room);
-                                }
-
-                                LocationPoint lpPoint = (LocationPoint)room.Location;
-
-                                XYZ pointFoLigh = lpPoint.Point;
-
-                                var targetPoint = transform.OfPoint(pointFoLigh);
-
-                                XYZ placeXyzPoint = new XYZ(targetPoint.X, targetPoint.Y, heightRoom);
-
-                                FamilyInstance instLight = _doc.Create.NewFamilyInstance(
-                                        placeXyzPoint, familySymbol, level1, StructuralType.NonStructural);
-                                j++;
-                            }
-
-
-                        }
-                    }
-
-
-                }
-                countlightComplite += j;
-            }
-
-        }
-
-        private Level GetLevelFromRoom(ElementId elementId)
-        {
-            FilteredElementCollector lvlCollector = new FilteredElementCollector(_doc);
-            ICollection<Element> lvlCollection = lvlCollector.OfClass(typeof(Level)).ToElements();
-
-            foreach (Element l in lvlCollection)
-            {
-                if (l.Id == elementId)
-                {
-                    return (Level)l;
-                }
-
-            }
-
-            return null;
-
-        }
-
-        private Level GetLevelFromRoomByName(Room room)
-        {
-            FilteredElementCollector lvlCollector = new FilteredElementCollector(_doc);
-            ICollection<Element> lvlCollection = lvlCollector.OfClass(typeof(Level)).ToElements();
-
-            foreach (Element l in lvlCollection)
-            {
-                if (l.Name == room.Level.Name)
-                {
-                    return (Level)l;
-                }
-
-            }
-            return null;
-
-        }
-
-
-
-        public IList<Element> GetAllRooms()
-        {
-            // List all Room's
-            var room_collector = new FilteredElementCollector(_doc)
-                .OfCategory(BuiltInCategory.OST_Rooms)
-                .WhereElementIsNotElementType();
-            IList<ElementId> room_eids = room_collector.ToElementIds() as IList<ElementId>;
-            var allRooms = room_collector.ToElements();
-
-            return allRooms;
-        }
-
-
-        public List<Room> GetAllRoomsLinked(Document document)
-        {
-
-            FilteredElementCollector roomCollect = new FilteredElementCollector(document);
-            roomCollect.OfCategory(BuiltInCategory.OST_Rooms);
-            Room room = null;
-            projectRooms = new List<Room>();
-
-            foreach (Element elem in roomCollect)
-            {
-                room = elem as Room;
-                if (room != null)
-                {
-                    projectRooms.Add(room);
-                }
-            }
-            return projectRooms;
-        }
 
         public IList<Element> GetAllWindowsLinked(Document document)
         {
@@ -451,7 +278,32 @@ namespace BIMv2
 
             return allWalls;
 
-    }
+        }
+
+        public FamilySymbol ST(Document document)
+        {
+
+            // Find a StructuralColumns
+            FilteredElementCollector winCollector2 = new FilteredElementCollector(document);
+            IList<Element> windowTypes2 = winCollector2.OfCategory(BuiltInCategory.OST_StructuralColumns)
+                .WhereElementIsElementType().ToElements();
+
+            FamilySymbol winType2 = windowTypes2.First() as FamilySymbol;
+
+            return winType2;
+                      
+
+        }
+
+        public FamilySymbol GetSymbol(Document document, string familyName, string symbolName)
+        {
+            return new FilteredElementCollector(document)
+                .OfClass(typeof(Family)).OfType<Family>()
+                .FirstOrDefault(f => f.Name.Equals(familyName))?.GetFamilySymbolIds()
+                .Select(id => document.GetElement(id)).OfType<FamilySymbol>().FirstOrDefault(symbol => symbol.Name.Equals(symbolName));
+        }
+
+
 
         private IEnumerable<RevitLinkInstance> FindLinkedInstances()
         {
@@ -478,6 +330,8 @@ namespace BIMv2
             return false;
 
         }
+
+
 
 
     }
