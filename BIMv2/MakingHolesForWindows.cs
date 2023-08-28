@@ -42,7 +42,7 @@ namespace BIMv2
 
             using (var t = new Transaction(_doc))
             {
-                t.Start("Create");
+                t.Start("Create openings for FCD windows");
 
                 //все стены                   
                 IList<Element> allWalls = GetAllWall(_doc);
@@ -50,7 +50,6 @@ namespace BIMv2
                 //семйество для вставки
 
                 FamilySymbol symbol = GetSymbol(_doc, "2bimRU_SC", "2bimRU_SC");
-
                 FamilySymbol symbol2 = GetSymbol(_doc, "ADSK_Окно_ПроемПрямоугольный", "ADSK_Окно_ПроемПрямоугольный");
 
                 //получить связанную модель FCD
@@ -62,19 +61,16 @@ namespace BIMv2
 
                     if (linkedInstances != null)
                     {
-
                         foreach (var linkInstance in linkedInstances)
                         {
                             Document linkDocument = linkInstance.GetLinkDocument();
-                            //Transform transform = linkInstance.GetTotalTransform();
-
+                            
                             //собрать окна из связанной модели FCD
                             IList<Element> listWindows = GetAllWindows(linkDocument);
 
-                            //собрать отверстия елси они есть и получить марку
+                            //собрать отверстия если они есть и получить марку
 
                             IList<Element> listOpenings = GetAllWindows(_doc);
-
                             IList<Element> listOpeningsClear=new List<Element>();   
 
                             //оставим только отверстия
@@ -86,19 +82,17 @@ namespace BIMv2
                                     listOpeningsClear.Add(element);
                                 }
                             }
-
-                            //получить координаты этих окон
-
+                                                        
+                            //перебор по каждому фасадному окну
                             foreach (var windowsElement in listWindows)
                             {
-
                                 //если есть отверстия по ID то передвигаем, если нет то создаем новое
-
                                 //получаем ID окна
 
                                 ElementId idWindows = windowsElement.Id;
                                 string markForWindos = idWindows.ToString();
 
+                                //получить координаты этих окон
                                 XYZ locacionForWall = new XYZ();
                                 LocationPoint location = windowsElement.Location as LocationPoint;
 
@@ -113,14 +107,19 @@ namespace BIMv2
                                 {
                                     try
                                     {
-                                        heightWindows = type.LookupParameter("Высота").AsDouble();
-                                        widhtWindows = type.LookupParameter("Ширина").AsDouble();
-                                    }
-
-                                    catch
-                                    {
+                                        //heightWindows = type.LookupParameter("Высота").AsDouble();
+                                        //widhtWindows = type.LookupParameter("Ширина").AsDouble();
                                         heightWindows = type.LookupParameter("Примерная высота").AsDouble();
                                         widhtWindows = type.LookupParameter("Примерная ширина").AsDouble();
+                                    }
+                                    
+                                    catch
+                                    {
+                                        heightWindows = 10;
+                                        widhtWindows = 10;
+
+                                        //heightWindows = type.LookupParameter("Примерная высота").AsDouble();
+                                        //widhtWindows = type.LookupParameter("Примерная ширина").AsDouble();
                                     }
 
                                 }
@@ -165,22 +164,20 @@ namespace BIMv2
                                             _doc.Regenerate();
 
                                             moveI = 1;
+                                            
                                         }
 
-                                       
-
-                                        
-                                        //continue;
                                     }
 
                                     if(moveI == 1)
                                     {
-                                        continue;
+                                        break;
                                     }
-                                   
-                                }
 
-                                if(moveI == 0)
+                                    
+
+                                }
+                                if (moveI == 0)
                                 {
                                     // Find a Window type for the new windows
                                     //FilteredElementCollector winCollector = new FilteredElementCollector(_doc);
@@ -215,7 +212,7 @@ namespace BIMv2
                                             instance2.LookupParameter("Высота").Set(heightWindows);
 
                                             instance2.LookupParameter("Марка").Set(markForWindos);
-
+                                            break;
                                             //TaskDialog.Show("N", "отверстие сделано");
 
                                         }
@@ -234,14 +231,14 @@ namespace BIMv2
 
                                 }
 
-                                
+
+
 
 
                                 //TaskDialog.Show("N",/*$"{x} {y} {z}"*/"new");
                             }
 
-                            //удалить отверстия при удалении окна 
-
+                            
                             //все отверстия
                             IList<Element> listOpeningsNew = GetAllWindows(_doc);
 
@@ -256,7 +253,6 @@ namespace BIMv2
                                 string markOpenings5 = idWindowsNew5.ToString();
 
                                 listWindowsSt.Add(markOpenings5);
-
 
                             }
 
@@ -274,24 +270,16 @@ namespace BIMv2
                                     _doc.Delete(element.Id);
                                 }
                                 
-
                             }
-
-
                         }
 
-                        
                     }
                 }
 
+                //все отверстия
+                IList<Element> listOpeningsNew2 = GetAllWindows(_doc);
 
-
-
-
-
-
-
-                TaskDialog.Show("Complite!", $"Отверстия под окна сделаны");
+                TaskDialog.Show("Complite!", $"Отверстия под окна сделаны и обновлены, всего {listOpeningsNew2.Count.ToString()} отверст-ий(ия)");
 
                 t.Commit();
 
@@ -348,8 +336,6 @@ namespace BIMv2
                 .Select(id => document.GetElement(id)).OfType<FamilySymbol>().FirstOrDefault(symbol => symbol.Name.Equals(symbolName));
         }
 
-
-
         private IEnumerable<RevitLinkInstance> FindLinkedInstances()
         {
             var collector = new FilteredElementCollector(_doc);
@@ -375,9 +361,6 @@ namespace BIMv2
             return false;
 
         }
-
-
-
 
     }
 }
