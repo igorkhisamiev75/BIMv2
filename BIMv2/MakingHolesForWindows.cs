@@ -210,10 +210,17 @@ namespace BIMv2
                                        
                                         string markForNK = "";
 
+                                   BoundingBoxXYZ boundingBoxXYZ2 = instance.get_BoundingBox(_doc.ActiveView);
+
+
                                         foreach (Element wall in allWalls)
-                                    {
-                                        BoundingBoxXYZ boundingBoxXYZ = wall.get_BoundingBox(_doc.ActiveView);
-                                        BoundingBoxXYZ boundingBoxXYZ2 = instance.get_BoundingBox(_doc.ActiveView);
+                                            {
+                                                 BoundingBoxXYZ boundingBoxXYZ = wall.get_BoundingBox(_doc.ActiveView);
+                                       
+
+                                            //BoundingBoxXYZ boundingBoxXYZ3 = windowsElement.get_BoundingBox(_doc.ActiveView);
+
+                                            //windowsElement
 
                                         if (bbIntersect(boundingBoxXYZ, boundingBoxXYZ2))
                                         {
@@ -222,9 +229,11 @@ namespace BIMv2
                                                     ElementId idWall = wall.Id;
                                                     markForNK = idWall.ToString();
 
+                                                    Level level = GetLevel(wall.LevelId);
+
                                                     //создаем окно
                                                     FamilyInstance instance2 =
-                                                        _doc.Create.NewFamilyInstance(locationWindow, symbol2, wall, StructuralType.NonStructural);
+                                                        _doc.Create.NewFamilyInstance(locationWindow, symbol2, wall, level, StructuralType.NonStructural);
 
                                                     //заполняем его нужными параметрами
                                                     instance2.LookupParameter("Ширина").Set(widhtWindows);
@@ -240,6 +249,7 @@ namespace BIMv2
 
                                                 catch
                                                 {
+                                                    TaskDialog.Show("N", "отверстие не сделано сделано");
                                                     continue;
                                                 }
                                             
@@ -316,6 +326,25 @@ namespace BIMv2
         }
 
 
+        public Level GetLevel(ElementId elementId)
+        {
+            FilteredElementCollector lvlCollector = new FilteredElementCollector(_doc);
+            ICollection<Element> lvlCollection = lvlCollector.OfClass(typeof(Level)).ToElements();
+
+            foreach (Element l in lvlCollection)
+            {
+                if (l.Id == elementId)
+                {
+                    return (Level)l;
+                }
+
+            }
+
+            return null;
+
+        }
+       
+
         public IList<Element> GetAllWindows(Document document)
         {
             // List all Room's
@@ -378,10 +407,11 @@ namespace BIMv2
             {
                 Outline outline1 = new Outline(BoxXYZ.Min, BoxXYZ.Max);
 
-                Outline outline2 = new Outline(BoxXYZ2.Max, BoxXYZ2.Max);
+                Outline outline2 = new Outline(BoxXYZ2.Min, BoxXYZ2.Max);
 
-                if (outline1.Intersects(outline2, 1))
+                if (outline1.Intersects(outline2, 0))
                 {
+                    //TaskDialog.Show("N", $"пересекаются {BoxXYZ.ToString()} и {BoxXYZ2.ToString()}");
                     return true;
                 }
             }
