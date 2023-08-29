@@ -111,11 +111,11 @@ namespace BIMv2
                                     //double heightWindows = 1;
                                     //double widhtWindows = 1;
 
-                                    //double widhtWindows = windowsElement.LookupParameter("ADSK_Размер_Ширина").AsDouble();
-                                    //double heightWindows = windowsElement.LookupParameter("ADSK_Размер_Высота").AsDouble();
+                                    double widhtWindows = windowsElement.LookupParameter("ADSK_Размер_Ширина").AsDouble();
+                                    double heightWindows = windowsElement.LookupParameter("ADSK_Размер_Высота").AsDouble();
 
-                                    double widhtWindows = windowsElement.LookupParameter("W_Полная ширина").AsDouble();
-                                    double heightWindows = windowsElement.LookupParameter("W_Полная высота").AsDouble();
+                                    //double widhtWindows = windowsElement.LookupParameter("W_Полная ширина").AsDouble();
+                                    //double heightWindows = windowsElement.LookupParameter("W_Полная высота").AsDouble();
 
 
                                     //if (type != null)
@@ -141,7 +141,7 @@ namespace BIMv2
 
                                     //}
 
-                                double x2 = location.Point.X;
+                                    double x2 = location.Point.X;
                                 double y2 = location.Point.Y ;
                                 double z2 = location.Point.Z - 2.62467;
                                     //double z2 = location.Point.Z ;
@@ -243,7 +243,7 @@ namespace BIMv2
 
                                                     _doc.Regenerate();
 
-                                                    TaskDialog.Show("N", $"отверстие сделано{markForNK}");
+                                                    //TaskDialog.Show("N", $"отверстие сделано{markForNK}");
                                                     break;
                                                 }
 
@@ -262,7 +262,7 @@ namespace BIMv2
 
                                     _doc.Regenerate();
                                         instance.LookupParameter("Марка").Set(markForNK);
-                                        //_doc.Delete(instance.Id);
+                                        _doc.Delete(instance.Id);
 
                                         _doc.Regenerate();
 
