@@ -21,9 +21,9 @@ namespace BIMv2
     {
        
         private Document _doc;
-        public ElementId linkDocId = new ElementId(BuiltInCategory.OST_RvtLinks);
-        public List<ElementId> roomids = new List<ElementId>();
-        public List<Room> projectRooms = new List<Room>();
+        //public ElementId linkDocId = new ElementId(BuiltInCategory.OST_RvtLinks);
+        //public List<ElementId> roomids = new List<ElementId>();
+        //public List<Room> projectRooms = new List<Room>();
 
         public List<XYZ> pointsList = new List<XYZ>();
 
@@ -143,7 +143,7 @@ namespace BIMv2
                                     }
 
                                     double x2 = location.Point.X;
-                                double y2 = location.Point.Y ;
+                                    double y2 = location.Point.Y ;
                                     
                                     //double z2 = location.Point.Z - 2.62467;
                                     double z2 = location.Point.Z ;
@@ -201,7 +201,6 @@ namespace BIMv2
                                 if (moveI == 0)
                                 {
                                     
-
                                     //создае несущую колонну
 
                                     //FamilyInstance instance =
@@ -217,17 +216,17 @@ namespace BIMv2
 
                                         foreach (Element wall in allWalls)
                                             {
+                                                //bondingbox wall
                                                  BoundingBoxXYZ boundingBoxXYZ = wall.get_BoundingBox(_doc.ActiveView);
                                        
+                                                //bounding Box window
+                                                BoundingBoxXYZ boundingBoxXYZ3 = windowsElement.get_BoundingBox(_doc.ActiveView);
+                                                                                      
 
-                                            BoundingBoxXYZ boundingBoxXYZ3 = windowsElement.get_BoundingBox(_doc.ActiveView);
-
-                                            //windowsElement
-
-                                        if (bbIntersect(boundingBoxXYZ, boundingBoxXYZ3))
-                                        {
-                                                try
-                                                {
+                                                if (bbIntersect(boundingBoxXYZ, boundingBoxXYZ3))
+                                                     {
+                                                        try
+                                                            {
                                                     ElementId idWall = wall.Id;
                                                     markForNK = idWall.ToString();
 
@@ -255,8 +254,6 @@ namespace BIMv2
                                                     continue;
                                                 }
                                             
-                                            
-
                                         }
 
 
@@ -266,7 +263,7 @@ namespace BIMv2
                                     //    instance.LookupParameter("Марка").Set(markForNK);
                                     //    _doc.Delete(instance.Id);
 
-                                        _doc.Regenerate();
+                                        //_doc.Regenerate();
 
                                 }
 
@@ -326,7 +323,7 @@ namespace BIMv2
                 //все отверстия
                 IList<Element> listOpeningsNew2 = GetAllWindows(_doc);
 
-                TaskDialog.Show("Complite!", $"0Отверстия под окна сделаны и обновлены, всего {listOpeningsNew2.Count}");
+                TaskDialog.Show("Complite!", $"- - Отверстия под окна сделаны и обновлены, всего {listOpeningsNew2.Count}");
 
                 t.Commit();
 
@@ -354,7 +351,6 @@ namespace BIMv2
 
         }
        
-
         public IList<Element> GetAllWindows(Document document)
         {
             // List all Room's
