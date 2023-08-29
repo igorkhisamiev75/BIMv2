@@ -207,7 +207,10 @@ namespace BIMv2
 
                                     _doc.Regenerate();
 
-                                    foreach (Element wall in allWalls)
+                                       
+                                        string markForNK = "";
+
+                                        foreach (Element wall in allWalls)
                                     {
                                         BoundingBoxXYZ boundingBoxXYZ = wall.get_BoundingBox(_doc.ActiveView);
                                         BoundingBoxXYZ boundingBoxXYZ2 = instance.get_BoundingBox(_doc.ActiveView);
@@ -216,6 +219,9 @@ namespace BIMv2
                                         {
                                                 try
                                                 {
+                                                    ElementId idWall = wall.Id;
+                                                    markForNK = idWall.ToString();
+
                                                     //создаем окно
                                                     FamilyInstance instance2 =
                                                         _doc.Create.NewFamilyInstance(locationWindow, symbol2, wall, StructuralType.NonStructural);
@@ -228,7 +234,7 @@ namespace BIMv2
 
                                                     _doc.Regenerate();
 
-                                                    //TaskDialog.Show("N", "отверстие сделано");
+                                                    TaskDialog.Show("N", $"отверстие сделано{markForNK}");
                                                     break;
                                                 }
 
@@ -245,10 +251,10 @@ namespace BIMv2
                                     }
 
                                     _doc.Regenerate();
+                                        instance.LookupParameter("Марка").Set(markForNK);
+                                        //_doc.Delete(instance.Id);
 
-                                    _doc.Delete(instance.Id);
-
-                                    _doc.Regenerate();
+                                        _doc.Regenerate();
 
                                 }
 
@@ -300,7 +306,7 @@ namespace BIMv2
                 //все отверстия
                 IList<Element> listOpeningsNew2 = GetAllWindows(_doc);
 
-                TaskDialog.Show("Complite!", $"Отверстия под окна сделаны и обновлены, всего {listOpeningsNew2.Count.ToString()} отверст-(ий/ия)");
+                TaskDialog.Show("Complite!", $"0Отверстия под окна сделаны и обновлены, всего {listOpeningsNew2.Count.ToString()} отверст-(ий/ия)");
 
                 t.Commit();
 
@@ -371,9 +377,10 @@ namespace BIMv2
             if (BoxXYZ != null && BoxXYZ2 != null)
             {
                 Outline outline1 = new Outline(BoxXYZ.Min, BoxXYZ.Max);
-                Outline outline2 = new Outline(BoxXYZ2.Min, BoxXYZ2.Max);
 
-                if (outline1.Intersects(outline2, 0))
+                Outline outline2 = new Outline(BoxXYZ2.Max, BoxXYZ2.Max);
+
+                if (outline1.Intersects(outline2, 1))
                 {
                     return true;
                 }
