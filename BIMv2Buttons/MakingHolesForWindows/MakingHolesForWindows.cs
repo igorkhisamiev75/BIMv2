@@ -20,11 +20,7 @@ namespace BIMv2
     [Transaction(TransactionMode.Manual)]
     public class MakingHolesForWindows : IExternalCommand
     {
-
         private Document _doc;
-        //public ElementId linkDocId = new ElementId(BuiltInCategory.OST_RvtLinks);
-        //public List<ElementId> roomids = new List<ElementId>();
-        //public List<Room> projectRooms = new List<Room>();
 
         public List<XYZ> pointsList = new List<XYZ>();
 
@@ -45,7 +41,7 @@ namespace BIMv2
 
                 //семйество для вставки
 
-                FamilySymbol symbol = GetSymbol(_doc, "2bimRU_SC", "2bimRU_SC");
+                //FamilySymbol symbol = GetSymbol(_doc, "2bimRU_SC", "2bimRU_SC");
                 FamilySymbol symbol2 = GetSymbol(_doc, "ADSK_Окно_ПроемПрямоугольный", "ADSK_Окно_ПроемПрямоугольный");
 
                 //получить связанную модель FCD
@@ -73,8 +69,9 @@ namespace BIMv2
                                     listWindowsOnlyWindows.Add(element);
                                 }
 
-
                             }
+
+                            TaskDialog.Show("Complite!", $"Всего окон: {listWindowsOnlyWindows.Count}");
 
                             //собрать отверстия если они есть и получить марку
 
@@ -95,181 +92,194 @@ namespace BIMv2
                             //перебор по каждому фасадному окну
                             foreach (var windowsElement in listWindowsOnlyWindows)
                             {
-                                if (windowsElement != null)
+                                try
                                 {
-                                    //если есть отверстия по ID то передвигаем, если нет то создаем новое
-                                    //получаем ID окна
-
-                                    ElementId idWindows = windowsElement.Id;
-                                    string markForWindos = idWindows.ToString();
-
-                                    //получить координаты этих окон
-                                    XYZ locacionForWall = new XYZ();
-                                    LocationPoint location = windowsElement.Location as LocationPoint;
-
-                                    //получаем размеры окна
-                                    ElementType type = linkDocument.GetElement(windowsElement.GetTypeId()) as ElementType;
-
-                                    //double heightWindows = 1;
-                                    //double widhtWindows = 1;
-
-                                    double widhtWindows = 10;
-                                    double heightWindows = 10;
-
-                                    //double widhtWindows = windowsElement.LookupParameter("W_Полная ширина").AsDouble();
-                                    //double heightWindows = windowsElement.LookupParameter("W_Полная высота").AsDouble();
-
-
-                                    if (type != null)
+                                    if (windowsElement != null)
                                     {
-                                        //heightWindows = type.LookupParameter("Примерная высота").AsDouble();
-                                        //widhtWindows = type.LookupParameter("Примерная ширина").AsDouble();
-                                        try
+                                        //если есть отверстия по ID то передвигаем, если нет то создаем новое
+                                        //получаем ID окна
+
+                                        ElementId idWindows = windowsElement.Id;
+                                        string markForWindows = idWindows.ToString();
+
+                                        //получить координаты окона
+                                        XYZ locacionForWall = new XYZ();
+                                        LocationPoint location = windowsElement.Location as LocationPoint;
+
+                                        //получаем размеры окна
+                                        ElementType type = linkDocument.GetElement(windowsElement.GetTypeId()) as ElementType;
+
+                                        //double heightWindows = 1;
+                                        //double widhtWindows = 1;
+
+                                        //double widhtWindows = 10;
+                                        //double heightWindows =10;
+
+                                        double widhtWindows = windowsElement.LookupParameter("Ширина").AsDouble();
+                                        double heightWindows = windowsElement.LookupParameter("Высота").AsDouble();
+
+                                        //double widhtWindows = windowsElement.LookupParameter("W_Полная ширина").AsDouble();
+                                        //double heightWindows = windowsElement.LookupParameter("W_Полная высота").AsDouble();
+
+
+                                        //if (type != null)
+                                        //{
+                                        //    //heightWindows = type.LookupParameter("Примерная высота").AsDouble();
+                                        //    //widhtWindows = type.LookupParameter("Примерная ширина").AsDouble();
+                                        //    try
+                                        //    {
+                                        //        //heightWindows = type.LookupParameter("Высота").AsDouble();
+                                        //        //widhtWindows = type.LookupParameter("Ширина").AsDouble();
+                                        //        heightWindows = type.LookupParameter("Примерная высота").AsDouble();
+                                        //        widhtWindows = type.LookupParameter("Примерная ширина").AsDouble();
+                                        //    }
+
+                                        //    catch
+                                        //    {
+                                        //        heightWindows = 10;
+                                        //        widhtWindows = 10;
+
+                                        //        //heightWindows = type.LookupParameter("Примерная высота").AsDouble();
+                                        //        //widhtWindows = type.LookupParameter("Примерная ширина").AsDouble();
+                                        //    }
+
+                                        //}
+
+                                        double x2 = location.Point.X;
+                                        double y2 = location.Point.Y;
+
+                                        double z2 = location.Point.Z - 2.62467;
+                                        //double z2 = location.Point.Z ;
+
+
+
+                                        XYZ locationWindow = new XYZ(x2, y2, z2);
+
+                                        locacionForWall = location.Point;
+
+                                        int moveI = 0;
+
+                                        //находим одинаковые отверстия и окна по ID
+                                        foreach (Element openingElement in listOpeningsClear)
                                         {
-                                            //heightWindows = type.LookupParameter("Высота").AsDouble();
-                                            //widhtWindows = type.LookupParameter("Ширина").AsDouble();
-                                            heightWindows = type.LookupParameter("Примерная высота").AsDouble();
-                                            widhtWindows = type.LookupParameter("Примерная ширина").AsDouble();
-                                        }
+                                            string markOpenings = openingElement.LookupParameter("Марка").AsString();
 
-                                        catch
-                                        {
-                                            heightWindows = 10;
-                                            widhtWindows = 10;
-
-                                            //heightWindows = type.LookupParameter("Примерная высота").AsDouble();
-                                            //widhtWindows = type.LookupParameter("Примерная ширина").AsDouble();
-                                        }
-
-                                    }
-
-                                    double x2 = location.Point.X;
-                                    double y2 = location.Point.Y;
-
-                                    //double z2 = location.Point.Z - 2.62467;
-                                    double z2 = location.Point.Z;
-
-
-
-                                    XYZ locationWindow = new XYZ(x2, y2, z2);
-
-                                    locacionForWall = location.Point;
-
-                                    int moveI = 0;
-
-                                    //находим одинаковые отверстия и окна по ID
-                                    foreach (Element openingElement in listOpeningsClear)
-                                    {
-                                        string markOpenings = openingElement.LookupParameter("Марка").AsString();
-
-                                        if (markOpenings == markForWindos)
-                                        {
-                                            //проверяем размеры и забиваем нужные
-
-                                            openingElement.LookupParameter("Ширина").Set(widhtWindows);
-                                            openingElement.LookupParameter("Высота").Set(heightWindows);
-
-                                            //проверить координаты
-
-                                            LocationPoint locationOpenings = openingElement.Location as LocationPoint;
-
-                                            if (location != locationOpenings)
+                                            if (markOpenings == markForWindows)
                                             {
-                                                double x3 = locationOpenings.Point.X;
-                                                double y3 = locationOpenings.Point.Y;
-                                                double z3 = locationOpenings.Point.Z;
+                                                //проверяем размеры и забиваем нужные
 
-                                                XYZ locationMove = new XYZ(x2 - x3, y2 - y3, z2 - z3);
+                                                openingElement.LookupParameter("Ширина").Set(widhtWindows);
+                                                openingElement.LookupParameter("Высота").Set(heightWindows);
 
-                                                ElementTransformUtils.MoveElement(_doc, openingElement.Id, locationMove);
+                                                //проверить координаты
 
-                                                _doc.Regenerate();
+                                                LocationPoint locationOpenings = openingElement.Location as LocationPoint;
 
-                                                moveI = 1;
-
-                                            }
-
-                                        }
-
-                                        if (moveI == 1)
-                                        {
-                                            break;
-                                        }
-
-
-
-                                    }
-                                    if (moveI == 0)
-                                    {
-
-                                        //создае несущую колонну
-
-                                        //FamilyInstance instance =
-                                        //   _doc.Create.NewFamilyInstance(locationWindow, symbol, /*newWall,*/ StructuralType.NonStructural);
-
-                                        //_doc.Regenerate();
-
-
-                                        string markForNK = "";
-
-                                        //BoundingBoxXYZ boundingBoxXYZ2 = instance.get_BoundingBox(_doc.ActiveView);
-
-
-                                        foreach (Element wall in allWalls)
-                                        {
-                                            //bondingbox wall
-                                            BoundingBoxXYZ boundingBoxXYZ = wall.get_BoundingBox(_doc.ActiveView);
-
-                                            //bounding Box window
-                                            BoundingBoxXYZ boundingBoxXYZ3 = windowsElement.get_BoundingBox(_doc.ActiveView);
-
-
-                                            if (bbIntersect(boundingBoxXYZ, boundingBoxXYZ3))
-                                            {
-                                                try
+                                                if (location != locationOpenings)
                                                 {
-                                                    ElementId idWall = wall.Id;
-                                                    markForNK = idWall.ToString();
+                                                    double x3 = locationOpenings.Point.X;
+                                                    double y3 = locationOpenings.Point.Y;
+                                                    double z3 = locationOpenings.Point.Z;
 
-                                                    Level level = GetLevel(wall.LevelId);
+                                                    XYZ locationMove = new XYZ(x2 - x3, y2 - y3, z2 - z3);
 
-                                                    //создаем окно
-                                                    FamilyInstance instance2 =
-                                                        _doc.Create.NewFamilyInstance(locationWindow, symbol2, wall, level, StructuralType.NonStructural);
-
-                                                    //заполняем его нужными параметрами
-                                                    instance2.LookupParameter("Ширина").Set(widhtWindows);
-                                                    instance2.LookupParameter("Высота").Set(heightWindows);
-
-                                                    instance2.LookupParameter("Марка").Set(markForWindos);
+                                                    ElementTransformUtils.MoveElement(_doc, openingElement.Id, locationMove);
 
                                                     _doc.Regenerate();
 
-                                                    //TaskDialog.Show("N", $"отверстие сделано{markForNK}");
-                                                    break;
-                                                }
+                                                    moveI = 1;
 
-                                                catch
-                                                {
-                                                    //TaskDialog.Show("N", "отверстие не сделано сделано");
-                                                    continue;
                                                 }
 
                                             }
 
+                                            if (moveI == 1)
+                                            {
+                                                break;
+                                            }
+
+
+
+                                        }
+                                        if (moveI == 0)
+                                        {
+
+                                            //создае несущую колонну
+
+                                            //FamilyInstance instance =
+                                            //   _doc.Create.NewFamilyInstance(locationWindow, symbol, /*newWall,*/ StructuralType.NonStructural);
+
+                                            //_doc.Regenerate();
+
+
+                                            string markForNK = "";
+
+                                            //BoundingBoxXYZ boundingBoxXYZ2 = instance.get_BoundingBox(_doc.ActiveView);
+
+
+                                            foreach (Element wall in allWalls)
+                                            {
+                                                //bondingbox wall
+                                                BoundingBoxXYZ boundingBoxXYZ = wall.get_BoundingBox(_doc.ActiveView);
+
+                                                //bounding Box window
+                                                BoundingBoxXYZ boundingBoxXYZ3 = windowsElement.get_BoundingBox(_doc.ActiveView);
+
+
+                                                if (bbIntersect(boundingBoxXYZ, boundingBoxXYZ3))
+                                                {
+                                                    try
+                                                    {
+                                                        ElementId idWall = wall.Id;
+                                                        markForNK = idWall.ToString();
+
+                                                        Level level = GetLevel(wall.LevelId);
+
+
+                                                        //создаем окно
+                                                        FamilyInstance instance2 =
+                                                            _doc.Create.NewFamilyInstance(locationWindow, symbol2, wall, level, StructuralType.NonStructural);
+
+                                                        //заполняем его нужными параметрами
+                                                        instance2.LookupParameter("Ширина").Set(widhtWindows);
+                                                        instance2.LookupParameter("Высота").Set(heightWindows);
+
+                                                        instance2.LookupParameter("Марка").Set(markForWindows);
+
+                                                        _doc.Regenerate();
+
+                                                        //TaskDialog.Show("N", $"отверстие сделано{markForNK}");
+                                                        break;
+                                                    }
+
+                                                    catch
+                                                    {
+                                                        //TaskDialog.Show("N", "отверстие не сделано сделано");
+                                                        continue;
+                                                    }
+
+                                                }
+
+
+                                            }
+
+                                            _doc.Regenerate();
+                                            //    instance.LookupParameter("Марка").Set(markForNK);
+                                            //_doc.Delete(instance.Id);
+
+                                            //_doc.Regenerate();
 
                                         }
 
-                                        //_doc.Regenerate();
-                                        //    instance.LookupParameter("Марка").Set(markForNK);
-                                        //    _doc.Delete(instance.Id);
-
-                                        //_doc.Regenerate();
 
                                     }
-
-
                                 }
+
+                                catch
+                                {
+                                    continue;
+                                }
+
 
 
                                 //TaskDialog.Show("N",/*$"{x} {y} {z}"*/"new");
@@ -322,9 +332,22 @@ namespace BIMv2
                 }
 
                 //все отверстия
-                IList<Element> listOpeningsNew2 = GetAllWindows(_doc);
+                IList<Element> listOpeningsNew2 = new List<Element>();
 
-                TaskDialog.Show("Complite!", $"- - Отверстия под окна сделаны и обновлены, всего {listOpeningsNew2.Count}");
+                //все отверстия
+                IList<Element> listOpeningsNew4 = GetAllWindows(_doc);
+
+                foreach (Element element in listOpeningsNew4)
+                {
+                    if (element != null && element.Name == "ADSK_Окно_ПроемПрямоугольный")
+                    {
+                        listOpeningsNew2.Add(element);
+                    }
+                }
+
+
+
+                TaskDialog.Show("Complite!", $"1 Отверстия под окна сделаны и обновлены, всего {listOpeningsNew2.Count}");
 
                 t.Commit();
 
