@@ -44,7 +44,7 @@ namespace BIMv2
 
                 //семйество для вставки
 
-                FamilySymbol symbol = GetSymbol(_doc, "2bimRU_SC", "2bimRU_SC");
+                //FamilySymbol symbol = GetSymbol(_doc, "2bimRU_SC", "2bimRU_SC");
                 FamilySymbol symbol2 = GetSymbol(_doc, "ADSK_Окно_ПроемПрямоугольный", "ADSK_Окно_ПроемПрямоугольный");
 
                 //получить связанную модель FCD
@@ -65,7 +65,9 @@ namespace BIMv2
                             //собрать окна из связанной модели FCD
                             IList<Element> listWindows = GetAllWindows(linkDocument);
 
-                            foreach(Element element in listWindows)
+                            
+
+                            foreach (Element element in listWindows)
                             {
                                 if(element != null&&element.Name!="ПВХ"&&element.Name != "Отлив_металлический")
                                 {
@@ -74,6 +76,8 @@ namespace BIMv2
 
 
                             }
+
+                            TaskDialog.Show("Complite!", $"Всего окон: {listWindowsOnlyWindows.Count}");
 
                             //собрать отверстия если они есть и получить марку
 
@@ -100,9 +104,9 @@ namespace BIMv2
                                 //получаем ID окна
 
                                 ElementId idWindows = windowsElement.Id;
-                                string markForWindos = idWindows.ToString();
+                                string markForWindows = idWindows.ToString();
 
-                                //получить координаты этих окон
+                                //получить координаты окона
                                 XYZ locacionForWall = new XYZ();
                                 LocationPoint location = windowsElement.Location as LocationPoint;
 
@@ -112,35 +116,35 @@ namespace BIMv2
                                     //double heightWindows = 1;
                                     //double widhtWindows = 1;
 
-                                    double widhtWindows = 10;
-                                    double heightWindows =10;
+                                    //double widhtWindows = 10;
+                                    //double heightWindows =10;
 
-                                    //double widhtWindows = windowsElement.LookupParameter("W_Полная ширина").AsDouble();
-                                    //double heightWindows = windowsElement.LookupParameter("W_Полная высота").AsDouble();
+                                    double widhtWindows = windowsElement.LookupParameter("Ширина").AsDouble();
+                                    double heightWindows = windowsElement.LookupParameter("Высота").AsDouble();
 
 
-                                    if (type != null)
-                                    {
-                                        //heightWindows = type.LookupParameter("Примерная высота").AsDouble();
-                                        //widhtWindows = type.LookupParameter("Примерная ширина").AsDouble();
-                                        try
-                                        {
-                                            //heightWindows = type.LookupParameter("Высота").AsDouble();
-                                            //widhtWindows = type.LookupParameter("Ширина").AsDouble();
-                                            heightWindows = type.LookupParameter("Примерная высота").AsDouble();
-                                            widhtWindows = type.LookupParameter("Примерная ширина").AsDouble();
-                                        }
+                                    //if (type != null)
+                                    //{
+                                    //    //heightWindows = type.LookupParameter("Примерная высота").AsDouble();
+                                    //    //widhtWindows = type.LookupParameter("Примерная ширина").AsDouble();
+                                    //    try
+                                    //    {
+                                    //        heightWindows = type.LookupParameter("Высота").AsDouble();
+                                    //        widhtWindows = type.LookupParameter("Ширина").AsDouble();
+                                    //        //heightWindows = type.LookupParameter("Примерная высота").AsDouble();
+                                    //        //widhtWindows = type.LookupParameter("Примерная ширина").AsDouble();
+                                    //    }
 
-                                        catch
-                                        {
-                                            heightWindows = 10;
-                                            widhtWindows = 10;
+                                    //    catch
+                                    //    {
+                                    //        heightWindows = 10;
+                                    //        widhtWindows = 10;
 
-                                            //heightWindows = type.LookupParameter("Примерная высота").AsDouble();
-                                            //widhtWindows = type.LookupParameter("Примерная ширина").AsDouble();
-                                        }
+                                    //        //heightWindows = type.LookupParameter("Примерная высота").AsDouble();
+                                    //        //widhtWindows = type.LookupParameter("Примерная ширина").AsDouble();
+                                    //    }
 
-                                    }
+                                    //}
 
                                     double x2 = location.Point.X;
                                     double y2 = location.Point.Y ;
@@ -161,7 +165,7 @@ namespace BIMv2
                                 {
                                     string markOpenings = openingElement.LookupParameter("Марка").AsString();
 
-                                    if (markOpenings == markForWindos)
+                                    if (markOpenings == markForWindows)
                                     {
                                         //проверяем размеры и забиваем нужные
 
@@ -200,15 +204,15 @@ namespace BIMv2
                                 }
                                 if (moveI == 0)
                                 {
-                                    
-                                    //создае несущую колонну
 
-                                    //FamilyInstance instance =
-                                    //   _doc.Create.NewFamilyInstance(locationWindow, symbol, /*newWall,*/ StructuralType.NonStructural);
+                                        //создае несущую колонну
 
-                                    //_doc.Regenerate();
+                                        //FamilyInstance instance =
+                                        //   _doc.Create.NewFamilyInstance(locationWindow, symbol, /*newWall,*/ StructuralType.NonStructural);
 
-                                       
+                                        //_doc.Regenerate();
+
+
                                         string markForNK = "";
 
                                    //BoundingBoxXYZ boundingBoxXYZ2 = instance.get_BoundingBox(_doc.ActiveView);
@@ -232,6 +236,7 @@ namespace BIMv2
 
                                                     Level level = GetLevel(wall.LevelId);
 
+                                                   
                                                     //создаем окно
                                                     FamilyInstance instance2 =
                                                         _doc.Create.NewFamilyInstance(locationWindow, symbol2, wall, level, StructuralType.NonStructural);
@@ -240,7 +245,7 @@ namespace BIMv2
                                                     instance2.LookupParameter("Ширина").Set(widhtWindows);
                                                     instance2.LookupParameter("Высота").Set(heightWindows);
 
-                                                    instance2.LookupParameter("Марка").Set(markForWindos);
+                                                    instance2.LookupParameter("Марка").Set(markForWindows);
 
                                                     _doc.Regenerate();
 
@@ -259,9 +264,9 @@ namespace BIMv2
 
                                     }
 
-                                    //_doc.Regenerate();
+                                    _doc.Regenerate();
                                     //    instance.LookupParameter("Марка").Set(markForNK);
-                                    //    _doc.Delete(instance.Id);
+                                        //_doc.Delete(instance.Id);
 
                                         //_doc.Regenerate();
 
@@ -311,7 +316,7 @@ namespace BIMv2
                                 }
                                 else
                                 {
-                                    _doc.Delete(element.Id);
+                                   // _doc.Delete(element.Id);
                                 }
                                 
                             }
@@ -323,7 +328,7 @@ namespace BIMv2
                 //все отверстия
                 IList<Element> listOpeningsNew2 = GetAllWindows(_doc);
 
-                TaskDialog.Show("Complite!", $"- - Отверстия под окна сделаны и обновлены, всего {listOpeningsNew2.Count}");
+                TaskDialog.Show("Complite!", $"35 Отверстия под окна сделаны и обновлены, всего {listOpeningsNew2.Count}");
 
                 t.Commit();
 
