@@ -346,7 +346,7 @@ namespace BIMv2
 
 
 
-                TaskDialog.Show("Complite!", $"1 Отверстия под окна сделаны и обновлены, всего {listOpeningsNew2.Count}");
+                TaskDialog.Show("Complite!", $"0409 Отверстия под окна сделаны и обновлены, всего {listOpeningsNew2.Count}");
 
                 t.Commit();
 
