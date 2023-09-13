@@ -177,6 +177,7 @@
     <Compile Include="JoinWalls.cs" />
     <Compile Include="MakingHolesForFacadeWindows.cs" />
     <Compile Include="MakingHolesForWindows.cs" />
+    <Compile Include="MakingHolesForWindowsCheck.cs" />
     <Compile Include="PluginFinish2BIM\CeilingFinish.cs" />
     <Compile Include="ClearProjectBrowser.cs" />
     <Compile Include="ClearProjectBrowserViewsNotSheets.cs" />
