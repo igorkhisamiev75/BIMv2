@@ -42,7 +42,7 @@ namespace BIMv2
                 //семйество для вставки
 
                 //FamilySymbol symbol = GetSymbol(_doc, "2bimRU_SC", "2bimRU_SC");
-                FamilySymbol symbol2 = GetSymbol(_doc, "ADSK_Окно_ПроемПрямоугольный", "ADSK_Окно_ПроемПрямоугольный");
+                FamilySymbol symbol2 = GetSymbol(_doc, "Окно_Проем", "Оконный проем");
 
                 //получить связанную модель FCD
 
@@ -64,7 +64,7 @@ namespace BIMv2
 
                             foreach (Element element in listWindows)
                             {
-                                if (element != null && element.Name != "ПВХ" && element.Name != "Отлив_металлический")
+                                if (element.Name == "Оконный проем" )
                                 {
                                     listWindowsOnlyWindows.Add(element);
                                 }
@@ -83,7 +83,7 @@ namespace BIMv2
 
                             foreach (Element element in listOpenings)
                             {
-                                if (element != null && element.Name == "ADSK_Окно_ПроемПрямоугольный")
+                                if (element != null && element.Name == "Оконный проем")
                                 {
                                     listOpeningsClear.Add(element);
                                 }
@@ -148,8 +148,8 @@ namespace BIMv2
                                         double x2 = location.Point.X;
                                         double y2 = location.Point.Y;
 
-                                        double z2 = location.Point.Z - 2.62467;
-                                        //double z2 = location.Point.Z ;
+                                        //double z2 = location.Point.Z - 2.62467;
+                                        double z2 = location.Point.Z ;
 
 
 
