@@ -198,6 +198,7 @@
     <Compile Include="GroupTypeWallSweepsAndWriteToComment\GroupTypeWallSweepsAndWriteToComment.cs" />
     <Compile Include="HelpBIM\HelpBIM.cs" />
     <Compile Include="LightingFixtures\SumAllLightingFixtureInRoom.cs" />
+    <Compile Include="MakingHolesForFacadeWindows\MakingHolesForFacadeWindows.cs" />
     <Compile Include="MakingHolesForWindows\MakingHolesForWindows.cs" />
     <Compile Include="NormalIlluminationForLightFix.cs\NormalIlluminationForLightFix.cs" />
     <Compile Include="PowerFactorElectrical\PowerFactorElectrical.cs" />
