@@ -1,17 +1,14 @@
 ﻿#region Namespace
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
-using Autodesk.Revit.DB.Architecture;
+
 using Autodesk.Revit.DB.Structure;
 using Autodesk.Revit.UI;
 
-using Application = Autodesk.Revit.ApplicationServices.Application;
-//using Point = Autodesk.Revit.DB.Point;
 
 #endregion
 
@@ -79,20 +76,6 @@ namespace BIMv2
                                     listVitragOnly.Add(element);
                                 }
 
-                                //string[] g = element.Name.Split('_');
-
-                                //foreach (string g2 in g)
-                                //{
-                                //    if (g2 == "Остекление алюминиевое")
-                                //    {
-                                //        if (element != null)
-                                //        {
-                                //            listVitragOnly.Add(element);
-                                //        }
-
-                                //    }
-
-                                //}
 
                             }
 
@@ -608,33 +591,7 @@ namespace BIMv2
                                         //высота
                                         double heightWindows = squerWindows/ widhtWindows;
 
-                                        //double widhtWindows = windowsElement.LookupParameter("W_Полная ширина").AsDouble();
-                                        //double heightWindows = windowsElement.LookupParameter("W_Полная высота").AsDouble();
-
-
-                                        //if (type != null)
-                                        //{
-                                        //    //heightWindows = type.LookupParameter("Примерная высота").AsDouble();
-                                        //    //widhtWindows = type.LookupParameter("Примерная ширина").AsDouble();
-                                        //    try
-                                        //    {
-                                        //        //heightWindows = type.LookupParameter("Высота").AsDouble();
-                                        //        //widhtWindows = type.LookupParameter("Ширина").AsDouble();
-                                        //        heightWindows = type.LookupParameter("Примерная высота").AsDouble();
-                                        //        widhtWindows = type.LookupParameter("Примерная ширина").AsDouble();
-                                        //    }
-
-                                        //    catch
-                                        //    {
-                                        //        heightWindows = 10;
-                                        //        widhtWindows = 10;
-
-                                        //        //heightWindows = type.LookupParameter("Примерная высота").AsDouble();
-                                        //        //widhtWindows = type.LookupParameter("Примерная ширина").AsDouble();
-                                        //    }
-
-                                        //}
-
+                                    
                                         
 
                                         var h = locationC.Curve.Tessellate();
@@ -642,7 +599,7 @@ namespace BIMv2
                                         
 
                                         double x2 = h[0].X;
-                                        double y2 = h[1].Y;
+                                        double y2 = h[0].Y+ (widhtWindows/2);
                                         //double z2 = location.Point.Z;
                                         double z2 = h[0].Z;
 
@@ -802,7 +759,7 @@ namespace BIMv2
 
 
 
-                TaskDialog.Show("Complite!", $"0409 Отверстия под окна сделаны и обновлены, всего {listOpeningsNew2.Count}");
+                TaskDialog.Show("Complite!", $"Отверстия под окна сделаны и обновлены, всего {listOpeningsNew2.Count}");
 
                 t.Commit();
 
@@ -864,6 +821,7 @@ namespace BIMv2
             IList<ElementId> room_eids = room_collector.ToElementIds() as IList<ElementId>;
             var allRooms = room_collector.ToElements();
 
+            
             return allRooms;
         }
 
@@ -935,14 +893,3 @@ namespace BIMv2
 
 
 
-// Find a Window type for the new windows
-//FilteredElementCollector winCollector = new FilteredElementCollector(_doc);
-//IList<Element> windowTypes = winCollector.OfCategory(BuiltInCategory.OST_Windows)
-//    .WhereElementIsElementType().ToElements();
-//FamilySymbol winType = windowTypes.First() as FamilySymbol;
-
-//// Find a StructuralColumns
-//FilteredElementCollector winCollector2 = new FilteredElementCollector(_doc);
-//IList<Element> windowTypes2 = winCollector2.OfCategory(BuiltInCategory.OST_StructuralColumns)
-//    .WhereElementIsElementType().ToElements();
-//FamilySymbol winType2 = windowTypes2.First() as FamilySymbol;
