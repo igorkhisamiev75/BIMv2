@@ -176,6 +176,7 @@
     <Compile Include="GroupWallsBeams.cs" />
     <Compile Include="JoinWalls.cs" />
     <Compile Include="MakingHolesForFacadeWindows.cs" />
+    <Compile Include="MakingHolesForFacadeWindowsDoors.cs" />
     <Compile Include="MakingHolesForWindows.cs" />
     <Compile Include="MakingHolesForWindowsCheck.cs" />
     <Compile Include="PluginFinish2BIM\CeilingFinish.cs" />
