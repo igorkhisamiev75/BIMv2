@@ -123,7 +123,7 @@ namespace BIMv2
                                 }
                             }
 
-                            //перебор по каждому фасадному окну
+                            //перебор по каждому окну
                             foreach (var windowsElement in listWindowsOnlyWindows)
                             {
                                 try
@@ -143,41 +143,9 @@ namespace BIMv2
                                         //получаем размеры окна
                                         ElementType type = linkDocument.GetElement(windowsElement.GetTypeId()) as ElementType;
 
-                                        //double heightWindows = 1;
-                                        //double widhtWindows = 1;
-
-                                        //double widhtWindows = 10;
-                                        //double heightWindows =10;
 
                                         double widhtWindows = windowsElement.LookupParameter("Ширина").AsDouble();
                                         double heightWindows = windowsElement.LookupParameter("Высота").AsDouble();
-
-                                        //double widhtWindows = windowsElement.LookupParameter("W_Полная ширина").AsDouble();
-                                        //double heightWindows = windowsElement.LookupParameter("W_Полная высота").AsDouble();
-
-
-                                        //if (type != null)
-                                        //{
-                                        //    //heightWindows = type.LookupParameter("Примерная высота").AsDouble();
-                                        //    //widhtWindows = type.LookupParameter("Примерная ширина").AsDouble();
-                                        //    try
-                                        //    {
-                                        //        //heightWindows = type.LookupParameter("Высота").AsDouble();
-                                        //        //widhtWindows = type.LookupParameter("Ширина").AsDouble();
-                                        //        heightWindows = type.LookupParameter("Примерная высота").AsDouble();
-                                        //        widhtWindows = type.LookupParameter("Примерная ширина").AsDouble();
-                                        //    }
-
-                                        //    catch
-                                        //    {
-                                        //        heightWindows = 10;
-                                        //        widhtWindows = 10;
-
-                                        //        //heightWindows = type.LookupParameter("Примерная высота").AsDouble();
-                                        //        //widhtWindows = type.LookupParameter("Примерная ширина").AsDouble();
-                                        //    }
-
-                                        //}
 
                                         double x2 = location.Point.X;
                                         double y2 = location.Point.Y;
@@ -250,14 +218,15 @@ namespace BIMv2
 
                                             //BoundingBoxXYZ boundingBoxXYZ2 = instance.get_BoundingBox(_doc.ActiveView);
 
+                                            allWalls.Reverse(); 
 
                                             foreach (Element wall in allWalls)
                                             {
                                                 //bondingbox wall
-                                                BoundingBoxXYZ boundingBoxXYZ = wall.get_BoundingBox(_doc.ActiveView);
+                                                BoundingBoxXYZ boundingBoxXYZ = wall.get_BoundingBox(null);
 
                                                 //bounding Box window
-                                                BoundingBoxXYZ boundingBoxXYZ3 = windowsElement.get_BoundingBox(_doc.ActiveView);
+                                                BoundingBoxXYZ boundingBoxXYZ3 = windowsElement.get_BoundingBox(null);
 
 
                                                 if (bbIntersect(boundingBoxXYZ, boundingBoxXYZ3))
@@ -759,7 +728,7 @@ namespace BIMv2
 
 
 
-                TaskDialog.Show("Complite!", $"Отверстия под окна сделаны и обновлены, всего {listOpeningsNew2.Count}");
+                TaskDialog.Show("Complite!", $"Отверстия под окна, витражи и двери сделаны и обновлены, всего {listOpeningsNew2.Count}");
 
                 t.Commit();
 
