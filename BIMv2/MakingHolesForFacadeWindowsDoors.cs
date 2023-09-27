@@ -79,7 +79,7 @@ namespace BIMv2
 
                             }
 
-                            TaskDialog.Show("Complite!", $"Витражей {listVitragOnly.Count}");
+                            TaskDialog.Show("Complite!", $"Всего витражей {listVitragOnly.Count}");
 
                             //собрать двери из связанной модели FCD
                             IList<Element> listDoors = GetAllDoors(linkDocument);
@@ -92,6 +92,8 @@ namespace BIMv2
                                 }
 
                             }
+
+                            TaskDialog.Show("Complite!", $"Всего дверей {listDoors.Count}");
 
                             //собрать окна из связанной модели FCD
                             IList<Element> listWindows = GetAllWindows(linkDocument);
@@ -268,7 +270,7 @@ namespace BIMv2
                                             }
 
                                             //_doc.Regenerate();
-                                            //instance.LookupParameter("Марка").Set(markForNK);
+                                            instance.LookupParameter("Марка").Set(markForNK);
                                             _doc.Delete(instance.Id);
 
                                             _doc.Regenerate();
