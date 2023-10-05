@@ -49,12 +49,12 @@ namespace BIMv2
 
                 foreach (RevitLinkInstance linkedInstance in linkedInstances)
                 {
-
-                    if (linkedInstances != null)
+                    string nameLI = linkedInstance.Name;
+                   
+                    if (nameLI == "27_PD_FCD_ALL_MRGT_R21_WIP.rvt : 5 : позиция <Не общедоступное>")
                     {
-                        foreach (var linkInstance in linkedInstances)
-                        {
-                            Document linkDocument = linkInstance.GetLinkDocument();
+                       
+                            Document linkDocument = linkedInstance.GetLinkDocument();
 
                             IList<Element> listWindowsOnlyWindows=new List<Element>();
 
@@ -70,7 +70,7 @@ namespace BIMv2
 
                             }
 
-                            TaskDialog.Show("Complite!", $"Всего окон: {listWindowsOnlyWindows.Count}");
+                            //TaskDialog.Show("Complite!", $"Всего окон: {listWindowsOnlyWindows.Count}");
 
                             //собрать отверстия если они есть и получить марку
 
@@ -114,11 +114,11 @@ namespace BIMv2
                                         //double widhtWindows = 10;
                                         //double heightWindows =10;
 
-                                        double widhtWindows = windowsElement.LookupParameter("Ширина").AsDouble();
-                                        double heightWindows = windowsElement.LookupParameter("Высота").AsDouble();
+                                        //double widhtWindows = windowsElement.LookupParameter("Ширина").AsDouble();
+                                        //double heightWindows = windowsElement.LookupParameter("Высота").AsDouble();
 
-                                        //double widhtWindows = windowsElement.LookupParameter("W_Полная ширина").AsDouble();
-                                        //double heightWindows = windowsElement.LookupParameter("W_Полная высота").AsDouble();
+                                        double widhtWindows = windowsElement.LookupParameter("W_Полная ширина").AsDouble();
+                                        double heightWindows = windowsElement.LookupParameter("W_Полная высота").AsDouble();
 
 
                                         //if (type != null)
@@ -324,7 +324,7 @@ namespace BIMv2
                                     _doc.Delete(element.Id);
                                 }
                                 
-                            }
+                            
                         }
 
                     }
@@ -346,8 +346,8 @@ namespace BIMv2
 
 
 
-                TaskDialog.Show("Complite!", $"11 Отверстия под окна сделаны и обновлены, всего {listOpeningsNew2.Count}");
-                TaskDialog.Show("Complite!", $"0409 Отверстия под окна сделаны и обновлены, всего {listOpeningsNew2.Count}");
+                //TaskDialog.Show("Complite!", $"11 Отверстия под окна сделаны и обновлены, всего {listOpeningsNew2.Count}");
+                TaskDialog.Show("Complite!", $"Отверстия под окна сделаны и обновлены, всего {listOpeningsNew2.Count}");
 
                 t.Commit();
 
