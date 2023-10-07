@@ -316,5 +316,8 @@
   <ItemGroup>
     <Resource Include="Resources\icons8-win-32.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\icons8-fsd-32.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -147,7 +147,7 @@ namespace BIMv2Buttons
             PushButton pb1B3_5 = ribbonPanelb2.AddItem(b1DataB3_5) as PushButton;
             pb1B3_5.ToolTip = "Создаем отверстия в фасадном файле по архитектурной модели";
 
-            BitmapImage pb1ImageB3_5 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-win-32.png"));
+            BitmapImage pb1ImageB3_5 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-fsd-32.png"));
             pb1B3_5.LargeImage = pb1ImageB3_5;
 
             #endregion
