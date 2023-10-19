@@ -179,7 +179,7 @@ namespace BIMv2
 
                                         double x2 = location.Point.X;
                                         double y2 = location.Point.Y;
-                                        double z2 = location.Point.Z - 2.62467;
+                                        double z2 = location.Point.Z ;
                                         //double z2 = location.Point.Z;
 
 
@@ -392,8 +392,8 @@ namespace BIMv2
                                             double x2 = location.Point.X;
                                             double y2 = location.Point.Y;
 
-                                            double z2 = location.Point.Z - 2.62467;
-                                            //double z2 = location.Point.Z;
+                                            //double z2 = location.Point.Z - 2.62467;
+                                            double z2 = location.Point.Z;
 
 
 
@@ -572,12 +572,14 @@ namespace BIMv2
 
                                             double x2 = 0;
                                             double y2 = 0;
-                                            //double z2 = location.Point.Z;
-                                            double z2 = h[0].Z + 0.6561679790;
+                                        //double z2 = location.Point.Z;
+                                        //double z2 = h[0].Z + 0.6561679790;
+                                        double z2 = h[0].Z + 3.28084;
 
-                                            //направление для стандартных
 
-                                            if (dirX <= 0 && dirY == 1)
+                                        //направление для стандартных
+
+                                        if (dirX <= 0 && dirY == 1)
                                             {
                                                 y2 = h[0].Y + widhtWindows / 2;
                                             }
