@@ -75,7 +75,7 @@ namespace BIMv2
 
                     foreach(var rooms in roomsLinked)
                     {
-                       doc.Create
+                       //doc.Create
                     }
 
                     t.Commit();

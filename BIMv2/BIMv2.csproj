@@ -158,6 +158,7 @@
     <Compile Include="CopyRoomsFromLink.cs" />
     <Compile Include="Create3DViewFromSpace.cs" />
     <Compile Include="CreateCeiling.cs" />
+    <Compile Include="CreateDoorsForFinish.cs" />
     <Compile Include="CreateFinishWallinRooms.cs" />
     <Compile Include="CreateFinishWallinSelectedRoom.cs" />
     <Compile Include="CreateFloorInRoom.cs" />
