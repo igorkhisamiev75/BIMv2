@@ -168,6 +168,7 @@
     <Compile Include="CreateRoomNumber.cs" />
     <Compile Include="CreateScheduleRooms.cs" />
     <Compile Include="CreateViewByLinkedFiles.cs" />
+    <Compile Include="CreateWindowsForFinish.cs" />
     <Compile Include="DelUnplacedRoom.cs" />
     <Compile Include="DoorsInformationTransfer.cs" />
     <Compile Include="DuplicateSheets.cs" />

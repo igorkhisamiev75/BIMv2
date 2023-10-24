@@ -208,7 +208,8 @@ namespace BIMv2
                                                         _doc.Regenerate();
 
                                                         //TaskDialog.Show("N", $"отверстие сделано{markForNK}");
-                                                        break;
+                                                        continue;
+                                                        //break;
                                                     }
 
                                                     catch
