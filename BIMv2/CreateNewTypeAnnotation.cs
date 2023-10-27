@@ -79,7 +79,7 @@ namespace BIMv2
                     }
                 }
 
-                //get all type roofs 
+                //get all type walls 
 
                 FilteredElementCollector filteredElementCollector3 = new FilteredElementCollector(doc);
                 filteredElementCollector3.OfClass(typeof(WallType));

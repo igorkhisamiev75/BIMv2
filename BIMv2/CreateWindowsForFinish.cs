@@ -54,24 +54,11 @@ namespace BIMv2
 
                             Document linkDocument = linkedInstance.GetLinkDocument();
 
-                            //string st = linkedInstance.Name;
-
-                            //TaskDialog.Show("Complite!", $" {st}");
-
-                            //if (st == "27_PD_FCD_ALL_MRGT_R21_WIP")
-                            //{
-                            //    continue;    
-                            //}
-
-                            //else { break; }
-
                             IList<Element> listWindowsOnlyWindows = new List<Element>();
 
                             IList<Element> listDoorsOnlyDoors = new List<Element>();
 
                             IList<Element> listVitragOnly = new List<Element>();
-
-                           
 
                             //собрать окна из связанной модели FCD
                             IList<Element> listWindows = GetAllWindows(linkDocument);
@@ -87,10 +74,8 @@ namespace BIMv2
 
                             TaskDialog.Show("Complite!", $"Всего окон: {listWindowsOnlyWindows.Count}");
 
-                            
-
                             //перебор по каждому окну
-                            foreach (var windowsElement in listWindowsOnlyWindows)
+                            foreach (var windowsElement in listWindows)
                             {
                                 try
                                 {
@@ -109,28 +94,21 @@ namespace BIMv2
                                         //получаем размеры окна
                                         ElementType type = linkDocument.GetElement(windowsElement.GetTypeId()) as ElementType;
 
+                                        double widhtWindows = type.LookupParameter("Ширина").AsDouble();
+                                        double heightWindows = type.LookupParameter("Высота").AsDouble();
 
                                         //double widhtWindows = windowsElement.LookupParameter("Ширина").AsDouble();
                                         //double heightWindows = windowsElement.LookupParameter("Высота").AsDouble();
 
-                                        double widhtWindows = windowsElement.LookupParameter("Ширина").AsDouble();
-                                        double heightWindows = windowsElement.LookupParameter("Высота").AsDouble();
-
-
-                                       
 
                                         double x2 = location.Point.X;
                                         double y2 = location.Point.Y;
-                                        double z2 = location.Point.Z;
+                                       double z2 = location.Point.Z - 2.62467;
                                         //double z2 = location.Point.Z;
-
-
 
                                         XYZ locationWindow = new XYZ(x2, y2, z2);
 
                                         locacionForWall = location.Point;
-
-
 
                                         foreach (Element wall in allWalls)
                                         {
@@ -151,7 +129,6 @@ namespace BIMv2
 
                                                     Level level = GetLevel(wall.LevelId);
 
-
                                                     //создаем окно
                                                     FamilyInstance instance2 =
                                                         _doc.Create.NewFamilyInstance(locationWindow, symbol2, wall, level, StructuralType.NonStructural);
@@ -159,8 +136,6 @@ namespace BIMv2
                                                     //заполняем его нужными параметрами
                                                     instance2.LookupParameter("Ширина").Set(widhtWindows);
                                                     instance2.LookupParameter("Высота").Set(heightWindows);
-
-                                                    
 
                                                     _doc.Regenerate();
 
@@ -170,12 +145,10 @@ namespace BIMv2
 
                                                 catch
                                                 {
-                                                    //TaskDialog.Show("N", "отверстие не сделано сделано");
                                                     continue;
                                                 }
 
                                             }
-
 
                                         }
 
@@ -183,9 +156,6 @@ namespace BIMv2
 
                                     }
                                 }
-
-                                    
-                                
 
                                 catch
                                 {
