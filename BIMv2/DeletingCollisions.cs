@@ -41,6 +41,10 @@ namespace BIMv2
                 Reference r = uiDoc.Selection.PickObject(ObjectType.Element, "Выбрать модель с помещениями");
                 Element elem = uiDoc.Document.GetElement(r);
 
+                //открываем XML находим ID для удаления и в массив
+                //убираем дубли
+                //пробегаемся по каждому и удаляем
+
                 //TaskDialog.Show("2bim.ru", $"{elem.Name}");
 
 
