@@ -64,50 +64,29 @@ namespace BIMv2
                     
                 }
 
-                //// получаем корневой узел
-                ////var col2=xdoc.
-                //var col = xdoc.Element("clashresult");
-                //XmlNode node = xdoc.SelectSingleNode("/book/title");
+                var clearList = ints.Distinct();
 
-                //if (col != null)
-                //{
-                //    // проходим по всем элементам 
-                //    foreach (XElement collisium in col.Elements("clashobject"))
-                //    {
-
-                //        var value = collisium.Attribute("value");
-
-                //        ints.Add(Convert.ToInt32(value));
-
-
-                //    }
-                //}
-
-
-                //TaskDialog.Show("2bim.ru", $"{ints.Count}");
-
-               
-                //открываем XML находим ID для удаления и в массив
-                //убираем дубли
-                //пробегаемся по каждому и удаляем
-
-                TaskDialog.Show("2bim.ru", $"{ints.Count}");
-
-                try
+                foreach (int x in clearList)
                 {
-                   
+                    try
+                    {
+                        ElementId elementId = new ElementId(x);
+
+                        _doc.Delete(elementId);
+                        _doc.Regenerate();
+                    }
+
+                    catch {
+                        continue;
+                    }   
+                }
+               
+               
+
+              
                     t.Commit();
                     return Result.Succeeded;
 
-                }
-
-
-
-                catch (Exception ex)
-                {
-                    TaskDialog.Show("Revit", ex.Message);
-                    return Result.Failed;
-                }
 
             }
 
