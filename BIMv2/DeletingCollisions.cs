@@ -43,33 +43,55 @@ namespace BIMv2
 
                 XDocument xdoc = XDocument.Load(@"C:\Users\comp44\Desktop\V FS.xml");
 
-                // получаем корневой узел
-                //var col2=xdoc.
-                var col = xdoc.Elements("clashresult");
+                XmlDocument xmldoc = new XmlDocument();
+                xmldoc.Load(@"C:\Users\comp44\Desktop\V FS.xml");
 
-                if (col != null)
+                XmlNode node = xmldoc.DocumentElement.SelectSingleNode("/name/value");
+
+                string[] sometheng = xmldoc.InnerText.Split(' '); //объекта7579247ID
+
+                for (int i = 1; i < sometheng.Length; i++)
                 {
-                    // проходим по всем элементам 
-                    foreach (XElement collisium in col.Elements("clashobject"))
+                    string stroka = sometheng[i];
+                    stroka = stroka.Substring(7);
+                    stroka = stroka.Substring(0, stroka.Length - 2);
+                    try
                     {
-
-                        var value = collisium.Attribute("value");
-
-                        ints.Add(Convert.ToInt32(value));
-
-
+                        int x = Convert.ToInt32(stroka);
+                        ints.Add(x);
                     }
+                    catch { }
+                    
                 }
 
+                //// получаем корневой узел
+                ////var col2=xdoc.
+                //var col = xdoc.Element("clashresult");
+                //XmlNode node = xdoc.SelectSingleNode("/book/title");
 
-                TaskDialog.Show("2bim.ru", $"{ints.Count}");
+                //if (col != null)
+                //{
+                //    // проходим по всем элементам 
+                //    foreach (XElement collisium in col.Elements("clashobject"))
+                //    {
+
+                //        var value = collisium.Attribute("value");
+
+                //        ints.Add(Convert.ToInt32(value));
+
+
+                //    }
+                //}
+
+
+                //TaskDialog.Show("2bim.ru", $"{ints.Count}");
 
                
                 //открываем XML находим ID для удаления и в массив
                 //убираем дубли
                 //пробегаемся по каждому и удаляем
 
-                //TaskDialog.Show("2bim.ru", $"{elem.Name}");
+                TaskDialog.Show("2bim.ru", $"{ints.Count}");
 
                 try
                 {
