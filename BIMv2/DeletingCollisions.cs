@@ -1,12 +1,14 @@
 ﻿#region Namespace
 using System;
 using System.Collections.Generic;
+using System.Xml;
 using System.Linq;
 
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Selection;
+using System.Xml.Linq;
 
 #endregion
 
@@ -28,61 +30,50 @@ namespace BIMv2
             _doc = uiDoc.Document;
 
             Document doc = commandData.Application.ActiveUIDocument.Document;
-            IList<Element> roomsCurrentProject = GetAllRooms(doc);
-            IList<Element> roomsLinked = new List<Element>();
+            List<int> ints = new List<int>();
 
+            string pathToFile = @"C:\Users\comp44\Desktop\V FS.xml";
+
+            
 
             using (var t = new Transaction(doc))
             {
 
-                t.Start("Copy Rooms");
+                t.Start("Del collisions");
 
-                TaskDialog.Show("2bim.ru", "Выбрать модель для копирования помещений");
+                XDocument xdoc = XDocument.Load(@"C:\Users\comp44\Desktop\V FS.xml");
 
-                Reference r = uiDoc.Selection.PickObject(ObjectType.Element, "Выбрать модель с помещениями");
-                Element elem = uiDoc.Document.GetElement(r);
+                // получаем корневой узел
+                //var col2=xdoc.
+                var col = xdoc.Elements("clashresult");
 
+                if (col != null)
+                {
+                    // проходим по всем элементам 
+                    foreach (XElement collisium in col.Elements("clashobject"))
+                    {
+
+                        var value = collisium.Attribute("value");
+
+                        ints.Add(Convert.ToInt32(value));
+
+
+                    }
+                }
+
+
+                TaskDialog.Show("2bim.ru", $"{ints.Count}");
+
+               
                 //открываем XML находим ID для удаления и в массив
                 //убираем дубли
                 //пробегаемся по каждому и удаляем
 
                 //TaskDialog.Show("2bim.ru", $"{elem.Name}");
 
-
-                //получить связанную модель FCD
-
-                IEnumerable<RevitLinkInstance> linkedInstances = FindLinkedInstances();
-
-
-                //IList<Element> roomsLinked = GetAllRooms(elem);
-
-                foreach (RevitLinkInstance linkedInstance in linkedInstances)
-                {
-
-                    if (linkedInstances != null)
-                    {
-                        foreach (var linkInstance in linkedInstances)
-                        {
-                            Document linkDocument = linkInstance.GetLinkDocument();
-                            roomsLinked = GetAllRooms(linkDocument);
-
-                            TaskDialog.Show("2bim.ru", $"{roomsLinked.Count}");
-
-                        }
-                    }
-                }
-
                 try
                 {
-                    // del rooms
-
-                    int k = 0;
-
-                    foreach (var rooms in roomsLinked)
-                    {
-                        //doc.Create
-                    }
-
+                   
                     t.Commit();
                     return Result.Succeeded;
 
@@ -100,26 +91,9 @@ namespace BIMv2
 
         }
 
-        private IEnumerable<RevitLinkInstance> FindLinkedInstances()
-        {
-            var collector = new FilteredElementCollector(_doc);
-            return collector
-                .OfClass(typeof(RevitLinkInstance))
-                .Cast<RevitLinkInstance>()
-                .ToList();
-        }
+        
 
-        public IList<Element> GetAllRooms(Document doc)
-        {
-            // List all Room's
-            var room_collector = new FilteredElementCollector(doc)
-                .OfCategory(BuiltInCategory.OST_Rooms)
-                .WhereElementIsNotElementType();
-            IList<ElementId> room_eids = room_collector.ToElementIds() as IList<ElementId>;
-            var allRooms = room_collector.ToElements();
-
-            return allRooms;
-        }
+        
 
     }
 }
