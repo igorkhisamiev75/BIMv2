@@ -34,6 +34,7 @@ namespace BIMv2
 
             using (var t = new Transaction(doc))
             {
+
                 t.Start("Copy Rooms");
 
                 TaskDialog.Show("2bim.ru", "Выбрать модель для копирования помещений");
