@@ -41,12 +41,12 @@ namespace BIMv2
 
                 t.Start("Del collisions");
 
-                XDocument xdoc = XDocument.Load(@"C:\Users\comp44\Desktop\V FS.xml");
+                //XDocument xdoc = XDocument.Load(@"C:\Users\i.khisamiev\Downloads\V FS.xml");
 
                 XmlDocument xmldoc = new XmlDocument();
-                xmldoc.Load(@"C:\Users\comp44\Desktop\V FS.xml");
+                xmldoc.Load(@"C:\Users\i.khisamiev\Downloads\V ES.xml");
 
-                XmlNode node = xmldoc.DocumentElement.SelectSingleNode("/name/value");
+                //XmlNode node = xmldoc.DocumentElement.SelectSingleNode("/name/value");
 
                 string[] sometheng = xmldoc.InnerText.Split(' '); //объекта7579247ID
 
@@ -55,11 +55,13 @@ namespace BIMv2
                     string stroka = sometheng[i];
                     stroka = stroka.Substring(7);
                     stroka = stroka.Substring(0, stroka.Length - 2);
+
                     try
                     {
                         int x = Convert.ToInt32(stroka);
                         ints.Add(x);
                     }
+
                     catch { }
                     
                 }
@@ -80,21 +82,18 @@ namespace BIMv2
                         continue;
                     }   
                 }
-               
-               
 
-              
-                    t.Commit();
-                    return Result.Succeeded;
+                TaskDialog.Show("Почищено", "Почишено");
+
+                t.Commit();
+                
+                return Result.Succeeded;
 
 
             }
 
         }
 
-        
-
-        
 
     }
 }
