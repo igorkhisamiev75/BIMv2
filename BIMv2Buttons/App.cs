@@ -150,6 +150,19 @@ namespace BIMv2Buttons
             BitmapImage pb1ImageB3_5 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-fsd-32.png"));
             pb1B3_5.LargeImage = pb1ImageB3_5;
 
+            //попробуем создать еще одну кнопку
+            ribbonPanelb2.AddSeparator(); //разделитель между кнопками
+
+            // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData b1DataB3_6 = new PushButtonData("cmdWallSection.cs", "Разрез"
+                + Environment.NewLine + "по стене", thisAssemblyPath, "BIMv2.WallSection.cs");
+
+            PushButton pb1B3_6 = ribbonPanelb2.AddItem(b1DataB3_6) as PushButton;
+            pb1B3_6.ToolTip = "Создаем разрез по стене";
+
+            BitmapImage pb1ImageB3_6 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-double-arrows32.png"));
+            pb1B3_6.LargeImage = pb1ImageB3_6;
+
             #endregion
 
             //кнопки 2BIM

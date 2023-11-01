@@ -205,6 +205,7 @@
     <Compile Include="PowerFactorElectrical\PowerFactorElectrical.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="WallFinishing\WallFinishing.cs" />
+    <Compile Include="WallSection\WallSection.cs" />
     <Compile Include="WriteNameRoom\WriteNameRoomInPlumbingFixtures.cs" />
     <Compile Include="WriteTypeRooms\WriteTypeRooms.cs" />
   </ItemGroup>
@@ -318,6 +319,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\icons8-fsd-32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\icons8-double-arrows32.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
