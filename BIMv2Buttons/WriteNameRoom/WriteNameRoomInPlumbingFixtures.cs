@@ -27,9 +27,13 @@ namespace BIMv2
             using (var t = new Transaction(_doc))
             {
                 t.Start("Select all plumbing fixtures");
+
                 WriteNameRoomInElementMethod(uiApp);
+
                 TaskDialog.Show("У тебя получилось", "Complite!!!☺☺☺");
+
                 t.Commit();
+
                 t.Start();
                 var res = t.Commit();
             }

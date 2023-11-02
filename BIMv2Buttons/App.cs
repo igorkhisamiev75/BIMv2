@@ -154,8 +154,8 @@ namespace BIMv2Buttons
             ribbonPanelb2.AddSeparator(); //разделитель между кнопками
 
             // create push button for CurveTotalLength  //namespace и класс
-            PushButtonData b1DataB3_6 = new PushButtonData("cmdWallSection.cs", "Разрез"
-                + Environment.NewLine + "по стене", thisAssemblyPath, "BIMv2.WallSection.cs");
+            PushButtonData b1DataB3_6 = new PushButtonData("cmdWallSection", "Разрез"
+                + Environment.NewLine + "по стене", thisAssemblyPath, "BIMv2.WallSection");
 
             PushButton pb1B3_6 = ribbonPanelb2.AddItem(b1DataB3_6) as PushButton;
             pb1B3_6.ToolTip = "Создаем разрез по стене";
@@ -169,14 +169,11 @@ namespace BIMv2Buttons
 
             #region BIMv2
 
-
             String tabName = "BIMv2";    // создание вкладки
             application.CreateRibbonTab(tabName);
 
             // Add a new ribbon panel
             RibbonPanel ribbonPanel = application.CreateRibbonPanel(tabName, "Надстройки для архитектора"); //подпись под кнопками
-
-           
 
             // create push button for CurveTotalLength  //namespace и класс
             PushButtonData b1Data = new PushButtonData("cmdWriteNameRoomInPlumbingFixtures", "Помещения" 
@@ -192,8 +189,22 @@ namespace BIMv2Buttons
             //попробуем создать еще одну кнопку
             ribbonPanel.AddSeparator(); //разделитель между кнопками
 
-            
-            
+            // create push button for   //namespace и класс
+            PushButtonData b1lData = new PushButtonData("cmdFindNameRoomForLighting", "Помещения"
+                + Environment.NewLine + "в светильники", thisAssemblyPath, "BIMv2.FindNameRoomForLighting");
+
+            PushButton pb1l = ribbonPanel.AddItem(b1lData) as PushButton;
+            pb1l.ToolTip = "Переписывает номера в светильники";
+
+            BitmapImage pb1lImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/transferNameRoom.png"));
+            pb1l.LargeImage = pb1lImage;
+
+
+            //попробуем создать еще одну кнопку
+            ribbonPanel.AddSeparator(); //разделитель между кнопками
+
+
+
 
             // create push button for CurveTotalLength  //namespace и класс
             PushButtonData b21Data = new PushButtonData("cmdWallFinishing", "Посчитать"

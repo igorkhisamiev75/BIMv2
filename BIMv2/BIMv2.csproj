@@ -174,9 +174,11 @@
     <Compile Include="DoorsInformationTransfer.cs" />
     <Compile Include="DuplicateSheets.cs" />
     <Compile Include="FindNameRoomForFinishElementsRoomsInLink.cs" />
+    <Compile Include="FindNameRoomForLighting.cs" />
     <Compile Include="FindRoomsForWallsBeams.cs" />
     <Compile Include="GetRoomForElementsFinishing.cs" />
     <Compile Include="GroupByMarkEqupmentFurnitureAndWriteToComment.cs" />
+    <Compile Include="GroupingLighting.cs" />
     <Compile Include="GroupWallsBeams.cs" />
     <Compile Include="JoinWalls.cs" />
     <Compile Include="MakingHolesForFacadeWindows.cs" />

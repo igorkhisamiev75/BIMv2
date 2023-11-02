@@ -1,17 +1,19 @@
 ﻿#region Namespaces
 
 using System.Linq;
-
-using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Selection;
+
+
+using Application = Autodesk.Revit.ApplicationServices.Application;
 #endregion
 
 namespace BIMv2
 {
     [Transaction(TransactionMode.Manual)]
+
     public class WallSection : IExternalCommand
     {
         Application _app;
@@ -26,11 +28,7 @@ namespace BIMv2
             Reference reference = uiDoc.Selection.PickObject(ObjectType.Element);
             Element element = uiDoc.Document.GetElement(reference);
 
-
-
             Wall wall = (Wall)element;
-
-
 
             ViewFamilyType vft = new FilteredElementCollector(_doc)
                 .OfClass(typeof(ViewFamilyType))
@@ -53,8 +51,6 @@ namespace BIMv2
                 //ViewSection.CreateSection(_doc, vft.Id, sectionBox2);
 
                 tx.Commit();
-
-
 
             }
 

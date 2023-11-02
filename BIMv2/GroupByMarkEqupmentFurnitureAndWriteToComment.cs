@@ -22,8 +22,6 @@ namespace BIMv2
             {
                 t.Start("Stage 2");
 
-                
-
                 WriteToComment(doc);
 
                 TaskDialog.Show("Сделано", "Сгруппировано оборудование");

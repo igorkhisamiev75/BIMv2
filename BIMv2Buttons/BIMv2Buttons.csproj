@@ -188,7 +188,9 @@
     </Compile>
     <Compile Include="DoorsInformationTransfer\DoorsInformationTransfer.cs" />
     <Compile Include="DuplicateSheets\DuplicateSheets.cs" />
+    <Compile Include="FindNameRoomForLighting\FindNameRoomForLighting.cs" />
     <Compile Include="GroupByMarkEqupmentFurnitureAndWriteToComment\GroupByMarkEqupmentFurnitureAndWriteToComment.cs" />
+    <Compile Include="GroupingLighting\GroupingLighting.cs" />
     <Compile Include="GroupTypeCeilingAndWriteToComment\GroupTypeCeilingAndWriteToComment.cs" />
     <Compile Include="GroupTypeCeilingByNote\GroupTypeCeilingByNote.cs" />
     <Compile Include="GroupTypeFloorAndWriteToComment\GroupTypeFloorAndWriteToComment.cs" />
