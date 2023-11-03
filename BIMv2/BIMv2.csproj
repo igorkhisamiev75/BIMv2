@@ -167,6 +167,7 @@
     <Compile Include="CreateRailingInRooms.cs" />
     <Compile Include="CreateRoomNumber.cs" />
     <Compile Include="CreateScheduleRooms.cs" />
+    <Compile Include="CreateSectionInSelectedRooms.cs" />
     <Compile Include="CreateViewByLinkedFiles.cs" />
     <Compile Include="CreateWindowsForFinish.cs" />
     <Compile Include="DeletingCollisions.cs" />
