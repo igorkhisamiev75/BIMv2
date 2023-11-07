@@ -76,7 +76,6 @@ namespace BIMv2
 
                     }
 
-
                 }
                 TaskDialog.Show("Fiting", $"{allDuctFiting.Count}");
                 t.Commit();
