@@ -556,6 +556,21 @@ namespace BIMv2Buttons
             //попробуем создать еще одну кнопку
             ribbonPanel4.AddSeparator(); //разделитель между кнопками
 
+            //попробуем создать еще одну кнопку
+            ribbonPanel4.AddSeparator(); //разделитель между кнопками
+
+            PushButtonData b27Data = new PushButtonData("cmdFindDuctFiting.cs", "Врезки и "
+               + Environment.NewLine + "решетки", thisAssemblyPath, "BIMv2.FindDuctFiting");
+
+            PushButton pb27 = ribbonPanel4.AddItem(b27Data) as PushButton;
+            pb27.ToolTip = "Заполнить инфу в комментарии";
+
+            BitmapImage pb27Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-hvac-32.png"));
+            pb27.LargeImage = pb27Image;
+
+            //попробуем создать еще одну кнопку
+            ribbonPanel4.AddSeparator(); //разделитель между кнопками
+
 
             // Create three push buttons for split button drop down 
 

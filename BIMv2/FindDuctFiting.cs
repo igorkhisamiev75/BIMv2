@@ -56,7 +56,7 @@ namespace BIMv2
                                 var mark2 = elementFiting.LookupParameter("Диаметр воздуховода").AsValueString();
 
                                 //заполняем его нужными параметрами
-                                elementFiting.LookupParameter("Комментарии").Set("из "+mark+" в "+ mark2);
+                                elementFiting.LookupParameter("Комментарии").Set(mark+ "-Ø" + mark2);
 
 
                                 //_doc.Regenerate();
@@ -67,7 +67,8 @@ namespace BIMv2
 
                             catch
                             {
-                                elementFiting.LookupParameter("Комментарии").Set("См.общий размер");
+                                var mark = elementDuct.LookupParameter("Размер").AsString();
+                                elementFiting.LookupParameter("Комментарии").Set("");
                                 //TaskDialog.Show("N", "отверстие не сделано сделано");
                                 continue;
                             }
@@ -77,10 +78,64 @@ namespace BIMv2
                     }
 
                 }
-                TaskDialog.Show("Fiting", $"{allDuctFiting.Count}");
+               
+
+               
+
+                //все решетки           
+                //IList<Element> allDuct = GetAllDuct(_doc);
+                IList<Element> allDuctterminal = GetAllDuctTerminal(_doc);
+
+                foreach (Element elementFiting in allDuctterminal)
+                {
+                    foreach (Element elementDuct in allDuct)
+                    {
+                       
+                            
+                                //bondingbox wall
+                                BoundingBoxXYZ boundingBoxXYZ = elementFiting.get_BoundingBox(_doc.ActiveView);
+
+                                //bounding Box window
+                                BoundingBoxXYZ boundingBoxXYZ3 = elementDuct.get_BoundingBox(_doc.ActiveView);
+
+                                if (bbIntersect(boundingBoxXYZ, boundingBoxXYZ3))
+                                {
+                                    try
+                                    {
+
+                                        var mark = elementDuct.LookupParameter("Размер").AsString();
+
+                                        var mark2 = elementFiting.LookupParameter("Размер").AsString();
+
+                                        //заполняем его нужными параметрами
+                                        elementFiting.LookupParameter("Комментарии").Set(mark2 + " - " + mark);
+
+
+                                        //_doc.Regenerate();
+
+                                        //TaskDialog.Show("N", $"отверстие сделано{markForNK}");
+                                        break;
+                                    }
+
+                                    catch
+                                    {
+                                        var mark = elementDuct.LookupParameter("Размер").AsString();
+                                        elementFiting.LookupParameter("Комментарии").Set("НЕТ");
+                                        //TaskDialog.Show("N", "отверстие не сделано сделано");
+                                        continue;
+                                    }
+
+                                }
+
+
+                    }
+
+                }
+
+                TaskDialog.Show("Сделано 2BIM.RU=))", $"Всего соеденительных детялей элементов и решеток  {allDuctFiting.Count+ allDuctterminal.Count}");
+                //TaskDialog.Show("Fiting", $"Всего элементов {allDuctFiting.Count}");
                 t.Commit();
 
-                
                 //_doc.Regenerate();
             }
 
@@ -93,6 +148,17 @@ namespace BIMv2
         {
             var room_collector = new FilteredElementCollector(document)
                                  .OfCategory(BuiltInCategory.OST_DuctFitting)
+                                 .WhereElementIsNotElementType();
+            IList<ElementId> room_eids = room_collector.ToElementIds() as IList<ElementId>;
+            IList<Element> allWalls = room_collector.ToElements();
+
+            return allWalls;
+
+        }
+        public IList<Element> GetAllDuctTerminal(Document document)
+        {
+            var room_collector = new FilteredElementCollector(document)
+                                 .OfCategory(BuiltInCategory.OST_DuctTerminal)
                                  .WhereElementIsNotElementType();
             IList<ElementId> room_eids = room_collector.ToElementIds() as IList<ElementId>;
             IList<Element> allWalls = room_collector.ToElements();
