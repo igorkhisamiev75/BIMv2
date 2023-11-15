@@ -20,7 +20,7 @@ namespace BIMv2
     {
         private Document _doc;
 
-        
+
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             var uiApp = commandData.Application;
@@ -56,7 +56,7 @@ namespace BIMv2
                                 var mark2 = elementFiting.LookupParameter("Диаметр воздуховода").AsValueString();
 
                                 //заполняем его нужными параметрами
-                                elementFiting.LookupParameter("Комментарии").Set(mark+ "-Ø" + mark2);
+                                elementFiting.LookupParameter("Комментарии").Set("Ø" + mark2 + " - " + mark);
 
 
                                 //_doc.Regenerate();
@@ -78,9 +78,9 @@ namespace BIMv2
                     }
 
                 }
-               
 
-               
+
+
 
                 //все решетки           
                 //IList<Element> allDuct = GetAllDuct(_doc);
@@ -90,49 +90,49 @@ namespace BIMv2
                 {
                     foreach (Element elementDuct in allDuct)
                     {
-                       
-                            
-                                //bondingbox wall
-                                BoundingBoxXYZ boundingBoxXYZ = elementFiting.get_BoundingBox(_doc.ActiveView);
-
-                                //bounding Box window
-                                BoundingBoxXYZ boundingBoxXYZ3 = elementDuct.get_BoundingBox(_doc.ActiveView);
-
-                                if (bbIntersect(boundingBoxXYZ, boundingBoxXYZ3))
-                                {
-                                    try
-                                    {
-
-                                        var mark = elementDuct.LookupParameter("Размер").AsString();
-
-                                        var mark2 = elementFiting.LookupParameter("Размер").AsString();
-
-                                        //заполняем его нужными параметрами
-                                        elementFiting.LookupParameter("Комментарии").Set(mark2 + " - " + mark);
 
 
-                                        //_doc.Regenerate();
+                        //bondingbox wall
+                        BoundingBoxXYZ boundingBoxXYZ = elementFiting.get_BoundingBox(_doc.ActiveView);
 
-                                        //TaskDialog.Show("N", $"отверстие сделано{markForNK}");
-                                        break;
-                                    }
+                        //bounding Box window
+                        BoundingBoxXYZ boundingBoxXYZ3 = elementDuct.get_BoundingBox(_doc.ActiveView);
 
-                                    catch
-                                    {
-                                        var mark = elementDuct.LookupParameter("Размер").AsString();
-                                        elementFiting.LookupParameter("Комментарии").Set("НЕТ");
-                                        //TaskDialog.Show("N", "отверстие не сделано сделано");
-                                        continue;
-                                    }
+                        if (bbIntersect(boundingBoxXYZ, boundingBoxXYZ3))
+                        {
+                            try
+                            {
 
-                                }
+                                var mark = elementDuct.LookupParameter("Размер").AsString();
+
+                                var mark2 = elementFiting.LookupParameter("Размер").AsString();
+
+                                //заполняем его нужными параметрами
+                                elementFiting.LookupParameter("Комментарии").Set(mark2 + " - " + mark);
+
+
+                                //_doc.Regenerate();
+
+                                //TaskDialog.Show("N", $"отверстие сделано{markForNK}");
+                                break;
+                            }
+
+                            catch
+                            {
+                                var mark = elementDuct.LookupParameter("Размер").AsString();
+                                elementFiting.LookupParameter("Комментарии").Set("НЕТ");
+                                //TaskDialog.Show("N", "отверстие не сделано сделано");
+                                continue;
+                            }
+
+                        }
 
 
                     }
 
                 }
 
-                TaskDialog.Show("Сделано 2BIM.RU=))", $"Всего соеденительных детялей элементов и решеток  {allDuctFiting.Count+ allDuctterminal.Count}");
+                TaskDialog.Show("Сделано 2BIM.RU=))", $"Всего соеденительных детялей элементов и решеток  {allDuctFiting.Count + allDuctterminal.Count}");
                 //TaskDialog.Show("Fiting", $"Всего элементов {allDuctFiting.Count}");
                 t.Commit();
 
@@ -142,7 +142,7 @@ namespace BIMv2
             return Result.Succeeded;
         }
 
-        
+
 
         public IList<Element> GetAllDuctFiting(Document document)
         {

@@ -56,7 +56,7 @@ namespace BIMv2
                                 var mark2 = elementFiting.LookupParameter("Диаметр воздуховода").AsValueString();
 
                                 //заполняем его нужными параметрами
-                                elementFiting.LookupParameter("Комментарии").Set(mark+ "-Ø" + mark2);
+                                elementFiting.LookupParameter("Комментарии").Set("Ø"+mark2 + " - " + mark);
 
 
                                 //_doc.Regenerate();
