@@ -179,6 +179,7 @@
     <Compile Include="FindNameRoomForFinishElementsRoomsInLink.cs" />
     <Compile Include="FindNameRoomForLighting.cs" />
     <Compile Include="FindRoomsForWallsBeams.cs" />
+    <Compile Include="FinishingOnTheStairs.cs" />
     <Compile Include="GetRoomForElementsFinishing.cs" />
     <Compile Include="GroupByMarkEqupmentFurnitureAndWriteToComment.cs" />
     <Compile Include="GroupingLighting.cs" />
