@@ -48,10 +48,8 @@ namespace BIMv2
             {
                 t.Start("Create floor");
 
-                //выбрать лестницу
-                //получить геометрию
-                //создать пол
-                //создать стены
+                //создаем перекрытие на марше
+                
 
                 FloorType floorType = GetFloorTypeInProject();
 
@@ -62,6 +60,7 @@ namespace BIMv2
                 CurveArray temp = new CurveArray();
 
                 ICollection<ElementId> landings = str.GetStairsLandings();
+                ICollection<ElementId> runs = str.GetStairsRuns();
 
                 double elevation=0;
 
@@ -77,13 +76,9 @@ namespace BIMv2
                         temp.Append(item);
                     }
 
-
                 }
 
-                Level level = (Level)_doc.GetElement(lv);
-
                 var nf = _doc.Create.NewFloor(temp, floorType, level, false);
-
                 nf.get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM).Set(elevation);
 
 
@@ -93,23 +88,40 @@ namespace BIMv2
                 IList<Element> rooms;
                 wallType = GetWallTypeInProject("Отделка");
 
-                foreach (ElementId landing in landings)
+                Level level = (Level)_doc.GetElement(lv);
+
+                
+
+                foreach (var staitRun in runs)
                 {
-                    StairsLanding stairsL = _doc.GetElement(landing) as StairsLanding;
-                    var cl = stairsL.GetFootprintBoundary();
+                    StairsRun stairsRun = _doc.GetElement(staitRun) as StairsRun;
 
-                    elevation = stairsL.BaseElevation;
+                    //Options options=new Options();
 
-                    foreach (var item in cl)
-                    {
-                        temp.Append(item);
-                    }
+                    //GeometryElement geom = stairsRun.get_Geometry(options);
 
+                    //stairsRun
 
+                
 
                     var wall = Wall.Create(_doc, g, level, false);
 
                 }
+
+                
+
+               
+
+
+              
+
+               
+
+
+
+                    
+
+                
 
                
 
