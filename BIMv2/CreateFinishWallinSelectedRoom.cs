@@ -226,6 +226,7 @@ namespace BIMv2
                 //TaskDialog.Show("2bim.ru", "Все стены соеденены");
 
             }
+
             TaskDialog.Show("2bim.ru", "Все стены соеденены");
             _doc.Regenerate();
             //unjoin walls
@@ -273,7 +274,7 @@ namespace BIMv2
             FilteredElementCollector collector = new FilteredElementCollector(_doc);
             collector.OfClass(typeof(WallType));
             wallType = collector.Where(x => x.Name == nameTypeWall) as WallType;
-            //as WallType;
+            
 
             FilteredElementCollector a = new FilteredElementCollector(_doc).OfClass(typeof(WallType));
             foreach (WallType wallType2 in a)

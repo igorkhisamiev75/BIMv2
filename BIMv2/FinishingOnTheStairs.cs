@@ -86,6 +86,33 @@ namespace BIMv2
 
                 nf.get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM).Set(elevation);
 
+
+                //создаем стены
+
+                WallType wallType;
+                IList<Element> rooms;
+                wallType = GetWallTypeInProject("Отделка");
+
+                foreach (ElementId landing in landings)
+                {
+                    StairsLanding stairsL = _doc.GetElement(landing) as StairsLanding;
+                    var cl = stairsL.GetFootprintBoundary();
+
+                    elevation = stairsL.BaseElevation;
+
+                    foreach (var item in cl)
+                    {
+                        temp.Append(item);
+                    }
+
+
+
+                    var wall = Wall.Create(_doc, g, level, false);
+
+                }
+
+               
+
                 TaskDialog.Show("Лестница", "Лестница ☺☺☺");
                 t.Commit();
 
@@ -438,6 +465,29 @@ namespace BIMv2
 
             return stairs;
         }
+
+        public WallType GetWallTypeInProject(string nameTypeWall)
+        {
+            WallType wallType;
+            //// Get a floor type for floor creation
+            FilteredElementCollector collector = new FilteredElementCollector(_doc);
+            collector.OfClass(typeof(WallType));
+            wallType = collector.Where(x => x.Name == nameTypeWall) as WallType;
+            //as WallType;
+
+            FilteredElementCollector a = new FilteredElementCollector(_doc).OfClass(typeof(WallType));
+            foreach (WallType wallType2 in a)
+            {
+                if (wallType2.Name == nameTypeWall)
+                {
+                    return wallType2;
+                }
+            }
+
+            return wallType;
+        }
+
+
     }
 
 }
