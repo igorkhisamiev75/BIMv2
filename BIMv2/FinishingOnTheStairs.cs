@@ -53,28 +53,38 @@ namespace BIMv2
                 //создать пол
                 //создать стены
 
-                Stairs st =GetStairInfo(_doc);
+                FloorType floorType = GetFloorTypeInProject();
 
-                st
+                Stairs str =GetStairInfo(_doc);
 
-                //Stairs elem = SelectedElement(_doc); //select satirs
+                ElementId lv = str.get_Parameter(BuiltInParameter.STAIRS_BASE_LEVEL_PARAM).AsElementId();
 
-                //var stairsRunCol = elem.GetStairsRuns();
+                CurveArray temp = new CurveArray();
 
-                //CurveLoop cv = new CurveLoop();
+                ICollection<ElementId> landings = str.GetStairsLandings();
 
-                //foreach(var stair in stairsRunCol)
-                //{
-                //    var nnnn=_doc.GetElement(stair);
+                double elevation=0;
 
-                //    //var nnn = nnnn.get_Geometry();
+                foreach (ElementId landing in landings)
+                {
+                    StairsLanding stairsL = _doc.GetElement(landing) as StairsLanding;
+                    var cl=stairsL.GetFootprintBoundary();
+
+                    elevation = stairsL.BaseElevation;
+
+                    foreach (var item in cl)
+                    {
+                        temp.Append(item);
+                    }
 
 
-                //}
+                }
 
-                //CreateFloorInRooms(elem);
+                Level level = (Level)_doc.GetElement(lv);
 
-                //CreateCeiling(elem);
+                var nf = _doc.Create.NewFloor(temp, floorType, level, false);
+
+                nf.get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM).Set(elevation);
 
                 TaskDialog.Show("Лестница", "Лестница ☺☺☺");
                 t.Commit();
@@ -237,54 +247,11 @@ namespace BIMv2
 
         }
 
-        public void CreateFloorOpenings(Element elem)
-        {
-
-            FloorType floorType;
-            IList<Element> rooms;
-            GetRoomInProject(out rooms);
-
-            // List all the floors instances 
-            var floorCollector = new FilteredElementCollector(_doc).OfClass(typeof(Floor));
-            IList<Element> floorList = floorCollector.ToElements();
-
-
-            CurveArray roomsCurves = new CurveArray();
-            var r1 = (Room)elem;
-            var f1 = (Floor)floorList[0];
-
-            SpatialElementBoundaryOptions bo = new SpatialElementBoundaryOptions();
-            IList<IList<BoundarySegment>> segments2 = r1.GetBoundarySegments(bo);
-
-            CurveArray temp = new CurveArray();
-
-            if (null != segments2)
-            {
-                for (int j = 1; j < segments2.Count; j++)
-                {
-                    IList<BoundarySegment> segmentList = segments2[j];
-
-                    foreach (BoundarySegment boundarySegment in segmentList)
-                    {
-                        Curve c = boundarySegment.GetCurve();
-                        temp.Append(c);
-                    }
-                    SortCurves(temp);
-                    var opening = _doc.Create.NewOpening(f1, temp, true); //create opening
-                }
-
-            }
-
-
-
-        }
-
+       
         public void CreateFloorInRooms(Element elem)
         {
 
             FloorType floorType = GetFloorTypeInProject();
-
-            
 
             CurveArray roomsCurves = new CurveArray();
             Room r1 = (Room)elem;
@@ -297,7 +264,6 @@ namespace BIMv2
             if (null != segments2)
             {
                 IList<BoundarySegment> segmentList = segments2[0];
-
 
                 foreach (BoundarySegment boundarySegment in segmentList)
                 {
@@ -458,9 +424,6 @@ namespace BIMv2
                 if (Stairs.IsByComponent(document, stairId) == true)
                 {
                     stairs = document.GetElement(stairId) as Stairs;
-
-                    var fff=stairs.GetStairsRuns()[0];
-
 
                     // Format the information
                     String info = "\nNumber of stories:  " + stairs.NumberOfStories;
