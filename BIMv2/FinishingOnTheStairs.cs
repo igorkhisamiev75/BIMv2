@@ -95,6 +95,10 @@ namespace BIMv2
                 {
                     StairsRun stairsRun = _doc.GetElement(staitRun) as StairsRun;
 
+                    //BaseElevation
+
+                    var baseElevation=stairsRun.BaseElevation;
+
                     //высота подступенка
                     var hightStar = stairsRun.get_Parameter(BuiltInParameter.STAIRS_RUN_ACTUAL_RISER_HEIGHT).AsDouble();
                     
@@ -134,8 +138,9 @@ namespace BIMv2
 
                             //создание лестницы
                             wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(hightStar); //установка высоты
-                            
-                            for(int i=0; i<=numberTheads; i++)
+                            wall.get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(baseElevation);
+
+                            for (int i=0; i<=numberTheads; i++)
                             {
                                 XYZ vector = new XYZ (0, wightStarProst * i, hightStar * i);
 
@@ -147,7 +152,7 @@ namespace BIMv2
 
                                 foreach(var el in newWall)
                                 {
-                                    _doc.GetElement(el).get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(hightStar*i);
+                                    _doc.GetElement(el).get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(hightStar*i+ baseElevation);
                                     _doc.GetElement(el).get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(i.ToString());
                                 }
 
