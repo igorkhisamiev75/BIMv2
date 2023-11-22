@@ -111,6 +111,13 @@ namespace BIMv2
 
                     GeometryElement geom = stairsRun.get_Geometry(options);
 
+                    //попробуем зайти черех Boinding box
+
+                    var bbMax = stairsRun.get_BoundingBox(null).Max;
+                    var bbMin = stairsRun.get_BoundingBox(null).Min;
+
+
+
                     //рамка марша
                     CurveLoop cl = stairsRun.GetFootprintBoundary();
 
@@ -128,9 +135,11 @@ namespace BIMv2
                             //создание лестницы
                             wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(hightStar); //установка высоты
                             
-                            for(int i=0; i<numberTheads; i++)
+                            for(int i=0; i<=numberTheads; i++)
                             {
                                 XYZ vector = new XYZ (0, wightStarProst * i, hightStar * i);
+
+                                //var vector = bbMax - bbMin;
 
                                 var newWall = ElementTransformUtils.CopyElement(_doc, wall.Id, vector);
 
@@ -139,6 +148,7 @@ namespace BIMv2
                                 foreach(var el in newWall)
                                 {
                                     _doc.GetElement(el).get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(hightStar*i);
+                                    _doc.GetElement(el).get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(i.ToString());
                                 }
 
                                 //_doc.GetElement((ElementId)newWall).get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(hightStar * i);
