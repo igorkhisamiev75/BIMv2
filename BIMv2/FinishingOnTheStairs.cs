@@ -59,6 +59,8 @@ namespace BIMv2
 
                 CurveArray temp = new CurveArray();
 
+                Level level = (Level)_doc.GetElement(lv);
+
                 ICollection<ElementId> landings = str.GetStairsLandings();
                 ICollection<ElementId> runs = str.GetStairsRuns();
 
@@ -88,42 +90,34 @@ namespace BIMv2
                 IList<Element> rooms;
                 wallType = GetWallTypeInProject("Отделка");
 
-                Level level = (Level)_doc.GetElement(lv);
-
-                
-
                 foreach (var staitRun in runs)
                 {
                     StairsRun stairsRun = _doc.GetElement(staitRun) as StairsRun;
 
-                    //Options options=new Options();
+                    Options options = new Options();
 
-                    //GeometryElement geom = stairsRun.get_Geometry(options);
+                    GeometryElement geom = stairsRun.get_Geometry(options);
 
-                    //stairsRun
+                    //рамка марша
+                    CurveLoop cl=stairsRun.GetFootprintBoundary();
 
-                
+                    //IList<Curve> curves = new List<Curve>();
 
-                    var wall = Wall.Create(_doc, g, level, false);
+                    foreach (var item in cl)
+                    {
+                        //curves.Add(item);
 
-                }
+                        var wall = Wall.Create(_doc, item, lv, false);
+                        //Line line = item as Line;
 
-                
+                        //var tre = line.Tessellate();
 
-               
-
-
-              
-
-               
-
-
+                    }
 
                     
 
-                
+                }
 
-               
 
                 TaskDialog.Show("Лестница", "Лестница ☺☺☺");
                 t.Commit();
@@ -203,89 +197,7 @@ namespace BIMv2
 
         
 
-        public void CreateCeiling(Element elem)
-        {
-            CurveArray roomsCurves = new CurveArray();
-            Room r1 = (Room)elem;
-
-            SpatialElementBoundaryOptions bo = new SpatialElementBoundaryOptions();
-            IList<IList<BoundarySegment>> segments2 = r1.GetBoundarySegments(bo);
-
-
-            CurveArray temp = new CurveArray();
-
-            if (null != segments2)
-            {
-                IList<BoundarySegment> segmentList = segments2[0];
-
-
-                foreach (BoundarySegment boundarySegment in segmentList)
-                {
-                    Curve c = boundarySegment.GetCurve();
-                    temp.Append(c);
-                }
-                SortCurves(temp);
-                //sourr = _doc.Create.NewFloor(temp, floorType, r1.Level, false);
-
-            }
-
-            ElementId ceilingId = new ElementId(282885);
-
-            Element ceiling = _doc.GetElement(ceilingId);
-
-            //get ceiling sketch
-            ElementClassFilter filter =
-                new ElementClassFilter(typeof(Sketch));
-
-            ElementId sketchId =
-                ceiling.GetDependentElements(filter).First();
-
-            Sketch ceilingSketch =
-                _doc.GetElement(sketchId) as Sketch;
-
-            CurveArrArray ceilingProfile = ceilingSketch.Profile;
-
-            filter = new ElementClassFilter(typeof(CurveElement));
-
-            IEnumerable curves = ceiling.GetDependentElements(filter)
-                .Select(id => _doc.GetElement(id));
-
-            //IEnumerable modelLines = curves.Where(e => e is ModelLine).Cast();//target
-
-            //if (curves.Count() != modelLines.Count())
-            //    throw new Exception("The ceiling contains" +
-            //                        " non straight lines");
-
-            IList<IList<ModelLine>> editableSketch = new List<IList<ModelLine>>();
-
-            //foreach (CurveArray loop in ceilingProfile)
-            //{
-            //    List<ModelLine> newLoop = new List<ModelLine>();
-
-            //    foreach (Curve edge in loop)
-            //    {
-
-            //        foreach (ModelLine modelLine in modelLines)
-            //        {
-
-            //            Curve currentLine = ((modelLine as ModelLine)
-            //              .Location as LocationCurve).Curve;
-
-            //            if (currentLine.Intersect(edge)
-            //                 == SetComparisonResult.Equal)
-            //            {
-
-            //                newLoop.Add(modelLine);
-            //                break;
-            //            }
-
-            //            editableSketch.Add(newLoop);
-            //        }
-            //    }
-            //}
-
-        }
-
+        
        
         public void CreateFloorInRooms(Element elem)
         {
@@ -318,19 +230,7 @@ namespace BIMv2
 
         }
 
-        public void GetRoomInProject(out IList<Element> rooms)
-        {
-
-
-            // The normal vector (0,0,1) that must be perpendicular to the profile.
-            //XYZ normal = XYZ.BasisZ;
-
-            //Get room's 
-            RoomFilter filter = new RoomFilter();
-            // Apply the filter to the elements in the active document
-            FilteredElementCollector collector3 = new FilteredElementCollector(_doc);
-            rooms = collector3.WherePasses(filter).ToElements();
-        }
+       
 
         public FloorType GetFloorTypeInProject()
         {
