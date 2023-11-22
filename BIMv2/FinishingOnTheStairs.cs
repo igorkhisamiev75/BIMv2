@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 
 using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;
@@ -94,11 +95,14 @@ namespace BIMv2
                 {
                     StairsRun stairsRun = _doc.GetElement(staitRun) as StairsRun;
 
-                    //высота лестницы
+                    //высота подступенка
                     var hightStar = stairsRun.get_Parameter(BuiltInParameter.STAIRS_RUN_ACTUAL_RISER_HEIGHT).AsDouble();
                     
                     //ширина лестницы
                     var wightStar=stairsRun.get_Parameter(BuiltInParameter.STAIRS_RUN_ACTUAL_RUN_WIDTH).AsDouble();
+
+                    //ширина протсупни
+                    var wightStarProst = stairsRun.get_Parameter(BuiltInParameter.STAIRS_RUN_ACTUAL_TREAD_DEPTH).AsDouble();
 
                     //число проступней
                     var numberTheads = stairsRun.get_Parameter(BuiltInParameter.STAIRS_RUN_ACTUAL_NUMBER_OF_TREADS).AsInteger();
@@ -108,10 +112,10 @@ namespace BIMv2
                     GeometryElement geom = stairsRun.get_Geometry(options);
 
                     //рамка марша
-                    CurveLoop cl=stairsRun.GetFootprintBoundary();
+                    CurveLoop cl = stairsRun.GetFootprintBoundary();
 
                     //IList<Curve> curves = new List<Curve>();
-
+                                        
                     foreach (var item in cl)
                     {
                         if(item.ApproximateLength == wightStar)
@@ -119,19 +123,31 @@ namespace BIMv2
                         {
                             var wall = Wall.Create(_doc, item, lv, false);
 
-                            var vector = new XYZ(0, 0, 0);
+                            
 
                             //создание лестницы
-                            wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(hightStar);
+                            wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(hightStar); //установка высоты
                             
                             for(int i=0; i<numberTheads; i++)
                             {
-                                ElementTransformUtils.CopyElement(_doc, wall.Id, vector);
+                                XYZ vector = new XYZ (0, wightStarProst * i, hightStar * i);
+
+                                var newWall = ElementTransformUtils.CopyElement(_doc, wall.Id, vector);
+
+                                _doc.Regenerate();
+
+                                foreach(var el in newWall)
+                                {
+                                    _doc.GetElement(el).get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(hightStar*i);
+                                }
+
+                                //_doc.GetElement((ElementId)newWall).get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(hightStar * i);
+                                //_doc.GetElement((ElementId)newWall).get_Parameter(BuiltInParameter.WALL_TOP_OFFSET).Set(hightStar * i+ hightStar);
                             }
-                            
 
+                            break;
                         }
-
+                       
 
                     }
                    
