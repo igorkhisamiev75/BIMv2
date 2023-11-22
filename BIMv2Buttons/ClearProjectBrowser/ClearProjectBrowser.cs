@@ -113,7 +113,7 @@ namespace BIMv2
                 {
                     try
                     {
-                        //_doc.Delete(n);
+                        _doc.Delete(n);
                     }
 
                     catch

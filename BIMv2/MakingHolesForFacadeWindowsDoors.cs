@@ -54,17 +54,6 @@ namespace BIMv2
 
                             Document linkDocument = linkedInstance.GetLinkDocument();
 
-                            //string st = linkedInstance.Name;
-
-                            //TaskDialog.Show("Complite!", $" {st}");
-
-                            //if (st == "27_PD_FCD_ALL_MRGT_R21_WIP")
-                            //{
-                            //    continue;    
-                            //}
-
-                            //else { break; }
-
                             IList<Element> listWindowsOnlyWindows = new List<Element>();
 
                             IList<Element> listDoorsOnlyDoors = new List<Element>();
@@ -82,7 +71,7 @@ namespace BIMv2
 
                                 var opis = type.LookupParameter("Описание").AsString();
 
-                                if (opis == "Индивидуального изготовления.")
+                                if (opis == "Витраж")
                                 {
                                     listVitragOnly.Add(element);
                                 }
@@ -158,11 +147,11 @@ namespace BIMv2
                                         ElementType type = linkDocument.GetElement(windowsElement.GetTypeId()) as ElementType;
 
 
-                                        //double widhtWindows = windowsElement.LookupParameter("Ширина").AsDouble();
-                                        //double heightWindows = windowsElement.LookupParameter("Высота").AsDouble();
+                                        double widhtWindows = windowsElement.LookupParameter("Ширина").AsDouble();
+                                        double heightWindows = windowsElement.LookupParameter("Высота").AsDouble();
 
-                                        double widhtWindows = windowsElement.LookupParameter("W_Полная ширина").AsDouble();
-                                        double heightWindows = windowsElement.LookupParameter("W_Полная высота").AsDouble();
+                                        //double widhtWindows = windowsElement.LookupParameter("W_Полная ширина").AsDouble();
+                                        //double heightWindows = windowsElement.LookupParameter("W_Полная высота").AsDouble();
 
 
                                         //if (type != null)
@@ -190,7 +179,8 @@ namespace BIMv2
 
                                         double x2 = location.Point.X;
                                         double y2 = location.Point.Y;
-                                        double z2 = location.Point.Z ;
+                                        //double z2 = location.Point.Z ;
+                                        double z2 = location.Point.Z - 2.62467;
                                         //double z2 = location.Point.Z;
 
 
@@ -583,12 +573,13 @@ namespace BIMv2
 
                                             double x2 = 0;
                                             double y2 = 0;
-                                            //double z2 = location.Point.Z;
-                                            double z2 = h[0].Z + 0.6561679790;
+                                            //double z2 = h[0].Z;
+                                            double z2 = h[0].Z -1.65498018;
+                                       
 
                                         //направление для стандартных
 
-                                            if (dirX <= 0 && dirY == 1)
+                                        if (dirX <= 0 && dirY == 1)
                                             {
                                                 y2 = h[0].Y + widhtWindows / 2;
                                             }

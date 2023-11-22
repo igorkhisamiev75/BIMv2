@@ -47,12 +47,12 @@ namespace BIMv2
 
                 foreach (RevitLinkInstance linkedInstance in linkedInstances)
                 {
-
                     if (linkedInstances != null)
                     {
                         foreach (var linkInstance in linkedInstances)
                         {
-                            Document linkDocument = linkInstance.GetLinkDocument();
+
+                            Document linkDocument = linkedInstance.GetLinkDocument();
 
                             IList<Element> listWindowsOnlyWindows = new List<Element>();
 
@@ -60,7 +60,7 @@ namespace BIMv2
 
                             IList<Element> listVitragOnly = new List<Element>();
 
-                            //собрать витражи из связанной модели 
+                            //собрать витражи из связанной модели
                             IList<Element> listVitrag = GetAllVitrag(linkDocument);
 
                             foreach (Element element in listVitrag)
@@ -79,7 +79,7 @@ namespace BIMv2
 
                             }
 
-                            //TaskDialog.Show("Complite!", $"Всего витражей {listVitragOnly.Count}");
+                            TaskDialog.Show("Complite!", $"Всего витражей {listVitragOnly.Count}");
 
                             //собрать двери из связанной модели 
                             IList<Element> listDoors = GetAllDoors(linkDocument);
@@ -93,7 +93,7 @@ namespace BIMv2
 
                             }
 
-                            //TaskDialog.Show("Complite!", $"Всего дверей {listDoors.Count}");
+                            TaskDialog.Show("Complite!", $"Всего дверей {listDoors.Count}");
 
                             //собрать окна из связанной модели FCD
                             IList<Element> listWindows = GetAllWindows(linkDocument);
@@ -107,7 +107,7 @@ namespace BIMv2
 
                             }
 
-                            //TaskDialog.Show("Complite!", $"Всего окон: {listWindowsOnlyWindows.Count}");
+                            TaskDialog.Show("Complite!", $"Всего окон: {listWindowsOnlyWindows.Count}");
 
                             //собрать отверстия если они есть и получить марку
 
@@ -179,7 +179,8 @@ namespace BIMv2
 
                                         double x2 = location.Point.X;
                                         double y2 = location.Point.Y;
-                                        double z2 = location.Point.Z;
+                                        //double z2 = location.Point.Z ;
+                                        double z2 = location.Point.Z - 2.62467;
                                         //double z2 = location.Point.Z;
 
 
@@ -282,7 +283,7 @@ namespace BIMv2
                                                         _doc.Regenerate();
 
                                                         //TaskDialog.Show("N", $"отверстие сделано{markForNK}");
-                                                        break;
+                                                        continue;
                                                     }
 
                                                     catch
@@ -392,8 +393,8 @@ namespace BIMv2
                                         double x2 = location.Point.X;
                                         double y2 = location.Point.Y;
 
-                                        //double z2 = location.Point.Z - 2.62467;
-                                        double z2 = location.Point.Z;
+                                        double z2 = location.Point.Z - 2.62467;
+                                        //double z2 = location.Point.Z;
 
 
 
@@ -572,9 +573,8 @@ namespace BIMv2
 
                                         double x2 = 0;
                                         double y2 = 0;
-                                        //double z2 = location.Point.Z;
-                                        //double z2 = h[0].Z + 0.6561679790;
-                                        double z2 = h[0].Z + 3.28084;
+                                        //double z2 = h[0].Z;
+                                        double z2 = h[0].Z - 1.65498018;
 
 
                                         //направление для стандартных
@@ -733,7 +733,7 @@ namespace BIMv2
                                                         _doc.Regenerate();
 
                                                         //TaskDialog.Show("N", $"отверстие сделано{markForNK}");
-                                                        break;
+                                                        continue;
                                                     }
 
                                                     catch
@@ -772,29 +772,29 @@ namespace BIMv2
 
 
 
+
                         }
-                    }
 
-                    //все отверстия
-                    IList<Element> listOpeningsNew2 = new List<Element>();
+                        //все отверстия
+                        IList<Element> listOpeningsNew2 = new List<Element>();
 
-                    //все отверстия
-                    IList<Element> listOpeningsNew4 = GetAllWindows(_doc);
+                        //все отверстия
+                        IList<Element> listOpeningsNew4 = GetAllWindows(_doc);
 
-                    foreach (Element element in listOpeningsNew4)
-                    {
-                        if (element != null && element.Name == "ADSK_Окно_ПроемПрямоугольный")
+                        foreach (Element element in listOpeningsNew4)
                         {
-                            listOpeningsNew2.Add(element);
+                            if (element != null && element.Name == "ADSK_Окно_ПроемПрямоугольный")
+                            {
+                                listOpeningsNew2.Add(element);
+                            }
                         }
+
+
+
+                        TaskDialog.Show("Complite!", $"0Отверстия под окна, витражи и двери сделаны и обновлены, всего ");
+
+                        t.Commit();
                     }
-
-
-
-                    TaskDialog.Show("Complite!", $"Отверстия под окна, витражи и двери сделаны и обновлены, всего {listOpeningsNew2.Count}");
-
-                    t.Commit();
-
                 }
 
                 return Result.Succeeded;
