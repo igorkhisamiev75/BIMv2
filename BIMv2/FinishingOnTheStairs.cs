@@ -94,7 +94,14 @@ namespace BIMv2
                 {
                     StairsRun stairsRun = _doc.GetElement(staitRun) as StairsRun;
 
+                    //высота лестницы
                     var hightStar = stairsRun.get_Parameter(BuiltInParameter.STAIRS_RUN_ACTUAL_RISER_HEIGHT).AsDouble();
+                    
+                    //ширина лестницы
+                    var wightStar=stairsRun.get_Parameter(BuiltInParameter.STAIRS_RUN_ACTUAL_RUN_WIDTH).AsDouble();
+
+                    //число проступней
+                    var numberTheads = stairsRun.get_Parameter(BuiltInParameter.STAIRS_RUN_ACTUAL_NUMBER_OF_TREADS).AsInteger();
 
                     Options options = new Options();
 
@@ -107,16 +114,27 @@ namespace BIMv2
 
                     foreach (var item in cl)
                     {
-                        //curves.Add(item);
+                        if(item.ApproximateLength == wightStar)
+                       
+                        {
+                            var wall = Wall.Create(_doc, item, lv, false);
 
-                        var wall = Wall.Create(_doc, item, lv, false);
-                        wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(hightStar);
-                        //Line line = item as Line;
+                            var vector = new XYZ(0, 0, 0);
 
-                        //var tre = line.Tessellate();
+                            //создание лестницы
+                            wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(hightStar);
+                            
+                            for(int i=0; i<numberTheads; i++)
+                            {
+                                ElementTransformUtils.CopyElement(_doc, wall.Id, vector);
+                            }
+                            
+
+                        }
+
 
                     }
-
+                   
                     
 
                 }
