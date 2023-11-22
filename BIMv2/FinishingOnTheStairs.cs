@@ -94,6 +94,8 @@ namespace BIMv2
                 {
                     StairsRun stairsRun = _doc.GetElement(staitRun) as StairsRun;
 
+                    var hightStar = stairsRun.get_Parameter(BuiltInParameter.STAIRS_RUN_ACTUAL_RISER_HEIGHT).AsDouble();
+
                     Options options = new Options();
 
                     GeometryElement geom = stairsRun.get_Geometry(options);
@@ -108,6 +110,7 @@ namespace BIMv2
                         //curves.Add(item);
 
                         var wall = Wall.Create(_doc, item, lv, false);
+                        wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(hightStar);
                         //Line line = item as Line;
 
                         //var tre = line.Tessellate();
