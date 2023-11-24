@@ -49,12 +49,14 @@ namespace BIMv2
             {
                 t.Start("Create floor");
 
-                //создаем перекрытие на марше
-                
+                //выбор лестницы
+
+                Stairs str = SelectedElement(_doc);
+
 
                 FloorType floorType = GetFloorTypeInProject();
 
-                Stairs str =GetStairInfo(_doc);
+                //Stairs str =GetStairInfo(_doc);
 
                 ElementId lv = str.get_Parameter(BuiltInParameter.STAIRS_BASE_LEVEL_PARAM).AsElementId();
 
@@ -105,11 +107,37 @@ namespace BIMv2
                     //ширина лестницы
                     var wightStar=stairsRun.get_Parameter(BuiltInParameter.STAIRS_RUN_ACTUAL_RUN_WIDTH).AsDouble();
 
-                    //ширина протсупни
+                    //ширина протсупни глубина
                     var wightStarProst = stairsRun.get_Parameter(BuiltInParameter.STAIRS_RUN_ACTUAL_TREAD_DEPTH).AsDouble();
+
+                   
 
                     //число проступней
                     var numberTheads = stairsRun.get_Parameter(BuiltInParameter.STAIRS_RUN_ACTUAL_NUMBER_OF_TREADS).AsInteger();
+
+                    //направление надо найти для правильного копирования
+
+                    var stirPath = stairsRun.GetStairsPath();
+
+                    var cl2 = stirPath.FirstOrDefault() as Line;
+
+                    var dirLine = cl2.Direction;
+
+                    var dixX=dirLine.X;
+                    var dixY=dirLine.Y;
+
+                    TaskDialog.Show("123", $"{dixX} и {dixY}");
+
+                    int x = 0;
+                    int y = 0;
+                   
+                    //switch (dixX)
+                    //{
+                    //    case 0: 
+
+                    //}
+
+
 
                     Options options = new Options();
 
@@ -142,7 +170,7 @@ namespace BIMv2
 
                             for (int i=0; i<=numberTheads; i++)
                             {
-                                XYZ vector = new XYZ (0, wightStarProst * i, hightStar * i);
+                                XYZ vector = new XYZ (wightStarProst* dixX*i, wightStarProst * i* dixY, hightStar * i);
 
                                 //var vector = bbMax - bbMin;
 
