@@ -163,6 +163,19 @@ namespace BIMv2Buttons
             BitmapImage pb1ImageB3_6 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-double-arrows32.png"));
             pb1B3_6.LargeImage = pb1ImageB3_6;
 
+            //попробуем создать еще одну кнопку
+            ribbonPanelb2.AddSeparator(); //разделитель между кнопками
+
+            // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData b1DataB3_7 = new PushButtonData("cmdFinishingOnTheStairs", "Отделка"
+                + Environment.NewLine + "на лестнице", thisAssemblyPath, "BIMv2.FinishingOnTheStairs");
+
+            PushButton pb1B3_7 = ribbonPanelb2.AddItem(b1DataB3_7) as PushButton;
+            pb1B3_7.ToolTip = "Сделать отделку на лестнице";
+
+            BitmapImage pb1ImageB3_7 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-stairs-32.png"));
+            pb1B3_7.LargeImage = pb1ImageB3_7;
+
             #endregion
 
             //кнопки 2BIM

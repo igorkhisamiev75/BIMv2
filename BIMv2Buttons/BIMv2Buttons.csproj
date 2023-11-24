@@ -191,6 +191,7 @@
     <Compile Include="DuplicateSheets\DuplicateSheets.cs" />
     <Compile Include="FindDuctFiting\FindDuctFiting.cs" />
     <Compile Include="FindNameRoomForLighting\FindNameRoomForLighting.cs" />
+    <Compile Include="FinishingOnTheStairs\FinishingOnTheStairs.cs" />
     <Compile Include="GroupByMarkEqupmentFurnitureAndWriteToComment\GroupByMarkEqupmentFurnitureAndWriteToComment.cs" />
     <Compile Include="GroupingLighting\GroupingLighting.cs" />
     <Compile Include="GroupTypeCeilingAndWriteToComment\GroupTypeCeilingAndWriteToComment.cs" />
@@ -329,6 +330,10 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\icons8-hvac-32.png" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Resources\icons8-stairs-32.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

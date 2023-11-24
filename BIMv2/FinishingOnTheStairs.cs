@@ -1,10 +1,7 @@
 ﻿#region Namespaces
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-
 using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
@@ -12,7 +9,6 @@ using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Selection;
 
-using Floor = Autodesk.Revit.DB.Floor;
 
 #endregion
 
@@ -54,11 +50,12 @@ namespace BIMv2
                 Stairs str = SelectedElement(_doc);
 
 
-                FloorType floorType = GetFloorTypeInProject();
+                FloorType floorType = GetFloorTypeInProject("0");
 
                 //Stairs str =GetStairInfo(_doc);
 
                 ElementId lv = str.get_Parameter(BuiltInParameter.STAIRS_BASE_LEVEL_PARAM).AsElementId();
+                var ofsetStair = str.get_Parameter(BuiltInParameter.STAIRS_BASE_OFFSET).AsDouble();
 
                 CurveArray temp = new CurveArray();
 
@@ -81,10 +78,13 @@ namespace BIMv2
                         temp.Append(item);
                     }
 
+                    var nf = _doc.Create.NewFloor(temp, floorType, level, false);
+                    temp.Clear();
+                    nf.get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM).Set(elevation + ofsetStair);
+
                 }
 
-                var nf = _doc.Create.NewFloor(temp, floorType, level, false);
-                nf.get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM).Set(elevation);
+               
 
 
                 //создаем стены
@@ -162,25 +162,31 @@ namespace BIMv2
                         {
                             var wall = Wall.Create(_doc, item, lv, false);
 
-                            
-
-                            //создание лестницы
+                            //создание стены на ступенке
                             wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(hightStar); //установка высоты
-                            wall.get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(baseElevation);
+                            wall.get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(baseElevation+ ofsetStair);
 
-                            for (int i=0; i<=numberTheads; i++)
+                            wall.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set("главная");
+
+                            _doc.Regenerate();
+
+                            //граница помещения
+
+                            wall.get_Parameter(BuiltInParameter.WALL_ATTR_ROOM_BOUNDING).Set(0);
+
+                            for (int i=1; i<=numberTheads; i++)
                             {
-                                XYZ vector = new XYZ (wightStarProst* dixX*i, wightStarProst * i* dixY, hightStar * i);
+                                XYZ vector = new XYZ (wightStarProst* dixX*i, wightStarProst * i* dixY, hightStar * i+ ofsetStair);
 
                                 //var vector = bbMax - bbMin;
 
                                 var newWall = ElementTransformUtils.CopyElement(_doc, wall.Id, vector);
 
-                                _doc.Regenerate();
+                                //_doc.Regenerate();
 
                                 foreach(var el in newWall)
                                 {
-                                    _doc.GetElement(el).get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(hightStar*i+ baseElevation);
+                                    _doc.GetElement(el).get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(hightStar*i+ baseElevation + ofsetStair);
                                     _doc.GetElement(el).get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(i.ToString());
                                 }
 
@@ -282,7 +288,7 @@ namespace BIMv2
         public void CreateFloorInRooms(Element elem)
         {
 
-            FloorType floorType = GetFloorTypeInProject();
+            FloorType floorType = GetFloorTypeInProject("Отделка");
 
             CurveArray roomsCurves = new CurveArray();
             Room r1 = (Room)elem;
@@ -312,14 +318,25 @@ namespace BIMv2
 
        
 
-        public FloorType GetFloorTypeInProject()
+        public FloorType GetFloorTypeInProject(string nameTypeWall)
         {
-            // Search all the floor types in the Revit
-            FilteredElementCollector filteredElementCollectorFloor = new FilteredElementCollector(_doc);
-            filteredElementCollectorFloor.OfClass(typeof(FloorType));
-            var m_FloorTypeCollection = filteredElementCollectorFloor.Cast<FloorType>().ToList<FloorType>();
-            FloorType g = m_FloorTypeCollection[3];
-            return g;
+            FloorType wallType;
+            //// Get a floor type for floor creation
+            FilteredElementCollector collector = new FilteredElementCollector(_doc);
+            collector.OfClass(typeof(WallType));
+            wallType = collector.Where(x => x.Name == nameTypeWall) as FloorType;
+            //as WallType;
+
+            FilteredElementCollector a = new FilteredElementCollector(_doc).OfClass(typeof(FloorType));
+            foreach (FloorType wallType2 in a)
+            {
+                if (wallType2.Name == nameTypeWall)
+                {
+                    return wallType2;
+                }
+            }
+
+            return wallType;
 
         }
 
