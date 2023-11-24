@@ -179,12 +179,31 @@ namespace BIMv2
 
                             //создаем перекрытия
 
-                            foreach (var item3 in cl)
+                            //количество ступенек numberTheads
+
+                            List<Line> lineForFinishDegree = new List<Line>();    
+
+                            foreach (Curve item3 in cl)
+
+                            {
+                                Line line = item3 as Line;
+
+                                lineForFinishDegree.Add(line);
+
+                            }
+
+
+
+                            TaskDialog.Show("12", $"{lineForFinishDegree.Count()}");
+
+                            foreach (Curve item3 in cl)
 
                             {
                                 tempStair.Append(item3);
 
                             }
+
+
 
                             var nf = _doc.Create.NewFloor(tempStair, floorType, level, false);
                             nf.get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM).Set(baseElevation);
