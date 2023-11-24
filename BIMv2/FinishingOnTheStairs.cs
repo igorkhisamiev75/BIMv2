@@ -126,7 +126,7 @@ namespace BIMv2
                     var dixX=dirLine.X;
                     var dixY=dirLine.Y;
 
-                    TaskDialog.Show("123", $"{dixX} и {dixY}");
+                    //TaskDialog.Show("123", $"{dixX} и {dixY}");
 
                     int x = 0;
                     int y = 0;
