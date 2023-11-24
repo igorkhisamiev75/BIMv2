@@ -49,7 +49,6 @@ namespace BIMv2
 
                 Stairs str = SelectedElement(_doc);
 
-
                 FloorType floorType = GetFloorTypeInProject("0");
 
                 //Stairs str =GetStairInfo(_doc);
@@ -59,6 +58,8 @@ namespace BIMv2
 
                 CurveArray temp = new CurveArray();
 
+                CurveArray tempStair = new CurveArray();
+
                 Level level = (Level)_doc.GetElement(lv);
 
                 ICollection<ElementId> landings = str.GetStairsLandings();
@@ -66,6 +67,7 @@ namespace BIMv2
 
                 double elevation=0;
 
+                //создаем перекрытия на каждой площадке
                 foreach (ElementId landing in landings)
                 {
                     StairsLanding stairsL = _doc.GetElement(landing) as StairsLanding;
@@ -84,9 +86,6 @@ namespace BIMv2
 
                 }
 
-               
-
-
                 //создаем стены
 
                 WallType wallType;
@@ -99,7 +98,7 @@ namespace BIMv2
 
                     //BaseElevation
 
-                    var baseElevation=stairsRun.BaseElevation;
+                    var baseElevation = stairsRun.BaseElevation;
 
                     //высота подступенка
                     var hightStar = stairsRun.get_Parameter(BuiltInParameter.STAIRS_RUN_ACTUAL_RISER_HEIGHT).AsDouble();
@@ -109,8 +108,6 @@ namespace BIMv2
 
                     //ширина протсупни глубина
                     var wightStarProst = stairsRun.get_Parameter(BuiltInParameter.STAIRS_RUN_ACTUAL_TREAD_DEPTH).AsDouble();
-
-                   
 
                     //число проступней
                     var numberTheads = stairsRun.get_Parameter(BuiltInParameter.STAIRS_RUN_ACTUAL_NUMBER_OF_TREADS).AsInteger();
@@ -126,19 +123,6 @@ namespace BIMv2
                     var dixX=dirLine.X;
                     var dixY=dirLine.Y;
 
-                    //TaskDialog.Show("123", $"{dixX} и {dixY}");
-
-                    int x = 0;
-                    int y = 0;
-                   
-                    //switch (dixX)
-                    //{
-                    //    case 0: 
-
-                    //}
-
-
-
                     Options options = new Options();
 
                     GeometryElement geom = stairsRun.get_Geometry(options);
@@ -147,8 +131,6 @@ namespace BIMv2
 
                     var bbMax = stairsRun.get_BoundingBox(null).Max;
                     var bbMin = stairsRun.get_BoundingBox(null).Min;
-
-
 
                     //рамка марша
                     CurveLoop cl = stairsRun.GetFootprintBoundary();
@@ -160,6 +142,7 @@ namespace BIMv2
                         if(item.ApproximateLength == wightStar)
                        
                         {
+                            //создаем стены
                             var wall = Wall.Create(_doc, item, lv, false);
 
                             //создание стены на ступенке
@@ -194,20 +177,32 @@ namespace BIMv2
                                 //_doc.GetElement((ElementId)newWall).get_Parameter(BuiltInParameter.WALL_TOP_OFFSET).Set(hightStar * i+ hightStar);
                             }
 
+                            //создаем перекрытия
+
+                            foreach (var item3 in cl)
+
+                            {
+                                tempStair.Append(item3);
+
+                            }
+
+                            var nf = _doc.Create.NewFloor(tempStair, floorType, level, false);
+                            nf.get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM).Set(baseElevation);
+
+                            tempStair.Clear();
+                            //копируем на каждую степеньку
+
+
                             break;
                         }
                        
-
                     }
                    
-                    
 
                 }
 
-
-                TaskDialog.Show("Лестница", "Лестница ☺☺☺");
+                TaskDialog.Show("Отделка лестницы", "Отделка сделана на лестнице");
                 t.Commit();
-
 
             }
 
@@ -281,10 +276,6 @@ namespace BIMv2
             }
         }
 
-        
-
-        
-       
         public void CreateFloorInRooms(Element elem)
         {
 

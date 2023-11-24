@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
@@ -50,11 +51,12 @@ namespace BIMv2
                 Stairs str = SelectedElement(_doc);
 
 
-                FloorType floorType = GetFloorTypeInProject();
+                FloorType floorType = GetFloorTypeInProject("0");
 
                 //Stairs str =GetStairInfo(_doc);
 
                 ElementId lv = str.get_Parameter(BuiltInParameter.STAIRS_BASE_LEVEL_PARAM).AsElementId();
+                var ofsetStair = str.get_Parameter(BuiltInParameter.STAIRS_BASE_OFFSET).AsDouble();
 
                 CurveArray temp = new CurveArray();
 
@@ -63,12 +65,12 @@ namespace BIMv2
                 ICollection<ElementId> landings = str.GetStairsLandings();
                 ICollection<ElementId> runs = str.GetStairsRuns();
 
-                double elevation=0;
+                double elevation = 0;
 
                 foreach (ElementId landing in landings)
                 {
                     StairsLanding stairsL = _doc.GetElement(landing) as StairsLanding;
-                    var cl=stairsL.GetFootprintBoundary();
+                    var cl = stairsL.GetFootprintBoundary();
 
                     elevation = stairsL.BaseElevation;
 
@@ -77,10 +79,13 @@ namespace BIMv2
                         temp.Append(item);
                     }
 
+                    var nf = _doc.Create.NewFloor(temp, floorType, level, false);
+                    temp.Clear();
+                    nf.get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM).Set(elevation + ofsetStair);
+
                 }
 
-                var nf = _doc.Create.NewFloor(temp, floorType, level, false);
-                nf.get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM).Set(elevation);
+
 
 
                 //создаем стены
@@ -95,18 +100,18 @@ namespace BIMv2
 
                     //BaseElevation
 
-                    var baseElevation=stairsRun.BaseElevation;
+                    var baseElevation = stairsRun.BaseElevation;
 
                     //высота подступенка
                     var hightStar = stairsRun.get_Parameter(BuiltInParameter.STAIRS_RUN_ACTUAL_RISER_HEIGHT).AsDouble();
-                    
+
                     //ширина лестницы
-                    var wightStar=stairsRun.get_Parameter(BuiltInParameter.STAIRS_RUN_ACTUAL_RUN_WIDTH).AsDouble();
+                    var wightStar = stairsRun.get_Parameter(BuiltInParameter.STAIRS_RUN_ACTUAL_RUN_WIDTH).AsDouble();
 
                     //ширина протсупни глубина
                     var wightStarProst = stairsRun.get_Parameter(BuiltInParameter.STAIRS_RUN_ACTUAL_TREAD_DEPTH).AsDouble();
 
-                   
+
 
                     //число проступней
                     var numberTheads = stairsRun.get_Parameter(BuiltInParameter.STAIRS_RUN_ACTUAL_NUMBER_OF_TREADS).AsInteger();
@@ -119,14 +124,14 @@ namespace BIMv2
 
                     var dirLine = cl2.Direction;
 
-                    var dixX=dirLine.X;
-                    var dixY=dirLine.Y;
+                    var dixX = dirLine.X;
+                    var dixY = dirLine.Y;
 
                     //TaskDialog.Show("123", $"{dixX} и {dixY}");
 
                     int x = 0;
                     int y = 0;
-                   
+
                     //switch (dixX)
                     //{
                     //    case 0: 
@@ -150,33 +155,39 @@ namespace BIMv2
                     CurveLoop cl = stairsRun.GetFootprintBoundary();
 
                     //IList<Curve> curves = new List<Curve>();
-                                        
+
                     foreach (var item in cl)
                     {
-                        if(item.ApproximateLength == wightStar)
-                       
+                        if (item.ApproximateLength == wightStar)
+
                         {
                             var wall = Wall.Create(_doc, item, lv, false);
 
-                            
-
-                            //создание лестницы
+                            //создание стены на ступенке
                             wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(hightStar); //установка высоты
-                            wall.get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(baseElevation);
+                            wall.get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(baseElevation + ofsetStair);
 
-                            for (int i=0; i<=numberTheads; i++)
+                            wall.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set("главная");
+
+                            _doc.Regenerate();
+
+                            //граница помещения
+
+                            wall.get_Parameter(BuiltInParameter.WALL_ATTR_ROOM_BOUNDING).Set(0);
+
+                            for (int i = 1; i <= numberTheads; i++)
                             {
-                                XYZ vector = new XYZ (wightStarProst* dixX*i, wightStarProst * i* dixY, hightStar * i);
+                                XYZ vector = new XYZ(wightStarProst * dixX * i, wightStarProst * i * dixY, hightStar * i + ofsetStair);
 
                                 //var vector = bbMax - bbMin;
 
                                 var newWall = ElementTransformUtils.CopyElement(_doc, wall.Id, vector);
 
-                                _doc.Regenerate();
+                                //_doc.Regenerate();
 
-                                foreach(var el in newWall)
+                                foreach (var el in newWall)
                                 {
-                                    _doc.GetElement(el).get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(hightStar*i+ baseElevation);
+                                    _doc.GetElement(el).get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(hightStar * i + baseElevation + ofsetStair);
                                     _doc.GetElement(el).get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(i.ToString());
                                 }
 
@@ -186,11 +197,11 @@ namespace BIMv2
 
                             break;
                         }
-                       
+
 
                     }
-                   
-                    
+
+
 
                 }
 
@@ -271,14 +282,14 @@ namespace BIMv2
             }
         }
 
-        
 
-        
-       
+
+
+
         public void CreateFloorInRooms(Element elem)
         {
 
-            FloorType floorType = GetFloorTypeInProject();
+            FloorType floorType = GetFloorTypeInProject("Отделка");
 
             CurveArray roomsCurves = new CurveArray();
             Room r1 = (Room)elem;
@@ -306,16 +317,27 @@ namespace BIMv2
 
         }
 
-       
 
-        public FloorType GetFloorTypeInProject()
+
+        public FloorType GetFloorTypeInProject(string nameTypeWall)
         {
-            // Search all the floor types in the Revit
-            FilteredElementCollector filteredElementCollectorFloor = new FilteredElementCollector(_doc);
-            filteredElementCollectorFloor.OfClass(typeof(FloorType));
-            var m_FloorTypeCollection = filteredElementCollectorFloor.Cast<FloorType>().ToList<FloorType>();
-            FloorType g = m_FloorTypeCollection[3];
-            return g;
+            FloorType wallType;
+            //// Get a floor type for floor creation
+            FilteredElementCollector collector = new FilteredElementCollector(_doc);
+            collector.OfClass(typeof(WallType));
+            wallType = collector.Where(x => x.Name == nameTypeWall) as FloorType;
+            //as WallType;
+
+            FilteredElementCollector a = new FilteredElementCollector(_doc).OfClass(typeof(FloorType));
+            foreach (FloorType wallType2 in a)
+            {
+                if (wallType2.Name == nameTypeWall)
+                {
+                    return wallType2;
+                }
+            }
+
+            return wallType;
 
         }
 
@@ -399,26 +421,26 @@ namespace BIMv2
 
         public Stairs SelectedElement(Document sDocument)
         {
-           
+
             try
             {
-                
+
                 var uidoc = new UIDocument(_doc);
 
-               
+
                 var r = uidoc.Selection.PickObject(ObjectType.Element,
                     "Выбрать лестницу");
                 var elem = uidoc.Document.GetElement(r);
 
 
                 return (Stairs)elem;
-                
+
             }
 
             catch (Exception ex)
             {
                 TaskDialog.Show("Revit", "Exception" + ex.Message);
-                
+
                 return null;
             }
 
@@ -432,7 +454,7 @@ namespace BIMv2
             FilteredElementCollector collector = new FilteredElementCollector(document);
             ICollection<ElementId> stairsIds = collector.WhereElementIsNotElementType().OfCategory(BuiltInCategory.OST_Stairs).ToElementIds();
 
-            
+
 
             foreach (ElementId stairId in stairsIds)
             {
