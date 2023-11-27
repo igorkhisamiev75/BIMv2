@@ -180,6 +180,8 @@ namespace BIMv2
                             //создаем перекрытия
 
                             //количество ступенек numberTheads
+                            //ширина лестницы wightStar
+                            //глубина ступеньки
 
                             List<Line> lineForFinishDegree = new List<Line>();    
 
@@ -188,13 +190,31 @@ namespace BIMv2
                             {
                                 Line line = item3 as Line;
 
+                                //длина длинии рисующую лестницу
+
+                                double lineLighte = line.Length;
+
                                 lineForFinishDegree.Add(line);
+
+                            }
+
+                            var l1 = lineForFinishDegree[0].Tessellate();
+                            var l2 = lineForFinishDegree[1].Tessellate();
+
+                            if (l1[0].X == l1[1].X)
+                            {
+                                
+                            }
+
+                            if (l1[0].Y == l1[1].Y)
+                            {
 
                             }
 
 
 
-                            TaskDialog.Show("12", $"{lineForFinishDegree.Count()}");
+
+                            //TaskDialog.Show("12", $"{lineForFinishDegree.Count()}");
 
                             foreach (Curve item3 in cl)
 
