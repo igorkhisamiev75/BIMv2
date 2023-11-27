@@ -31,8 +31,6 @@ namespace BIMv2
         private bool structural;
         private Autodesk.Revit.Creation.Application creApp;
 
-        private XYZ mainXYZPoint;
-
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
 
@@ -224,7 +222,7 @@ namespace BIMv2
 
                             if (x1.X >= x2.X)
                             {
-                                if (l1[0].Y > l1[1].Y)
+                                if (x1.Y >= x2.Y)
                                 {
                                     newlistXYZ.Add(l1[1]);
                                     mainXYZ = l1[1];
@@ -232,16 +230,16 @@ namespace BIMv2
                                 }
                                 else
                                 {
-                                    newlistXYZ.Add(l1[0]);
-                                    mainXYZ = l1[0];
+                                    newlistXYZ.Add(l1[1]);
+                                    mainXYZ = l1[1];
                                     k = 2;    
                                 }
 
                             }
 
-                            if (l1[0].Y >= l1[1].Y)
+                            if (x1.Y >= x2.Y)
                             {
-                                if (l1[0].X > l1[1].X)
+                                if (x1.X > x2.X)
                                 {
                                     newlistXYZ.Add(l1[1]);
                                     mainXYZ = l1[1];
@@ -256,7 +254,9 @@ namespace BIMv2
 
                             }
 
-                            if (k == 1 || k == 2 || k == 3 || k == 4) //все в одном
+                            TaskDialog.Show("Отделка лестницы", $"{k}"); 
+
+                            if (k == 1 ) //все в одном
                             {
                                XYZ xYZ = new XYZ(mainXYZ.X, mainXYZ.Y+ wightStarProst, mainXYZ.Z);
                                mainXYZ2= xYZ;
@@ -266,6 +266,41 @@ namespace BIMv2
                                 mainXYZ4 = xYZ2;
 
                             }
+
+                            if (k == 2) //все в одном
+                            {
+                                XYZ xYZ = new XYZ(mainXYZ.X, mainXYZ.Y - wightStarProst, mainXYZ.Z);
+                                mainXYZ2 = xYZ;
+                                XYZ xYZ1 = new XYZ(mainXYZ.X - wightStar, mainXYZ.Y, mainXYZ.Z);
+                                mainXYZ3 = xYZ1;
+                                XYZ xYZ2 = new XYZ(mainXYZ.X - wightStar, mainXYZ.Y - wightStarProst, mainXYZ.Z);
+                                mainXYZ4 = xYZ2;
+
+                            }
+
+                            if (k == 3) //норм
+                            {
+                                XYZ xYZ = new XYZ(mainXYZ.X, mainXYZ.Y + wightStarProst, mainXYZ.Z);
+                                mainXYZ2 = xYZ;
+                                XYZ xYZ1 = new XYZ(mainXYZ.X + wightStar, mainXYZ.Y, mainXYZ.Z);
+                                mainXYZ3 = xYZ1;
+                                XYZ xYZ2 = new XYZ(mainXYZ.X + wightStar, mainXYZ.Y + wightStarProst, mainXYZ.Z);
+                                mainXYZ4 = xYZ2;
+
+                            }
+
+                            if (k == 4) //все в одном
+                            {
+                                XYZ xYZ = new XYZ(mainXYZ.X, mainXYZ.Y + wightStarProst, mainXYZ.Z);
+                                mainXYZ2 = xYZ;
+                                XYZ xYZ1 = new XYZ(mainXYZ.X + wightStar, mainXYZ.Y, mainXYZ.Z);
+                                mainXYZ3 = xYZ1;
+                                XYZ xYZ2 = new XYZ(mainXYZ.X + wightStar, mainXYZ.Y + wightStarProst, mainXYZ.Z);
+                                mainXYZ4 = xYZ2;
+
+                            }
+
+
 
                             Line line1 = Line.CreateBound(mainXYZ, mainXYZ2);
                             Line line2 = Line.CreateBound(mainXYZ2, mainXYZ4);
