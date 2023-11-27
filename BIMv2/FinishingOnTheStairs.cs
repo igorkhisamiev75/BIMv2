@@ -213,46 +213,49 @@ namespace BIMv2
 
                             XYZ x1 = l1.First();
                             XYZ x2 = l1.Last();
+
+                            int x1XInt = (int)x1.X;
+                            int x2XInt = (int)x2.X;
+
+                            int y1XInt = (int)x1.Y;
+                            int y2XInt = (int)x2.Y;
+
+
                             //var l2 = lineForFinishDegree[1].Tessellate();
                             //нашли главную точку для постраения
 
-                            //TaskDialog.Show("Отделка лестницы", ""); ;
+                            TaskDialog.Show("Отделка лестницы", $"{x1XInt} {x2XInt} {y1XInt} {y2XInt}"); ;
 
                             int k = 0;
 
-                            if (x1.X >= x2.X)
+                            if (x1.X >= x2.X && x2.Y >= x1.Y)
                             {
-                                if (x1.Y >= x2.Y)
-                                {
-                                    newlistXYZ.Add(l1[1]);
-                                    mainXYZ = l1[1];
-                                    k = 1;
-                                }
-                                else
-                                {
-                                    newlistXYZ.Add(l1[1]);
-                                    mainXYZ = l1[1];
-                                    k = 2;    
-                                }
-
+                                newlistXYZ.Add(l1[1]);
+                                mainXYZ = l1[1];
+                                k = 1;
                             }
 
-                            if (x1.Y >= x2.Y)
+                            if(x1.X >= x2.X && x1.Y < x2.Y)
                             {
-                                if (x1.X > x2.X)
-                                {
-                                    newlistXYZ.Add(l1[1]);
-                                    mainXYZ = l1[1];
-                                    k = 3;
-                                }
-                                else
-                                {
-                                    mainXYZ.Add(l1[1]); // надо подумать ???
-                                    mainXYZ = l1[1];
-                                    k = 4;
-                                }
-
+                                newlistXYZ.Add(l1[1]);
+                                mainXYZ = l1[1];
+                                k = 2;
                             }
+
+                            if (x1.Y >= x2.Y && x1.X > x2.X) //сделано
+                            {
+                                newlistXYZ.Add(l1[1]);
+                                mainXYZ = l1[1];
+                                k = 3;
+                            }
+
+                            if(x1.Y >= x2.Y && x1.X < x2.X)
+                            {
+                                mainXYZ.Add(l1[1]); 
+                                mainXYZ = l1[1];
+                                k = 4;
+                            }
+                               
 
                             TaskDialog.Show("Отделка лестницы", $"{k}"); 
 
@@ -291,11 +294,13 @@ namespace BIMv2
 
                             if (k == 4) //все в одном
                             {
-                                XYZ xYZ = new XYZ(mainXYZ.X, mainXYZ.Y + wightStarProst, mainXYZ.Z);
+                                XYZ xYZ = new XYZ(mainXYZ.X, mainXYZ.Y + wightStar, mainXYZ.Z);
                                 mainXYZ2 = xYZ;
-                                XYZ xYZ1 = new XYZ(mainXYZ.X + wightStar, mainXYZ.Y, mainXYZ.Z);
+
+                                XYZ xYZ1 = new XYZ(mainXYZ.X - wightStarProst, mainXYZ.Y, mainXYZ.Z);
                                 mainXYZ3 = xYZ1;
-                                XYZ xYZ2 = new XYZ(mainXYZ.X + wightStar, mainXYZ.Y + wightStarProst, mainXYZ.Z);
+
+                                XYZ xYZ2 = new XYZ(mainXYZ.X - wightStarProst, mainXYZ.Y + wightStar, mainXYZ.Z);
                                 mainXYZ4 = xYZ2;
 
                             }
@@ -324,7 +329,11 @@ namespace BIMv2
 
 
                             var nf = _doc.Create.NewFloor(tempStair, floorType, level, false);
-                            nf.get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM).Set(baseElevation+ hightStar);
+
+                            //толщина перекрытия
+                            var tp = nf.get_Parameter(BuiltInParameter.FLOOR_ATTR_THICKNESS_PARAM).AsDouble();
+
+                            nf.get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM).Set(baseElevation+ hightStar+tp);
 
                             tempStair.Clear();
 
