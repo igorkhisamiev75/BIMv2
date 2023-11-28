@@ -32,8 +32,6 @@ namespace BIMv2
         private bool structural;
         private Autodesk.Revit.Creation.Application creApp;
 
-        private XYZ mainXYZPoint;
-
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
 
@@ -56,7 +54,14 @@ namespace BIMv2
                 //Stairs str =GetStairInfo(_doc);
 
                 ElementId lv = str.get_Parameter(BuiltInParameter.STAIRS_BASE_LEVEL_PARAM).AsElementId();
-                var ofsetStair = str.get_Parameter(BuiltInParameter.STAIRS_BASE_OFFSET).AsDouble();
+
+                //смещение лестницы снизу
+                double ofsetStair = str.get_Parameter(BuiltInParameter.STAIRS_BASE_OFFSET).AsDouble();
+
+                //id лестницы
+
+                string idStairs = str.Id.ToString();
+
 
                 CurveArray temp = new CurveArray();
 
@@ -87,6 +92,7 @@ namespace BIMv2
 
                     temp.Clear();
                     nf.get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM).Set(elevation + ofsetStair + tp);
+                    nf.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(idStairs);
 
                 }
 
@@ -94,7 +100,7 @@ namespace BIMv2
 
                 WallType wallType;
                 IList<Element> rooms;
-                wallType = GetWallTypeInProject("Отделка");
+                wallType = GetWallTypeInProject("0");
 
                 XYZ mainXYZ = new XYZ();
                 XYZ mainXYZ2 = new XYZ();
@@ -161,7 +167,7 @@ namespace BIMv2
                             wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(hightStar); //установка высоты
                             wall.get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(baseElevation + ofsetStair);
 
-                            wall.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set("главная");
+                            wall.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(idStairs);
 
                             _doc.Regenerate();
 
@@ -182,7 +188,7 @@ namespace BIMv2
                                 foreach (var el in newWall)
                                 {
                                     _doc.GetElement(el).get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(hightStar * i + baseElevation + ofsetStair);
-                                    _doc.GetElement(el).get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(i.ToString());
+                                    _doc.GetElement(el).get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(idStairs);
                                 }
 
                                 //_doc.GetElement((ElementId)newWall).get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(hightStar * i);
@@ -216,48 +222,75 @@ namespace BIMv2
 
                             XYZ x1 = l1.First();
                             XYZ x2 = l1.Last();
+
+                            int x1XInt = (int)x1.X;
+                            int x2XInt = (int)x2.X;
+
+                            int y1XInt = (int)x1.Y;
+                            int y2XInt = (int)x2.Y;
+
+
                             //var l2 = lineForFinishDegree[1].Tessellate();
                             //нашли главную точку для постраения
 
-                            //TaskDialog.Show("Отделка лестницы", ""); ;
+                            //TaskDialog.Show("Отделка лестницы", $"{x1XInt} {x2XInt} {y1XInt} {y2XInt}"); ;
 
                             int k = 0;
 
-                            if (x1.X >= x2.X)
+                            if (x1XInt > x2XInt && y1XInt == y2XInt)
                             {
-                                if (l1[0].Y > l1[1].Y)
-                                {
-                                    newlistXYZ.Add(l1[1]);
-                                    mainXYZ = l1[1];
-                                    k = 1;
-                                }
-                                else
-                                {
-                                    newlistXYZ.Add(l1[0]);
-                                    mainXYZ = l1[0];
-                                    k = 2;
-                                }
+
+                                mainXYZ = x2;
+                                k = 1;
+                            }
+
+                            if (x1XInt == x2XInt && y1XInt < y2XInt)
+                            {
+
+                                mainXYZ = l1[1];
+                                k = 2;
+                            }
+
+                            if (x1XInt == x2XInt && y1XInt > y2XInt) //сделано
+                            {
+
+                                mainXYZ = l1[1];
+                                k = 3;
+                            }
+
+                            if (x1XInt < x2XInt && y1XInt == y2XInt)
+                            {
+
+                                mainXYZ = l1[1];
+                                k = 4;
+                            }
+
+
+                            //TaskDialog.Show("Отделка лестницы", $"{k}"); 
+
+                            if (k == 1) //все в одном
+                            {
+                                XYZ xYZ = new XYZ(mainXYZ.X + wightStarProst, mainXYZ.Y, mainXYZ.Z);
+                                mainXYZ2 = xYZ;
+                                XYZ xYZ1 = new XYZ(mainXYZ.X, mainXYZ.Y - wightStar, mainXYZ.Z);
+                                mainXYZ3 = xYZ1;
+                                XYZ xYZ2 = new XYZ(mainXYZ.X + wightStarProst, mainXYZ.Y - wightStar, mainXYZ.Z);
+                                mainXYZ4 = xYZ2;
 
                             }
 
-                            if (l1[0].Y >= l1[1].Y)
+                            if (k == 2) //все в одном
                             {
-                                if (l1[0].X > l1[1].X)
-                                {
-                                    newlistXYZ.Add(l1[1]);
-                                    mainXYZ = l1[1];
-                                    k = 3;
-                                }
-                                else
-                                {
-                                    mainXYZ.Add(l1[1]); // надо подумать ???
-                                    mainXYZ = l1[1];
-                                    k = 4;
-                                }
+                                XYZ xYZ = new XYZ(mainXYZ.X, mainXYZ.Y - wightStarProst, mainXYZ.Z);
+                                mainXYZ2 = xYZ;
+                                XYZ xYZ1 = new XYZ(mainXYZ.X - wightStar, mainXYZ.Y, mainXYZ.Z);
+                                mainXYZ3 = xYZ1;
+                                XYZ xYZ2 = new XYZ(mainXYZ.X - wightStar, mainXYZ.Y - wightStarProst, mainXYZ.Z);
+                                mainXYZ4 = xYZ2;
 
                             }
 
-                            if (k == 1 || k == 2 || k == 3 || k == 4) //все в одном
+                            if (k == 3) //норм
                             {
                                 XYZ xYZ = new XYZ(mainXYZ.X, mainXYZ.Y + wightStarProst, mainXYZ.Z);
                                 mainXYZ2 = xYZ;
@@ -267,6 +300,21 @@ namespace BIMv2
                                 mainXYZ4 = xYZ2;
 
                             }
+
+                            if (k == 4) //все в одном
+                            {
+                                XYZ xYZ = new XYZ(mainXYZ.X, mainXYZ.Y + wightStar, mainXYZ.Z);
+                                mainXYZ2 = xYZ;
+
+                                XYZ xYZ1 = new XYZ(mainXYZ.X - wightStarProst, mainXYZ.Y, mainXYZ.Z);
+                                mainXYZ3 = xYZ1;
+
+                                XYZ xYZ2 = new XYZ(mainXYZ.X - wightStarProst, mainXYZ.Y + wightStar, mainXYZ.Z);
+                                mainXYZ4 = xYZ2;
+
+                            }
+
+
 
                             Line line1 = Line.CreateBound(mainXYZ, mainXYZ2);
                             Line line2 = Line.CreateBound(mainXYZ2, mainXYZ4);
@@ -290,7 +338,13 @@ namespace BIMv2
 
 
                             var nf = _doc.Create.NewFloor(tempStair, floorType, level, false);
-                            nf.get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM).Set(baseElevation + hightStar);
+
+                            //толщина перекрытия
+                            var tp = nf.get_Parameter(BuiltInParameter.FLOOR_ATTR_THICKNESS_PARAM).AsDouble();
+
+                            nf.get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM).Set(baseElevation + hightStar + tp + ofsetStair);
+                            nf.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(idStairs);
+
 
                             tempStair.Clear();
 
@@ -306,8 +360,8 @@ namespace BIMv2
 
                                 foreach (var el in newFloor)
                                 {
-                                    _doc.GetElement(el).get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM).Set(hightStar * i + baseElevation + hightStar);
-
+                                    _doc.GetElement(el).get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM).Set(hightStar * i + baseElevation + hightStar + ofsetStair + tp);
+                                    _doc.GetElement(el).get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(idStairs);
                                 }
 
                                 //_doc.GetElement((ElementId)newWall).get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(hightStar * i);
@@ -333,34 +387,6 @@ namespace BIMv2
 
         }
 
-
-
-
-        // a floor type to be used by the new floor instead of the default type
-        public FloorType FloorType
-        {
-            get
-            {
-                return floorType;
-            }
-            set
-            {
-                floorType = value;
-            }
-        }
-
-        // the Level on which the floors are to be placed
-        public Level Level
-        {
-            get
-            {
-                return level;
-            }
-            set
-            {
-                level = value;
-            }
-        }
 
         // an array of planar lines and arcs that represent the horizontal profile of the floor
         public CurveArray Profile
@@ -432,14 +458,12 @@ namespace BIMv2
 
         }
 
-
-
         public FloorType GetFloorTypeInProject(string nameTypeWall)
         {
             FloorType wallType;
             //// Get a floor type for floor creation
             FilteredElementCollector collector = new FilteredElementCollector(_doc);
-            collector.OfClass(typeof(WallType));
+            collector.OfClass(typeof(FloorType));
             wallType = collector.Where(x => x.Name == nameTypeWall) as FloorType;
             //as WallType;
 
