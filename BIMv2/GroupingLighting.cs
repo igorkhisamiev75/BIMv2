@@ -39,11 +39,13 @@ namespace BIMv2
 
             foreach (var element in allElements)
             {
+
                 ElementType type = doc.GetElement(element.GetTypeId()) as ElementType;
                 var adskOboznach = type.get_Parameter(new Guid("9c98831b-9450-412d-b072-7d69b39f4029")).AsString();
 
                 element.LookupParameter("Марка").Set(adskOboznach);
                 doc.Regenerate();
+
             }
 
 

@@ -313,6 +313,12 @@ namespace BIMv2
 
                             }
 
+                            if (k == 0) //все в одном
+                            {
+                                TaskDialog.Show("Не сработало", "Пока такая лестница в работе у программиста");
+
+                            }
+
 
 
                             Line line1 = Line.CreateBound(mainXYZ, mainXYZ2);
