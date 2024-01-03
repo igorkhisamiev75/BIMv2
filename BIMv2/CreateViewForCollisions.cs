@@ -78,7 +78,7 @@ namespace BIMv2
                     {
                         ElementId elementId = new ElementId(x);
 
-                        _doc.getElement
+                        var elem=_doc.GetElement(elementId);
 
                         BoundingBoxXYZ boundingBoxXYZ = new BoundingBoxXYZ();
 
@@ -91,8 +91,8 @@ namespace BIMv2
                         //t.SetName("Create view " + view.Name);
                         // Create a new BoundingBoxXYZ to define a 3D rectangular space
 
-                        boundingBoxXYZ.Min = room.get_BoundingBox(_doc.ActiveView).Min;
-                        boundingBoxXYZ.Max = room.get_BoundingBox(_doc.ActiveView).Max;
+                        boundingBoxXYZ.Min = elem.get_BoundingBox(_doc.ActiveView).Min;
+                        boundingBoxXYZ.Max = elem.get_BoundingBox(_doc.ActiveView).Max;
 
                         // Apply this bouding box to the view's section box
 
