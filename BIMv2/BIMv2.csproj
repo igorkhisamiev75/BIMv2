@@ -170,6 +170,7 @@
     <Compile Include="CreateScheduleRooms.cs" />
     <Compile Include="CreateSectionInSelectedRooms.cs" />
     <Compile Include="CreateViewByLinkedFiles.cs" />
+    <Compile Include="CreateViewForCollisions.cs" />
     <Compile Include="CreateWindowsForFinish.cs" />
     <Compile Include="DeletingCollisions.cs" />
     <Compile Include="DelUnplacedRoom.cs" />
