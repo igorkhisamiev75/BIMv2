@@ -32,8 +32,6 @@ namespace BIMv2
             Document doc = commandData.Application.ActiveUIDocument.Document;
             List<int> ints = new List<int>();
 
-            //string pathToFile = @"C:\Users\comp44\Desktop\V FS.xml";
-
             // get a ViewFamilyType for a 3D View
             ViewFamilyType viewFamilyType =
                 (from v in new FilteredElementCollector(_doc).OfClass(typeof(ViewFamilyType)).Cast<ViewFamilyType>()
@@ -43,12 +41,12 @@ namespace BIMv2
             using (var t = new Transaction(doc))
             {
 
-                t.Start("Del collisions");
+                t.Start("Create view for collisions");
 
                 //XDocument xdoc = XDocument.Load(@"C:\Users\i.khisamiev\Downloads\V FS.xml");
 
                 XmlDocument xmldoc = new XmlDocument();
-                xmldoc.Load(@"C:\Users\comp44\Desktop\V ES.xml");
+                xmldoc.Load(@"C:\BIMv2_ClashView.xml");
 
                 //XmlNode node = xmldoc.DocumentElement.SelectSingleNode("/name/value");
 
@@ -80,26 +78,49 @@ namespace BIMv2
 
                         var elem=_doc.GetElement(elementId);
 
-                        BoundingBoxXYZ boundingBoxXYZ = new BoundingBoxXYZ();
+                        var par = elem.Category;
 
-                        // Create the 3d view
-                        View3D view = View3D.CreateIsometric(_doc, viewFamilyType.Id);
+                        if (par != null)
+                        {
+                            BoundingBoxXYZ boundingBoxXYZ = new BoundingBoxXYZ();
 
-                        // Set the name of the view
-                        view.Name = x + " 3D вид";
+                            // Create the 3d view
+                            View3D view = View3D.CreateIsometric(_doc, viewFamilyType.Id);
 
-                        //t.SetName("Create view " + view.Name);
-                        // Create a new BoundingBoxXYZ to define a 3D rectangular space
+                            // Set the name of the view
+                            view.Name = "Временны_" + x + " Проблемное место 3D вид";
 
-                        boundingBoxXYZ.Min = elem.get_BoundingBox(_doc.ActiveView).Min;
-                        boundingBoxXYZ.Max = elem.get_BoundingBox(_doc.ActiveView).Max;
+                            //t.SetName("Create view " + view.Name);
+                            // Create a new BoundingBoxXYZ to define a 3D rectangular space
 
-                        // Apply this bouding box to the view's section box
+                            boundingBoxXYZ.Min = elem.get_BoundingBox(_doc.ActiveView).Min;
+                            boundingBoxXYZ.Max = elem.get_BoundingBox(_doc.ActiveView).Max;
 
-                        view.SetSectionBox(boundingBoxXYZ);
+                            // Apply this bouding box to the view's section box
+
+                            view.SetSectionBox(boundingBoxXYZ);
+                        }
+
+                        //var bb = elem.Location
+
+                        //if(bb != null)
+                        //{
+                        //    continue;
+                        //}
+
+                        //else
+                        //{
+                        //    break;
+                        //}
 
                        
-                        _doc.Regenerate();
+
+
+                        //view.CropBox = boundingBoxXYZ;
+
+
+
+                        //_doc.Regenerate();
                     }
 
                     catch
@@ -108,7 +129,7 @@ namespace BIMv2
                     }
                 }
 
-                TaskDialog.Show("Почищено", "Почишено");
+                TaskDialog.Show("2bim.ru", "3D виды с проблемными местами созданы");
 
                 t.Commit();
 

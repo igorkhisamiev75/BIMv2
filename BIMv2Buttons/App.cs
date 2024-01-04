@@ -584,6 +584,18 @@ namespace BIMv2Buttons
             //попробуем создать еще одну кнопку
             ribbonPanel4.AddSeparator(); //разделитель между кнопками
 
+            PushButtonData b28Data = new PushButtonData("cmdCreateViewForCollisions.cs", "Создать 3D "
+               + Environment.NewLine + "коллизий", thisAssemblyPath, "BIMv2.CreateViewForCollisions");
+
+            PushButton pb28 = ribbonPanel4.AddItem(b28Data) as PushButton;
+            pb28.ToolTip = "Создает инфу по отчету";
+
+            BitmapImage pb28Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-bi-32.png"));
+            pb28.LargeImage = pb28Image;
+
+            //попробуем создать еще одну кнопку
+            ribbonPanel4.AddSeparator(); //разделитель между кнопками
+
 
             // Create three push buttons for split button drop down 
 
