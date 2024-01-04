@@ -32,7 +32,7 @@ namespace BIMv2
             Document doc = commandData.Application.ActiveUIDocument.Document;
             List<int> ints = new List<int>();
 
-            string pathToFile = @"C:\Users\comp44\Desktop\V FS.xml";
+            //string pathToFile = @"C:\Users\comp44\Desktop\V FS.xml";
 
             // get a ViewFamilyType for a 3D View
             ViewFamilyType viewFamilyType =
@@ -48,7 +48,7 @@ namespace BIMv2
                 //XDocument xdoc = XDocument.Load(@"C:\Users\i.khisamiev\Downloads\V FS.xml");
 
                 XmlDocument xmldoc = new XmlDocument();
-                xmldoc.Load(@"C:\Users\i.khisamiev\Downloads\V ES.xml");
+                xmldoc.Load(@"C:\Users\comp44\Desktop\V ES.xml");
 
                 //XmlNode node = xmldoc.DocumentElement.SelectSingleNode("/name/value");
 
