@@ -569,9 +569,6 @@ namespace BIMv2Buttons
             //попробуем создать еще одну кнопку
             ribbonPanel4.AddSeparator(); //разделитель между кнопками
 
-            //попробуем создать еще одну кнопку
-            ribbonPanel4.AddSeparator(); //разделитель между кнопками
-
             PushButtonData b27Data = new PushButtonData("cmdFindDuctFiting.cs", "Врезки и "
                + Environment.NewLine + "решетки", thisAssemblyPath, "BIMv2.FindDuctFiting");
 
@@ -588,10 +585,22 @@ namespace BIMv2Buttons
                + Environment.NewLine + "коллизий", thisAssemblyPath, "BIMv2.CreateViewForCollisions");
 
             PushButton pb28 = ribbonPanel4.AddItem(b28Data) as PushButton;
-            pb28.ToolTip = "Создает инфу по отчету";
+            pb28.ToolTip = "Создает инфу по отчету на диске С, имя файла должно быть BIMv2_ClashView.xml";
 
             BitmapImage pb28Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-bi-32.png"));
             pb28.LargeImage = pb28Image;
+
+            //попробуем создать еще одну кнопку
+            ribbonPanel4.AddSeparator(); //разделитель между кнопками
+
+            PushButtonData bHData = new PushButtonData("cmdHelpBIM", "Группа в"
+               + Environment.NewLine + "Телеграм", thisAssemblyPath, "BIMv2.HelpBIM");
+
+            PushButton pbH = ribbonPanel4.AddItem(bHData) as PushButton;
+            pbH.ToolTip = "Подписываемся, ставим лайки, комментируем";
+
+            BitmapImage pbHImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-whatsapp-32.png"));
+            pbH.LargeImage = pbHImage;
 
             //попробуем создать еще одну кнопку
             ribbonPanel4.AddSeparator(); //разделитель между кнопками
