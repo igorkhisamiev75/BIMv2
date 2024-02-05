@@ -10,6 +10,8 @@ using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI.Selection;
 using BIMv2Buttons.CreateFinishWallinRooms;
 using System.Diagnostics;
+//using Aspose.Cells.Charts;
+using Floor = Autodesk.Revit.DB.Floor;
 
 namespace BIMv2
 {
@@ -131,9 +133,7 @@ namespace BIMv2
             if (vpViewWpf.heighWallUser != "")
             {
                 wallHeight = Convert.ToDouble(vpViewWpf.heighWallUser);
-                wallHeight = UnitUtils.Convert(wallHeight,
-                    DisplayUnitType.DUT_MILLIMETERS,
-                    DisplayUnitType.DUT_DECIMAL_FEET);
+                //wallHeight = UnitUtils.Convert(wallHeight, DisplayUnitType.DUT_MILLIMETERS, DisplayUnitType.DUT_DECIMAL_FEET);
                 //TaskDialog.Show("2bim.ru", $"Высота стен {wallHeight.ToString()}");
             }
 
