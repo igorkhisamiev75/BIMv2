@@ -12,7 +12,7 @@ using Autodesk.Revit.UI;
 namespace BIMv2
 {
     [Transaction(TransactionMode.Manual)]
-    public class WriteNameRoomInPlumbingFixtures : IExternalCommand
+    public class WriteNameRoomInFurniture : IExternalCommand
     {
         private Application _app;
         private Document _doc;
@@ -46,18 +46,29 @@ namespace BIMv2
                 var pointPF = locPoint.Point;
                 var myRoom = FindRoom(_doc, pointPF);
                 var nameRoom = "";
+                var numberRoom = "";
+
+                var BIM_NumRoom = "7ae9b62e-a182-476b-8297-1b871e262038";
+                var BIM_NameRoom = "a5b27858-5ce0-450c-9c3a-08693b326453";
+
+                var etag = "9eabf56c-a6cd-4b5c-a9d0-e9223e19ea3f";
+                var levElement = e.get_Parameter(BuiltInParameter.SCHEDULE_LEVEL_PARAM).AsValueString();
+                e.get_Parameter(new Guid(etag)).Set(levElement);
+
 
                 if (myRoom != null)
                 {
-                    nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
-                                   myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+                    numberRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();
+                    nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
 
-                    e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
-                        .Set(nameRoom);
+                    e.get_Parameter(new Guid(BIM_NumRoom)).Set(numberRoom);
+                    e.get_Parameter(new Guid(BIM_NameRoom)).Set(nameRoom);
 
                 }
                 else
                 {
+
+
                     var linkedInstances = FindLinkedInstances();
                     foreach (var linkInstance in linkedInstances)
                     {
@@ -66,17 +77,18 @@ namespace BIMv2
                         var linkDocument = linkInstance.GetLinkDocument();
 
                         var room = FindRoom(linkDocument, targetPoint);
+
                         if (room != null)
                         {
                             string[] subs = room.Name.Split(' ');
 
-                            e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
+                            e.get_Parameter(new Guid(BIM_NumRoom))
                                 .Set(room.Number + " " + subs[0]);
                         }
                         else
                         {
-                            nameRoom = "It's not in Room";
-                            e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
+                            nameRoom = "Проверить точку привязки к помещению";
+                            e.get_Parameter(new Guid(BIM_NameRoom))
                                 .Set(nameRoom);
                         }
 
@@ -87,25 +99,28 @@ namespace BIMv2
         public IList<Element> GetAllElements()
         {
             // List all plumbing fixtures
-            var plumbingFixCollector = new FilteredElementCollector(_doc).OfClass(typeof(FamilyInstance));
-            plumbingFixCollector.OfCategory(BuiltInCategory.OST_PlumbingFixtures);
-            var plFixList = plumbingFixCollector.ToElements();
-            // List all generic
-            var genericCollector = new FilteredElementCollector(_doc).OfClass(typeof(FamilyInstance));
-            genericCollector.OfCategory(BuiltInCategory.OST_GenericModel);
-            var plFixList2 = genericCollector.ToElements();
-            foreach (var VARIABLE in plFixList2) plFixList.Add(VARIABLE);
-            // List all SE
-            var seCollector = new FilteredElementCollector(_doc).OfClass(typeof(FamilyInstance));
-            seCollector.OfCategory(BuiltInCategory.OST_SpecialityEquipment);
-            var plFixList3 = seCollector.ToElements();
-            foreach (var VARIABLE in plFixList3) plFixList.Add(VARIABLE);
-            // List all furniture
+            //var plumbingFixCollector = new FilteredElementCollector(_doc).OfClass(typeof(FamilyInstance));
+            //plumbingFixCollector.OfCategory(BuiltInCategory.OST_PlumbingFixtures);
+            //var plFixList = plumbingFixCollector.ToElements();
+
+            //// List all generic
+            //var genericCollector = new FilteredElementCollector(_doc).OfClass(typeof(FamilyInstance));
+            //genericCollector.OfCategory(BuiltInCategory.OST_GenericModel);
+            //var plFixList2 = genericCollector.ToElements();
+            //foreach (var VARIABLE in plFixList2) plFixList.Add(VARIABLE);
+            //// List all SE
+            //var seCollector = new FilteredElementCollector(_doc).OfClass(typeof(FamilyInstance));
+            //seCollector.OfCategory(BuiltInCategory.OST_SpecialityEquipment);
+            //var plFixList3 = seCollector.ToElements();
+            //foreach (var VARIABLE in plFixList3) plFixList.Add(VARIABLE);
+            //// List all furniture
+            ///
+            //IList<Element> plFixList = new List<Element>();
             var fCollector = new FilteredElementCollector(_doc).OfClass(typeof(FamilyInstance));
             fCollector.OfCategory(BuiltInCategory.OST_Furniture);
             var plFixList4 = fCollector.ToElements();
-            foreach (var VARIABLE in plFixList4) plFixList.Add(VARIABLE);
-            return plFixList;
+            //foreach (var VARIABLE in plFixList4) plFixList.Add(VARIABLE);
+            return plFixList4;
         }
         private IEnumerable<RevitLinkInstance> FindLinkedInstances()
         {

@@ -15,6 +15,51 @@ namespace BIMv2Buttons
             // Get dll assembly path
             string thisAssemblyPath = Assembly.GetExecutingAssembly().Location;
 
+            #region BIMv2AI
+
+            String tabNameB3 = "BIMv2AI";    // создание вкладки
+            application.CreateRibbonTab(tabNameB3);
+
+            // Add a new ribbon panel
+            RibbonPanel ribbonPanelbAI1 = application.CreateRibbonPanel(tabNameB3, "Надстройки для лучших дизайнеров"); //подпись под кнопками
+
+            // Create three push buttons for split button drop down 
+
+            // #1 
+            PushButtonData pushButtonDataAI1 = new PushButtonData
+                ("cmdGWriteNameRoomInFurniture.cs", "Записать информацию в мебель", thisAssemblyPath, "BIMv2.WriteNameRoomInFurniture");
+            pushButtonDataAI1.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-furniture-32.png"));
+
+            //// #2 
+            //PushButtonData pushButtonData2 = new PushButtonData("cmdGroupTypeCeilingByNote.cs", "Сгруппировать потолки", thisAssemblyPath, "BIMv2Buttons.GroupTypeCeilingByNote");
+            //pushButtonData2.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-ceiling-32.png"));
+
+            //// #3 
+            //PushButtonData pushButtonData3 = new PushButtonData("cmdGroupTypeWallsByNote.cs", "Сгруппировать стены", thisAssemblyPath, "BIMv2Buttons.GroupTypeWallsByNote");
+            //pushButtonData3.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-wall-32.png"));
+
+            //// #4 
+            //PushButtonData pushButtonData4 = new PushButtonData("cmdGroupByMarkEqupmentFurnitureAndWriteToComment.cs", "Сгруппировать оборудование и мебель", thisAssemblyPath, "BIMv2.GroupByMarkEqupmentFurnitureAndWriteToComment");
+            //pushButtonData4.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-groupCoins-32.png"));
+
+            //// #5 
+            //PushButtonData pushButtonData5 = new PushButtonData("cmdGroupingLighting.cs", "Сгруппировать светильники", thisAssemblyPath, "BIMv2.GroupingLighting");
+            //pushButtonData5.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/countLampInRoom.png"));
+
+
+            // Make a split button now 
+            SplitButtonData splitBtnDataAI = new SplitButtonData("SplitButton", "Split Button");
+            SplitButton splitBtnAI = ribbonPanelbAI1.AddItem(splitBtnDataAI) as SplitButton;
+
+            splitBtnAI.AddPushButton(pushButtonDataAI1);
+            //splitBtn.AddPushButton(pushButtonData2);
+            //splitBtn.AddPushButton(pushButtonData3);
+            //splitBtn.AddPushButton(pushButtonData4);
+            //splitBtn.AddPushButton(pushButtonData5);
+
+
+            #endregion
+
             #region BIMv2AR
 
             String tabNameB2 = "BIMv2AR";    // создание вкладки

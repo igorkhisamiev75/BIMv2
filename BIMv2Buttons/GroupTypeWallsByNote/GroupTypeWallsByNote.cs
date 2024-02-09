@@ -89,7 +89,8 @@ namespace BIMv2Buttons
 
                     foreach (var t in element)
                     {
-                        var otd = t.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString();
+                        var otd = t.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString(); // ADSK_Примечание
+
                         if (otd != null && otd!=" ")
                         {
                             //string[] subs = otd.Split(' ');
@@ -130,7 +131,7 @@ namespace BIMv2Buttons
 
                     foreach (var t in element)
                     {
-                        t.get_Parameter(new Guid("6b89127c-f4ec-4724-b120-8d4b5cdcdcb6")).Set(numbersAllRoomString);
+                        t.get_Parameter(new Guid("6b89127c-f4ec-4724-b120-8d4b5cdcdcb6")).Set(numbersAllRoomString); //ADSK_Отделка_Группировка
                     }
 
                 }
