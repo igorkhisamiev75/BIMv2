@@ -32,6 +32,7 @@ namespace BIMv2
             {
                 t.Start("Создаем плинтуса");
 
+                var nameRoom = "";
                 var rooms = GetAllRooms(_doc);
                 
                 foreach (var element in rooms)
@@ -41,7 +42,10 @@ namespace BIMv2
 
                 foreach (var room in roomsInProject)
                 {
-                    
+                    string roomName = room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+                    string roomNumber = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();
+
+
                     var levelId = room.LevelId;
 
                     Curve clCurve;
@@ -66,10 +70,14 @@ namespace BIMv2
 
                             if (clCurveLoop != null)
                             {
-                                CreateRailing(_doc, clCurveLoop, levelId);
+                                CreateRailing(_doc, clCurveLoop, levelId, roomName, roomNumber);
+
+
                                 clCurveLoop.GetCurveLoopIterator().Reset();
                                     continue;
                             }
+
+
                             
                             //clCurveLoop.GetEnumerator().Dispose();
 
@@ -89,15 +97,18 @@ namespace BIMv2
 
         }
 
-        private void CreateRailing(Document document, CurveLoop curveLoop, ElementId eid)
+        public void CreateRailing(Document document, CurveLoop curveLoop, ElementId eid, string nR, string numR)
         {
 
             var RailingTypeIds = GetCollection(document);
             var rt = RailingTypeIds.First();
 
 
+            var d = Railing.Create(document, curveLoop, rt, eid);
 
-            Railing.Create(document, curveLoop, rt, eid);
+            d.LookupParameter("ADSK_Примечание").Set(numR);
+            d.LookupParameter("Комментарии").Set(nR);
+
         }
 
         public IList<Element> GetAllRooms(Document doc)

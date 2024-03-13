@@ -44,7 +44,7 @@ namespace BIMv2
                 //ограждение?
                 //перекрытие
 
-                TaskDialog.Show("У тебя получилось", "Complite03-24!!!☺☺☺");
+                TaskDialog.Show("У тебя получилось", "Complite 12-03-24!!!☺☺☺");
                 t.Commit();
                
             }
@@ -338,8 +338,12 @@ namespace BIMv2
 
                     if (myRoom != null)
                     {
-                        nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();/*+ " " +
-                                   myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();*/
+                        
+
+                        nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+                        element.LookupParameter("Комментарии").Set(nameRoom);
+
+                        nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();
 
                         element.LookupParameter("ADSK_Примечание").Set(nameRoom);
                         break;
@@ -349,7 +353,11 @@ namespace BIMv2
                     else
                     {
 
+                        //nameRoom = "неНашел";
+                        
+
                         nameRoom = "неНашел";
+                        element.LookupParameter("Комментарии").Set(nameRoom);
                         element.LookupParameter("ADSK_Примечание").Set(nameRoom);
 
                     }
