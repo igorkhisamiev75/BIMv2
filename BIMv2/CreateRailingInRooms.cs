@@ -32,63 +32,137 @@ namespace BIMv2
             {
                 t.Start("Создаем плинтуса");
 
-                var nameRoom = "";
-                var rooms = GetAllRooms(_doc);
+                Element room = SelectedElement(_doc); //select room
+
                 
-                foreach (var element in rooms)
+                string roomName = room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+                string roomNumber = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();
+
+                Room room1 = room as Room;
+
+                var levelId = room1.LevelId;
+
+                Curve clCurve;
+
+                //CurveLoop clCurveLoop = new CurveLoop();
+
+                var segments = room1.GetBoundarySegments(new SpatialElementBoundaryOptions());
+
+                if (null != segments) //the room may not be bound
                 {
-                    roomsInProject.Add((Room)element);
-                }
+                    foreach (var segmentList in segments)
 
-                foreach (var room in roomsInProject)
-                {
-                    string roomName = room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
-                    string roomNumber = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();
-
-
-                    var levelId = room.LevelId;
-
-                    Curve clCurve;
-
-                    //CurveLoop clCurveLoop = new CurveLoop();
-
-                    var segments = room.GetBoundarySegments(new SpatialElementBoundaryOptions());
-
-                    if (null != segments) //the room may not be bound
-                    {
-                        foreach (var segmentList in segments)
-                            
                         foreach (var boundarySegment in segmentList)
                         {
-                            clCurve = boundarySegment.GetCurve (); //Curve
+                            clCurve = boundarySegment.GetCurve(); //Curve
 
                             CurveLoop clCurveLoop = new CurveLoop();
 
-                                //clCurveLoop.GetEnumerator().Current.
+                            //clCurveLoop.GetEnumerator().Current.
                             clCurveLoop.Append(clCurve); //CurveLoop
 
 
                             if (clCurveLoop != null)
                             {
-                                CreateRailing(_doc, clCurveLoop, levelId, roomName, roomNumber);
+                                try
+                                {
+                                    CreateRailing(_doc, clCurveLoop, levelId, roomName, roomNumber);
 
 
-                                clCurveLoop.GetCurveLoopIterator().Reset();
+                                    clCurveLoop.GetCurveLoopIterator().Reset();
+                                    //TaskDialog.Show("Сделано2", "Плинтуса сделаны");
                                     continue;
+                                    //_doc.Regenerate();
+
+                                   
+                                }
+
+                                catch
+                                {
+                                    continue;
+                                }
+
                             }
 
 
-                            
+
                             //clCurveLoop.GetEnumerator().Dispose();
 
-                        } 
-                        
-                    }
+                        }
                 }
 
-                
 
-                TaskDialog.Show("Сделано", "Плинтуса сделаны");
+
+
+
+                    /*
+                    var rooms = GetAllRooms(_doc);
+
+                    foreach (var element in rooms)
+                    {
+                        roomsInProject.Add((Room)element);
+                    }
+
+                    foreach (var room in roomsInProject)
+                    {
+
+                        string roomName = room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+                        string roomNumber = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();
+
+
+                        var levelId = room.LevelId;
+
+                        Curve clCurve;
+
+                        //CurveLoop clCurveLoop = new CurveLoop();
+
+                        var segments = room.GetBoundarySegments(new SpatialElementBoundaryOptions());
+
+                        if (null != segments) //the room may not be bound
+                        {
+                            foreach (var segmentList in segments)
+
+                            foreach (var boundarySegment in segmentList)
+                            {
+                                clCurve = boundarySegment.GetCurve (); //Curve
+
+                                CurveLoop clCurveLoop = new CurveLoop();
+
+                                    //clCurveLoop.GetEnumerator().Current.
+                                clCurveLoop.Append(clCurve); //CurveLoop
+
+
+                                if (clCurveLoop != null)
+                                {
+                                        try
+                                        {
+                                            CreateRailing(_doc, clCurveLoop, levelId, roomName, roomNumber);
+
+
+                                            clCurveLoop.GetCurveLoopIterator().Reset();
+                                            continue;
+
+                                        }
+
+                                        catch
+                                        {
+                                            continue;
+                                        }
+
+                                }
+
+
+
+                                //clCurveLoop.GetEnumerator().Dispose();
+
+                            } 
+
+                        }
+                    }
+
+
+                    */
+                    TaskDialog.Show("Сделано", "Ограждения по контуру помещения смоделированы");
 
                 t.Commit();
 
@@ -97,12 +171,50 @@ namespace BIMv2
 
         }
 
+        public Element SelectedElement(Document sDocument)
+        {
+
+            try
+            {
+                var uidoc = new UIDocument(_doc);
+
+                //sDocument.Regenerate();
+
+                var r = uidoc.Selection.PickObject(ObjectType.Element,
+                    "Выбрать помещение");
+                var elem = uidoc.Document.GetElement(r);
+                return elem;
+
+            }
+
+            catch (Exception ex)
+            {
+                TaskDialog.Show("Revit", "Exception" + ex.Message);
+                //subTransaction.RollBack();
+                return null;
+            }
+
+        }
+
         public void CreateRailing(Document document, CurveLoop curveLoop, ElementId eid, string nR, string numR)
         {
 
             var RailingTypeIds = GetCollection(document);
-            var rt = RailingTypeIds.First();
 
+            ElementId rt = RailingTypeIds.First();
+
+            foreach (ElementId RailingTypeId in RailingTypeIds)
+            {
+                var el=_doc.GetElement(RailingTypeId);
+
+                if (el.Name == "02_Плинтус напольный_2000х120мм")
+                {
+                    rt = RailingTypeId;
+                }
+
+                //el.Name;
+
+            }
 
             var d = Railing.Create(document, curveLoop, rt, eid);
 

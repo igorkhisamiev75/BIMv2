@@ -57,6 +57,19 @@ namespace BIMv2Buttons
             //splitBtn.AddPushButton(pushButtonData4);
             //splitBtn.AddPushButton(pushButtonData5);
 
+            // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData pbAI1Data = new PushButtonData("cmdCreateRailingInRooms.cs", "Создать"
+                + Environment.NewLine + "плинтуса в помещении", thisAssemblyPath, "BIMv2.CreateRailingInRooms");
+
+            PushButton pbAI1 = ribbonPanelbAI1.AddItem(pbAI1Data) as PushButton;
+            pbAI1.ToolTip = "Создать плинтус от_Плинтус напольный_2000х60 в выбранном помещении";
+
+            BitmapImage pbAI1Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-rail-3-32.png"));
+            pbAI1.LargeImage = pbAI1Image;
+
+            //попробуем создать еще одну кнопку
+            ribbonPanelbAI1.AddSeparator(); //разделитель между кнопками
+
 
             #endregion
 
