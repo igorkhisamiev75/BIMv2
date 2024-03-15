@@ -79,89 +79,16 @@ namespace BIMv2
 
                                 catch
                                 {
+                                    //TaskDialog.Show("Ошибка", "Ошибка");
                                     continue;
                                 }
 
                             }
 
-
-
-                            //clCurveLoop.GetEnumerator().Dispose();
-
                         }
                 }
 
-
-
-
-
-                    /*
-                    var rooms = GetAllRooms(_doc);
-
-                    foreach (var element in rooms)
-                    {
-                        roomsInProject.Add((Room)element);
-                    }
-
-                    foreach (var room in roomsInProject)
-                    {
-
-                        string roomName = room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
-                        string roomNumber = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();
-
-
-                        var levelId = room.LevelId;
-
-                        Curve clCurve;
-
-                        //CurveLoop clCurveLoop = new CurveLoop();
-
-                        var segments = room.GetBoundarySegments(new SpatialElementBoundaryOptions());
-
-                        if (null != segments) //the room may not be bound
-                        {
-                            foreach (var segmentList in segments)
-
-                            foreach (var boundarySegment in segmentList)
-                            {
-                                clCurve = boundarySegment.GetCurve (); //Curve
-
-                                CurveLoop clCurveLoop = new CurveLoop();
-
-                                    //clCurveLoop.GetEnumerator().Current.
-                                clCurveLoop.Append(clCurve); //CurveLoop
-
-
-                                if (clCurveLoop != null)
-                                {
-                                        try
-                                        {
-                                            CreateRailing(_doc, clCurveLoop, levelId, roomName, roomNumber);
-
-
-                                            clCurveLoop.GetCurveLoopIterator().Reset();
-                                            continue;
-
-                                        }
-
-                                        catch
-                                        {
-                                            continue;
-                                        }
-
-                                }
-
-
-
-                                //clCurveLoop.GetEnumerator().Dispose();
-
-                            } 
-
-                        }
-                    }
-
-
-                    */
+                    
                     TaskDialog.Show("Сделано", "Ограждения по контуру помещения смоделированы");
 
                 t.Commit();
@@ -210,16 +137,25 @@ namespace BIMv2
                 if (el.Name == "02_Плинтус напольный_2000х120мм")
                 {
                     rt = RailingTypeId;
+                    continue;
                 }
 
                 //el.Name;
 
             }
 
-            var d = Railing.Create(document, curveLoop, rt, eid);
+            //ElementId elementId = new ElementId(2589207);
 
-            d.LookupParameter("ADSK_Примечание").Set(numR);
-            d.LookupParameter("Комментарии").Set(nR);
+            Railing d = Railing.Create(document, curveLoop, rt, eid);
+
+            if (null != d)
+            {
+                d.LookupParameter("ADSK_Примечание").Set(numR);
+                d.LookupParameter("Комментарии").Set(nR);
+
+            }
+
+           
 
         }
 
