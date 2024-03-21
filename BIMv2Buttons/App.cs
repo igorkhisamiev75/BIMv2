@@ -436,7 +436,7 @@ namespace BIMv2Buttons
             BitmapImage pb3Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/creteModelText.png"));
             pb3.LargeImage = pb3Image;
 
-            
+
             //// Add a new ribbon panel
             //RibbonPanel ribbonPanel2 = application.CreateRibbonPanel(tabName, "BIM стандарт и помощь"); //подпись под кнопками
 
@@ -462,61 +462,61 @@ namespace BIMv2Buttons
             //BitmapImage pb5Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-whatsapp-32.png"));
             //pb5.LargeImage = pb5Image;
 
-            
 
-            //// Add a new ribbon panel
-            //RibbonPanel ribbonPanel3 = application.CreateRibbonPanel(tabName, "Надстройки для МЕГА-электрика"); //подпись под кнопками
 
-            //// create push button for CurveTotalLength  //namespace и класс
-            //PushButtonData b2Data = new PushButtonData("cmdSumAllLightingFixtureInRoom", "Посчитать"
-            //    + Environment.NewLine + "светильники", thisAssemblyPath, "BIMv2.SumAllLightingFixtureInRoom");
+            // Add a new ribbon panel
+            RibbonPanel ribbonPanel3 = application.CreateRibbonPanel(tabName, "Надстройки для МЕГА-электрика"); //подпись под кнопками
 
-            //PushButton pb2 = ribbonPanel3.AddItem(b2Data) as PushButton;
-            //pb2.ToolTip = "Подсчет количества светильников в помещении и запись в марку ADSK_Количество светильников";
+            // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData b2Data = new PushButtonData("cmdSumAllLightingFixtureInRoom", "Посчитать"
+                + Environment.NewLine + "светильники", thisAssemblyPath, "BIMv2.SumAllLightingFixtureInRoom");
 
-            //BitmapImage pb2Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/countLampInRoom.png"));
-            //pb2.LargeImage = pb2Image;
+            PushButton pb2 = ribbonPanel3.AddItem(b2Data) as PushButton;
+            pb2.ToolTip = "Подсчет количества светильников в помещении и запись в марку ADSK_Количество светильников";
 
-            ////попробуем создать еще одну кнопку
-            //ribbonPanel3.AddSeparator(); //разделитель между кнопками
+            BitmapImage pb2Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/countLampInRoom.png"));
+            pb2.LargeImage = pb2Image;
 
-            ////16
+            //попробуем создать еще одну кнопку
+            ribbonPanel3.AddSeparator(); //разделитель между кнопками
 
-            //// create push button for CurveTotalLength  //namespace и класс
-            //PushButtonData b16Data = new PushButtonData("cmdNormalIlluminationForLightFix.cs", "Записать норм."
-            //    + Environment.NewLine + "освещенность", thisAssemblyPath, "BIMv2.NormalIlluminationForLightFix");
+            //16
 
-            //PushButton pb16 = ribbonPanel3.AddItem(b16Data) as PushButton;
-            //pb16.ToolTip = "Запись нормируемой освещенности";
+            // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData b16Data = new PushButtonData("cmdNormalIlluminationForLightFix.cs", "Записать норм."
+                + Environment.NewLine + "освещенность", thisAssemblyPath, "BIMv2.NormalIlluminationForLightFix");
 
-            //BitmapImage pb16Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/countLampInRoom2.png"));
-            //pb16.LargeImage = pb16Image;
+            PushButton pb16 = ribbonPanel3.AddItem(b16Data) as PushButton;
+            pb16.ToolTip = "Запись нормируемой освещенности";
 
-            ////попробуем создать еще одну кнопку
-            //ribbonPanel3.AddSeparator(); //разделитель между кнопками
+            BitmapImage pb16Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/countLampInRoom2.png"));
+            pb16.LargeImage = pb16Image;
 
-            //// create push button for CurveTotalLength  //namespace и класс
-            //PushButtonData b6Data = new PushButtonData("cmdCreateLightingInRoom", "Расставить"
-            //    + Environment.NewLine + "светильники", thisAssemblyPath, "BIMv2.CreateLightingInRoom");
+            //попробуем создать еще одну кнопку
+            ribbonPanel3.AddSeparator(); //разделитель между кнопками
 
-            //PushButton pb6 = ribbonPanel3.AddItem(b6Data) as PushButton;
-            //pb6.ToolTip = "Размещает светильники в помещениях";
+            // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData b6Data = new PushButtonData("cmdCreateLightingInRoom", "Расставить"
+                + Environment.NewLine + "светильники", thisAssemblyPath, "BIMv2.CreateLightingInRoom");
 
-            //BitmapImage pb6Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-oil-lamp-32.png"));
-            //pb6.LargeImage = pb6Image;
+            PushButton pb6 = ribbonPanel3.AddItem(b6Data) as PushButton;
+            pb6.ToolTip = "Размещает светильники в помещениях";
 
-            ////попробуем создать еще одну кнопку
-            //ribbonPanel3.AddSeparator(); //разделитель между кнопками
+            BitmapImage pb6Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-oil-lamp-32.png"));
+            pb6.LargeImage = pb6Image;
 
-            //// create push button for CurveTotalLength  //namespace и класс
-            //PushButtonData b8Data = new PushButtonData("cmdPowerFactorElectrical.cs", "Посчитать"
-            //    + Environment.NewLine + "cos фи (φ)", thisAssemblyPath, "BIMv2.PowerFactorElectrical");
+            //попробуем создать еще одну кнопку
+            ribbonPanel3.AddSeparator(); //разделитель между кнопками
 
-            //PushButton pb8 = ribbonPanel3.AddItem(b8Data) as PushButton;
-            //pb8.ToolTip = "Расчет cos фи (φ)";
+            // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData b8Data = new PushButtonData("cmdPowerFactorElectrical.cs", "Посчитать"
+                + Environment.NewLine + "cos фи (φ)", thisAssemblyPath, "BIMv2.PowerFactorElectrical");
 
-            //BitmapImage pb8Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-cos-32.png"));
-            //pb8.LargeImage = pb8Image;
+            PushButton pb8 = ribbonPanel3.AddItem(b8Data) as PushButton;
+            pb8.ToolTip = "Расчет cos фи (φ)";
+
+            BitmapImage pb8Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-cos-32.png"));
+            pb8.LargeImage = pb8Image;
 
 
             // Add a new ribbon panel
