@@ -46,6 +46,7 @@ namespace BIMv2Buttons
             //PushButtonData pushButtonData5 = new PushButtonData("cmdGroupingLighting.cs", "Сгруппировать светильники", thisAssemblyPath, "BIMv2.GroupingLighting");
             //pushButtonData5.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/countLampInRoom.png"));
 
+           
 
             // Make a split button now 
             SplitButtonData splitBtnDataAI = new SplitButtonData("SplitButton", "Split Button");
@@ -57,6 +58,9 @@ namespace BIMv2Buttons
             //splitBtn.AddPushButton(pushButtonData4);
             //splitBtn.AddPushButton(pushButtonData5);
 
+            //попробуем создать еще одну кнопку
+            ribbonPanelbAI1.AddSeparator(); //разделитель между кнопками
+
             // create push button for CurveTotalLength  //namespace и класс
             PushButtonData pbAI1Data = new PushButtonData("cmdCreateRailingInRooms.cs", "Создать"
                 + Environment.NewLine + "плинтуса в помещении", thisAssemblyPath, "BIMv2.CreateRailingInRooms");
@@ -66,6 +70,37 @@ namespace BIMv2Buttons
 
             BitmapImage pbAI1Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-rail-3-32.png"));
             pbAI1.LargeImage = pbAI1Image;
+
+            //попробуем создать еще одну кнопку
+            ribbonPanelbAI1.AddSeparator(); //разделитель между кнопками
+
+
+            // Create three push buttons for split button drop down 
+
+            // #1 
+            PushButtonData pushButtonDataAI2 = new PushButtonData
+                ("cmdDoorsInformationTransferFinishDoor.cs", "Перенести BIM_Отделка двери в двери", thisAssemblyPath, "BIMv2.DoorsInformationTransferFinishDoor");
+            pushButtonDataAI2.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-doors-32.png"));
+
+            // #2 
+            PushButtonData pushButtonDataAI3 = new PushButtonData
+               ("cmdDoorsInformationTransferComplectation.cs", "Перенести BIM_Комплектация в двери", thisAssemblyPath, "BIMv2.DoorsInformationTransferComplectation");
+            pushButtonDataAI3.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-doorsArm-32.png"));
+
+            // #3 
+            PushButtonData pushButtonDataAI4 = new PushButtonData
+               ("cmdDDoorsInformationTransferColorFurniture.cs", "Перенести BIM_Цвет фурнитуры в двери", thisAssemblyPath, "BIMv2.DoorsInformationTransferColorFurniture");
+            pushButtonDataAI4.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-backet-32.png"));
+
+
+            // Make a split button now 
+            SplitButtonData splitBtnDataAI2 = new SplitButtonData("SplitButton2", "Split Button2");
+            SplitButton splitBtnAI2 = ribbonPanelbAI1.AddItem(splitBtnDataAI2) as SplitButton;
+
+            splitBtnAI2.AddPushButton(pushButtonDataAI2);
+            splitBtnAI2.AddPushButton(pushButtonDataAI3);
+            splitBtnAI2.AddPushButton(pushButtonDataAI4);
+
 
             //попробуем создать еще одну кнопку
             ribbonPanelbAI1.AddSeparator(); //разделитель между кнопками
