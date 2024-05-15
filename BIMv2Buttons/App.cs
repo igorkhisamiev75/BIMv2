@@ -105,6 +105,21 @@ namespace BIMv2Buttons
             //попробуем создать еще одну кнопку
             ribbonPanelbAI1.AddSeparator(); //разделитель между кнопками
 
+            // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData pbAI2Data = new PushButtonData("cmdFindDoorsMirror.cs", "Найти"
+                + Environment.NewLine + "отзеркаленные двери", thisAssemblyPath, "BIMv2.FindDoorsMirror");
+
+            PushButton pbAI2 = ribbonPanelbAI1.AddItem(pbAI2Data) as PushButton;
+            pbAI2.ToolTip = "Найти отзеркаленные двери в свойстве BIM_Зеральный появится галочка";
+
+            BitmapImage pbAI2Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-mir-32.png"));
+            pbAI2.LargeImage = pbAI2Image;
+
+            //попробуем создать еще одну кнопку
+            ribbonPanelbAI1.AddSeparator(); //разделитель между кнопками
+
+
+
 
             #endregion
 

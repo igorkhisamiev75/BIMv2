@@ -188,6 +188,7 @@
     <Compile Include="DoorsInformationTransferFinishDoor.cs" />
     <Compile Include="DuplicateSheets.cs" />
     <Compile Include="EditDimentionsForPlans.cs" />
+    <Compile Include="FindDoorsMirror.cs" />
     <Compile Include="FindDuctFiting.cs" />
     <Compile Include="FindLostTags.cs" />
     <Compile Include="FindNameRoomForFinishElementsRoomsInLink.cs" />
