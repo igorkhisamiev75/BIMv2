@@ -31,6 +31,18 @@
             VerticalAlignment="Stretch" 
             SelectionMode="Extended"
             />
+        <DataGrid
+            ItemsSource="{Binding Parametrs}"
+            AutoGenerateColumns="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="BIM_Альбом" Binding="{Binding bimAlbom, Mode=OneWay}"/>
+                <DataGridTextColumn Header="BIM_Стадия" Binding="{Binding bimStadia, Mode=OneWay}"/>
+                <DataGridTextColumn Header="Номер листа" Binding="{Binding bimStadia, Mode=OneWay}"/>
+                <DataGridTextColumn Header="Имя листа" Binding="{Binding bimStadia, Mode=OneWay}"/>
+            </DataGrid.Columns>
+        </DataGrid>
+        
+        
         
 
 
