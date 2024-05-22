@@ -6,11 +6,11 @@
              xmlns:local="clr-namespace:RenameSheetsWPF"
              mc:Ignorable="d" 
              Title="RenameSheets"
-             Height="529" Width="547">
+             Height="529" Width="1200">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="0.2*"/>
+            <ColumnDefinition Width="0.5*"/>
+            <ColumnDefinition Width="0.5*"/>
         </Grid.ColumnDefinitions>
         <Button Content="OK" 
                 HorizontalAlignment="Left" 
@@ -27,23 +27,33 @@
             Name="ListBox"
             HorizontalContentAlignment="Stretch"
             HorizontalAlignment="Stretch" 
-            Margin="10,10,10,350" 
+            Margin="10,10,10,6650" 
             VerticalAlignment="Stretch" 
             SelectionMode="Extended"
             />
-        <DataGrid
+        <!--<DataGrid
             ItemsSource="{Binding Parametrs}"
-            AutoGenerateColumns="False">
+            AutoGenerateColumns="False" Margin="0,150,188,0">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="BIM_Альбом" Binding="{Binding bimAlbom, Mode=OneWay}"/>
                 <DataGridTextColumn Header="BIM_Стадия" Binding="{Binding bimStadia, Mode=OneWay}"/>
-                <DataGridTextColumn Header="Номер листа" Binding="{Binding bimStadia, Mode=OneWay}"/>
-                <DataGridTextColumn Header="Имя листа" Binding="{Binding bimStadia, Mode=OneWay}"/>
+                <DataGridTextColumn Header="Номер листа" Binding="{Binding numberSheets, Mode=OneWay}"/>
+                <DataGridTextColumn Header="Имя листа" Binding="{Binding nameSheets, Mode=OneWay}"/>
             </DataGrid.Columns>
-        </DataGrid>
-        
-        
-        
+        </DataGrid>-->
+        <!--<TreeViewItem Header="Листы в проекте" Name="Employee2Data">
+
+            <TreeViewItem Header="Work Days" 
+                Name="emp2WorkDays">
+                --><!--Selected="GetSchedule"
+                Unselected="SetSchedule"--><!--
+                <TreeViewItem Header="Monday" />
+                <TreeViewItem Header="Wednesday"/>
+            </TreeViewItem>
+        </TreeViewItem>-->
+
+
+
 
 
     </Grid>
