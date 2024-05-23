@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:RenameSheetsWPF"
+             xmlns:local="clr-namespace:RenameSheetsWPF"              
              mc:Ignorable="d" 
              Title="RenameSheets"
              Height="529" Width="1200">
@@ -31,26 +31,15 @@
             VerticalAlignment="Stretch" 
             SelectionMode="Extended"
             />
-        <!--<DataGrid
-            ItemsSource="{Binding Parametrs}"
-            AutoGenerateColumns="False" Margin="0,150,188,0">
+        <DataGrid
+            x:Name="sheetGreed">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="BIM_Альбом" Binding="{Binding bimAlbom, Mode=OneWay}"/>
-                <DataGridTextColumn Header="BIM_Стадия" Binding="{Binding bimStadia, Mode=OneWay}"/>
-                <DataGridTextColumn Header="Номер листа" Binding="{Binding numberSheets, Mode=OneWay}"/>
-                <DataGridTextColumn Header="Имя листа" Binding="{Binding nameSheets, Mode=OneWay}"/>
+                <!--<DataGridTextColumn Header="BIM_Альбом" Binding="{Binding  albom}"/>-->
+             
             </DataGrid.Columns>
-        </DataGrid>-->
-        <!--<TreeViewItem Header="Листы в проекте" Name="Employee2Data">
+        </DataGrid>
+        
 
-            <TreeViewItem Header="Work Days" 
-                Name="emp2WorkDays">
-                --><!--Selected="GetSchedule"
-                Unselected="SetSchedule"--><!--
-                <TreeViewItem Header="Monday" />
-                <TreeViewItem Header="Wednesday"/>
-            </TreeViewItem>
-        </TreeViewItem>-->
 
 
 

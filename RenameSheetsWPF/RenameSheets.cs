@@ -12,27 +12,32 @@ using Application = Autodesk.Revit.ApplicationServices.Application;
 namespace RenameSheetsWPF
 {
     [Transaction(TransactionMode.Manual)]
-    [Regeneration(RegenerationOption.Manual)]
-    [Journaling(JournalingMode.NoCommandData)]
+    //[Regeneration(RegenerationOption.Manual)]
+    //[Journaling(JournalingMode.NoCommandData)]
     public class RenameSheets : Window, IExternalCommand
     {
-        private Application _app;
-        private Document _doc;
-        private ViewSet m_allViews = new ViewSet();
+        public Application _app;
+        public Document _doc;
+        //private ViewSet m_allViews = new ViewSet();
 
-        public ICollection<View> viewsInProject = new List<View>();
+        //public ICollection<View> viewsInProject = new List<View>();
 
-        public ICollection<Element> filtersCollection = new List<Element>();
+        public ICollection<string> stadiya = new List<string>();
+        public ICollection<string> albom = new List<string>();
+        public ICollection<string> numberSheets = new List<string>();
+        public ICollection<string> nameSheets = new List<string>();
 
-        public ICollection<Element> filtersCollectionCopy = new List<Element>();
+        //public ICollection<Element> filtersCollectionCopy = new List<Element>();
 
-        public ICollection<Element> unusedFiltersCollection = new List<Element>();
+        //public ICollection<Element> unusedFiltersCollection = new List<Element>();
 
-        public ICollection<View> onlyViewPlan3DSection = new List<View>();
+        public ICollection<SheetInProject> sheetInProjectCollection = new List<SheetInProject>();
 
-        public ICollection<int> filtersInViewsId = new List<int>();
+        //public ICollection<int> filtersInViewsId = new List<int>();
 
         public ICollection<ViewSheet> viewSheets = new List<ViewSheet>();
+
+        
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -43,69 +48,43 @@ namespace RenameSheetsWPF
             _app = uiApp.Application;
             _doc = uiDoc.Document;
 
-            //filtersCollection = GetAllFilters();
+            var allViewSheets = GetAllSheets(_doc);
 
-            //ICollection<View> allView = GetAllViews(_doc);
+            //string nameN = "";
 
             
 
-            //TaskDialog.Show("123", $"{allViewSheets.First().Name}");
+            foreach (var sheet in allViewSheets)
+            {
+                SheetInProject sheetInProject = new SheetInProject();
 
-            //foreach (var item in allView)
-            //{
-            //    if (item.ViewType == ViewType.FloorPlan
-            //        || item.ViewType == ViewType.ThreeD
-            //        || item.ViewType == ViewType.Elevation
-            //        || item.ViewType == ViewType.Section)
-            //    {
-            //        onlyViewPlan3DSection.Add(item);
-            //    }
-            //}
+                sheetInProject.idSheet = sheet.Id;
+                sheetInProject.numberSheet = sheet.SheetNumber;
+                sheetInProject.nameSheet = sheet.Name;
+                sheetInProject.albom = sheet.LookupParameter("MRGT_Альбом/Том").AsString();
+                sheetInProject.stadiy = sheet.LookupParameter("MRGT_Стадия").AsString();
 
-            //get filters ID
-            //foreach (var view in allViewSheets)
-            //{
-            //    var f = view.GetOrderedFilters();
-            //    if (f != null)
-            //    {
-            //        foreach (var item in f)
-            //        {
-            //            filtersInViewsId.Add(item.GetHashCode());
-            //        }
-            //    }
+                stadiya.Add(sheet.LookupParameter("MRGT_Стадия").AsString());
+                albom.Add(sheet.LookupParameter("MRGT_Альбом/Том").AsString());
+                numberSheets.Add(sheet.SheetNumber);
+                nameSheets.Add(sheet.Name);
 
-            //}
-
-            //filtersInViewsId = filtersInViewsId.GroupBy(x => x.GetHashCode()).Select(group =>
-            //    group.OrderBy(x => x.GetHashCode()).First()).ToList();
-
-            ////clean filters list
-
-            //foreach (var VARIABLE in filtersCollection)
-            //{
-            //    filtersCollectionCopy.Add(VARIABLE);
-            //}
-
-            //foreach (var filterAllfilters in filtersCollection)
-            //{
-
-            //    var i = filterAllfilters.Id.GetHashCode();
-
-            //    foreach (var element in filtersInViewsId)
-            //    {
-            //        if (i.ToString() == element.ToString())
-            //        {
-            //            filtersCollectionCopy.Remove(filterAllfilters);
-            //        }
-
-            //    }
-
-            //}
+                sheetInProjectCollection.Add(sheetInProject);
 
 
-            //ViewWPF vpViewWpf = new ViewWPF(filtersCollectionCopy);
+                //nameN += sheet.LookupParameter("MRGT_Стадия").AsString() + "_" +
+                //        sheet.LookupParameter("MRGT_Альбом/Том").AsString() + "_"
+                //        + sheet.SheetNumber + "_"
+                //        + sheet.Name + "\n";
 
-            //vpViewWpf.ShowDialog();
+            }
+
+            
+
+
+            ViewWPF vpViewWpf = new ViewWPF(stadiya, albom, numberSheets, nameSheets, sheetInProjectCollection);
+
+            vpViewWpf.ShowDialog();
 
             //var checkFilters = vpViewWpf.checkFilters;
 
@@ -115,7 +94,14 @@ namespace RenameSheetsWPF
                 uiApp = commandData.Application;
                 uiDoc = uiApp.ActiveUIDocument;
 
-                ICollection<ViewSheet> allViewSheets = GetAllSheets(_doc);
+                var allViewSheets2 = GetAllSheets(_doc);
+
+                //foreach (var sheet in allViewSheets2)
+                //{
+                //    string sN = sheet.SheetNumber;
+
+                //    sheet.SheetNumber = "-"+sN;
+                //}
 
                 //del filters checked
                 //ViewFiltersDelete(_doc, checkFilters);
@@ -215,7 +201,7 @@ namespace RenameSheetsWPF
         //    return viewsInProject;
         //}
 
-        private ICollection<ViewSheet> GetAllSheets(Document doc)
+        public ICollection<ViewSheet> GetAllSheets(Document doc)
         {
             FilteredElementCollector collector = new FilteredElementCollector(doc);
             FilteredElementIterator itor = collector.OfClass(typeof(ViewSheet)).GetElementIterator();
@@ -238,13 +224,37 @@ namespace RenameSheetsWPF
                     }
                     else
                     {
-                        m_allViews.Insert(view);
-                        viewsInProject.Add(view);
+                        //m_allViews.Insert(view);
+                        //viewsInProject.Add(view);
                     }
                 }
             }
 
             return viewSheets;
+        }
+
+        public IEnumerable<ViewSheet> GetAllSheets2(Document doc)
+        {
+
+            IEnumerable<ViewSheet> sheets = new FilteredElementCollector(doc)
+                .OfClass(typeof(ViewSheet))
+                .OfCategory(BuiltInCategory.OST_Sheets)
+                .Cast<ViewSheet>()
+                ;
+
+            return sheets;
+        }
+
+        public class SheetInProject
+        {
+            public string stadiy { get; set; }
+            public string albom { get; set; }
+            public string numberSheet { get; set; }
+            public string nameSheet { get; set; }
+            public ElementId idSheet { get; set; }
+
+
+
         }
 
     }
