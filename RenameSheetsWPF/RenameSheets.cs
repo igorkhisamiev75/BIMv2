@@ -59,15 +59,26 @@ namespace RenameSheetsWPF
                 SheetInProject sheetInProject = new SheetInProject();
 
                 sheetInProject.idSheet = sheet.Id;
+
                 sheetInProject.numberSheet = sheet.SheetNumber;
                 sheetInProject.nameSheet = sheet.Name;
                 sheetInProject.albom = sheet.LookupParameter("MRGT_Альбом/Том").AsString();
                 sheetInProject.stadiy = sheet.LookupParameter("MRGT_Стадия").AsString();
 
-                stadiya.Add(sheet.LookupParameter("MRGT_Стадия").AsString());
-                albom.Add(sheet.LookupParameter("MRGT_Альбом/Том").AsString());
-                numberSheets.Add(sheet.SheetNumber);
-                nameSheets.Add(sheet.Name);
+                if (sheet.LookupParameter("MRGT_Альбом/Том").HasValue == false)
+                {
+                    sheetInProject.albom = "???";
+                }
+
+                if (sheet.LookupParameter("MRGT_Стадия").HasValue == false)
+                {
+                    sheetInProject.stadiy = "???";
+                }
+
+                //stadiya.Add(sheet.LookupParameter("MRGT_Стадия").AsString());
+                //albom.Add(sheet.LookupParameter("MRGT_Альбом/Том").AsString());
+                //numberSheets.Add(sheet.SheetNumber);
+                //nameSheets.Add(sheet.Name);
 
                 sheetInProjectCollection.Add(sheetInProject);
 
@@ -82,7 +93,7 @@ namespace RenameSheetsWPF
             
 
 
-            ViewWPF vpViewWpf = new ViewWPF(stadiya, albom, numberSheets, nameSheets, sheetInProjectCollection);
+            ViewWPF vpViewWpf = new ViewWPF(sheetInProjectCollection);
 
             vpViewWpf.ShowDialog();
 

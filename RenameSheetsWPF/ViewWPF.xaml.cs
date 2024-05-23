@@ -20,23 +20,33 @@ namespace RenameSheetsWPF
 
         private readonly ICollection<Element> filterCollection;
 
-        private readonly ICollection<string> stadiyaCollection;
-        private readonly ICollection<string> albomCollection;
-        private readonly ICollection<string> numberSheetsCollection;
-        private readonly ICollection<string> nameSheetsCollection;
+      
 
 
-        public ViewWPF(ICollection<string> elements, ICollection<string> elements2, ICollection<string> elements3, ICollection<string> elements4, ICollection<SheetInProject> sheetInProjectCollection)
+        public ViewWPF( ICollection<SheetInProject> sheetInProjectCollection)
         {
             InitializeComponent();
-            stadiyaCollection= elements;
-            albomCollection= elements2;
-            numberSheetsCollection= elements3;
-            nameSheetsCollection= elements4;
+
+            var newList = sheetInProjectCollection
+                .GroupBy(x => new { x.stadiy, x.albom, x.numberSheet, x.nameSheet, x.idSheet })
+                .Select(y => new SheetInProject()
+            {
+                stadiy = y.Key.stadiy,
+                    albom = y.Key.albom,
+                    numberSheet = y.Key.numberSheet,
+                    nameSheet = y.Key.nameSheet,
+                    idSheet = y.Key.idSheet,
+
+                }); ;
+            
+           
+
+            //sheetGreed.ItemsSource = sheetInProjectCollection;
+
 
             sheetGreed.ItemsSource = sheetInProjectCollection;
 
-                                  
+
 
             //treeView1.Name= elements2.Count.ToString();
 
