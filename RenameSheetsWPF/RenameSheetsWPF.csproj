@@ -59,6 +59,7 @@
   <ItemGroup>
     <Compile Include="RenameSheets.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SheetInProject.cs" />
     <Compile Include="ViewWPF.xaml.cs">
       <DependentUpon>ViewWPF.xaml</DependentUpon>
     </Compile>

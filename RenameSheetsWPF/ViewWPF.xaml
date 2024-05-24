@@ -33,12 +33,15 @@
             />
         <DataGrid
             x:Name="sheetGreed"
-            AutoGenerateColumns="False" >
+            AutoGenerateColumns="False"
+            HorizontalGridLinesBrush="DarkGray"
+            RowBackground="LightGray"
+            AlternatingRowBackground="White">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Стадия"  Binding="{Binding stadiy}"/>
-                <DataGridTextColumn Header="Альбом" Binding="{Binding albom}" />
-                <DataGridTextColumn Header="Номер листа"  Binding="{Binding numberSheet}"/>
-                <DataGridTextColumn Header="Имя листа" Binding="{Binding nameSheet}" />
+                <DataGridTextColumn Header="Стадия"  Binding="{Binding stadiy, Mode=TwoWay}"/>
+                <DataGridTextColumn Header="Альбом" Binding="{Binding albom, Mode=TwoWay}" />
+                <DataGridTextColumn Header="Номер листа"  Binding="{Binding numberSheet, Mode=TwoWay}"/>
+                <DataGridTextColumn Header="Имя листа" Binding="{Binding nameSheet, Mode=TwoWay}" />
 
             </DataGrid.Columns>
         </DataGrid>

@@ -56,6 +56,10 @@ namespace RenameSheetsWPF
 
             foreach (var sheet in allViewSheets)
             {
+                if(sheet.LookupParameter("Занесение в список листов").AsValueString() == "Нет")
+                {
+                    continue;
+                }
                 SheetInProject sheetInProject = new SheetInProject();
 
                 sheetInProject.idSheet = sheet.Id;
@@ -90,12 +94,19 @@ namespace RenameSheetsWPF
 
             }
 
-            
+            IEnumerable<SheetInProject> newList = sheetInProjectCollection
+             .OrderBy(x => x.stadiy)
+             .ThenBy(x => x.albom)
+             .ThenBy(x => x.numberSheet)
+             .ThenBy(x => x.nameSheet);
 
 
-            ViewWPF vpViewWpf = new ViewWPF(sheetInProjectCollection);
+
+            ViewWPF vpViewWpf = new ViewWPF(newList);
 
             vpViewWpf.ShowDialog();
+
+            //var selShed = vpViewWpf.selectedSheets;
 
             //var checkFilters = vpViewWpf.checkFilters;
 
@@ -105,13 +116,22 @@ namespace RenameSheetsWPF
                 uiApp = commandData.Application;
                 uiDoc = uiApp.ActiveUIDocument;
 
-                var allViewSheets2 = GetAllSheets(_doc);
-
-                //foreach (var sheet in allViewSheets2)
+                //foreach (var sheet in selShed)
                 //{
-                //    string sN = sheet.SheetNumber;
+                //    var el = _doc.GetElement(sheet.Id);
 
-                //    sheet.SheetNumber = "-"+sN;
+                //    ViewSheet sheet1 = el as ViewSheet;
+                                        
+                //    if (el != null)
+                //    {
+                        
+                //        string sN = sheet1.SheetNumber;
+
+                //        sheet1.SheetNumber = "333" + sN;
+                //    }
+                            
+
+                   
                 //}
 
                 //del filters checked
@@ -123,94 +143,7 @@ namespace RenameSheetsWPF
             return Result.Succeeded;
         }
 
-        //public void ViewFiltersDelete(Document doc, List<Element> checkFilters)
-        //{
-        //    ArrayList oViewFiltersToDelete = new ArrayList();
-
-        //    FilteredElementCollector collector = new FilteredElementCollector(doc);
-        //    FilteredElementIterator itor = collector.OfClass(typeof(FilterElement)).GetElementIterator();
-        //    itor.Reset();
-
-        //    // Iterate through each object found
-        //    while (itor.MoveNext())
-        //    {
-        //        // Get the object
-        //        FilterElement imp = itor.Current as FilterElement;
-
-        //        foreach (var VARIABLE in checkFilters)
-        //        {
-        //            if (imp.Name == VARIABLE.Name)
-        //            {
-        //                oViewFiltersToDelete.Add(imp.Id);
-        //            }
-
-        //        }
-
-        //    }
-
-        //    foreach (ElementId oElemID in oViewFiltersToDelete)
-        //    {
-        //        try
-        //        {
-        //            doc.Delete(oElemID);
-        //        }
-        //        catch (Exception ex)
-        //        {
-        //            MessageBox.Show(ex.Message);
-        //        }
-        //    }
-        //}
-
-        //get all filters
-        //public ICollection<Element> GetAllFilters()
-        //{
-        //    FilteredElementCollector collector = new FilteredElementCollector(_doc);
-        //    FilteredElementIterator itor = collector.OfClass(typeof(FilterElement)).GetElementIterator();
-        //    itor.Reset();
-
-        //    while (itor.MoveNext())
-        //    {
-        //        // Get the object
-        //        FilterElement imp = itor.Current as FilterElement;
-
-        //        filtersCollection.Add(imp);
-        //    }
-
-        //    return filtersCollection;
-        //}
-
-        //get all view
-        //private ICollection<View> GetAllViews(Document doc)
-        //{
-        //    FilteredElementCollector collector = new FilteredElementCollector(doc);
-        //    FilteredElementIterator itor = collector.OfClass(typeof(View)).GetElementIterator();
-        //    itor.Reset();
-        //    while (itor.MoveNext())
-        //    {
-        //        View view = itor.Current as View;
-        //        // skip view templates because they're invisible in project browser
-        //        if (null == view || view.IsTemplate)
-        //        {
-        //            continue;
-        //        }
-        //        else
-        //        {
-        //            ElementType objType = doc.GetElement(view.GetTypeId()) as ElementType;
-        //            if (null == objType || objType.Name.Equals("Schedule")
-        //                                || objType.Name.Equals("Drawing Sheet"))
-        //            {
-        //                continue;
-        //            }
-        //            else
-        //            {
-        //                m_allViews.Insert(view);
-        //                viewsInProject.Add(view);
-        //            }
-        //        }
-        //    }
-
-        //    return viewsInProject;
-        //}
+        
 
         public ICollection<ViewSheet> GetAllSheets(Document doc)
         {
@@ -256,17 +189,7 @@ namespace RenameSheetsWPF
             return sheets;
         }
 
-        public class SheetInProject
-        {
-            public string stadiy { get; set; }
-            public string albom { get; set; }
-            public string numberSheet { get; set; }
-            public string nameSheet { get; set; }
-            public ElementId idSheet { get; set; }
-
-
-
-        }
+       
 
     }
 
