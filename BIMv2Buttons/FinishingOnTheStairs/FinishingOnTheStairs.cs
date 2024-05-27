@@ -50,8 +50,15 @@ namespace BIMv2
                 Stairs str = SelectedElement(_doc);
 
                 FloorType floorType = GetFloorTypeInProject("0");
+
+#if R2019 || R2020 || R2021 || R2022
+
+#else
+
+
                 ElementId floorTypeId = Floor.GetDefaultFloorType(_doc, false);
 
+#endif
 
                 //Stairs str =GetStairInfo(_doc);
 
