@@ -311,10 +311,25 @@ namespace BIMv2
                         temp.Append(c);
                     }
                     SortCurves(temp);
+
+                CurveLoop profile = new CurveLoop();
+
+                foreach (var g in temp)
+                {
+                    profile.Append(g);
+                }
+
+
+#if R2019 || R2020 || R2021 || R2022
+
                 _ = _doc.Create.NewFloor(temp, floorType, r1.Level, false);
+#else
+
+                var nf = Floor.Create(_doc, new List<CurveLoop> { profile }, floorType.Id, level.Id);
+#endif
 
 
-                }    
+            }
 
 
         }

@@ -56,7 +56,11 @@ namespace BIMv2
 
                     if (it != null && it.IsOrphaned == false)
                     {
+#if R2019 || R2020 || R2021 || R2022
                         referenceToTag = it.GetTaggedReference(); 
+#else
+                        referenceToTag = (Reference)it.GetTaggedReferences();
+#endif
                     }
 
 

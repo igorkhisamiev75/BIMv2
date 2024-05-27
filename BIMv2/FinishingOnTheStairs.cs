@@ -49,6 +49,8 @@ namespace BIMv2
                 Stairs str = SelectedElement(_doc);
 
                 FloorType floorType = GetFloorTypeInProject("0");
+                ElementId floorTypeId = Floor.GetDefaultFloorType(_doc, false);
+
 
                 //Stairs str =GetStairInfo(_doc);
 
@@ -85,16 +87,23 @@ namespace BIMv2
                     foreach (var item in cl)
                     {
                         temp.Append(item);
-                        profile.Append(item);
+                        profile.Append((Line)item);
                     }
 
-                    
-                    
+                   
+                   
+                    //profile.Append(Line.CreateBound(first, second));
+                    //profile.Append(Line.CreateBound(second, third));
+                    //profile.Append(Line.CreateBound(third, fourth));
+                    //profile.Append(Line.CreateBound(fourth, first));
+
+
+
 #if R2019 || R2020 || R2021 || R2022
                     var nf = _doc.Create.NewFloor(temp, floorType, level, false);
 #else
 
-                    var nf = Floor.Create(_doc, new List<CurveLoop> { profile }, floorType.Id, level.Id);
+                    Floor nf = Floor.Create(_doc, new List<CurveLoop> { profile }, floorTypeId, level.Id);
 #endif
                     var tp =nf.get_Parameter(BuiltInParameter.FLOOR_ATTR_THICKNESS_PARAM).AsDouble();
 
@@ -324,7 +333,7 @@ namespace BIMv2
 
                             if (k == 0) //все в одном
                             {
-                                TaskDialog.Show("Не сработало", "Пока такая лестница в работе у программиста");
+                                TaskDialog.Show("Не сработало", "Пока такая лестница в работе у программиста https://pposinrevit.blogspot.com/");
 
                             }
 
@@ -350,9 +359,18 @@ namespace BIMv2
                             tempStair.Append(line3);
                             tempStair.Append(line4);
 
+                            CurveLoop profile = new CurveLoop();
+                            profile.Append(line1);
+                            profile.Append(line2);
+                            profile.Append(line3);
+                            profile.Append(line4);
 
+#if R2019 || R2020 || R2021 || R2022
                             var nf = _doc.Create.NewFloor(tempStair, floorType, level, false);
+#else
 
+                            var nf = Floor.Create(_doc, new List<CurveLoop> { profile }, floorTypeId, level.Id);
+#endif
                             //толщина перекрытия
                             var tp = nf.get_Parameter(BuiltInParameter.FLOOR_ATTR_THICKNESS_PARAM).AsDouble();
 
@@ -464,8 +482,22 @@ namespace BIMv2
                     temp.Append(c);
                 }
                 SortCurves(temp);
-                _ = _doc.Create.NewFloor(temp, floorType, r1.Level, false);
 
+                CurveLoop profile = new CurveLoop();
+
+                foreach(var g in temp)
+                {
+                    profile.Append(g);
+                }
+
+
+#if R2019 || R2020 || R2021 || R2022
+
+                _ = _doc.Create.NewFloor(temp, floorType, r1.Level, false);
+#else
+
+                var nf = Floor.Create(_doc, new List<CurveLoop> { profile }, floorType.Id, level.Id);
+#endif
 
             }
 
