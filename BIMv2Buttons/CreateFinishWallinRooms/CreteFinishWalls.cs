@@ -412,8 +412,26 @@ namespace BIMv2
                     temp.Append(c);
                 }
                 var newSortCurve = SortCurves(temp);
-                floor = _doc.Create.NewFloor(newSortCurve, floorType3, r1.Level, false);
 
+#if R2019 || R2020 || R2021 || R2022
+                floor = _doc.Create.NewFloor(newSortCurve, floorType3, r1.Level, false);
+#else
+                // Build a floor profile for the floor creation
+                //XYZ first = new XYZ(0, 0, 0);
+                //XYZ second = new XYZ(20, 0, 0);
+                //XYZ third = new XYZ(20, 15, 0);
+                //XYZ fourth = new XYZ(0, 15, 0);
+                //CurveLoop profile = new CurveLoop();
+                //profile.Append(Line.CreateBound(first, second));
+                //profile.Append(Line.CreateBound(second, third));
+                //profile.Append(Line.CreateBound(third, fourth));
+                //profile.Append(Line.CreateBound(fourth, first));
+
+                //floor = Floor.Create(_doc, new List<CurveLoop> { profile }, floorType3.Id, r1.Level.Id);
+
+                floor = null;
+
+#endif
                 //set room name and number
                 floor.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
                 floor.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);

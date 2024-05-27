@@ -1,7 +1,6 @@
 ﻿#region Namespace
 
 using System;
-
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
@@ -12,7 +11,7 @@ namespace BIMv2
 {
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]
-    public class HelpBIM : IExternalCommand
+    public class HelpBIMBlog : IExternalCommand
 
     {
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
@@ -21,7 +20,7 @@ namespace BIMv2
             try
             {
                 System.Diagnostics.Process.Start(
-                    "https://t.me/khisamievRU");
+                    "https://pposinrevit.blogspot.com/");
                 return Result.Succeeded;
                 //System.Diagnostics.Process.Start(
                 //    "https://wa.me/79218720713?text=У%20меня%20проблемы%20с%20Revit%20помоги!");

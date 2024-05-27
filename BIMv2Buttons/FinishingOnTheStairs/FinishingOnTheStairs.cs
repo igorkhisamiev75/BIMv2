@@ -336,8 +336,19 @@ namespace BIMv2
                             tempStair.Append(line3);
                             tempStair.Append(line4);
 
+                            CurveLoop profile = new CurveLoop();
+                            profile.Append(line1);
+                            profile.Append(line2);
+                            profile.Append(line3);
+                            profile.Append(line4);
+
+#if R2019 || R2020 || R2021|| R2022
 
                             var nf = _doc.Create.NewFloor(tempStair, floorType, level, false);
+#else
+
+                            var nf = Floor.Create(_doc, new List<CurveLoop> { profile }, floorType.Id, level.Id);
+#endif
 
                             //толщина перекрытия
                             var tp = nf.get_Parameter(BuiltInParameter.FLOOR_ATTR_THICKNESS_PARAM).AsDouble();

@@ -42,7 +42,7 @@ namespace BIMv2
 
             using (Transaction t = new Transaction(_doc))
             {
-                t.Start("Create floor");
+                t.Start("Создать отделку на лестнице");
 
                 //выбор лестницы
 
@@ -80,14 +80,23 @@ namespace BIMv2
                     var cl=stairsL.GetFootprintBoundary();
 
                     elevation = stairsL.BaseElevation;
+                    CurveLoop profile = new CurveLoop();
 
                     foreach (var item in cl)
                     {
                         temp.Append(item);
+                        profile.Append(item);
                     }
 
+                    
+                    
+#if R2019 || R2020 || R2021 || R2022
                     var nf = _doc.Create.NewFloor(temp, floorType, level, false);
-                    var tp=nf.get_Parameter(BuiltInParameter.FLOOR_ATTR_THICKNESS_PARAM).AsDouble();
+#else
+
+                    var nf = Floor.Create(_doc, new List<CurveLoop> { profile }, floorType.Id, level.Id);
+#endif
+                    var tp =nf.get_Parameter(BuiltInParameter.FLOOR_ATTR_THICKNESS_PARAM).AsDouble();
 
                     temp.Clear();
                     nf.get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM).Set(elevation + ofsetStair+ tp);
