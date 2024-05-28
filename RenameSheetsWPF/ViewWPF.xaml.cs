@@ -21,8 +21,6 @@ namespace RenameSheetsWPF
 
         public ICollection<Element> selectedSheets;
 
-        //ublic IEnumerable<SheetInProject> 
-
         public ViewWPF(IEnumerable<SheetInProject> sheetInProjectCollection)
         {
             InitializeComponent();
@@ -38,6 +36,7 @@ namespace RenameSheetsWPF
         {
             SheetInProject g = (SheetInProject)sheetGreed.SelectedItem;
             MessageBox.Show("Выбрано " + g.nameSheet);
+            
             //foreach (var element in filterCollection)
             //{
             //    foreach (var variable in ListBox.SelectedItems)
@@ -50,7 +49,7 @@ namespace RenameSheetsWPF
             //        }
             //    }
             //}
-         
+
             //MessageBox.Show("Выбрано " + checkFilters.Count + " листов для перименования");
             Close();
         }
