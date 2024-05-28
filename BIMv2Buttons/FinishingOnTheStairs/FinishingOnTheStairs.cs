@@ -55,6 +55,7 @@ namespace BIMv2
             ElementId floorTypeId = Floor.GetDefaultFloorType(_doc, false);
 #endif
 
+#endif
 
                 //Stairs str =GetStairInfo(_doc);
 
