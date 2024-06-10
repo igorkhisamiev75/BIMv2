@@ -61,9 +61,32 @@
             HorizontalAlignment="Center" 
             Margin="0,147,0,0" 
             TextWrapping="Wrap" 
-            Text="-" 
+            Text=" " 
             VerticalAlignment="Top" 
             Width="120"/>
+        <Label
+            Grid.Column="1" 
+            Content="Начинать с " 
+            HorizontalAlignment="Left" 
+            Margin="15,187,0,0" 
+            VerticalAlignment="Top"/>
+        <TextBox
+            x:Name="tbStartNumber"
+            Grid.Column="1" 
+            HorizontalAlignment="Center" 
+            Margin="0,218,0,0" 
+            TextWrapping="Wrap" 
+            Text="1" 
+            VerticalAlignment="Top" 
+            Width="120"/>
+        <CheckBox 
+            x:Name="cbStart"
+            Grid.Column="1" 
+            Content="Новая нумерация"
+            IsChecked="{Binding IsChecked}"
+            HorizontalAlignment="Left" 
+            Margin="15,268,0,0" 
+            VerticalAlignment="Top"/>
 
     </Grid>
 </Window>

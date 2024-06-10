@@ -108,12 +108,13 @@ namespace RenameSheetsWPF
 
             //var selShed = vpViewWpf.selectedSheets;
 
-
+            TaskDialog.Show("Нажат ли checbox", $"{vpViewWpf.cbStart.IsChecked.Value}");
+           
 
             List<SheetInProject> checkFilters = vpViewWpf.checkSheets;
             string tbPrefiks = vpViewWpf.tbName.Text;
 
-            TaskDialog.Show("Nwe", $"{checkFilters.Count}");
+            //TaskDialog.Show("Nwe", $"{checkFilters.Count}");
 
             using (var t = new Transaction(_doc))
             {
@@ -143,7 +144,7 @@ namespace RenameSheetsWPF
                 t.Commit();
 
             }
-
+            _doc.Regenerate(); 
             return Result.Succeeded;
         }
 
