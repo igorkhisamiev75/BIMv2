@@ -108,7 +108,12 @@ namespace RenameSheetsWPF
 
             //var selShed = vpViewWpf.selectedSheets;
 
-            //var checkFilters = vpViewWpf.checkFilters;
+
+
+            List<SheetInProject> checkFilters = vpViewWpf.checkSheets;
+            string tbPrefiks = vpViewWpf.tbName.Text;
+
+            TaskDialog.Show("Nwe", $"{checkFilters.Count}");
 
             using (var t = new Transaction(_doc))
             {
@@ -116,26 +121,25 @@ namespace RenameSheetsWPF
                 uiApp = commandData.Application;
                 uiDoc = uiApp.ActiveUIDocument;
 
-                //foreach (var sheet in selShed)
-                //{
-                //    var el = _doc.GetElement(sheet.Id);
+                foreach (var sheet in checkFilters)
+                {
+                    var el = _doc.GetElement(sheet.idSheet);
 
-                //    ViewSheet sheet1 = el as ViewSheet;
-                                        
-                //    if (el != null)
-                //    {
-                        
-                //        string sN = sheet1.SheetNumber;
+                    ViewSheet sheet1 = el as ViewSheet;
 
-                //        sheet1.SheetNumber = "333" + sN;
-                //    }
-                            
+                    if (el != null)
+                    {
 
-                   
-                //}
+                        string sN = sheet1.SheetNumber;
 
-                //del filters checked
-                //ViewFiltersDelete(_doc, checkFilters);
+                        sheet1.SheetNumber = tbPrefiks + sN;
+                    }
+
+
+
+                }
+
+                _doc.Regenerate();
                 t.Commit();
 
             }

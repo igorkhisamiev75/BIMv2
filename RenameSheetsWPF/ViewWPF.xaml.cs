@@ -15,15 +15,17 @@ namespace RenameSheetsWPF
     {
 
         //public readonly DeletedFilter m_data_filters;  // Filters data for current active document
-        public List<Element> checkFilters = new List<Element>();
+        public List<SheetInProject> checkSheets = new List<SheetInProject>();
 
-        public ICollection<Element> filterCollection;
+        public ICollection<SheetInProject> filterCollection;
 
-        public ICollection<Element> selectedSheets;
+        public ICollection<SheetInProject> selectedSheets;
 
         public ViewWPF(IEnumerable<SheetInProject> sheetInProjectCollection)
         {
             InitializeComponent();
+
+            filterCollection=sheetInProjectCollection.ToList();
 
             sheetGreed.ItemsSource = sheetInProjectCollection;
 
@@ -34,10 +36,26 @@ namespace RenameSheetsWPF
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
+            //tbName.Text = string.Empty;
+            MessageBox.Show("Выбрано " + tbName.Text);
             //SheetInProject g = (SheetInProject)sheetGreed.SelectedItems;
 
-            var g = sheetGreed.SelectedItems;
-            MessageBox.Show("Выбрано " + g.Count);
+            //var g = sheetGreed.SelectedItems;
+            //MessageBox.Show("Выбрано " + g.Count);
+
+            foreach (var element in filterCollection)
+            {
+                foreach (var variable in sheetGreed.SelectedItems)
+                {
+                    if (variable.GetHashCode() == element.GetHashCode())
+                    {
+                        checkSheets.Add(element);
+                        // MessageBox.Show("Выбрано" + element.Name);
+
+                    }
+                }
+            }
+
 
 
 

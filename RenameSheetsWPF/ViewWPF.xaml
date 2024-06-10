@@ -38,10 +38,14 @@
             RowBackground="LightGray"
             AlternatingRowBackground="White">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Стадия"  Binding="{Binding stadiy, Mode=TwoWay}"/>
-                <DataGridTextColumn Header="Альбом" Binding="{Binding albom, Mode=TwoWay}" />
-                <DataGridTextColumn Header="Номер листа"  Binding="{Binding numberSheet, Mode=TwoWay}"/>
-                <DataGridTextColumn Header="Имя листа" Binding="{Binding nameSheet, Mode=TwoWay}" />
+                <DataGridTextColumn Header="Стадия"  
+                                    Binding="{Binding stadiy, Mode=TwoWay}"/>
+                <DataGridTextColumn Header="Альбом" 
+                                    Binding="{Binding albom, Mode=TwoWay}" />
+                <DataGridTextColumn Header="Номер листа"  
+                                    Binding="{Binding numberSheet, Mode=TwoWay}"/>
+                <DataGridTextColumn Header="Имя листа" 
+                                    Binding="{Binding nameSheet, Mode=TwoWay}" />
 
             </DataGrid.Columns>
         </DataGrid>
@@ -52,6 +56,7 @@
             Margin="15,116,0,0" 
             VerticalAlignment="Top"/>
         <TextBox 
+            x:Name="tbName"
             Grid.Column="1" 
             HorizontalAlignment="Center" 
             Margin="0,147,0,0" 
