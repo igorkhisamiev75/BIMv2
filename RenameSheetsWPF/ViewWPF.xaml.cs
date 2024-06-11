@@ -37,7 +37,7 @@ namespace RenameSheetsWPF
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             //tbName.Text = string.Empty;
-            MessageBox.Show("Выбрано " + tbName.Text);
+            //MessageBox.Show("Выбрано " + tbName.Text);
             //SheetInProject g = (SheetInProject)sheetGreed.SelectedItems;
 
             //var g = sheetGreed.SelectedItems;

@@ -12,8 +12,8 @@ using Application = Autodesk.Revit.ApplicationServices.Application;
 namespace RenameSheetsWPF
 {
     [Transaction(TransactionMode.Manual)]
-    //[Regeneration(RegenerationOption.Manual)]
-    //[Journaling(JournalingMode.NoCommandData)]
+    [Regeneration(RegenerationOption.Manual)]
+    [Journaling(JournalingMode.NoCommandData)]
     public class RenameSheets : Window, IExternalCommand
     {
         public Application _app;
@@ -52,14 +52,15 @@ namespace RenameSheetsWPF
 
             //string nameN = "";
 
-            
-
             foreach (var sheet in allViewSheets)
             {
-                if(sheet.LookupParameter("Занесение в список листов").AsValueString() == "Нет")
+                if(sheet.LookupParameter("Занесение в список листов").AsValueString() == "Нет"||
+                    sheet.Name == "Без имени")
                 {
                     continue;
                 }
+               
+
                 SheetInProject sheetInProject = new SheetInProject();
 
                 sheetInProject.idSheet = sheet.Id;
@@ -68,6 +69,8 @@ namespace RenameSheetsWPF
                 sheetInProject.nameSheet = sheet.Name;
                 sheetInProject.albom = sheet.LookupParameter("MRGT_Альбом/Том").AsString();
                 sheetInProject.stadiy = sheet.LookupParameter("MRGT_Стадия").AsString();
+
+                sheetInProject.id = sheet.Id;
 
                 if (sheet.LookupParameter("MRGT_Альбом/Том").HasValue == false)
                 {
@@ -94,10 +97,13 @@ namespace RenameSheetsWPF
 
             }
 
+            BrowserOrganization bOrg = BrowserOrganization.GetCurrentBrowserOrganizationForSheets(_doc);
+
             IEnumerable<SheetInProject> newList = sheetInProjectCollection
              .OrderBy(x => x.stadiy)
              .ThenBy(x => x.albom)
-             .ThenBy(x => x.numberSheet)
+             .ThenBy(x=>bOrg.GetFolderItems(x.idSheet).First().Name)
+             /*.ThenBy(x => x.numberSheet)*/
              .ThenBy(x => x.nameSheet);
 
 
@@ -108,43 +114,85 @@ namespace RenameSheetsWPF
 
             //var selShed = vpViewWpf.selectedSheets;
 
-            TaskDialog.Show("Нажат ли checbox", $"{vpViewWpf.cbStart.IsChecked.Value}");
-           
+            //TaskDialog.Show("Нажат ли checbox", $"{vpViewWpf.cbStart.IsChecked.Value}");
+
+            var cb = vpViewWpf.cbStart.IsChecked.Value;
 
             List<SheetInProject> checkFilters = vpViewWpf.checkSheets;
             string tbPrefiks = vpViewWpf.tbName.Text;
+
+            string tbFirstNumber = vpViewWpf.tbStartNumber.Text;
+
+            int firstNumber = Convert.ToInt32(tbFirstNumber);
 
             //TaskDialog.Show("Nwe", $"{checkFilters.Count}");
 
             using (var t = new Transaction(_doc))
             {
-                t.Start("Run");
+                t.Start("Переименование листов");
                 uiApp = commandData.Application;
                 uiDoc = uiApp.ActiveUIDocument;
 
-                foreach (var sheet in checkFilters)
+                if (checkFilters.Count != 0 && cb == false)
                 {
-                    var el = _doc.GetElement(sheet.idSheet);
-
-                    ViewSheet sheet1 = el as ViewSheet;
-
-                    if (el != null)
+                    foreach (var sheet in checkFilters)
                     {
+                        var el = _doc.GetElement(sheet.idSheet);
 
-                        string sN = sheet1.SheetNumber;
+                        ViewSheet sheet1 = el as ViewSheet;
 
-                        sheet1.SheetNumber = tbPrefiks + sN;
+                        if (el != null)
+                        {
+
+                            string sN = sheet1.SheetNumber;
+
+                            sheet1.SheetNumber = tbPrefiks + sN;
+                        }
+
+
+
                     }
-
-
-
                 }
+
+                if (checkFilters.Count != 0 && cb == true)
+                {
+                    foreach (var sheet in checkFilters)
+                    {
+                        var el = _doc.GetElement(sheet.idSheet);
+
+                        ViewSheet sheet1 = el as ViewSheet;
+
+                        if (el != null)
+                        {
+
+                            string sN = sheet1.SheetNumber;
+
+                            sheet1.SheetNumber = firstNumber.ToString();
+
+                            firstNumber++;
+
+
+                        }
+
+
+
+                    }
+                    _doc.Regenerate();
+                }
+
+                else
+                {
+                    //System.Diagnostics.Process.Start(
+                    //"https://boosty.to/mo3deling");
+                }
+                
 
                 _doc.Regenerate();
                 t.Commit();
 
             }
-            _doc.Regenerate(); 
+
+            
             return Result.Succeeded;
         }
 

@@ -53,13 +53,13 @@
             Grid.Column="1" 
             Content="Префикс" 
             HorizontalAlignment="Left" 
-            Margin="15,116,0,0" 
+            Margin="10,116,0,0" 
             VerticalAlignment="Top"/>
         <TextBox 
             x:Name="tbName"
             Grid.Column="1" 
-            HorizontalAlignment="Center" 
-            Margin="0,147,0,0" 
+            HorizontalAlignment="Left" 
+            Margin="10,147,0,0" 
             TextWrapping="Wrap" 
             Text=" " 
             VerticalAlignment="Top" 
@@ -68,13 +68,13 @@
             Grid.Column="1" 
             Content="Начинать с " 
             HorizontalAlignment="Left" 
-            Margin="15,187,0,0" 
+            Margin="10,203,0,0" 
             VerticalAlignment="Top"/>
         <TextBox
             x:Name="tbStartNumber"
             Grid.Column="1" 
-            HorizontalAlignment="Center" 
-            Margin="0,218,0,0" 
+            HorizontalAlignment="Left" 
+            Margin="10,234,0,0" 
             TextWrapping="Wrap" 
             Text="1" 
             VerticalAlignment="Top" 
@@ -85,7 +85,7 @@
             Content="Новая нумерация"
             IsChecked="{Binding IsChecked}"
             HorizontalAlignment="Left" 
-            Margin="15,268,0,0" 
+            Margin="10,191,0,0" 
             VerticalAlignment="Top"/>
 
     </Grid>

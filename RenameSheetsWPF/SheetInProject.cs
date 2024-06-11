@@ -15,5 +15,10 @@ namespace RenameSheetsWPF
         public string numberSheet { get; set; }
         public string nameSheet { get; set; }
         public ElementId idSheet { get; set; }
+
+        public BrowserOrganization bOrg { get; }
+
+        public ElementId id { get; set; }
+
     }
 }
