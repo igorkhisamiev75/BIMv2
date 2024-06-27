@@ -131,9 +131,7 @@ namespace CreateFinishWallinRooms
             if (vpViewWpf.heighWallUser != "")
             {
                 wallHeight = Convert.ToDouble(vpViewWpf.heighWallUser);
-                wallHeight = UnitUtils.Convert(wallHeight,
-                    DisplayUnitType.DUT_MILLIMETERS,
-                    DisplayUnitType.DUT_DECIMAL_FEET);
+                wallHeight = UnitUtils.Convert(wallHeight, DisplayUnitType.DUT_MILLIMETERS, DisplayUnitType.DUT_DECIMAL_FEET);
                 //TaskDialog.Show("2bim.ru", $"Высота стен {wallHeight.ToString()}");
             }
             

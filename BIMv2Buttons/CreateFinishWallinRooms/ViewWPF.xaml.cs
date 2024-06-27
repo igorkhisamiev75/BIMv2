@@ -1,13 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Autodesk.Revit.DB;
+using System.Collections.Generic;
 using System.Windows;
+using Autodesk.Revit.DB.Architecture;
 using System.Windows.Controls;
 
 namespace BIMv2Buttons.CreateFinishWallinRooms
-{ /// <summary>
-  /// Логика взаимодействия для UserControl1.xaml
-  /// </summary>
+{
+    /// <summary>
+    /// Логика взаимодействия для UserControl1.xaml
+    /// </summary>
     public partial class ViewWPF : Window
     {
         public List<String> checkRooms = new List<String>();
