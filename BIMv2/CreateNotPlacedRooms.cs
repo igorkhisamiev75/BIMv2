@@ -1,5 +1,4 @@
 ﻿#region Namespace
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,8 +7,6 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
 using ExcelDataReader;
-
-
 
 #endregion
 
@@ -24,6 +21,8 @@ namespace BIMv2
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
 
         {
+            TaskDialog.Show("Revit", "Начинаем" );
+
             string pathToFile = @"C:\Классификатор помещений (справочно).xlsx";
 
             // Создаем поток для чтения.

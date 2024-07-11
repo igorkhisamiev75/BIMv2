@@ -131,15 +131,15 @@ namespace BIMv2Buttons
             // Add a new ribbon panel
             RibbonPanel ribbonPanelb2 = application.CreateRibbonPanel(tabNameB2, "Архитектурные надстройки"); //подпись под кнопками
 
-            //// create push button for CurveTotalLength  //namespace и класс
-            //PushButtonData b22Data = new PushButtonData("cmdCreateNotPlacedRooms.cs", "Создать"
-            //    + Environment.NewLine + "имена помещений", thisAssemblyPath, "BIMv2.CreateNotPlacedRooms");
+            // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData b22Data = new PushButtonData("cmdCreateNotPlacedRooms.cs", "Создать"
+                + Environment.NewLine + "имена помещений", thisAssemblyPath, "BIMv2.CreateNotPlacedRooms");
 
-            //PushButton pb22 = ribbonPanelb2.AddItem(b22Data) as PushButton;
-            //pb22.ToolTip = "Создать помещения в проекте по Excel файлу на диске С";
+            PushButton pb22 = ribbonPanelb2.AddItem(b22Data) as PushButton;
+            pb22.ToolTip = "Создать помещения в проекте по Excel файлу на диске С";
 
-            //BitmapImage pb22Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-rooms-32.png"));
-            //pb22.LargeImage = pb22Image;
+            BitmapImage pb22Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-rooms-32.png"));
+            pb22.LargeImage = pb22Image;
 
             //попробуем создать еще одну кнопку
             ribbonPanelb2.AddSeparator(); //разделитель между кнопками
@@ -672,17 +672,17 @@ namespace BIMv2Buttons
             BitmapImage pb26Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-3d-modeling-32.png"));
             pb26.LargeImage = pb26Image;
 
-            //попробуем создать еще одну кнопку
-            ribbonPanel4.AddSeparator(); //разделитель между кнопками
+            ////попробуем создать еще одну кнопку
+            //ribbonPanel4.AddSeparator(); //разделитель между кнопками
 
-            PushButtonData b27Data = new PushButtonData("cmdFindDuctFiting.cs", "Врезки и "
-               + Environment.NewLine + "решетки", thisAssemblyPath, "BIMv2.FindDuctFiting");
+            //PushButtonData b27Data = new PushButtonData("cmdFindDuctFiting.cs", "Врезки и "
+            //   + Environment.NewLine + "решетки", thisAssemblyPath, "BIMv2.FindDuctFiting");
 
-            PushButton pb27 = ribbonPanel4.AddItem(b27Data) as PushButton;
-            pb27.ToolTip = "Заполнить инфу в комментарии";
+            //PushButton pb27 = ribbonPanel4.AddItem(b27Data) as PushButton;
+            //pb27.ToolTip = "Заполнить инфу в комментарии";
 
-            BitmapImage pb27Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-hvac-32.png"));
-            pb27.LargeImage = pb27Image;
+            //BitmapImage pb27Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-hvac-32.png"));
+            //pb27.LargeImage = pb27Image;
 
             //попробуем создать еще одну кнопку
             ribbonPanel4.AddSeparator(); //разделитель между кнопками

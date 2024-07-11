@@ -48,6 +48,8 @@ namespace RenameSheetsWPF
             _app = uiApp.Application;
             _doc = uiDoc.Document;
 
+
+
             var allViewSheets = GetAllSheets(_doc);
 
             //string nameN = "";
@@ -65,7 +67,7 @@ namespace RenameSheetsWPF
 
                 sheetInProject.idSheet = sheet.Id;
 
-                sheetInProject.numberSheet = sheet.SheetNumber;
+                sheetInProject.numberSheet = sheet.get_Parameter(BuiltInParameter.SHEET_NUMBER).AsString();
                 sheetInProject.nameSheet = sheet.Name;
                 sheetInProject.albom = sheet.LookupParameter("MRGT_Альбом/Том").AsString();
                 sheetInProject.stadiy = sheet.LookupParameter("MRGT_Стадия").AsString();
@@ -99,10 +101,37 @@ namespace RenameSheetsWPF
 
             BrowserOrganization bOrg = BrowserOrganization.GetCurrentBrowserOrganizationForSheets(_doc);
 
+            //string t3 = "План 3-го этажа";
+
+            //string t2 = "";
+
+            //IEnumerable<ElementId> ids
+            //      = new FilteredElementCollector(_doc)
+            //        .OfClass(typeof(ViewSheet))
+            //        .Where(s => bOrg.GetFolderItems(s.Id).First().Name).Select<Element, ElementId>(e => e.Id);
+
+            //foreach (ElementId id in ids)
+            //{
+            //    var gg = _doc.GetElement(id) as ViewSheet;
+            //    var ggg = gg.SheetNumber;
+            //    t2 = t2 + ggg + "\n";
+
+            //    //if (gg != null)
+            //    //{
+                    
+            //    //}
+                
+            //}
+
+            //TaskDialog.Show("Все", $"{t2}");
+
+
             IEnumerable<SheetInProject> newList = sheetInProjectCollection
              .OrderBy(x => x.stadiy)
              .ThenBy(x => x.albom)
+             .ThenBy(x => x.numberSheet)
              .ThenBy(x=>bOrg.GetFolderItems(x.idSheet).First().Name)
+             //.ThenBy(x=>bOrg.GetFolderItems(x.idSheet).First().Name)
              /*.ThenBy(x => x.numberSheet)*/
              .ThenBy(x => x.nameSheet);
 
@@ -185,14 +214,16 @@ namespace RenameSheetsWPF
                     //System.Diagnostics.Process.Start(
                     //"https://boosty.to/mo3deling");
                 }
-                
-
-                _doc.Regenerate();
+                                
+                //_doc.Regenerate();
                 t.Commit();
-
+                
             }
 
+            _doc.Regenerate();
+
             
+
             return Result.Succeeded;
         }
 
