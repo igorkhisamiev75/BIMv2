@@ -118,6 +118,19 @@ namespace BIMv2Buttons
             //попробуем создать еще одну кнопку
             ribbonPanelbAI1.AddSeparator(); //разделитель между кнопками
 
+            // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData pbAI3Data = new PushButtonData("cmdFindNameRoomForFinishElementsRoomsInLink.cs", "Записать номер и имя"
+                + Environment.NewLine + "в стены, потолоки, полы", thisAssemblyPath, "BIMv2.FindNameRoomForFinishElementsRoomsInLink");
+
+            PushButton pbAI3 = ribbonPanelbAI1.AddItem(pbAI3Data) as PushButton;
+            pbAI3.ToolTip = "В ADSK_Примечание и Комментарии номер и имя помещений, если пусто";
+
+            BitmapImage pbAI3Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-roomN-32.png"));
+            pbAI3.LargeImage = pbAI3Image;
+
+            //попробуем создать еще одну кнопку
+            ribbonPanelbAI1.AddSeparator(); //разделитель между кнопками
+
 
 
 

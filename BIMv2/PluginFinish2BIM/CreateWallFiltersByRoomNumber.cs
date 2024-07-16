@@ -53,8 +53,7 @@ namespace BIMv2
 
                     //var descriptionWallType = wall2.WallType.LookupParameter("ADSK_Наименование краткое").AsString();
 
-                    var descriptionWallType2 = element.LookupParameter("Номер").AsString()+" "+
-                        element.LookupParameter("Имя").AsString();
+                    var descriptionWallType2 = element.LookupParameter("Номер").AsString();
 
                     
                         AllFinishWall2.Add(descriptionWallType2);
@@ -113,8 +112,8 @@ namespace BIMv2
                         //категории которые используются
                         List<ElementId> categories = new List<ElementId>();
                         categories.Add(new ElementId(BuiltInCategory.OST_Walls));
-                        //categories.Add(new ElementId(BuiltInCategory.OST_Floors));
-                        //categories.Add(new ElementId(BuiltInCategory.OST_Ceilings));
+                        categories.Add(new ElementId(BuiltInCategory.OST_Floors));
+                        categories.Add(new ElementId(BuiltInCategory.OST_Ceilings));
 
                         
                         List<FilterRule> filterRules = new List<FilterRule>();
@@ -130,7 +129,7 @@ namespace BIMv2
 
                         // Create filter element assocated to the input categories
                         ParameterFilterElement parameterFilterElement =
-                            ParameterFilterElement.Create(doc, "Фильтр пом. " +  nameRoom+ "для вида " + nameFilter, categories);
+                            ParameterFilterElement.Create(doc, "Фильтр пом. " +  nameRoom+ " для вида " + nameFilter, categories);
 
                         // Criterion 1 - wall type Function is "Exterior"
                         //ElementId exteriorParamId = new ElementId(BuiltInParameter.FUNCTION_PARAM);
@@ -181,10 +180,10 @@ namespace BIMv2
 
                         ogs.SetProjectionLineColor(color); // линии
                         ogs.SetCutForegroundPatternColor(color); //цвет в сечении
-
                         ogs.SetSurfaceForegroundPatternColor(color); //цвет поверхности
 
                         FilteredElementCollector elements = new FilteredElementCollector(doc);
+
                         FillPatternElement solidFillPattern = elements
                             .OfClass(typeof(FillPatternElement))
                             .Cast<FillPatternElement>()
@@ -192,8 +191,17 @@ namespace BIMv2
 
                         ogs.SetSurfaceForegroundPatternId(solidFillPattern.Id);
 
+                        //заливка для штриховки сечения
+                        ogs.SetCutForegroundPatternId(solidFillPattern.Id);
+                        ogs.SetCutBackgroundPatternId(solidFillPattern.Id); 
+
+                        //цает линии сечения
+                        ogs.SetCutLineColor(color);
+
                         ogs.SetSurfaceBackgroundPatternColor(color);
                         ogs.SetSurfaceBackgroundPatternId(solidFillPattern.Id);
+
+                        
 
                         // Apply filter to view
                         view.AddFilter(parameterFilterElement.Id);
