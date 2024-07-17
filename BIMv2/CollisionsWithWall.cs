@@ -35,88 +35,101 @@ namespace BIMv2
 
                 foreach (RevitLinkInstance linkedInstance in linkedInstances)
                 {
+                    try { 
                     if (linkedInstances != null && linkedInstance.Name.Contains("AR"))
                     {
                         foreach (var linkInstance in linkedInstances)
                         {
                             Document linkDocument = linkInstance.GetLinkDocument();
 
-                            //собрать стены
-                            IList<Element> listWindows = GetAllWall(linkDocument);
-
-                            TaskDialog.Show("Complite!", $"Всего стен: {listWindows.Count}");
-
-                            //перебор по каждому отверстию
-                            foreach (var hole in allHoles)
+                            if (linkDocument.IsLinked == true)
                             {
-                                try
+                                //собрать стены
+                                IList<Element> listWindows = GetAllWall(linkDocument);
+
+                                TaskDialog.Show("Complite!", $"Всего стен: {listWindows.Count}");
+
+                                //перебор по каждому отверстию
+                                foreach (var hole in allHoles)
                                 {
-                                    if (hole != null)
+                                    try
                                     {
-
-
-                                        foreach (Element wall in listWindows)
+                                        if (hole != null)
                                         {
-                                            //bondingbox wall
-                                            BoundingBoxXYZ boundingBoxXYZ = wall.get_BoundingBox(_doc.ActiveView);
-
-                                            //bounding Box window
-                                            BoundingBoxXYZ boundingBoxXYZ3 = hole.get_BoundingBox(_doc.ActiveView);
 
 
-                                            if (bbIntersect(boundingBoxXYZ, boundingBoxXYZ3))
+                                            foreach (Element wall in listWindows)
                                             {
-                                                try
+                                                //bondingbox wall
+                                                BoundingBoxXYZ boundingBoxXYZ = wall.get_BoundingBox(_doc.ActiveView);
+
+                                                //bounding Box window
+                                                BoundingBoxXYZ boundingBoxXYZ3 = hole.get_BoundingBox(_doc.ActiveView);
+
+
+                                                if (bbIntersect(boundingBoxXYZ, boundingBoxXYZ3))
                                                 {
+                                                    try
+                                                    {
 
-                                                    string nameWall = wall.Name;
+                                                        string nameWall = wall.Name;
 
-                                                    hole.LookupParameter("ADSK_Примечание").Set(nameWall);
-
-
+                                                        hole.LookupParameter("ADSK_Примечание").Set(nameWall);
 
 
 
-                                                    _doc.Regenerate();
 
-                                                    //TaskDialog.Show("N", $"отверстие сделано{markForNK}");
-                                                    break;
+
+                                                        _doc.Regenerate();
+
+                                                        //TaskDialog.Show("N", $"отверстие сделано{markForNK}");
+                                                        break;
+                                                    }
+
+                                                    catch
+                                                    {
+                                                        //TaskDialog.Show("N", "отверстие не сделано сделано");
+                                                        continue;
+                                                    }
+
                                                 }
 
-                                                catch
-                                                {
-                                                    //TaskDialog.Show("N", "отверстие не сделано сделано");
-                                                    continue;
-                                                }
 
                                             }
 
+                                            _doc.Regenerate();
+                                            //    instance.LookupParameter("Марка").Set(markForNK);
+                                            //_doc.Delete(instance.Id);
+
+                                            //_doc.Regenerate();
 
                                         }
-
-                                        _doc.Regenerate();
-                                        //    instance.LookupParameter("Марка").Set(markForNK);
-                                        //_doc.Delete(instance.Id);
-
-                                        //_doc.Regenerate();
-
                                     }
+
+
+
+                                    catch
+                                    {
+                                        continue;
+                                    }
+
+
+
+                                    //TaskDialog.Show("N",/*$"{x} {y} {z}"*/"new");
                                 }
-
-
-
-                                catch
-                                {
-                                    continue;
-                                }
-
-
-
-                                //TaskDialog.Show("N",/*$"{x} {y} {z}"*/"new");
                             }
+
+                            else { break; }
+
+
 
 
                         }
+
+                    }
+                }
+                    catch
+                    {
 
                     }
                 }

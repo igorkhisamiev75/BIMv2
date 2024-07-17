@@ -526,7 +526,7 @@ namespace BIMv2Buttons
 
 
             // Add a new ribbon panel
-            RibbonPanel ribbonPanel3 = application.CreateRibbonPanel(tabName, "Надстройки для МЕГА-электрика"); //подпись под кнопками
+            RibbonPanel ribbonPanel3 = application.CreateRibbonPanel(tabName, "Надстройки для Миши и Антона"); //подпись под кнопками
 
             // create push button for CurveTotalLength  //namespace и класс
             PushButtonData b2Data = new PushButtonData("cmdSumAllLightingFixtureInRoom", "Посчитать"
@@ -578,6 +578,19 @@ namespace BIMv2Buttons
 
             BitmapImage pb8Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-cos-32.png"));
             pb8.LargeImage = pb8Image;
+
+            //попробуем создать еще одну кнопку
+            ribbonPanel3.AddSeparator(); //разделитель между кнопками
+
+            // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData b8DataLV = new PushButtonData("cmdCollisionsWithWall.cs", "Прописать"
+                + Environment.NewLine + "стены в отверстия", thisAssemblyPath, "BIMv2.CollisionsWithWall");
+
+            PushButton pb8LV = ribbonPanel3.AddItem(b8DataLV) as PushButton;
+            pb8LV.ToolTip = "Прописывает тип стены в ADSK_Примечание";
+
+            BitmapImage pb8ImageLV = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8.png"));
+            pb8LV.LargeImage = pb8ImageLV;
 
 
             // Add a new ribbon panel
