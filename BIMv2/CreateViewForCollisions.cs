@@ -43,6 +43,8 @@ namespace BIMv2
 
                 t.Start("Create view for collisions");
 
+
+
                 //XDocument xdoc = XDocument.Load(@"C:\Users\i.khisamiev\Downloads\V FS.xml");
 
                 XmlDocument xmldoc = new XmlDocument();
