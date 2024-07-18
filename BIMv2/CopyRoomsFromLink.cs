@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
@@ -27,72 +28,78 @@ namespace BIMv2
             _doc = uiDoc.Document;
 
             Document doc = commandData.Application.ActiveUIDocument.Document;
-           
+
             using (var t = new Transaction(doc))
             {
                 t.Start("Проверка помещений");
 
                 IEnumerable<RevitLinkInstance> linkedInstances = FindLinkedInstances();
 
+                //TaskDialog.Show("Revit", $"Колличество связей  {linkedInstances.Count()}");
 
-                IList<Room> roomsLinkedProject = new List<Room>();
 
                 //помещения в модели
-                IList<Room> roomsCurrentProject = (IList<Room>)GetAllRooms(doc);
+                IList<Element> roomsCurrentProject = GetAllRooms(doc);
 
                 int i = 0;
                 int j = 0;
-               
+
 
                 foreach (RevitLinkInstance linkedInstance in linkedInstances)
                 {
                     try
                     {
-                        if (linkedInstances != null && linkedInstance.Name.Contains("AR"))
+                        if (linkedInstance != null && linkedInstance.Name == "27_PD_AR_ALL_MRGT_R21_SHD.rvt : 12 : позиция <Не общедоступное>")
                         {
-                            foreach (var linkInstance in linkedInstances)
+
+                            Document linkDocument = linkedInstance.GetLinkDocument();
+
+                            //собрать помещения из связанной АР
+
+                            IList<Element> roomsLinkedProject = GetAllRooms(linkDocument);
+
+                            TaskDialog.Show("Revit", $"Колличество помещений в текущей {roomsCurrentProject.Count}");
+                            TaskDialog.Show("Revit", $"Колличество помещений в текущей {roomsLinkedProject.Count}");
+
+                            foreach (Room room in roomsLinkedProject)
                             {
-                                Document linkDocument = linkInstance.GetLinkDocument();
+                                string nameRoomLink = room.Name;
+                                string namberRoomLink = room.Number;
 
-                                if (linkDocument.IsLinked == true)
+                                string nameRoomCurent = "";
+                                string namberRoomCurrent = "";
+
+
+                                foreach (Room roomCurent in roomsCurrentProject)
                                 {
-                                    //собрать помещения из связанной АР
+                                    nameRoomCurent = room.Name;
+                                    namberRoomCurrent = room.Number;
 
-                                    roomsLinkedProject = (IList<Room>)GetAllRooms(linkDocument);
-                                    
-                                    foreach (Room room in roomsLinkedProject)
+                                    if (namberRoomLink == namberRoomCurrent && nameRoomLink == nameRoomCurent)
                                     {
-                                        string nameRoomLink=room.Name;
-                                        string namberRoomLink = room.Number;
+                                        i++;
+                                        nameRoomLink = "";
+                                        namberRoomLink = "";
+                                        nameRoomCurent = "";
+                                        namberRoomCurrent = "";
+                                        continue;
+                                    }
+                                    else
+                                    {
+                                        j++;
 
-                                        foreach (Room roomCurent in roomsCurrentProject)
-                                        {
-                                            string nameRoomCurent = room.Name;
-                                            string namberRoomRoourent = room.Number;
-
-                                            if (namberRoomLink == namberRoomRoourent && nameRoomLink== nameRoomCurent)
-                                            {
-                                                i++;
-                                            }
-
-                                            else
-                                            {
-                                                j++;
-                                            }
-
-                                        }
 
                                     }
 
-
                                 }
-
-                                else { break; }
-
 
 
 
                             }
+
+                            TaskDialog.Show("Revit", $"Совпадающие {i} имена и номера");
+                            TaskDialog.Show("Revit", $"Не совпадающие {j} имена и номера");
+
 
                         }
                     }
@@ -102,15 +109,11 @@ namespace BIMv2
                     }
                 }
 
-                TaskDialog.Show("Revit", $"Колличество помещений в текущей {roomsCurrentProject.Count}");
-                TaskDialog.Show("Revit", $"Колличество помещений в текущей {roomsLinkedProject.Count}");
 
-                TaskDialog.Show("Revit", $"Совпадающие {i} имена и номера");
-                TaskDialog.Show("Revit", $"Не совпадающие {j} имена и номера");
 
                 try
                 {
-                   
+
 
                     t.Commit();
                     return Result.Succeeded;

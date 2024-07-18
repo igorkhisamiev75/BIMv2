@@ -210,11 +210,6 @@ namespace BIMv2
             {
                 var nameWall = element.LookupParameter("ADSK_Примечание").AsString();
 
-                if (nameWall != "")
-                {
-                    continue;
-                }
-
                 Room myRoom;
                 string nameRoom = "";
 
@@ -380,10 +375,7 @@ namespace BIMv2
             {
                 var nameWall = element.LookupParameter("ADSK_Примечание").AsString();
 
-                if (nameWall != "")
-                {
-                    continue;
-                }
+                
 
                 Room myRoom;
                 string nameRoom = "";
