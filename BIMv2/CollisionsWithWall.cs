@@ -30,7 +30,6 @@ namespace BIMv2
                 //получение всех отверстий
                 IList<Element> allHoles = GetAllHolls(_doc);
 
-
                 IEnumerable<RevitLinkInstance> linkedInstances = FindLinkedInstances();
 
                 foreach (RevitLinkInstance linkedInstance in linkedInstances)
@@ -75,9 +74,6 @@ namespace BIMv2
                                                         string nameWall = wall.Name;
 
                                                         hole.LookupParameter("ADSK_Примечание").Set(nameWall);
-
-
-
 
 
                                                         _doc.Regenerate();

@@ -2,11 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
-using Autodesk.Revit.UI.Selection;
 
 #endregion
 
@@ -28,55 +27,90 @@ namespace BIMv2
             _doc = uiDoc.Document;
 
             Document doc = commandData.Application.ActiveUIDocument.Document;
-            IList<Element> roomsCurrentProject = GetAllRooms(doc);
-            IList<Element> roomsLinked=new List<Element>();
-
-
+           
             using (var t = new Transaction(doc))
             {
-                t.Start("Copy Rooms");
-
-                TaskDialog.Show("2bim.ru", "Выбрать модель для копирования помещений");
-
-                Reference r = uiDoc.Selection.PickObject(ObjectType.Element, "Выбрать модель с помещениями");
-                Element elem = uiDoc.Document.GetElement(r);
-
-                //TaskDialog.Show("2bim.ru", $"{elem.Name}");
-                
-                
-               //получить связанную модель FCD
+                t.Start("Проверка помещений");
 
                 IEnumerable<RevitLinkInstance> linkedInstances = FindLinkedInstances();
 
 
-                //IList<Element> roomsLinked = GetAllRooms(elem);
+                IList<Room> roomsLinkedProject = new List<Room>();
+
+                //помещения в модели
+                IList<Room> roomsCurrentProject = (IList<Room>)GetAllRooms(doc);
+
+                int i = 0;
+                int j = 0;
+               
 
                 foreach (RevitLinkInstance linkedInstance in linkedInstances)
                 {
-
-                    if (linkedInstances != null)
+                    try
                     {
-                        foreach (var linkInstance in linkedInstances)
+                        if (linkedInstances != null && linkedInstance.Name.Contains("AR"))
                         {
-                            Document linkDocument = linkInstance.GetLinkDocument();
-                            roomsLinked = GetAllRooms(linkDocument);
+                            foreach (var linkInstance in linkedInstances)
+                            {
+                                Document linkDocument = linkInstance.GetLinkDocument();
 
-                            TaskDialog.Show("2bim.ru", $"{roomsLinked.Count}");
+                                if (linkDocument.IsLinked == true)
+                                {
+                                    //собрать помещения из связанной АР
+
+                                    roomsLinkedProject = (IList<Room>)GetAllRooms(linkDocument);
+                                    
+                                    foreach (Room room in roomsLinkedProject)
+                                    {
+                                        string nameRoomLink=room.Name;
+                                        string namberRoomLink = room.Number;
+
+                                        foreach (Room roomCurent in roomsCurrentProject)
+                                        {
+                                            string nameRoomCurent = room.Name;
+                                            string namberRoomRoourent = room.Number;
+
+                                            if (namberRoomLink == namberRoomRoourent && nameRoomLink== nameRoomCurent)
+                                            {
+                                                i++;
+                                            }
+
+                                            else
+                                            {
+                                                j++;
+                                            }
+
+                                        }
+
+                                    }
+
+
+                                }
+
+                                else { break; }
+
+
+
+
+                            }
 
                         }
                     }
+                    catch
+                    {
+
+                    }
                 }
+
+                TaskDialog.Show("Revit", $"Колличество помещений в текущей {roomsCurrentProject.Count}");
+                TaskDialog.Show("Revit", $"Колличество помещений в текущей {roomsLinkedProject.Count}");
+
+                TaskDialog.Show("Revit", $"Совпадающие {i} имена и номера");
+                TaskDialog.Show("Revit", $"Не совпадающие {j} имена и номера");
 
                 try
                 {
-                    // del rooms
-
-                    int k = 0;
-
-                    foreach(var rooms in roomsLinked)
-                    {
-                       //doc.Create
-                    }
+                   
 
                     t.Commit();
                     return Result.Succeeded;
