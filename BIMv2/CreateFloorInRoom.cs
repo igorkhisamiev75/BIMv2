@@ -295,6 +295,8 @@ namespace BIMv2
             CurveArray roomsCurves = new CurveArray();
             Room r1 = (Room)elem;
 
+            level = r1.Level;
+
             SpatialElementBoundaryOptions bo = new SpatialElementBoundaryOptions();
             IList<IList<BoundarySegment>> segments2 = r1.GetBoundarySegments(bo);
             
@@ -304,28 +306,34 @@ namespace BIMv2
                 {
                     IList<BoundarySegment> segmentList = segments2[0];
 
-
                     foreach (BoundarySegment boundarySegment in segmentList)
                     {
                         Curve c = boundarySegment.GetCurve();
                         temp.Append(c);
                     }
-                    SortCurves(temp);
+
+                SortCurves(temp);
+
+                //TaskDialog.Show("У тебя получилось", $"{temp.Size} Пол создан ☺☺☺");
 
                 CurveLoop profile = new CurveLoop();
 
-                foreach (var g in temp)
+                foreach (Curve g in temp)
                 {
-                    profile.Append(g);
+                    //CurveLoop curves = 
+                    profile.Append((Line)g);
                 }
+
+
+
 
 
 #if R2019 || R2020 || R2021 || R2022
 
                 _ = _doc.Create.NewFloor(temp, floorType, r1.Level, false);
 #else
-
-                var nf = Floor.Create(_doc, new List<CurveLoop> { profile }, floorType.Id, level.Id);
+                //TaskDialog.Show("У тебя получилось", $"{profile.Count()} Пол создан ☺☺☺");
+                Floor nf = Floor.Create(_doc, new List<CurveLoop> { profile }, floorType.Id, level.Id);
 #endif
 
 

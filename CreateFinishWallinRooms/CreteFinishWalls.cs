@@ -9,6 +9,7 @@ using Application = Autodesk.Revit.ApplicationServices.Application;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI.Selection;
 using System.Diagnostics;
+using Floor = Autodesk.Revit.DB.Floor;
 
 
 namespace CreateFinishWallinRooms
@@ -28,7 +29,7 @@ namespace CreateFinishWallinRooms
         private Application _app;
         private Document _doc;
         public Floor createdFloor;
-        
+        private Level level;
         public ICollection<Element> roomsCollection = new List<Element>();
 
         public List<Level> levelCollection2 = new List<Level>();
@@ -45,7 +46,7 @@ namespace CreateFinishWallinRooms
 
         public int roomBoardingWall; //для границы помещений
         Level selectedLevelInForms; //выбор уровня
-        double wallHeight=0;
+        double wallHeight = 0;
 
         // Properties
         /// <summary>
@@ -58,7 +59,18 @@ namespace CreateFinishWallinRooms
                 return m_wallTypeCollection;
             }
         }
-
+        // the Level on which the floors are to be placed
+        public Level Level
+        {
+            get
+            {
+                return level;
+            }
+            set
+            {
+                level = value;
+            }
+        }
         // Properties
         /// <summary>
         /// Inform all the floor types can be created in current document
@@ -72,8 +84,7 @@ namespace CreateFinishWallinRooms
         }
 
         // an array of planar lines and arcs that represent the horizontal profile of the floor
-        
-       
+
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
 
@@ -106,17 +117,17 @@ namespace CreateFinishWallinRooms
 
 
             roomsCollection = GetAllRooms(_doc);
-           
+
             foreach (var rooms in roomsCollection)
             {
                 roomsCollection2.Add((Room)rooms);
             }
 
             //удаление дубликатов, групирруем по имени помещения
-            List<Room> roomGroup = roomsCollection2.GroupBy(x => 
+            List<Room> roomGroup = roomsCollection2.GroupBy(x =>
             x.get_Parameter(BuiltInParameter.ROOM_NAME).AsString()).Select(x => x.First()).ToList();
 
-            foreach(Room room in roomGroup)
+            foreach (Room room in roomGroup)
             {
                 roomsNameInProject.Add(room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString());
             }
@@ -131,10 +142,15 @@ namespace CreateFinishWallinRooms
             if (vpViewWpf.heighWallUser != "")
             {
                 wallHeight = Convert.ToDouble(vpViewWpf.heighWallUser);
+#if R2019 || R2020 || R2021 || R2022
                 wallHeight = UnitUtils.Convert(wallHeight, DisplayUnitType.DUT_MILLIMETERS, DisplayUnitType.DUT_DECIMAL_FEET);
+#else
+                wallHeight = UnitUtils.ConvertFromInternalUnits(wallHeight, UnitTypeId.Millimeters);
+
+#endif
                 //TaskDialog.Show("2bim.ru", $"Высота стен {wallHeight.ToString()}");
             }
-            
+
 
             //room boarding cheack box
 
@@ -159,9 +175,9 @@ namespace CreateFinishWallinRooms
             //{
             //    TaskDialog.Show("2bim.ru", $"Level name selected {selectedLevelInForms.Name}");
             //}
-            
 
-            List<Room> checkRooms=new List<Room>();
+
+            List<Room> checkRooms = new List<Room>();
 
             foreach (Room room in roomsCollection2)
             {
@@ -182,7 +198,7 @@ namespace CreateFinishWallinRooms
 
             using (Transaction t = new Transaction(_doc))
             {
-                
+
 
                 t.Start("Create a finish");
 
@@ -218,7 +234,7 @@ namespace CreateFinishWallinRooms
                 {
                     foreach (Room room in checkRooms)
                     {
-                        
+
                         try
                         {
                             Element element = room;
@@ -245,11 +261,11 @@ namespace CreateFinishWallinRooms
                     //TaskDialog.Show("2bim.ru", "Выбери помещение на плане");
 
                     Element elem = SelectedElement(_doc); //select room
-                    
+
                     try
                     {
                         CreateFloorInRooms(elem, selectedFloorType);
-                       
+
                         TaskDialog.Show("2bim.ru", "Полы созданы ☺☺☺");
 
                     }
@@ -257,7 +273,7 @@ namespace CreateFinishWallinRooms
                     catch (Exception ex)
                     {
                         TaskDialog.Show("2bim.ru", $"{ex} ");
-                        
+
                     }
 
                     t.Commit(options);
@@ -265,7 +281,7 @@ namespace CreateFinishWallinRooms
 
                     try
                     {
-                        
+
                         t.Start();
                         CreateFloorOpenings(elem);
 
@@ -278,7 +294,7 @@ namespace CreateFinishWallinRooms
 
                     }
 
-                   
+
 
 
                 }
@@ -300,7 +316,7 @@ namespace CreateFinishWallinRooms
 
                         }
 
-                            catch (Exception ex)
+                        catch (Exception ex)
                         {
                             TaskDialog.Show("2bim.ru", $"{ex} ");
                         }
@@ -321,7 +337,7 @@ namespace CreateFinishWallinRooms
 
                         }
 
-                        
+
 
                         catch (Exception ex)
                         {
@@ -330,7 +346,7 @@ namespace CreateFinishWallinRooms
                         }
 
                     }
-         
+
                 }
 
             }
@@ -342,7 +358,7 @@ namespace CreateFinishWallinRooms
         {
             //CurveArray roomsCurves = new CurveArray();
             var r1 = (Room)elem;
-           
+
             SpatialElementBoundaryOptions bo = new SpatialElementBoundaryOptions();
             IList<IList<BoundarySegment>> segments2 = r1.GetBoundarySegments(bo);
 
@@ -363,7 +379,7 @@ namespace CreateFinishWallinRooms
 
                     //Opening opening = _doc.Create.NewOpening(createdFloor, temp2, true); //create opening
 
-                   _doc.Create.NewOpening(createdFloor, temp2, true); //create opening
+                    _doc.Create.NewOpening(createdFloor, temp2, true); //create opening
 
                     //_doc.Regenerate();
                 }
@@ -378,16 +394,18 @@ namespace CreateFinishWallinRooms
         {
 
 
-            FloorType floorType2 = GetFloorTypeInProject(_doc);
+            //FloorType floorType2 = GetFloorTypeInProject(_doc);
 
             //TaskDialog.Show("У тебя получилось", $"{floorType.GetType()} Пол создан ☺☺☺");
-            Floor floor; 
+            Floor floor;
 
-            IList<Element> rooms;
+            //IList<Element> rooms;
 
 
             CurveArray roomsCurves = new CurveArray();
             Room r1 = (Room)elem;
+
+            level = r1.Level;
 
             string ADSK_Primechanie = "a85b7661-26b0-412f-979c-66af80b4b2c3";
             string numberRoom = r1.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();
@@ -409,14 +427,28 @@ namespace CreateFinishWallinRooms
                     Curve c = boundarySegment.GetCurve();
                     temp.Append(c);
                 }
-                var newSortCurve=SortCurves(temp);
-                floor = _doc.Create.NewFloor(newSortCurve, floorType3, r1.Level, false);
+                var newSortCurve = SortCurves(temp);
 
+                CurveLoop profile = new CurveLoop();
+
+                foreach (var g in temp)
+                {
+                    profile.Append((Line)g);
+                }
+
+#if R2019 || R2020 || R2021 || R2022
+                floor = _doc.Create.NewFloor(newSortCurve, floorType3, r1.Level, false);
+                floor.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
+                floor.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
+#else
+
+                floor = Floor.Create(_doc, new List<CurveLoop> { profile }, floorType3.Id, level.Id);
+#endif
                 //set room name and number
                 floor.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
                 floor.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
 
-                createdFloor =floor;
+                createdFloor = floor;
                 _doc.Regenerate();
 
             }
@@ -434,7 +466,7 @@ namespace CreateFinishWallinRooms
             //Profile = creApp.NewCurveArray();
 
             var ggg = _doc.Application.Create.NewCurveArray();
-            
+
 
             CurveArray profNew = _doc.Application.Create.NewCurveArray();
 
@@ -525,17 +557,17 @@ namespace CreateFinishWallinRooms
             var elementIdWall = wallType.get_Parameter(BuiltInParameter.ALL_MODEL_TYPE_NAME).Element.Id;
 
             CurveArray roomsCurves = new CurveArray();
-                       
+
             Room room = (Room)elem;
 
             ElementId levelId = room.LevelId;
-            double heightRoom= room.get_Parameter(BuiltInParameter.ROOM_HEIGHT).AsDouble(); 
+            double heightRoom = room.get_Parameter(BuiltInParameter.ROOM_HEIGHT).AsDouble();
 
             if (wallHeight != 0)
             {
                 heightRoom = wallHeight;
             }
-                     
+
             if (heightRoom < 0)
             {
                 heightRoom = 1;
@@ -562,7 +594,7 @@ namespace CreateFinishWallinRooms
 
                     foreach (BoundarySegment boundarySegment in segmentList)
                     {
-                        Curve c = boundarySegment.GetCurve();                     
+                        Curve c = boundarySegment.GetCurve();
                         roomsCurves.Append(c);
                     }
                 }
@@ -668,7 +700,7 @@ namespace CreateFinishWallinRooms
             }
 
             _doc.Regenerate();
-            
+
 
 
         }
@@ -715,7 +747,7 @@ namespace CreateFinishWallinRooms
 
         }
 
-        
+
         //get all rooms
         public IList<Element> GetAllRooms(Document doc)
         {
