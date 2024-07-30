@@ -140,9 +140,16 @@ namespace CreateFinishWallinRooms
             vpViewWpf.WindowStartupLocation = WindowStartupLocation.CenterScreen;
             vpViewWpf.ShowDialog();
 
+            
+            //смещение от уровня
             wallOffset = Convert.ToDouble(vpViewWpf.ofsetWallS);
 
-            wallOffset = UnitUtils.ConvertFromInternalUnits(wallOffset, UnitTypeId.Millimeters);
+            //TaskDialog.Show("1Смещение от уровня", $"{vpViewWpf.ofsetWallS}");
+            //TaskDialog.Show("2Смещение от уровня", $"{wallOffset}");
+
+            wallOffset = UnitUtils.Convert(wallOffset, DisplayUnitType.DUT_MILLIMETERS, DisplayUnitType.DUT_DECIMAL_FEET);
+
+            //TaskDialog.Show("3Смещение от уровня", $"{wallOffset}");
 
             if (vpViewWpf.heighWallUser != "")
             {
@@ -199,8 +206,6 @@ namespace CreateFinishWallinRooms
 
             //whats button
             string whatsButton = vpViewWpf.whatsButton;
-
-
 
             bool rb = vpViewWpf.roomBoording;
 
@@ -571,6 +576,7 @@ namespace CreateFinishWallinRooms
             ElementId levelId = room.LevelId;
             double heightRoom = room.get_Parameter(BuiltInParameter.ROOM_HEIGHT).AsDouble();
 
+            double offsetWallInRoom = wallOffset;
 
 
             if (wallHeight != 0)
@@ -631,7 +637,7 @@ namespace CreateFinishWallinRooms
                     wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(heightRoom);
 
                     //set offset
-                    wall.get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(wallOffset);
+                    wall.get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(offsetWallInRoom);
 
                     //set type 
                     wall.get_Parameter(BuiltInParameter.ELEM_FAMILY_AND_TYPE_PARAM).Set(elementIdWall);
@@ -659,7 +665,11 @@ namespace CreateFinishWallinRooms
                     wall.get_Parameter(BuiltInParameter.WALL_ATTR_ROOM_BOUNDING).Set(_roomBoardingWall);
                     //wall.get_Parameter(BuiltInParameter.ELEM_TYPE_PARAM).Set(wallTypeId);
                     wall.get_Parameter(BuiltInParameter.ELEM_FAMILY_AND_TYPE_PARAM).Set(elementIdWall);
+
                     wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(heightRoom);
+                    //set offset
+                    wall.get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(offsetWallInRoom);
+
                     wall.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
                     wall.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
 
