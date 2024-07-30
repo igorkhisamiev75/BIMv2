@@ -233,6 +233,7 @@
     <Compile Include="GroupingLighting.cs" />
     <Compile Include="GroupWallsBeams.cs" />
     <Compile Include="JoinWalls.cs" />
+    <Compile Include="MakingHolesForDoorsLink.cs" />
     <Compile Include="MakingHolesForFacadeWindows.cs" />
     <Compile Include="MakingHolesForFacadeWindowsDoors.cs" />
     <Compile Include="MakingHolesForWindows.cs" />

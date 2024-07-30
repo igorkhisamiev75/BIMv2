@@ -47,6 +47,7 @@ namespace CreateFinishWallinRooms
         public int roomBoardingWall; //для границы помещений
         Level selectedLevelInForms; //выбор уровня
         double wallHeight = 0;
+        double wallOffset = 0;
 
         // Properties
         /// <summary>
@@ -139,9 +140,14 @@ namespace CreateFinishWallinRooms
             vpViewWpf.WindowStartupLocation = WindowStartupLocation.CenterScreen;
             vpViewWpf.ShowDialog();
 
+            wallOffset = Convert.ToDouble(vpViewWpf.ofsetWallS);
+
+            wallOffset = UnitUtils.ConvertFromInternalUnits(wallOffset, UnitTypeId.Millimeters);
+
             if (vpViewWpf.heighWallUser != "")
             {
                 wallHeight = Convert.ToDouble(vpViewWpf.heighWallUser);
+               
 #if R2019 || R2020 || R2021 || R2022
                 wallHeight = UnitUtils.Convert(wallHeight, DisplayUnitType.DUT_MILLIMETERS, DisplayUnitType.DUT_DECIMAL_FEET);
 #else
@@ -193,6 +199,8 @@ namespace CreateFinishWallinRooms
 
             //whats button
             string whatsButton = vpViewWpf.whatsButton;
+
+
 
             bool rb = vpViewWpf.roomBoording;
 
@@ -563,6 +571,8 @@ namespace CreateFinishWallinRooms
             ElementId levelId = room.LevelId;
             double heightRoom = room.get_Parameter(BuiltInParameter.ROOM_HEIGHT).AsDouble();
 
+
+
             if (wallHeight != 0)
             {
                 heightRoom = wallHeight;
@@ -619,6 +629,9 @@ namespace CreateFinishWallinRooms
 
                     //set height
                     wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(heightRoom);
+
+                    //set offset
+                    wall.get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(wallOffset);
 
                     //set type 
                     wall.get_Parameter(BuiltInParameter.ELEM_FAMILY_AND_TYPE_PARAM).Set(elementIdWall);

@@ -23,6 +23,8 @@ namespace CreateFinishWallinRooms
 
         public string heighWallUser;
 
+        public string ofsetWallS;
+
         public ViewWPF(List<String> rooms, IList<WallType> typeWallCollection, List<Level> levels, IList<FloorType> typeFloorCollection)
         {
             InitializeComponent();
@@ -50,6 +52,7 @@ namespace CreateFinishWallinRooms
             selectedLevel = ComboBoxLevel.SelectedItem as Level;
             typeWallCollectionSelected = ComboBox.SelectedValue as WallType;
             heighWallUser= heightWallNotRooms.Text;
+            ofsetWallS = ofsetWall.Text;
             //typeWallCollectionSelected = ComboBox.SelectedValue as WallType;
             //MessageBox.Show("Выбрано " + typeWallCollectionSelected.ToString());
 
@@ -66,6 +69,7 @@ namespace CreateFinishWallinRooms
             selectedLevel = ComboBoxLevel.SelectedItem as Level;
             typeWallCollectionSelected = ComboBox.SelectedValue as WallType;
             heighWallUser = heightWallNotRooms.Text;
+            ofsetWallS = ofsetWall.Text;
 
             whatsButton = "отделкаВыборомПомещения";
 
@@ -83,7 +87,11 @@ namespace CreateFinishWallinRooms
 
         private void finishAll_Click(object sender, RoutedEventArgs e)
         {
+            //высота стен
             heighWallUser = heightWallNotRooms.Text;
+            //смещение
+            ofsetWallS = ofsetWall.Text;
+
             selectedLevel =ComboBoxLevel.SelectedItem as Level;
 
             typeWallCollectionSelected = ComboBox.SelectedValue as WallType;
@@ -131,6 +139,7 @@ namespace CreateFinishWallinRooms
         private void floorAll_Click(object sender, RoutedEventArgs e)
         {
             heighWallUser = heightWallNotRooms.Text;
+            ofsetWallS = ofsetWall.Text;
             selectedLevel = ComboBoxLevel.SelectedItem as Level;
 
             
