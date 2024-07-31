@@ -1,12 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Autodesk.Revit.DB;
-using System.Collections.Generic;
 using System.Windows;
-using Autodesk.Revit.DB.Architecture;
 using System.Windows.Controls;
 
 namespace BIMv2Buttons.CreateFinishWallinRooms
@@ -28,6 +23,8 @@ namespace BIMv2Buttons.CreateFinishWallinRooms
         public Level selectedLevel;
 
         public string heighWallUser;
+
+        public string ofsetWallS;
 
         public ViewWPF(List<String> rooms, IList<WallType> typeWallCollection, List<Level> levels, IList<FloorType> typeFloorCollection)
         {
@@ -56,6 +53,7 @@ namespace BIMv2Buttons.CreateFinishWallinRooms
             selectedLevel = ComboBoxLevel.SelectedItem as Level;
             typeWallCollectionSelected = ComboBox.SelectedValue as WallType;
             heighWallUser = heightWallNotRooms.Text;
+            ofsetWallS = ofsetWall.Text;
             //typeWallCollectionSelected = ComboBox.SelectedValue as WallType;
             //MessageBox.Show("Выбрано " + typeWallCollectionSelected.ToString());
 
@@ -72,6 +70,7 @@ namespace BIMv2Buttons.CreateFinishWallinRooms
             selectedLevel = ComboBoxLevel.SelectedItem as Level;
             typeWallCollectionSelected = ComboBox.SelectedValue as WallType;
             heighWallUser = heightWallNotRooms.Text;
+            ofsetWallS = ofsetWall.Text;
 
             whatsButton = "отделкаВыборомПомещения";
 
@@ -89,7 +88,11 @@ namespace BIMv2Buttons.CreateFinishWallinRooms
 
         private void finishAll_Click(object sender, RoutedEventArgs e)
         {
+            //высота стен
             heighWallUser = heightWallNotRooms.Text;
+            //смещение
+            ofsetWallS = ofsetWall.Text;
+
             selectedLevel = ComboBoxLevel.SelectedItem as Level;
 
             typeWallCollectionSelected = ComboBox.SelectedValue as WallType;
@@ -137,6 +140,7 @@ namespace BIMv2Buttons.CreateFinishWallinRooms
         private void floorAll_Click(object sender, RoutedEventArgs e)
         {
             heighWallUser = heightWallNotRooms.Text;
+            ofsetWallS = ofsetWall.Text;
             selectedLevel = ComboBoxLevel.SelectedItem as Level;
 
 

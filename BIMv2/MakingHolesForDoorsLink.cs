@@ -356,18 +356,6 @@ namespace BIMv2
 
                         }
 
-
-
-
-
-
-
-
-
-
-
-
-
                         //все отверстия
                         IList<Element> listOpeningsNew2 = new List<Element>();
 

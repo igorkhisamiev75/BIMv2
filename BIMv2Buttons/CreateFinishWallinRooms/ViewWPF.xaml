@@ -190,6 +190,16 @@
             Width="221"
             FontSize="12" 
             FontWeight="Bold"/>
+        <Label 
+            Grid.Column="0"
+            Grid.Row="4"
+            VerticalAlignment="Top" 
+            Margin="10,10,10,10"
+            Content="Задать смещение отделки, в мм" 
+            HorizontalAlignment="Left"          
+            Width="221"
+            FontSize="12" 
+            FontWeight="Bold"/>
         <TextBox
                 Grid.Column="0"
                 Grid.Row="3"
@@ -201,7 +211,21 @@
                 Height="22"
                 FontSize="12" 
                 Text="" 
-                Margin="203,10,10,15"/>
+                Margin="203,10,10,15"
+         />
+        <TextBox
+                Grid.Column="0"
+                Grid.Row="4"
+                Name="ofsetWall"
+                VerticalAlignment="Top"
+                TextWrapping="Wrap"
+                HorizontalAlignment="Left"
+                Width="100"
+                Height="22"
+                FontSize="12" 
+                Text="0" 
+                Margin="230,10,3,0"
+         />
 
         <CheckBox x:Name="chekRoomBoarding"
                   IsChecked="False"
@@ -252,7 +276,7 @@
                FontWeight="Bold"/>
         <Label Content="Полы/Перекрытия" 
                HorizontalAlignment="Left" 
-               Margin="10,0,0,0" 
+               Margin="5,0,0,0" 
                Grid.Row="1"
                Grid.Column="1"
                VerticalAlignment="Top"

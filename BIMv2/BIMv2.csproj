@@ -101,6 +101,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
     <Reference Include="RevitAPI, Version=21.0.0.0, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2021\RevitAPI.dll</HintPath>
@@ -121,12 +122,14 @@
     <Reference Include="System.Security" />
     <Reference Include="System.Threading.Tasks" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <Choose>
     <When Condition=" '$(Configuration)'=='R2019' ">
@@ -194,6 +197,10 @@
     <Compile Include="BeamsFinish.cs" />
     <Compile Include="BIMStandart.cs" />
     <Compile Include="ChangeTypeParametersByExcel.cs" />
+    <Compile Include="CheckRooms\CheckRooms.cs" />
+    <Compile Include="CheckRooms\CheckRoomsSelectLink.xaml.cs">
+      <DependentUpon>CheckRoomsSelectLink.xaml</DependentUpon>
+    </Compile>
     <Compile Include="CollisionsWithWall.cs" />
     <Compile Include="CopyRoomsFromLink.cs" />
     <Compile Include="Create3DViewFromSpace.cs" />
@@ -204,6 +211,7 @@
     <Compile Include="CreateFloorInRoom.cs" />
     <Compile Include="CreateNewTypeAnnotation.cs" />
     <Compile Include="CreateNotPlacedRooms.cs" />
+    <Compile Include="CreateOpeningsInWallForStructuralFraming.cs" />
     <Compile Include="CreateRailingInRooms.cs" />
     <Compile Include="CreateRailingsInAllRooms.cs" />
     <Compile Include="CreateRoomNumber.cs" />
@@ -283,6 +291,11 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Page Include="CheckRooms\CheckRoomsSelectLink.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

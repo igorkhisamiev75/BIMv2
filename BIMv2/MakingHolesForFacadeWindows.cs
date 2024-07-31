@@ -42,7 +42,7 @@ namespace BIMv2
                 //семйество для вставки
 
                 //FamilySymbol symbol = GetSymbol(_doc, "2bimRU_SC", "2bimRU_SC");
-                FamilySymbol symbol2 = GetSymbol(_doc, "Окно_Проем", "Оконный проем");
+                FamilySymbol symbol2 = GetSymbol(_doc, "ADSK_Окно_ПроемПрямоугольный", "ADSK_Окно_ПроемПрямоугольный");
 
                 //получить связанную модель FCD
 
@@ -64,14 +64,14 @@ namespace BIMv2
 
                             foreach (Element element in listWindows)
                             {
-                                if (element.Name == "Оконный проем" )
+                                if (element.Name == "Окно-Проем_прямоугольный" )
                                 {
                                     listWindowsOnlyWindows.Add(element);
                                 }
 
                             }
 
-                            TaskDialog.Show("Complite!", $"Всего окон: {listWindowsOnlyWindows.Count}");
+                            TaskDialog.Show("Complite!", $"11 Всего окон: {listWindowsOnlyWindows.Count}");
 
                             //собрать отверстия если они есть и получить марку
 

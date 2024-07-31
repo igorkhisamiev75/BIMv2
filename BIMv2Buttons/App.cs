@@ -30,6 +30,11 @@ namespace BIMv2Buttons
                 ("cmdGWriteNameRoomInFurniture.cs", "Записать информацию в мебель", thisAssemblyPath, "BIMv2.WriteNameRoomInFurniture");
             pushButtonDataAI1.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-furniture-32.png"));
 
+            // #2 
+            PushButtonData pushButtonDataAI2s = new PushButtonData
+                ("cmdWriteNameRoomInPlumbingFixtures.cs", "Записать информацию в сантехнику", thisAssemblyPath, "BIMv2.WriteNameRoomInPlumbingFixtures2");
+            pushButtonDataAI2s.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-dush-32.png"));
+
             //// #2 
             //PushButtonData pushButtonData2 = new PushButtonData("cmdGroupTypeCeilingByNote.cs", "Сгруппировать потолки", thisAssemblyPath, "BIMv2Buttons.GroupTypeCeilingByNote");
             //pushButtonData2.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-ceiling-32.png"));
@@ -46,13 +51,14 @@ namespace BIMv2Buttons
             //PushButtonData pushButtonData5 = new PushButtonData("cmdGroupingLighting.cs", "Сгруппировать светильники", thisAssemblyPath, "BIMv2.GroupingLighting");
             //pushButtonData5.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/countLampInRoom.png"));
 
-           
+
 
             // Make a split button now 
             SplitButtonData splitBtnDataAI = new SplitButtonData("SplitButton", "Split Button");
             SplitButton splitBtnAI = ribbonPanelbAI1.AddItem(splitBtnDataAI) as SplitButton;
 
             splitBtnAI.AddPushButton(pushButtonDataAI1);
+            splitBtnAI.AddPushButton(pushButtonDataAI2s);
             //splitBtn.AddPushButton(pushButtonData2);
             //splitBtn.AddPushButton(pushButtonData3);
             //splitBtn.AddPushButton(pushButtonData4);

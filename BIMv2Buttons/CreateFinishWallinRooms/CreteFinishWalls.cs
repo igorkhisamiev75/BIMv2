@@ -10,7 +10,6 @@ using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI.Selection;
 using BIMv2Buttons.CreateFinishWallinRooms;
 using System.Diagnostics;
-//using Aspose.Cells.Charts;
 using Floor = Autodesk.Revit.DB.Floor;
 
 
@@ -24,8 +23,8 @@ namespace BIMv2
         // Private Members
         IList<WallType> m_wallTypeCollection;         // Store all the wall types in current document
         IList<FloorType> m_FloorTypeCollection;
-        public const double PRECISION = 0.00000001;
-        public CurveArray profile;
+        private const double PRECISION = 0.00000001;
+        private CurveArray profile;
         public Autodesk.Revit.Creation.Application creApp;
         public FloorType floorType;
         private Application _app;
@@ -49,6 +48,7 @@ namespace BIMv2
         public int roomBoardingWall; //для границы помещений
         Level selectedLevelInForms; //выбор уровня
         double wallHeight = 0;
+        double wallOffset = 0;
 
         // Properties
         /// <summary>
@@ -61,7 +61,6 @@ namespace BIMv2
                 return m_wallTypeCollection;
             }
         }
-
         // the Level on which the floors are to be placed
         public Level Level
         {
@@ -74,7 +73,6 @@ namespace BIMv2
                 level = value;
             }
         }
-
         // Properties
         /// <summary>
         /// Inform all the floor types can be created in current document
@@ -89,8 +87,6 @@ namespace BIMv2
 
         // an array of planar lines and arcs that represent the horizontal profile of the floor
 
-
-        [Obsolete]
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
 
@@ -144,6 +140,17 @@ namespace BIMv2
             //show form
             vpViewWpf.WindowStartupLocation = WindowStartupLocation.CenterScreen;
             vpViewWpf.ShowDialog();
+
+
+            //смещение от уровня
+            wallOffset = Convert.ToDouble(vpViewWpf.ofsetWallS);
+
+            //TaskDialog.Show("1Смещение от уровня", $"{vpViewWpf.ofsetWallS}");
+            //TaskDialog.Show("2Смещение от уровня", $"{wallOffset}");
+
+            wallOffset = UnitUtils.Convert(wallOffset, DisplayUnitType.DUT_MILLIMETERS, DisplayUnitType.DUT_DECIMAL_FEET);
+
+            //TaskDialog.Show("3Смещение от уровня", $"{wallOffset}");
 
             if (vpViewWpf.heighWallUser != "")
             {
@@ -411,6 +418,7 @@ namespace BIMv2
 
             CurveArray roomsCurves = new CurveArray();
             Room r1 = (Room)elem;
+
             level = r1.Level;
 
             string ADSK_Primechanie = "a85b7661-26b0-412f-979c-66af80b4b2c3";
@@ -436,7 +444,7 @@ namespace BIMv2
                 var newSortCurve = SortCurves(temp);
 
                 CurveLoop profile = new CurveLoop();
-                
+
                 foreach (var g in temp)
                 {
                     profile.Append((Line)g);
@@ -569,6 +577,9 @@ namespace BIMv2
             ElementId levelId = room.LevelId;
             double heightRoom = room.get_Parameter(BuiltInParameter.ROOM_HEIGHT).AsDouble();
 
+            double offsetWallInRoom = wallOffset;
+
+
             if (wallHeight != 0)
             {
                 heightRoom = wallHeight;
@@ -626,6 +637,9 @@ namespace BIMv2
                     //set height
                     wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(heightRoom);
 
+                    //set offset
+                    wall.get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(offsetWallInRoom);
+
                     //set type 
                     wall.get_Parameter(BuiltInParameter.ELEM_FAMILY_AND_TYPE_PARAM).Set(elementIdWall);
 
@@ -652,7 +666,11 @@ namespace BIMv2
                     wall.get_Parameter(BuiltInParameter.WALL_ATTR_ROOM_BOUNDING).Set(_roomBoardingWall);
                     //wall.get_Parameter(BuiltInParameter.ELEM_TYPE_PARAM).Set(wallTypeId);
                     wall.get_Parameter(BuiltInParameter.ELEM_FAMILY_AND_TYPE_PARAM).Set(elementIdWall);
+
                     wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(heightRoom);
+                    //set offset
+                    wall.get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(offsetWallInRoom);
+
                     wall.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
                     wall.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
 
