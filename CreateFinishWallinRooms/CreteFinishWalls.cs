@@ -9,7 +9,7 @@ using Application = Autodesk.Revit.ApplicationServices.Application;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI.Selection;
 using System.Diagnostics;
-using Floor = Autodesk.Revit.DB.Floor;
+//using Floor = Autodesk.Revit.DB.Floor;
 
 
 namespace CreateFinishWallinRooms
@@ -455,13 +455,13 @@ namespace CreateFinishWallinRooms
                 floor.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
 #else
 
-                floor = Floor.Create(_doc, new List<CurveLoop> { profile }, floorType3.Id, level.Id);
+                //floor = Floor.Create(_doc, new List<CurveLoop> { profile }, floorType3.Id, level.Id);
 #endif
                 //set room name and number
-                floor.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
-                floor.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
+                //floor.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
+                //floor.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
 
-                createdFloor = floor;
+               // createdFloor = floor;
                 _doc.Regenerate();
 
             }

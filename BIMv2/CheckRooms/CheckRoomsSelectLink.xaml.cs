@@ -1,19 +1,7 @@
 ﻿using Autodesk.Revit.DB;
-
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+
 
 namespace BIMv2.CheckRooms
 {
@@ -23,13 +11,17 @@ namespace BIMv2.CheckRooms
     public partial class CheckRoomsSelectLink : Window
     {
         public RevitLinkInstance LinkInstance;
-        public CheckRoomsSelectLink(IEnumerable<RevitLinkInstance> linkedInstances)
+        public CheckRoomsSelectLink(IEnumerable<RevitLinkInstance> linkedInstances, IList<Element> roomsCurrentProject)
         {
             InitializeComponent();
 
             cbNameLinks.ItemsSource = linkedInstances;
             cbNameLinks.DisplayMemberPath= "Name";
             cbNameLinks.SelectedIndex = 0;
+
+            int currentRoom=roomsCurrentProject.Count;
+
+            tbRoomsinCurrent.Text = currentRoom.ToString();
 
         }
 

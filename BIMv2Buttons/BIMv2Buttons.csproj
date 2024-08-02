@@ -405,5 +405,12 @@
   <ItemGroup>
     <Resource Include="Resources\icons8-dush-32.png" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BIMv2\BIMv2.csproj">
+      <Project>{0c582abc-c961-4e2d-8298-f1bcdec21eb5}</Project>
+      <Name>BIMv2</Name>
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

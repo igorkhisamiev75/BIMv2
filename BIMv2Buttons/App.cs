@@ -2,6 +2,8 @@
 using System.Reflection;
 using Autodesk.Revit.UI;
 using System.Windows.Media.Imaging;
+
+
 //using CreateFinishWallinRooms;
 
 namespace BIMv2Buttons
@@ -133,6 +135,19 @@ namespace BIMv2Buttons
 
             BitmapImage pbAI3Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-roomN-32.png"));
             pbAI3.LargeImage = pbAI3Image;
+
+            //попробуем создать еще одну кнопку
+            ribbonPanelbAI1.AddSeparator(); //разделитель между кнопками
+
+            // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData pbAI4Data = new PushButtonData("cmdCheckRooms.cs", "Проверить"
+                + Environment.NewLine + "помещения", thisAssemblyPath, "BIMv2.CheckRooms");
+
+            PushButton pbAI4 = ribbonPanelbAI1.AddItem(pbAI4Data) as PushButton;
+            pbAI4.ToolTip = "Прописывает по помещениях верны ли помещения с АР в общий параметр BIM_Error";
+
+            BitmapImage pbAI4Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8.png.png"));
+            pbAI4.LargeImage = pbAI4Image;
 
             //попробуем создать еще одну кнопку
             ribbonPanelbAI1.AddSeparator(); //разделитель между кнопками

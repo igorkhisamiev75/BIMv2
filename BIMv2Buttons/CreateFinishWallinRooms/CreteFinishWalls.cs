@@ -148,7 +148,13 @@ namespace BIMv2
             //TaskDialog.Show("1Смещение от уровня", $"{vpViewWpf.ofsetWallS}");
             //TaskDialog.Show("2Смещение от уровня", $"{wallOffset}");
 
+#if R2019 || R2020 || R2021 || R2022
+
             wallOffset = UnitUtils.Convert(wallOffset, DisplayUnitType.DUT_MILLIMETERS, DisplayUnitType.DUT_DECIMAL_FEET);
+#else
+            wallOffset = UnitUtils.ConvertFromInternalUnits(wallOffset, UnitTypeId.Millimeters);
+
+#endif
 
             //TaskDialog.Show("3Смещение от уровня", $"{wallOffset}");
 

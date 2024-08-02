@@ -46,7 +46,8 @@ namespace BIMv2
 
 
                             //собрать балки
-                            IList<Element> listStrFramings = GetAllStFraming(linkDocument);
+                            //IList<Element> listStrFramings = GetAllStFraming(linkDocument);
+                            IList<Element> listStrFramings = GetAllWall(linkDocument);
 
 
                             TaskDialog.Show("Complite!", $"Всего балок {listStrFramings.Count}");
