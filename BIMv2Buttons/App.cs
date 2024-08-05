@@ -141,12 +141,12 @@ namespace BIMv2Buttons
 
             // create push button for CurveTotalLength  //namespace и класс
             PushButtonData pbAI4Data = new PushButtonData("cmdCheckRooms.cs", "Проверить"
-                + Environment.NewLine + "помещения", thisAssemblyPath, "BIMv2.CheckRooms");
+                + Environment.NewLine + "помещения", thisAssemblyPath, "BIMv2.CheckRooms2");
 
             PushButton pbAI4 = ribbonPanelbAI1.AddItem(pbAI4Data) as PushButton;
-            pbAI4.ToolTip = "Прописывает по помещениях верны ли помещения с АР в общий параметр BIM_Error";
+            pbAI4.ToolTip = "Прописывает в помещениях верны ли помещения с АР в общий параметр BIM_Error";
 
-            BitmapImage pbAI4Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8.png.png"));
+            BitmapImage pbAI4Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8.png"));
             pbAI4.LargeImage = pbAI4Image;
 
             //попробуем создать еще одну кнопку

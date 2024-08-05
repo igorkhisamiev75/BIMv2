@@ -176,6 +176,10 @@
   <ItemGroup>
     <Compile Include="App.cs" />
     <Compile Include="BIMStandart\BIMStandart.cs" />
+    <Compile Include="CheckRooms\CheckRooms.cs" />
+    <Compile Include="CheckRooms\CheckRoomsSelectLink.xaml.cs">
+      <DependentUpon>CheckRoomsSelectLink.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ClearProjectBrowser\ClearProjectBrowser.cs" />
     <Compile Include="CollisionsWithWall\CollisionsWithWall.cs" />
     <Compile Include="ConvertGrids3Dto2D\ConvertGrids3Dto2D.cs" />
@@ -285,6 +289,10 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <Page Include="CheckRooms\CheckRoomsSelectLink.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="CreateFinishWallinRooms\ViewWPF.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -412,5 +420,6 @@
       <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

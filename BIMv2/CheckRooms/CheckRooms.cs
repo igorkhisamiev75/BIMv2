@@ -96,6 +96,12 @@ namespace BIMv2.CheckRooms
                                     
                                     roomCurent.get_Parameter(new Guid("6feb836e-de15-4412-817e-f147e44fe0ea")).Set("Верно");
 
+                                    if(squereRoomLink != squereRoomCurrent)
+                                    {
+                                        roomCurent.get_Parameter(new Guid("6feb836e-de15-4412-817e-f147e44fe0ea")).Set("Площадь");
+                                    }
+
+
                                     continue;
                                 }
                                 else
