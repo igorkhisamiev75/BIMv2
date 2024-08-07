@@ -183,6 +183,9 @@
     <Compile Include="ClearProjectBrowser\ClearProjectBrowser.cs" />
     <Compile Include="CollisionsWithWall\CollisionsWithWall.cs" />
     <Compile Include="ConvertGrids3Dto2D\ConvertGrids3Dto2D.cs" />
+    <Compile Include="CountFinishCeiling\CountFinishCeiling.cs" />
+    <Compile Include="CountFinishFloor\CountFinishFloor.cs" />
+    <Compile Include="CountFinishWall\CountFinishWall.cs" />
     <Compile Include="CreateAnyElementsInRooms\CreateAnyElementsInRooms.cs" />
     <Compile Include="CreateElementsInRooms\CreateElementsInRooms.cs" />
     <Compile Include="CreateElementsInRooms\ElementOnCeilingCreator.cs" />
@@ -226,8 +229,11 @@
     <Compile Include="DuplicateSheets\DuplicateSheets.cs" />
     <Compile Include="FindDoorsMirror\FindDoorsMirror.cs" />
     <Compile Include="FindDuctFiting\FindDuctFiting.cs" />
+    <Compile Include="FindNameRoomForCeiling\FindNameRoomForCeiling.cs" />
     <Compile Include="FindNameRoomForFinishElementsRoomsInLink\FindNameRoomForFinishElementsRoomsInLink.cs" />
+    <Compile Include="FindNameRoomForFloor\FindNameRoomForFloor.cs" />
     <Compile Include="FindNameRoomForLighting\FindNameRoomForLighting.cs" />
+    <Compile Include="FindNameRoomForWall\FindNameRoomForWall.cs" />
     <Compile Include="FinishingOnTheStairs\FinishingOnTheStairs.cs" />
     <Compile Include="GroupByMarkEqupmentFurnitureAndWriteToComment\GroupByMarkEqupmentFurnitureAndWriteToComment.cs" />
     <Compile Include="GroupingLighting\GroupingLighting.cs" />

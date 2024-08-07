@@ -77,21 +77,9 @@ namespace BIMv2
             {
                 try
                 {
-                    //var nameWall = wall.LookupParameter("ADSK_Примечание").AsString();
-
-                    //if (nameWall != "")
-                    //{
-                    //    continue;
-                    //}
-
-
-
                     LocationCurve wallLine = wall.Location as LocationCurve;
 
-
-
                     IList<XYZ> wallPoints = wallLine.Curve.Tessellate();
-
 
                     //Location loc = e.Location;
 

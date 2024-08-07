@@ -2,6 +2,7 @@
 using System.Reflection;
 using Autodesk.Revit.UI;
 using System.Windows.Media.Imaging;
+using BIMv2;
 
 
 //using CreateFinishWallinRooms;
@@ -37,22 +38,20 @@ namespace BIMv2Buttons
                 ("cmdWriteNameRoomInPlumbingFixtures.cs", "Записать информацию в сантехнику", thisAssemblyPath, "BIMv2.WriteNameRoomInPlumbingFixtures2");
             pushButtonDataAI2s.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-dush-32.png"));
 
-            //// #2 
-            //PushButtonData pushButtonData2 = new PushButtonData("cmdGroupTypeCeilingByNote.cs", "Сгруппировать потолки", thisAssemblyPath, "BIMv2Buttons.GroupTypeCeilingByNote");
-            //pushButtonData2.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-ceiling-32.png"));
+            // #3 
+            PushButtonData pushButtonDataAI3s = new PushButtonData
+                ("cmdFindNameRoomForFloor", "Записать информацию в полы", thisAssemblyPath, "BIMv2.FindNameRoomForFloor");
+            pushButtonDataAI3s.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-roomN-32.png"));
 
-            //// #3 
-            //PushButtonData pushButtonData3 = new PushButtonData("cmdGroupTypeWallsByNote.cs", "Сгруппировать стены", thisAssemblyPath, "BIMv2Buttons.GroupTypeWallsByNote");
-            //pushButtonData3.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-wall-32.png"));
+            // #4 
+            PushButtonData pushButtonDataAI4s = new PushButtonData
+                ("cmdFindNameRoomForWall", "Записать информацию в стены", thisAssemblyPath, "BIMv2.FindNameRoomForWall");
+            pushButtonDataAI4s.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-roomN-32.png"));
 
-            //// #4 
-            //PushButtonData pushButtonData4 = new PushButtonData("cmdGroupByMarkEqupmentFurnitureAndWriteToComment.cs", "Сгруппировать оборудование и мебель", thisAssemblyPath, "BIMv2.GroupByMarkEqupmentFurnitureAndWriteToComment");
-            //pushButtonData4.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-groupCoins-32.png"));
-
-            //// #5 
-            //PushButtonData pushButtonData5 = new PushButtonData("cmdGroupingLighting.cs", "Сгруппировать светильники", thisAssemblyPath, "BIMv2.GroupingLighting");
-            //pushButtonData5.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/countLampInRoom.png"));
-
+            // #5 
+            PushButtonData pushButtonDataAI5s = new PushButtonData
+                ("cmdFindNameRoomForCeiling", "Записать информацию в потолки", thisAssemblyPath, "BIMv2.FindNameRoomForCeiling");
+            pushButtonDataAI5s.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-roomN-32.png"));
 
 
             // Make a split button now 
@@ -61,10 +60,10 @@ namespace BIMv2Buttons
 
             splitBtnAI.AddPushButton(pushButtonDataAI1);
             splitBtnAI.AddPushButton(pushButtonDataAI2s);
-            //splitBtn.AddPushButton(pushButtonData2);
-            //splitBtn.AddPushButton(pushButtonData3);
-            //splitBtn.AddPushButton(pushButtonData4);
-            //splitBtn.AddPushButton(pushButtonData5);
+            splitBtnAI.AddPushButton(pushButtonDataAI3s);
+            splitBtnAI.AddPushButton(pushButtonDataAI4s);
+            splitBtnAI.AddPushButton(pushButtonDataAI5s);
+
 
             //попробуем создать еще одну кнопку
             ribbonPanelbAI1.AddSeparator(); //разделитель между кнопками
@@ -339,35 +338,18 @@ namespace BIMv2Buttons
             pb1.LargeImage = pb1Image;
             
 
-            //попробуем создать еще одну кнопку
-            ribbonPanel.AddSeparator(); //разделитель между кнопками
+            ////попробуем создать еще одну кнопку
+            //ribbonPanel.AddSeparator(); //разделитель между кнопками
 
-            // create push button for   //namespace и класс
-            PushButtonData b1lData = new PushButtonData("cmdFindNameRoomForLighting", "Помещения"
-                + Environment.NewLine + "в светильники", thisAssemblyPath, "BIMv2.FindNameRoomForLighting");
+            //// create push button for   //namespace и класс
+            //PushButtonData b1lData = new PushButtonData("cmdFindNameRoomForLighting", "Помещения"
+            //    + Environment.NewLine + "в светильники", thisAssemblyPath, "BIMv2.FindNameRoomForLighting");
 
-            PushButton pb1l = ribbonPanel.AddItem(b1lData) as PushButton;
-            pb1l.ToolTip = "Переписывает номера в светильники";
+            //PushButton pb1l = ribbonPanel.AddItem(b1lData) as PushButton;
+            //pb1l.ToolTip = "Переписывает номера в светильники";
 
-            BitmapImage pb1lImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/transferNameRoom.png"));
-            pb1l.LargeImage = pb1lImage;
-
-
-            //попробуем создать еще одну кнопку
-            ribbonPanel.AddSeparator(); //разделитель между кнопками
-
-
-
-
-            // create push button for CurveTotalLength  //namespace и класс
-            PushButtonData b21Data = new PushButtonData("cmdWallFinishing", "Посчитать"
-                + Environment.NewLine + "отделку", thisAssemblyPath, "BIMv2Buttons.WallFinishing2");
-
-            PushButton pb21 = ribbonPanel.AddItem(b21Data) as PushButton;
-            pb21.ToolTip = "Переписывает отделку в помещения";
-
-            BitmapImage pb21Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-floor-32.png"));
-            pb21.LargeImage = pb21Image;
+            //BitmapImage pb1lImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/transferNameRoom.png"));
+            //pb1l.LargeImage = pb1lImage;
 
 
             //попробуем создать еще одну кнопку
@@ -375,7 +357,43 @@ namespace BIMv2Buttons
 
             // Create three push buttons for split button drop down 
 
+            // #1 
+            PushButtonData pushButtonData1Count = new PushButtonData("cmdCountFinishWall.cs", "Посчитать отделку - стены", thisAssemblyPath, "BIMv2.CountFinishWall");
+            pushButtonData1Count.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-floor-32.png"));
+            // #2 
+            PushButtonData pushButtonData2Count = new PushButtonData("cmdCountFinishFloor.cs", "Посчитать отделку - полы", thisAssemblyPath, "BIMv2.CountFinishFloor");
+            pushButtonData2Count.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-floor-32.png"));
+            // #3 
+            PushButtonData pushButtonData3Count = new PushButtonData("cmdCountFinishCeiling.cs", "Посчитать отделку - потолки", thisAssemblyPath, "BIMv2.CountFinishCeiling");
+            pushButtonData3Count.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-floor-32.png"));
 
+
+
+
+            // Make a split button now 
+            SplitButtonData splitBtnDataCount = new SplitButtonData("SplitButton3", "Split Button3");
+            SplitButton splitBtnCount = ribbonPanel.AddItem(splitBtnDataCount) as SplitButton;
+
+            splitBtnCount.AddPushButton(pushButtonData1Count);
+            splitBtnCount.AddPushButton(pushButtonData2Count);
+            splitBtnCount.AddPushButton(pushButtonData3Count);
+            
+
+            //// create push button for CurveTotalLength  //namespace и класс
+            //PushButtonData b21Data = new PushButtonData("cmdWallFinishing", "Посчитать"
+            //    + Environment.NewLine + "отделку", thisAssemblyPath, "BIMv2Buttons.WallFinishing2");
+
+            //PushButton pb21 = ribbonPanel.AddItem(b21Data) as PushButton;
+            //pb21.ToolTip = "Переписывает отделку в помещения";
+
+            //BitmapImage pb21Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-floor-32.png"));
+            //pb21.LargeImage = pb21Image;
+
+
+            //попробуем создать еще одну кнопку
+            ribbonPanel.AddSeparator(); //разделитель между кнопками
+
+            // Create three push buttons for split button drop down 
 
             // #1 
             PushButtonData pushButtonData1 = new PushButtonData("cmdGroupTypeFloorByNote.cs", "Сгруппировать полы", thisAssemblyPath, "BIMv2Buttons.GroupTypeFloorByNote");
