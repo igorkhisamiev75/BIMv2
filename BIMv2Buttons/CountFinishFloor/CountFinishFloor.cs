@@ -64,15 +64,11 @@ namespace BIMv2
             {
                 foreach (var room in allRooms)
                 {
-                    //Walls
-                    room.get_Parameter(new Guid("1e2bf482-d000-4acd-a903-17caa723e563")).Set(" ");
-                    room.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).Set("Нет отделки");
+                    
                     //Floors
                     room.get_Parameter(new Guid("1ac823dd-0dda-4438-acf6-46005617394c")).Set(" ");
                     room.get_Parameter(new Guid("cfa69bc0-57c7-491c-9ba0-e82c50a1e27d")).Set("Нет отделки");
-                    //Ceiling
-                    room.get_Parameter(new Guid("da79a6c6-7c1d-4c43-87d5-96e8dd83c495")).Set(" ");
-                    room.get_Parameter(new Guid("5f9a763c-3a9b-443a-b55b-4d589d533f02")).Set("Нет отделки");
+                   
 
                 }
             }
