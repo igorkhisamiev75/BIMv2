@@ -31,6 +31,8 @@ namespace BIMv2
                 //все стены                   
                 IList<Element> allWalls = GetAllWall(_doc);
 
+                int k = 0; 
+
                 //получить связанную модель FCD
 
                 IEnumerable<RevitLinkInstance> linkedInstances = FindLinkedInstances();
@@ -46,8 +48,8 @@ namespace BIMv2
 
 
                             //собрать балки
-                            //IList<Element> listStrFramings = GetAllStFraming(linkDocument);
-                            IList<Element> listStrFramings = GetAllWall(linkDocument);
+                            IList<Element> listStrFramings = GetAllStFraming(linkDocument);
+                            //IList<Element> listStrFramings = GetAllWall(linkDocument);
 
 
                             TaskDialog.Show("Complite!", $"Всего балок {listStrFramings.Count}");
@@ -76,18 +78,87 @@ namespace BIMv2
                                             //bounding Box window
                                             BoundingBoxXYZ boundingBoxXYZ3 = balka.get_BoundingBox(_doc.ActiveView);
 
-                                            XYZ xyz1 = boundingBoxXYZ3.Max;
-                                            XYZ yyz2 = boundingBoxXYZ3.Min;
+                                            //XYZ xyz1 = boundingBoxXYZ3.Max;
+                                            //XYZ yyz2 = boundingBoxXYZ3.Min;
+
+                                            //Options opt = new Options();
+                                            //opt.IncludeNonVisibleObjects = false;
+                                            //GeometryElement geo = wall.get_Geometry(opt);
+                                            //Solid solid1 = geo.Solid
 
 
                                             if (bbIntersect(boundingBoxXYZ, boundingBoxXYZ3))
                                             {
                                                 try
                                                 {
+                                                    FamilyInstance familyInstance = balka as FamilyInstance;
 
-                                                    _doc.Create.NewOpening(wall1, xyz1, yyz2);
+                                                    GeometryElement geometryElement = wall.get_Geometry(new Options());
+                                                    GeometryElement geometryElement2 = balka.get_Geometry(new Options());
+
+                                                    GeometryElement geoElement = balka.get_Geometry(new Options());
+
+                                                    var gS = GetSolids(balka);
+
+                                                    Solid solid2 = geometryElement2.Last() as Solid;
+
+                                                    foreach (GeometryObject geoObject in geoElement)
+                                                    {
+                                                        Solid instance = geoObject as Solid;
+
+                                                        if (null != instance)
+                                                        {
+                                                            
+                                                                //var solid = instObj as Solid;
+
+                                                                if (null != instance && instance.Faces.Size != 0)
+                                                                {
+                                                                    solid2= instance;
+                                                                    break;
+                                                                }
+
+                                                                //Transform instTransform = instance.Transform;
+                                                                //// Get the faces and edges from solid, and transform the formed points
+                                                                //foreach (Face face in solid.Faces)
+                                                                //{
+                                                                //    Mesh mesh = face.Triangulate();
+                                                                //    foreach (XYZ ii in mesh.Vertices)
+                                                                //    {
+                                                                //        XYZ point = ii;
+                                                                //        XYZ transformedPoint = instTransform.OfPoint(point);
+                                                                //    }
+                                                                //}
+                                                                //foreach (Edge edge in solid.Edges)
+                                                                //{
+                                                                //    foreach (XYZ ii in edge.Tessellate())
+                                                                //    {
+                                                                //        XYZ point = ii;
+                                                                //        XYZ transformedPoint = instTransform.OfPoint(point);
+                                                                //    }
+                                                                //}
+                                                            
+                                                        }
+                                                    }
 
 
+                                                        //geometryElement2.GetInstance 
+
+                                                        Solid solidA = geometryElement.First() as Solid;
+
+                                                    Solid solidB = geometryElement2.First() as Solid;
+
+
+                                                    Solid intersection = BooleanOperationsUtils.ExecuteBooleanOperation(solidA, gS[0], BooleanOperationsType.Intersect);
+                                                    //var intersection = BooleanOperationsType.Intersect()
+                                                    //double volumeOfIntersection = intersection.Volume;
+
+                                                    XYZ xyz11 = intersection.GetBoundingBox().Max;
+                                                    XYZ yyz22 = intersection.GetBoundingBox().Min;
+
+                                                    _doc.Create.NewOpening(wall1, yyz22, xyz11);
+
+                                                    k++;
+                                                    _doc.Regenerate();
                                                     continue;
                                                 }
 
@@ -114,7 +185,7 @@ namespace BIMv2
                         }
 
 
-                        TaskDialog.Show("Complite!", $"Отверстия под балки");
+                        TaskDialog.Show("Complite!", $"{k} ПРОЕМОВ");
 
                         _doc.Regenerate();
                         t.Commit();
@@ -181,6 +252,42 @@ namespace BIMv2
 
             return false;
 
+        }
+
+        private List<Solid> GetSolids(Element element)
+        {
+            var solids = new List<Solid>();
+
+            if (element.get_Geometry(new Options { IncludeNonVisibleObjects = true }) is GeometryElement geometryElement)
+            {
+                foreach (var geometryObject in geometryElement)
+                {
+                    // Get solid
+                    if (geometryObject is Solid geometrySolid &&
+                        geometrySolid.Faces.Size > 0 && geometrySolid.Edges.Size > 0 && geometrySolid.Volume > 0)
+                    {
+                        solids.Add(geometrySolid);
+                    }
+
+                    // Get geometryInstance solid
+                    else if (geometryObject is GeometryInstance geometryInstance)
+                    {
+                        if (geometryInstance.GetInstanceGeometry() is GeometryElement instanceGeometryElement &&
+                        geometryInstance.IsElementGeometry && geometryInstance.Transform.IsConformal)
+                        {
+                            foreach (var instanceGeometryObject in instanceGeometryElement)
+                            {
+                                if (instanceGeometryObject is Solid instanceGeometrySolid &&
+                                    instanceGeometrySolid.Faces.Size > 0 && instanceGeometrySolid.Edges.Size > 0)
+                                {
+                                    solids.Add(instanceGeometrySolid);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return solids;
         }
 
     }

@@ -68,7 +68,7 @@ namespace BIMv2.CheckRooms
                         IList<Element> roomsLinkedProject = GetAllRooms(linkDocument);
 
 
-                        TaskDialog.Show("Revit", $"Колличество помещений в связанной {roomsLinkedProject.Count}");
+                        TaskDialog.Show("Revit", $"Количество помещений в связанной {roomsLinkedProject.Count}");
 
                         //int raz = roomsCurrentProject.Count() - roomsLinkedProject.Count();
 

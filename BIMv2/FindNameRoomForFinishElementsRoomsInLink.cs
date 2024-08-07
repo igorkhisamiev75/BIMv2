@@ -34,11 +34,11 @@ namespace BIMv2
                 //найти для стен помещения
                 WriteNameRoomWall(uiApp);
 
-                //найти для перекрытий помещения
-                WriteNameRoomFloors(uiApp);
+                ////найти для перекрытий помещения
+                //WriteNameRoomFloors(uiApp);
 
-                //потолки
-                WriteNameRoomCeillings(uiApp);
+                ////потолки
+                //WriteNameRoomCeillings(uiApp);
                 //светильники
                 //мебель?
                 //комплекты мебели,
@@ -61,31 +61,33 @@ namespace BIMv2
             string adskPrim = "a85b7661-26b0-412f-979c-66af80b4b2c3";
 
             //отделка только //мжно в запросе сразу попробовать отфильтровать
-            foreach (var element in allWallElements)
-            {
-                try
-                {
-                    var wall = (Wall)element;
+            //foreach (var element in allWallElements)
+            //{
+            //    try
+            //    {
+            //        var wall = (Wall)element;
 
-                    var descriptionWallType = wall.WallType.LookupParameter("Описание").AsString();
+            //        var descriptionWallType = wall.WallType.LookupParameter("Описание").AsString();
 
 
-                    if (descriptionWallType == "Отделка")
-                    {
-                        AllFinishWall.Add(wall);
-                    }
+            //        if (descriptionWallType == "Отделка")
+            //        {
+            //            AllFinishWall.Add(wall);
+            //        }
 
-                }
-                catch (Exception e)
-                {
-                    continue;
-                }
+            //    }
+            //    catch (Exception e)
+            //    {
+            //        continue;
+            //    }
 
-            }
+            //}
 
 
             foreach (var wall in allWallElements)
             {
+                try 
+                { 
                 //var nameWall = wall.LookupParameter("ADSK_Примечание").AsString();
 
                 //if (nameWall != "")
@@ -93,17 +95,20 @@ namespace BIMv2
                 //    continue;
                 //}
 
-
+               
 
                 LocationCurve wallLine = wall.Location as LocationCurve;
 
-                IList<XYZ> wallPoints = wallLine.Curve.Tessellate();
+               
 
-                //Location loc = e.Location;
+                    IList<XYZ> wallPoints = wallLine.Curve.Tessellate();
+                
 
-                //var locPoint = (LocationPoint)loc;
+                    //Location loc = e.Location;
 
-                var pointPF1 = wallPoints[0];
+                    //var locPoint = (LocationPoint)loc;
+
+                    var pointPF1 = wallPoints[0];
                 XYZ pointPF2 = wallPoints[1];
 
                 //XYZ pointPF3 = new XYZ(0, 0, 2);
@@ -114,6 +119,7 @@ namespace BIMv2
                 var myRoom = FindRoom(_doc, pointPF);
                 string nameRoom = "";
                 string numRoom = "";
+
 
                 if (myRoom != null)
                 {
@@ -134,50 +140,57 @@ namespace BIMv2
                     wall.get_Parameter(new Guid(adskPrim)).Set(numRoom);
                     wall.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
 
-                    //    var linkedInstances = FindLinkedInstances();
-                    //    foreach (RevitLinkInstance linkInstance in linkedInstances)
-                    //    {
-                    //        var getLinkDoc = linkInstance.GetLinkDocument();
+                        //    var linkedInstances = FindLinkedInstances();
+                        //    foreach (RevitLinkInstance linkInstance in linkedInstances)
+                        //    {
+                        //        var getLinkDoc = linkInstance.GetLinkDocument();
 
-                    //        if (getLinkDoc != null)
-                    //        {
-                    //            var transform = linkInstance.GetTotalTransform().Inverse;
-                    //            var targetPoint = transform.OfPoint(pointPF);
-                    //            var linkDocument = linkInstance.GetLinkDocument();
+                        //        if (getLinkDoc != null)
+                        //        {
+                        //            var transform = linkInstance.GetTotalTransform().Inverse;
+                        //            var targetPoint = transform.OfPoint(pointPF);
+                        //            var linkDocument = linkInstance.GetLinkDocument();
 
-                    //            var room = FindRoom(linkDocument, targetPoint);
-                    //            if (room != null)
-                    //            {
-                    //                //string[] subs = room.Name.Split(' ');
-                    //                //var stringLevel = room.get_Parameter(new Guid("1a6e5bca-2b14-4f06-b2bf-efce95bd92b9"))
-                    //                //        .AsDouble(); //yровень
-                    //                //var poGroupName = room.get_Parameter(new Guid("a1731d92-0650-40ed-8b23-0cb7e355dd59"))
-                    //                //        .AsString();//ПО_ргуппа
-                    //                //var numberName = room.get_Parameter(new Guid("e0c30580-14c7-4cb0-8be2-444179eb94c9"))
-                    //                //        .AsString();//ПО_номер
+                        //            var room = FindRoom(linkDocument, targetPoint);
+                        //            if (room != null)
+                        //            {
+                        //                //string[] subs = room.Name.Split(' ');
+                        //                //var stringLevel = room.get_Parameter(new Guid("1a6e5bca-2b14-4f06-b2bf-efce95bd92b9"))
+                        //                //        .AsDouble(); //yровень
+                        //                //var poGroupName = room.get_Parameter(new Guid("a1731d92-0650-40ed-8b23-0cb7e355dd59"))
+                        //                //        .AsString();//ПО_ргуппа
+                        //                //var numberName = room.get_Parameter(new Guid("e0c30580-14c7-4cb0-8be2-444179eb94c9"))
+                        //                //        .AsString();//ПО_номер
 
-                    //                nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+                        //                nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
 
-                    //                numRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();
+                        //                numRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();
 
 
-                    //                wall.get_Parameter(new Guid(adskPrim)).Set(numRoom);
-                    //                wall.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
+                        //                wall.get_Parameter(new Guid(adskPrim)).Set(numRoom);
+                        //                wall.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
 
-                    //            }
-                    //            else
-                    //            {
-                    //                nameRoom = "It's not in Room";
-                    //                numRoom= "It's not in Room";
+                        //            }
+                        //            else
+                        //            {
+                        //                nameRoom = "It's not in Room";
+                        //                numRoom= "It's not in Room";
 
-                    //                wall.get_Parameter(new Guid(adskPrim)).Set(numRoom);
-                    //                wall.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
+                        //                wall.get_Parameter(new Guid(adskPrim)).Set(numRoom);
+                        //                wall.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
 
-                    //            }
-                    //        }
-                    //  }
+                        //            }
+                        //        }
+                        //  }
+                    }
+                
+
+
                 }
-            }
+
+
+                catch { }
+                }
         }
         public void WriteNameRoomFloors (UIApplication uiApp)
         {

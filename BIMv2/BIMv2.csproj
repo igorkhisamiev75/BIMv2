@@ -231,8 +231,11 @@
     <Compile Include="FindDoorsMirror.cs" />
     <Compile Include="FindDuctFiting.cs" />
     <Compile Include="FindLostTags.cs" />
+    <Compile Include="FindNameRoomForCeiling.cs" />
     <Compile Include="FindNameRoomForFinishElementsRoomsInLink.cs" />
+    <Compile Include="FindNameRoomForFloor.cs" />
     <Compile Include="FindNameRoomForLighting.cs" />
+    <Compile Include="FindNameRoomForWall.cs" />
     <Compile Include="FindRoomsForWallsBeams.cs" />
     <Compile Include="FinishingOnTheStairs.cs" />
     <Compile Include="GetRoomForElementsFinishing.cs" />
