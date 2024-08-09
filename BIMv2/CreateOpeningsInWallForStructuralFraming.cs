@@ -1,5 +1,6 @@
 ﻿#region Namespace
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Autodesk.Revit.Attributes;
@@ -33,7 +34,7 @@ namespace BIMv2
 
                 int k = 0; 
 
-                //получить связанную модель FCD
+                //получить связанную модель 
 
                 IEnumerable<RevitLinkInstance> linkedInstances = FindLinkedInstances();
 
@@ -59,8 +60,7 @@ namespace BIMv2
 
                             foreach (Element wall in allWalls)
                             {
-                                int i = 0;
-
+                                
                                 Wall wall1 = (Wall)wall;
 
                                 foreach (var balka in listStrFramings)
@@ -68,29 +68,36 @@ namespace BIMv2
                                 {
                                     try
                                     {
-                                        if (i == 0 && balka != null)
+                                        if (balka != null )
                                         {
-
-
+                                            
                                             //bondingbox wall
                                             BoundingBoxXYZ boundingBoxXYZ = wall.get_BoundingBox(_doc.ActiveView);
 
                                             //bounding Box window
                                             BoundingBoxXYZ boundingBoxXYZ3 = balka.get_BoundingBox(_doc.ActiveView);
 
-                                            //XYZ xyz1 = boundingBoxXYZ3.Max;
-                                            //XYZ yyz2 = boundingBoxXYZ3.Min;
+                                            var fi = balka as FamilyInstance;
 
-                                            //Options opt = new Options();
-                                            //opt.IncludeNonVisibleObjects = false;
-                                            //GeometryElement geo = wall.get_Geometry(opt);
-                                            //Solid solid1 = geo.Solid
+                                            LocationCurve locationCurve = fi.Location as LocationCurve;
+
+                                            var line = locationCurve.Curve as Line;
+
+                                            
 
 
                                             if (bbIntersect(boundingBoxXYZ, boundingBoxXYZ3))
                                             {
                                                 try
                                                 {
+                                                    //точка пересеяни 2 элементов
+
+                                                    LocationCurve locationCurve2 = wall.Location as LocationCurve;
+
+                                                    var line2 = locationCurve.Curve as Line;
+
+                                                    XYZ pointWin = GetIntersection(line, line2);
+
                                                     FamilyInstance familyInstance = balka as FamilyInstance;
 
                                                     GeometryElement geometryElement = wall.get_Geometry(new Options());
@@ -155,7 +162,9 @@ namespace BIMv2
                                                     XYZ xyz11 = intersection.GetBoundingBox().Max;
                                                     XYZ yyz22 = intersection.GetBoundingBox().Min;
 
-                                                    _doc.Create.NewOpening(wall1, yyz22, xyz11);
+                                                    Opening opening =_doc.Create.NewOpening(wall1, yyz22, xyz11);
+
+                                                    ElementTransformUtils.MoveElement(_doc, opening.Id, pointWin);
 
                                                     k++;
                                                     _doc.Regenerate();
@@ -196,8 +205,6 @@ namespace BIMv2
             }
         }
 
-
-
         public IList<Element> GetAllStFraming(Document document)
         {
             // List all Room's
@@ -210,8 +217,6 @@ namespace BIMv2
             return allRooms;
         }
 
-
-
         public IList<Element> GetAllWall(Document document)
         {
             var room_collector = new FilteredElementCollector(document)
@@ -223,8 +228,6 @@ namespace BIMv2
             return allWalls;
 
         }
-
-       
 
         private IEnumerable<RevitLinkInstance> FindLinkedInstances()
         {
@@ -288,6 +291,27 @@ namespace BIMv2
                 }
             }
             return solids;
+        }
+
+        private XYZ GetIntersection(Line line1,Line line2)
+        {
+            IntersectionResultArray results;
+
+            SetComparisonResult result
+              = line1.Intersect(line2, out results);
+
+            if (result != SetComparisonResult.Overlap)
+                throw new InvalidOperationException(
+                  "Input lines did not intersect.");
+
+            if (results == null || results.Size != 1)
+                throw new InvalidOperationException(
+                  "Could not extract line intersection point.");
+
+            IntersectionResult iResult
+              = results.get_Item(0);
+
+            return iResult.XYZPoint;
         }
 
     }
