@@ -83,9 +83,6 @@ namespace BIMv2
 
                                             var line = locationCurve.Curve as Line;
 
-                                            
-
-
                                             if (bbIntersect(boundingBoxXYZ, boundingBoxXYZ3))
                                             {
                                                 try
@@ -94,9 +91,28 @@ namespace BIMv2
 
                                                     LocationCurve locationCurve2 = wall.Location as LocationCurve;
 
-                                                    var line2 = locationCurve.Curve as Line;
+                                                    var line2 = locationCurve2.Curve as Line;
 
-                                                    XYZ pointWin = GetIntersection(line, line2);
+                                                    //XYZ pointWin = GetIntersection(line, line2);
+
+                                                    //Point A = new Point(4, -1, 2);
+
+                                                    //балка
+                                                    XYZ A2 = line.Tessellate()[0];
+                                                    XYZ A3 = line.Tessellate()[1];
+
+                                                    Point A = new Point(A2.X, A2.Y, A2.Z);
+                                                    Point B = new Point(A3.X, A3.Y, A3.Z);
+
+                                                    //стена
+                                                    XYZ A4 = line2.Tessellate()[0];
+                                                    XYZ A5 = line2.Tessellate()[1];
+
+                                                    Point C = new Point(A4.X, A4.Y, A4.Z);
+                                                    Point D = new Point(A5.X, A5.Y, A5.Z);
+
+                                                    Point IX = Intersection(A, B, C, D);
+
 
                                                     FamilyInstance familyInstance = balka as FamilyInstance;
 
@@ -164,7 +180,10 @@ namespace BIMv2
 
                                                     Opening opening =_doc.Create.NewOpening(wall1, yyz22, xyz11);
 
-                                                    ElementTransformUtils.MoveElement(_doc, opening.Id, pointWin);
+                                                    XYZ taXYZ=new XYZ(IX.X, IX.Y, IX.Z);
+
+                                                   
+                                                    ElementTransformUtils.MoveElement(_doc, opening.Id, taXYZ);
 
                                                     k++;
                                                     _doc.Regenerate();
@@ -314,6 +333,48 @@ namespace BIMv2
             return iResult.XYZPoint;
         }
 
+        static public Point Intersection(Point A, Point B, Point C, Point D)
+        {
+            double xo = A.X, yo = A.Y, zo = A.Z;
+            double p = B.X - A.X, q = B.Y - A.Y, r = B.Z - A.Z;
+
+            double x1 = C.X, y1 = C.Y, z1 = C.Z;
+            double p1 = D.X - C.X, q1 = D.Y - C.Y, r1 = D.Z - C.Z;
+
+            double x = (xo * q * p1 - x1 * q1 * p - yo * p * p1 + y1 * p * p1) /
+                (q * p1 - q1 * p);
+            double y = (yo * p * q1 - y1 * p1 * q - xo * q * q1 + x1 * q * q1) /
+                (p * q1 - p1 * q);
+            double z = (zo * q * r1 - z1 * q1 * r - yo * r * r1 + y1 * r * r1) /
+                (q * r1 - q1 * r);
+
+            if (z >= 0 || z <= 0)
+            {
+                z = z;
+            }
+            else 
+            {
+                z = 0;
+                    }
+
+
+            return new Point(x, y, z);
+        }
+
+    }
+
+    public class Point
+    {
+        public double X { get; set; }
+        public double Y { get; set; }
+        public double Z { get; set; }
+        public Point() { }
+        public Point(double x, double y, double z)
+        {
+            X = x;
+            Y = y;
+            Z = z;
+        }
     }
 }
 
