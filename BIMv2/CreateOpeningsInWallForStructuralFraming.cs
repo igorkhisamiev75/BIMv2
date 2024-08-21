@@ -27,7 +27,7 @@ namespace BIMv2
 
             using (var t = new Transaction(_doc))
             {
-                t.Start("Create openings ");
+                t.Start("Создание проемов в стене для балок");
 
                 //все стены                   
                 IList<Element> allWalls = GetAllWall(_doc);
@@ -53,7 +53,7 @@ namespace BIMv2
                             //IList<Element> listStrFramings = GetAllWall(linkDocument);
 
 
-                            TaskDialog.Show("Complite!", $"Всего балок {listStrFramings.Count}");
+                            TaskDialog.Show("Complite!", $"Всего балок {listStrFramings.Count} и {allWalls.Count} стен");
 
 
                             //пройитись по каждой стене  
@@ -63,6 +63,7 @@ namespace BIMv2
                                 
                                 Wall wall1 = (Wall)wall;
 
+                                //по каждой балке
                                 foreach (var balka in listStrFramings)
 
                                 {
@@ -170,23 +171,28 @@ namespace BIMv2
 
                                                     Solid solidB = geometryElement2.First() as Solid;
 
-
+                                                    //получаем солид пересечения
                                                     Solid intersection = BooleanOperationsUtils.ExecuteBooleanOperation(solidA, gS[0], BooleanOperationsType.Intersect);
+                                                    
                                                     //var intersection = BooleanOperationsType.Intersect()
                                                     //double volumeOfIntersection = intersection.Volume;
 
                                                     XYZ xyz11 = intersection.GetBoundingBox().Max;
                                                     XYZ yyz22 = intersection.GetBoundingBox().Min;
 
+                                                    XYZ pointMidlMaxZ=new XYZ(xyz11.X, xyz11.Y, xyz11.Z); //максимальная
+                                                    XYZ pointMidlZMin2=new XYZ(yyz22.X, yyz22.Y, yyz22.Z);//минимальная
+
+                                                    IX.Z = IX.Z - ((pointMidlMaxZ.Z - pointMidlZMin2.Z) / 2);
+
                                                     Opening opening =_doc.Create.NewOpening(wall1, yyz22, xyz11);
 
                                                     XYZ taXYZ=new XYZ(IX.X, IX.Y, IX.Z);
 
-                                                   
                                                     ElementTransformUtils.MoveElement(_doc, opening.Id, taXYZ);
 
                                                     k++;
-                                                    _doc.Regenerate();
+                                                    //_doc.Regenerate();
                                                     continue;
                                                 }
 
@@ -197,9 +203,15 @@ namespace BIMv2
                                                 }
 
                                             }
+                                            else
+                                            {
+                                                continue;
+                                            }
                                         }
 
                                     }
+
+
                                     catch
                                     {
                                         continue;
@@ -348,15 +360,15 @@ namespace BIMv2
             double z = (zo * q * r1 - z1 * q1 * r - yo * r * r1 + y1 * r * r1) /
                 (q * r1 - q1 * r);
 
-            if (z >= 0 || z <= 0)
+            if (z >= 0 || z < 0)
             {
-                z = z;
+                z = zo;
             }
-            else 
+            else
             {
-                z = 0;
-                    }
+                z = zo;
 
+            }
 
             return new Point(x, y, z);
         }

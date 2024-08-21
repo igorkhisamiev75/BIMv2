@@ -91,7 +91,7 @@ namespace BIMv2.CheckRooms
                                 namberRoomCurrent = roomCurent.Number;
                                 squereRoomCurrent = roomCurent.get_Parameter(BuiltInParameter.ROOM_AREA).AsValueString();
 
-                                if (namberRoomLink == namberRoomCurrent && nameRoomLink == nameRoomCurent && squereRoomLink == squereRoomCurrent)
+                                if (namberRoomLink == namberRoomCurrent && nameRoomLink == nameRoomCurent )
                                 {
                                     
                                     roomCurent.get_Parameter(new Guid("6feb836e-de15-4412-817e-f147e44fe0ea")).Set("Верно");
