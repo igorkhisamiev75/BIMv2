@@ -21,6 +21,7 @@ namespace CreateFinishWallinRooms
     {
         // Private Members
         IList<WallType> m_wallTypeCollection;         // Store all the wall types in current document
+        IList<CeilingType> m_ceilingTypeCollection;         // Store all the wall types in current document
         IList<FloorType> m_FloorTypeCollection;
         private const double PRECISION = 0.00000001;
         private CurveArray profile;
@@ -58,6 +59,14 @@ namespace CreateFinishWallinRooms
             get
             {
                 return m_wallTypeCollection;
+            }
+        }
+
+        public IList<CeilingType> CeilingTypes
+        {
+            get
+            {
+                return m_ceilingTypeCollection;
             }
         }
         // the Level on which the floors are to be placed
@@ -116,6 +125,11 @@ namespace CreateFinishWallinRooms
             filteredElementCollectorFloor.OfClass(typeof(FloorType));
             m_FloorTypeCollection = filteredElementCollectorFloor.Cast<FloorType>().ToList<FloorType>();
 
+            // Search all the Ceiling types in the Revit
+            FilteredElementCollector filteredElementCollectorCeiling = new FilteredElementCollector(_doc);
+            filteredElementCollectorCeiling.OfClass(typeof(CeilingType));
+            m_ceilingTypeCollection = filteredElementCollectorCeiling.Cast<CeilingType>().ToList<CeilingType>();
+
 
             roomsCollection = GetAllRooms(_doc);
 
@@ -134,7 +148,7 @@ namespace CreateFinishWallinRooms
             }
 
             //create form 
-            ViewWPF vpViewWpf = new ViewWPF(roomsNameInProject, WallTypes, levelCollection2, FloorTypes);
+            ViewWPF vpViewWpf = new ViewWPF(roomsNameInProject, WallTypes, levelCollection2, FloorTypes, CeilingTypes);
 
             //show form
             vpViewWpf.WindowStartupLocation = WindowStartupLocation.CenterScreen;
@@ -146,8 +160,11 @@ namespace CreateFinishWallinRooms
 
             //TaskDialog.Show("1Смещение от уровня", $"{vpViewWpf.ofsetWallS}");
             //TaskDialog.Show("2Смещение от уровня", $"{wallOffset}");
-
+#if R2019 || R2020 || R2021 || R2022
             wallOffset = UnitUtils.Convert(wallOffset, DisplayUnitType.DUT_MILLIMETERS, DisplayUnitType.DUT_DECIMAL_FEET);
+#else
+            wallOffset = UnitUtils.ConvertFromInternalUnits(wallOffset, UnitTypeId.Millimeters);
+#endif
 
             //TaskDialog.Show("3Смещение от уровня", $"{wallOffset}");
 
@@ -177,6 +194,9 @@ namespace CreateFinishWallinRooms
 
             //get selected floortype
             FloorType selectedFloorType = vpViewWpf.typeFloorSelected;
+
+            //get selected ceilingtype
+            CeilingType selectedCeilingType = vpViewWpf.typeCeilingSelected;
 
             //get rooms checked
             List<String> checkRoomsString = vpViewWpf.checkRooms;
@@ -269,6 +289,102 @@ namespace CreateFinishWallinRooms
                 //floor in selected room
 
                 if (whatsButton == "полыВыборомПомещения")
+                {
+
+                    //TaskDialog.Show("2bim.ru", "Выбери помещение на плане");
+
+                    Element elem = SelectedElement(_doc); //select room
+
+                    try
+                    {
+                        CreateFloorInRooms(elem, selectedFloorType);
+
+                        TaskDialog.Show("2bim.ru", "Полы созданы ☺☺☺");
+
+                    }
+
+                    catch (Exception ex)
+                    {
+                        TaskDialog.Show("2bim.ru", $"{ex} ");
+
+                    }
+
+                    t.Commit(options);
+                    //_doc.Regenerate();
+
+                    try
+                    {
+
+                        t.Start();
+                        CreateFloorOpenings(elem);
+
+                        TransactionStatus res = t.Commit(options);
+                    }
+
+                    catch (Exception ex)
+                    {
+                        TaskDialog.Show("2bim.ru", $"{ex} ");
+
+                    }
+
+
+
+
+                }
+
+                //floors with schedule
+
+                if (whatsButton == "отделкаПоСпекеПолы")
+                {
+                    foreach (Room room in checkRooms)
+                    {
+                        Element elem = (Element)room; //select room
+
+                        try
+                        {
+                            CreateFloorInRooms(elem, selectedFloorType);
+
+                            //TaskDialog.Show("2bim.ru", "Пол создан ☺☺☺");
+                            //_doc.Regenerate();
+
+                        }
+
+                        catch (Exception ex)
+                        {
+                            TaskDialog.Show("2bim.ru", $"{ex} ");
+                        }
+
+                        t.Commit(options);
+
+                        //if (failureHandler.ErrorMessage != "")
+                        //{
+                        //    MessageBox.Show(failureHandler.ErrorSeverity + " || "
+                        //      + failureHandler.ErrorMessage);
+                        //}
+
+                        try
+                        {
+
+                            t.Start();
+                            CreateFloorOpenings(elem);
+
+                        }
+
+
+
+                        catch (Exception ex)
+                        {
+                            TaskDialog.Show("2bim.ru", $"{ex} ");
+
+                        }
+
+                    }
+
+                }
+
+                //ceiling in selected room
+
+                if (whatsButton == "отделкаВыборомПомещенияПотолки")
                 {
 
                     //TaskDialog.Show("2bim.ru", "Выбери помещение на плане");
@@ -845,6 +961,74 @@ namespace CreateFinishWallinRooms
                 }
                 return FailureProcessingResult.Continue;
             }
+        }
+
+        //создание потолка
+
+        public void CreateCeilingInRooms(Element elem, CeilingType ceilingType)
+        {
+
+
+            //FloorType floorType2 = GetFloorTypeInProject(_doc);
+
+            //TaskDialog.Show("У тебя получилось", $"{floorType.GetType()} Пол создан ☺☺☺");
+            Ceiling ceiling;
+
+            //IList<Element> rooms;
+
+
+            CurveArray roomsCurves = new CurveArray();
+            Room r1 = (Room)elem;
+
+            level = r1.Level;
+
+            string ADSK_Primechanie = "a85b7661-26b0-412f-979c-66af80b4b2c3";
+            string numberRoom = r1.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();
+            string nameRoom = r1.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+
+
+            SpatialElementBoundaryOptions bo = new SpatialElementBoundaryOptions();
+            IList<IList<BoundarySegment>> segments2 = r1.GetBoundarySegments(bo);
+
+            CurveArray temp = new CurveArray();
+
+            if (null != segments2)
+            {
+                IList<BoundarySegment> segmentList = segments2[0];
+
+
+                foreach (BoundarySegment boundarySegment in segmentList)
+                {
+                    Curve c = boundarySegment.GetCurve();
+                    temp.Append(c);
+                }
+                var newSortCurve = SortCurves(temp);
+
+                CurveLoop profile = new CurveLoop();
+
+                foreach (var g in temp)
+                {
+                    profile.Append((Line)g);
+                }
+
+#if R2019 || R2020 || R2021 || R2022
+                floor = _doc.Create.NewFloor(newSortCurve, floorType3, r1.Level, false);
+                floor.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
+                floor.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
+#else
+
+                ceiling = Ceiling.Create(_doc, new List<CurveLoop> { profile }, ceilingType.Id, level.Id);
+#endif
+                //set room name and number
+                ceiling.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
+                ceiling.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
+
+                // createdFloor = floor;
+                _doc.Regenerate();
+
+            }
+
+
         }
 
     }
