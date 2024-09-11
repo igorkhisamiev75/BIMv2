@@ -27,16 +27,16 @@ namespace CreateFinishWallinRooms
         private CurveArray profile;
         public Autodesk.Revit.Creation.Application creApp;
         public FloorType floorType;
+        public CeilingType ceilingType;
         private Application _app;
         private Document _doc;
         public Floor createdFloor;
+        public Ceiling createdCeiling;
         private Level level;
         public ICollection<Element> roomsCollection = new List<Element>();
 
         public List<Level> levelCollection2 = new List<Level>();
-
         public List<Room> roomsCollection2 = new List<Room>();
-
         public List<String> roomsNameInProject = new List<String>();
 
         //public ICollection<Element> filtersCollectionCopy = new List<Element>();
@@ -197,6 +197,8 @@ namespace CreateFinishWallinRooms
 
             //get selected ceilingtype
             CeilingType selectedCeilingType = vpViewWpf.typeCeilingSelected;
+
+            TaskDialog.Show("2bim.ru", $" selected {selectedCeilingType.Name}");
 
             //get rooms checked
             List<String> checkRoomsString = vpViewWpf.checkRooms;
@@ -387,15 +389,15 @@ namespace CreateFinishWallinRooms
                 if (whatsButton == "отделкаВыборомПомещенияПотолки")
                 {
 
-                    //TaskDialog.Show("2bim.ru", "Выбери помещение на плане");
+                    TaskDialog.Show("2bim.ru", "отделкаВыборомПомещенияПотолки Выбери помещение на плане");
 
                     Element elem = SelectedElement(_doc); //select room
 
                     try
                     {
-                        CreateFloorInRooms(elem, selectedFloorType);
+                        CreateCeilingInRooms(elem, selectedCeilingType);
 
-                        TaskDialog.Show("2bim.ru", "Полы созданы ☺☺☺");
+                        TaskDialog.Show("2bim.ru", "Потолки созданы ☺☺☺");
 
                     }
 
@@ -411,10 +413,10 @@ namespace CreateFinishWallinRooms
                     try
                     {
 
-                        t.Start();
-                        CreateFloorOpenings(elem);
+                        //t.Start();
+                        //CreateCeilingOpenings(elem);
 
-                        TransactionStatus res = t.Commit(options);
+                        //TransactionStatus res = t.Commit(options);
                     }
 
                     catch (Exception ex)
@@ -430,7 +432,7 @@ namespace CreateFinishWallinRooms
 
                 //floors with schedule
 
-                if (whatsButton == "отделкаПоСпекеПолы")
+                if (whatsButton == "отделкаПоСпекеПотолки")
                 {
                     foreach (Room room in checkRooms)
                     {
@@ -571,13 +573,13 @@ namespace CreateFinishWallinRooms
                 floor.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
 #else
 
-                //floor = Floor.Create(_doc, new List<CurveLoop> { profile }, floorType3.Id, level.Id);
+                floor = Floor.Create(_doc, new List<CurveLoop> { profile }, floorType3.Id, level.Id);
 #endif
                 //set room name and number
-                //floor.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
-                //floor.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
+                floor.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
+                floor.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
 
-               // createdFloor = floor;
+                createdFloor = floor;
                 _doc.Regenerate();
 
             }
@@ -690,6 +692,7 @@ namespace CreateFinishWallinRooms
             Room room = (Room)elem;
 
             ElementId levelId = room.LevelId;
+
             double heightRoom = room.get_Parameter(BuiltInParameter.ROOM_HEIGHT).AsDouble();
 
             double offsetWallInRoom = wallOffset;
@@ -971,7 +974,7 @@ namespace CreateFinishWallinRooms
 
             //FloorType floorType2 = GetFloorTypeInProject(_doc);
 
-            //TaskDialog.Show("У тебя получилось", $"{floorType.GetType()} Пол создан ☺☺☺");
+            //TaskDialog.Show("У тебя получилось", $"{ceilingType.GetType()} Пол создан ☺☺☺");
             Ceiling ceiling;
 
             //IList<Element> rooms;
@@ -985,6 +988,21 @@ namespace CreateFinishWallinRooms
             string ADSK_Primechanie = "a85b7661-26b0-412f-979c-66af80b4b2c3";
             string numberRoom = r1.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();
             string nameRoom = r1.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+
+            double heightRoom = r1.get_Parameter(BuiltInParameter.ROOM_HEIGHT).AsDouble();
+
+            double offsetWallInRoom = wallOffset;
+
+
+            if (wallHeight != 0)
+            {
+                heightRoom = wallHeight;
+            }
+
+            if (heightRoom < 0)
+            {
+                heightRoom = 1;
+            }
 
 
             SpatialElementBoundaryOptions bo = new SpatialElementBoundaryOptions();
@@ -1011,22 +1029,68 @@ namespace CreateFinishWallinRooms
                     profile.Append((Line)g);
                 }
 
+               
+
 #if R2019 || R2020 || R2021 || R2022
                 floor = _doc.Create.NewFloor(newSortCurve, floorType3, r1.Level, false);
                 floor.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
                 floor.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
 #else
+                TaskDialog.Show("У тебя получилось", $"{profile.GetType()} Потолок создается ☺☺☺");
 
                 ceiling = Ceiling.Create(_doc, new List<CurveLoop> { profile }, ceilingType.Id, level.Id);
+
+
+                ceiling.get_Parameter(BuiltInParameter.CEILING_HEIGHTABOVELEVEL_PARAM).Set(heightRoom);
+                
+
 #endif
                 //set room name and number
-                ceiling.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
-                ceiling.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
+                //ceiling.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
+                //ceiling.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
 
                 // createdFloor = floor;
                 _doc.Regenerate();
 
             }
+
+
+        }
+
+        //содание отверстия в потолке
+
+        public void CreateCeilingOpenings(Element elem)
+        {
+            //CurveArray roomsCurves = new CurveArray();
+            var r1 = (Room)elem;
+
+            SpatialElementBoundaryOptions bo = new SpatialElementBoundaryOptions();
+            IList<IList<BoundarySegment>> segments2 = r1.GetBoundarySegments(bo);
+
+            CurveArray temp2 = new CurveArray();
+
+            if (null != segments2)
+            {
+                for (int j = 1; j < segments2.Count; j++)
+                {
+                    IList<BoundarySegment> segmentList = segments2[j];
+
+                    foreach (BoundarySegment boundarySegment in segmentList)
+                    {
+                        Curve c = boundarySegment.GetCurve();
+                        temp2.Append(c);
+                    }
+                    //SortCurves(temp2);
+
+                    //Opening opening = _doc.Create.NewOpening(createdFloor, temp2, true); //create opening
+
+                    _doc.Create.NewOpening(createdCeiling, temp2, true); //create opening
+
+                    //_doc.Regenerate();
+                }
+
+            }
+
 
 
         }

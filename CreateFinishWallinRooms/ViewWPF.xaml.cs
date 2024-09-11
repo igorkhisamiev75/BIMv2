@@ -19,12 +19,11 @@ namespace CreateFinishWallinRooms
         public bool roomBoording;
 
        
-        public WallType typeWallCollectionSelected;
-        public CeilingType typeCeilingCollectionSelected;
+        public WallType typeWallCollectionSelected;        
         public FloorType typeFloorSelected;
         public CeilingType typeCeilingSelected;
-        public Level selectedLevel;
 
+        public Level selectedLevel;
         public string heighWallUser;
 
         public string ofsetWallS;
@@ -232,7 +231,7 @@ namespace CreateFinishWallinRooms
         {
             selectedLevel = ComboBoxLevel.SelectedItem as Level;
             typeWallCollectionSelected = ComboBox.SelectedValue as WallType;
-            typeCeilingCollectionSelected = ComboBox.SelectedValue as CeilingType;
+            typeCeilingSelected = ComboBoxCeiling.SelectedValue as CeilingType;
 
             //получить высоту если высота берется не по помещению
             heighWallUser = heightWallNotRooms.Text;
