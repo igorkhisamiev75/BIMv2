@@ -1042,12 +1042,12 @@ namespace CreateFinishWallinRooms
 
 
                 ceiling.get_Parameter(BuiltInParameter.CEILING_HEIGHTABOVELEVEL_PARAM).Set(heightRoom);
-                
+
 
 #endif
                 //set room name and number
-                //ceiling.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
-                //ceiling.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
+                ceiling.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
+                ceiling.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
 
                 // createdFloor = floor;
                 _doc.Regenerate();
