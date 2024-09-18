@@ -199,9 +199,9 @@ namespace BIMv2
                         //nameRoom = "неНашел";
 
 
-                        nameRoom = "неНашел";
-                        element.LookupParameter("Комментарии").Set(nameRoom);
-                        element.LookupParameter("ADSK_Примечание").Set(nameRoom);
+                        //nameRoom = "неНашел";
+                        //element.LookupParameter("Комментарии").Set(nameRoom);
+                        //element.LookupParameter("ADSK_Примечание").Set(nameRoom);
 
                     }
 

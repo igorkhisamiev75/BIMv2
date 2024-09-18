@@ -17,7 +17,7 @@ namespace BIMv2
         private Document _doc;
         public ElementId linkDocId = new ElementId(BuiltInCategory.OST_RvtLinks);
         public List<ElementId> roomids = new List<ElementId>();
-        public List<Wall> AllFinishWall = new List<Wall>();
+        public List<Floor> AllFinishWall = new List<Floor>();
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             var uiApp = commandData.Application;
@@ -51,9 +51,9 @@ namespace BIMv2
             {
                 try
                 {
-                    Wall wall = (Wall)element;
+                    Floor wall = (Floor)element;
 
-                    string descriptionWallType = wall.WallType.LookupParameter("Описание").AsString();
+                    string descriptionWallType = wall.FloorType.LookupParameter("Описание").AsString();
 
                     if (descriptionWallType == "Отделка")
                     {

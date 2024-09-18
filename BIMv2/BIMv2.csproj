@@ -285,6 +285,9 @@
     <Compile Include="PluginFinish2BIM\Test\WallFinishAlliance.cs" />
     <Compile Include="PluginFinish2BIM\Test\WallFinishComposition.cs" />
     <Compile Include="PluginFinish2BIM\WallFinishing.cs" />
+    <Compile Include="VarificationCeiling.cs" />
+    <Compile Include="VarificationFloors.cs" />
+    <Compile Include="VarificationWalls.cs" />
     <Compile Include="WriteNameRoomInFurniture.cs" />
     <Compile Include="WriteNameRoomInPlumbingFixtures.cs" />
     <Compile Include="TransferParamRoonToWalls.cs" />

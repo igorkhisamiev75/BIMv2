@@ -110,12 +110,12 @@ namespace BIMv2
                     }
                     else
                     {
-                        nameRoom = "неНайдено";
-                        numRoom = "неНайдено";
+                        //nameRoom = "неНайдено";
+                        //numRoom = "неНайдено";
 
 
-                        wall.get_Parameter(new Guid(adskPrim)).Set(numRoom);
-                        wall.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
+                        //wall.get_Parameter(new Guid(adskPrim)).Set(numRoom);
+                        //wall.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
 
                         //    var linkedInstances = FindLinkedInstances();
                         //    foreach (RevitLinkInstance linkInstance in linkedInstances)
