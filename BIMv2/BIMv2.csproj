@@ -289,6 +289,7 @@
     <Compile Include="VarificationFloors.cs" />
     <Compile Include="VarificationWalls.cs" />
     <Compile Include="WriteNameRoomInFurniture.cs" />
+    <Compile Include="WriteNameRoomInMechanicalEquipment.cs" />
     <Compile Include="WriteNameRoomInPlumbingFixtures.cs" />
     <Compile Include="TransferParamRoonToWalls.cs" />
     <Compile Include="WallFinishing.cs" />

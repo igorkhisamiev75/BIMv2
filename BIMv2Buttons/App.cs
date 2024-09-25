@@ -28,6 +28,11 @@ namespace BIMv2Buttons
 
             // Create three push buttons for split button drop down 
 
+            // #0 
+            PushButtonData pushButtonDataAI0 = new PushButtonData
+                ("cmdWriteNameRoomInMechanicalEquipment.cs", "Записать информацию в оборудование", thisAssemblyPath, "BIMv2.WriteNameRoomInMechanicalEquipment");
+            pushButtonDataAI0.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8.png"));
+
             // #1 
             PushButtonData pushButtonDataAI1 = new PushButtonData
                 ("cmdGWriteNameRoomInFurniture.cs", "Записать информацию в мебель", thisAssemblyPath, "BIMv2.WriteNameRoomInFurniture");
@@ -58,6 +63,7 @@ namespace BIMv2Buttons
             SplitButtonData splitBtnDataAI = new SplitButtonData("SplitButton", "Split Button");
             SplitButton splitBtnAI = ribbonPanelbAI1.AddItem(splitBtnDataAI) as SplitButton;
 
+            splitBtnAI.AddPushButton(pushButtonDataAI0);
             splitBtnAI.AddPushButton(pushButtonDataAI1);
             splitBtnAI.AddPushButton(pushButtonDataAI2s);
             splitBtnAI.AddPushButton(pushButtonDataAI3s);
@@ -791,78 +797,78 @@ namespace BIMv2Buttons
 
             #endregion
 
-            #region BIMv2Links
+            //#region BIMv2Links
 
-            String tabNameLinks = "BIMv2Ссылки";    // создание вкладки
-            application.CreateRibbonTab(tabNameLinks);
+            //String tabNameLinks = "BIMv2Ссылки";    // создание вкладки
+            //application.CreateRibbonTab(tabNameLinks);
 
-            // Add a new ribbon panel
-            RibbonPanel ribbonPanelLinks1 = application.CreateRibbonPanel(tabNameLinks, "Полезные ссылки: Мой YouTube, Telegram, Blog, Boosty, Donationalerts"); //подпись под кнопками
+            //// Add a new ribbon panel
+            //RibbonPanel ribbonPanelLinks1 = application.CreateRibbonPanel(tabNameLinks, "Полезные ссылки: Мой YouTube, Telegram, Blog, Boosty, Donationalerts"); //подпись под кнопками
 
-            PushButtonData bHData1 = new PushButtonData("cmdHelpBIM", "Группа в"
-               + Environment.NewLine + "Телеграм", thisAssemblyPath, "BIMv2.HelpBIMTelegram");
+            //PushButtonData bHData1 = new PushButtonData("cmdHelpBIM", "Группа в"
+            //   + Environment.NewLine + "Телеграм", thisAssemblyPath, "BIMv2.HelpBIMTelegram");
 
-            PushButton pbH1 = ribbonPanelLinks1.AddItem(bHData1) as PushButton;
-            pbH1.ToolTip = "Подписываемся, ставим лайки, комментируем";
+            //PushButton pbH1 = ribbonPanelLinks1.AddItem(bHData1) as PushButton;
+            //pbH1.ToolTip = "Подписываемся, ставим лайки, комментируем";
 
-            BitmapImage pbHImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-whatsapp-32.png"));
-            pbH1.LargeImage = pbHImage;
+            //BitmapImage pbHImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-whatsapp-32.png"));
+            //pbH1.LargeImage = pbHImage;
 
-            //попробуем создать еще одну кнопку
-            ribbonPanelLinks1.AddSeparator(); //разделитель между кнопками
+            ////попробуем создать еще одну кнопку
+            //ribbonPanelLinks1.AddSeparator(); //разделитель между кнопками
 
-            PushButtonData bHData2 = new PushButtonData("cmdHelpBIMBlog", "Мой"
-              + Environment.NewLine + "блог", thisAssemblyPath, "BIMv2.HelpBIMBlog");
+            //PushButtonData bHData2 = new PushButtonData("cmdHelpBIMBlog", "Мой"
+            //  + Environment.NewLine + "блог", thisAssemblyPath, "BIMv2.HelpBIMBlog");
 
-            PushButton pbH2 = ribbonPanelLinks1.AddItem(bHData2) as PushButton;
-            pbH2.ToolTip = "Подписываемся, ставим лайки, комментируем";
+            //PushButton pbH2 = ribbonPanelLinks1.AddItem(bHData2) as PushButton;
+            //pbH2.ToolTip = "Подписываемся, ставим лайки, комментируем";
 
-            BitmapImage pbHImage2 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/blog2bim.png"));
-            pbH2.LargeImage = pbHImage2;
+            //BitmapImage pbHImage2 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/blog2bim.png"));
+            //pbH2.LargeImage = pbHImage2;
 
-            //попробуем создать еще одну кнопку
-            ribbonPanelLinks1.AddSeparator(); //разделитель между кнопками
+            ////попробуем создать еще одну кнопку
+            //ribbonPanelLinks1.AddSeparator(); //разделитель между кнопками
 
-            PushButtonData bHData3 = new PushButtonData("cmdHelpBIMBoosty", "Поддержать"
-              + Environment.NewLine + "Boosty", thisAssemblyPath, "BIMv2.HelpBIMBoosty");
+            //PushButtonData bHData3 = new PushButtonData("cmdHelpBIMBoosty", "Поддержать"
+            //  + Environment.NewLine + "Boosty", thisAssemblyPath, "BIMv2.HelpBIMBoosty");
 
-            PushButton pbH3 = ribbonPanelLinks1.AddItem(bHData3) as PushButton;
-            pbH3.ToolTip = "Подписываемся, ставим лайки, комментируем";
+            //PushButton pbH3 = ribbonPanelLinks1.AddItem(bHData3) as PushButton;
+            //pbH3.ToolTip = "Подписываемся, ставим лайки, комментируем";
 
-            BitmapImage pbHImage3 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/boosty.png"));
-            pbH3.LargeImage = pbHImage3;
+            //BitmapImage pbHImage3 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/boosty.png"));
+            //pbH3.LargeImage = pbHImage3;
             
-            //попробуем создать еще одну кнопку
-            ribbonPanelLinks1.AddSeparator(); //разделитель между кнопками
+            ////попробуем создать еще одну кнопку
+            //ribbonPanelLinks1.AddSeparator(); //разделитель между кнопками
 
 
-            PushButtonData bHData4 = new PushButtonData("cmdHelpBIMDA", "Поддержать"
-              + Environment.NewLine + "donationalerts", thisAssemblyPath, "BIMv2.HelpBIMDA");
+            //PushButtonData bHData4 = new PushButtonData("cmdHelpBIMDA", "Поддержать"
+            //  + Environment.NewLine + "donationalerts", thisAssemblyPath, "BIMv2.HelpBIMDA");
 
-            PushButton pbH4 = ribbonPanelLinks1.AddItem(bHData4) as PushButton;
-            pbH4.ToolTip = "Подписываемся, ставим лайки, комментируем";
+            //PushButton pbH4 = ribbonPanelLinks1.AddItem(bHData4) as PushButton;
+            //pbH4.ToolTip = "Подписываемся, ставим лайки, комментируем";
 
-            BitmapImage pbHImage4 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/da.png"));
-            pbH4.LargeImage = pbHImage4;
+            //BitmapImage pbHImage4 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/da.png"));
+            //pbH4.LargeImage = pbHImage4;
 
-            //попробуем создать еще одну кнопку
-            ribbonPanelLinks1.AddSeparator(); //разделитель между кнопками
+            ////попробуем создать еще одну кнопку
+            //ribbonPanelLinks1.AddSeparator(); //разделитель между кнопками
 
-            PushButtonData bHData5 = new PushButtonData("cmdHelpBIMYouTube", "Подпишись на"
-              + Environment.NewLine + "YouTube", thisAssemblyPath, "BIMv2.HelpBIMYouTube");
+            //PushButtonData bHData5 = new PushButtonData("cmdHelpBIMYouTube", "Подпишись на"
+            //  + Environment.NewLine + "YouTube", thisAssemblyPath, "BIMv2.HelpBIMYouTube");
 
-            PushButton pbH5 = ribbonPanelLinks1.AddItem(bHData5) as PushButton;
-            pbH5.ToolTip = "Подписываемся, ставим лайки, комментируем";
+            //PushButton pbH5 = ribbonPanelLinks1.AddItem(bHData5) as PushButton;
+            //pbH5.ToolTip = "Подписываемся, ставим лайки, комментируем";
 
-            BitmapImage pbHImage5 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-youtube-32.png"));
-            pbH5.LargeImage = pbHImage5;
+            //BitmapImage pbHImage5 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-youtube-32.png"));
+            //pbH5.LargeImage = pbHImage5;
 
-            //попробуем создать еще одну кнопку
-            ribbonPanelLinks1.AddSeparator(); //разделитель между кнопками
+            ////попробуем создать еще одну кнопку
+            //ribbonPanelLinks1.AddSeparator(); //разделитель между кнопками
 
 
 
-            #endregion
+            //#endregion
 
 
         }

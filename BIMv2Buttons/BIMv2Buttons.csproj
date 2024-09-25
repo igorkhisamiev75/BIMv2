@@ -259,6 +259,7 @@
     <Compile Include="WallFinishing\WallFinishing.cs" />
     <Compile Include="WallSection\WallSection.cs" />
     <Compile Include="WriteNameRoomInFurniture\WriteNameRoomInFurniture.cs" />
+    <Compile Include="WriteNameRoomInMechanicalEquipment\WriteNameRoomInMechanicalEquipment.cs" />
     <Compile Include="WriteNameRoomInPlumbingFixtures\WriteNameRoomInPlumbingFixtures.cs" />
     <Compile Include="WriteNameRoom\WriteNameRoomInPlumbingFixtures.cs" />
     <Compile Include="WriteTypeRooms\WriteTypeRooms.cs" />

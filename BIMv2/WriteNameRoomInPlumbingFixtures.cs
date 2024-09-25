@@ -38,19 +38,19 @@ namespace BIMv2
         {
             var allElements = GetAllElements();
 
-            foreach (var e in allElements)
-            {
-                try
-                {
-                    e.get_Parameter(new Guid("a5b27858-5ce0-450c-9c3a-08693b326453")).Set("");
-                    e.get_Parameter(new Guid("7ae9b62e-a182-476b-8297-1b871e262038")).Set("");
-                }
-                catch
-                {
-                    continue;
-                }
+            //foreach (var e in allElements)
+            //{
+            //    try
+            //    {
+            //        //e.get_Parameter(new Guid("a5b27858-5ce0-450c-9c3a-08693b326453")).Set("");
+            //        //e.get_Parameter(new Guid("7ae9b62e-a182-476b-8297-1b871e262038")).Set("");
+            //    }
+            //    catch
+            //    {
+            //        continue;
+            //    }
 
-            }
+            //}
 
             _doc.Regenerate();
 
