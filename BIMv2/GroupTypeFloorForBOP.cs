@@ -6,6 +6,10 @@ using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 
+using Microsoft.Office.Interop.Excel;
+
+using Floor = Autodesk.Revit.DB.Floor;
+
 namespace BIMv2
 {
     [Transaction(TransactionMode.Manual)]
@@ -13,6 +17,10 @@ namespace BIMv2
     public class GroupTypeFloorForBOP : IExternalCommand
     {
         public List<Floor> AllF = new List<Floor>();
+        string ADSK_Примечание = "a85b7661-26b0-412f-979c-66af80b4b2c3";
+        string BIM_BOP_ГруппировкаПлощадей = "54b611f4-9020-4616-8023-a13988d3a46e";
+        string BIM_BOP_ГруппировкаПомещений = "801dc37f-9ac6-477b-91b4-8459334cb5f5";
+        string BIM_BOP_ГруппировкаПомещенийПромежуточная = "9f547840-1277-4e0d-8006-38a8abd24744";
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -24,7 +32,7 @@ namespace BIMv2
 
                 WriteToComment(doc);
 
-                TaskDialog.Show("Сделано", "Полы сгруппированы для Ведомостей Объемов Работ");
+                TaskDialog.Show("Сделано", "Полы сгруппированы для ВОР");
 
                 t.Commit();
 
@@ -36,10 +44,6 @@ namespace BIMv2
 
         public void WriteToComment(Document doc)
         {
-            string BIM_BOP_ГруппировкаПлощадей = "54b611f4-9020-4616-8023-a13988d3a46e";
-            string BIM_BOP_ГруппировкаПомещений = "801dc37f-9ac6-477b-91b4-8459334cb5f5";
-            string BIM_BOP_ГруппировкаПомещенийПромежуточная = "9f547840-1277-4e0d-8006-38a8abd24744";
-
             IList<Element> allFloors = GetAllFloorElements(doc);
             AllF.Clear();
 
@@ -58,10 +62,10 @@ namespace BIMv2
             }
 
             //group by level группировка по уровню
-            IEnumerable<IGrouping<string, Floor>> groups = AllF.GroupBy(p2 =>
+            IEnumerable<IGrouping<string, Floor>> groupsByLevel = AllF.GroupBy(p2 =>
                 p2.get_Parameter(BuiltInParameter.LEVEL_PARAM).AsValueString());
 
-            foreach (IGrouping<string, Floor> group in groups)
+            foreach (IGrouping<string, Floor> group in groupsByLevel)
             {
                 List<Floor> floorGroups = new List<Floor>();
                 floorGroups.Clear();
@@ -74,30 +78,33 @@ namespace BIMv2
                 }
 
                 //группировка по типу 
-                IEnumerable<IGrouping<string, Floor>> groupsN = floorGroups.GroupBy(p => p.Name);
+                IEnumerable<IGrouping<string, Floor>> groupstypeFloor = floorGroups.GroupBy(p => p.Name);
 
-                string squeFloor = "";
-
-                foreach (IGrouping<string, Floor> group2 in groupsN)
+                foreach (IGrouping<string, Floor> group2 in groupstypeFloor)
                 {
-                    List<Floor> floorGroups2 = new List<Floor>();
-                    floorGroups2.Clear();
+                    List<string> squeFloorList = new List<string>();
+                    List<Floor> floorGroupsByType = new List<Floor>();
 
-                    foreach (Floor elWall in group2)
+                    floorGroupsByType.Clear();
+                    squeFloorList.Clear();
+                    foreach (Floor elFloor in group2)
                     {
-
-                        floorGroups2.Add(elWall);
-
+                        floorGroupsByType.Add(elFloor);
+                        //squeFloorList.Add(elFloor.get_Parameter(BuiltInParameter.HOST_AREA_COMPUTED).AsValueString());
                     }
+
+                    
+
+
 
                     //группировка по имени помещения 
                     //ALL_MODEL_INSTANCE_COMMENTS
-                    IEnumerable<IGrouping<string, Floor>> groupsN2 = floorGroups2.GroupBy(p =>
+                    IEnumerable<IGrouping<string, Floor>> groupsN2ByComment = floorGroupsByType.GroupBy(p =>
                     p.LookupParameter("Комментарии").AsString());
 
                     //пробегаемся по сгруппированным значениям
 
-                    foreach (IGrouping<string, Floor> element in groupsN2)
+                    foreach (IGrouping<string, Floor> element in groupsN2ByComment)
                     {
                         IList<string> numroomList = new List<string>();
                         numroomList.Clear();
@@ -108,16 +115,24 @@ namespace BIMv2
                         foreach (Element t in element)
                         {
                             //ADSK_Примечание
-                            string otd = t.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString();
+                            string otd = t.get_Parameter(new Guid(ADSK_Примечание)).AsString();
                             if (otd != null)
                             {
                                 //string[] subs = otd.Split(' ');
                                 numroomList.Add(otd);
+
+                                //nen
+                                //squeFloorList.Add(t.get_Parameter(BuiltInParameter.HOST_AREA_COMPUTED).AsValueString());
+
+
                             }
 
                             nameRoom = t.LookupParameter("Комментарии").AsString();
 
                         }
+
+                        //squeFloorList.Reverse();
+                        
 
                         //clean list
                         List<string> newList = new List<string>(numroomList.Distinct());
@@ -136,8 +151,10 @@ namespace BIMv2
                             //t.get_Parameter(new Guid("6b89127c-f4ec-4724-b120-8d4b5cdcdcb6")).Set(numbersAllRoomString);
                             //BIM_BOP_ГруппировкаПомещенийПромежуточная
                             t.get_Parameter(new Guid(BIM_BOP_ГруппировкаПомещенийПромежуточная)).Set(nameRoom + " пом.: " + numbersAllRoomString);
+                            //t.get_Parameter(new Guid(BIM_BOP_ГруппировкаПлощадей)).Set(squeFloorString);
 
                         }
+                        //squeFloorList.Clear();
                         doc.Regenerate();
 
                     }
@@ -145,7 +162,7 @@ namespace BIMv2
                     //пройтись и собрать сгруппированые с помещениями
                     IList<string> numroomListPom = new List<string>();
 
-                    foreach (Floor floor in floorGroups2) 
+                    foreach (Floor floor in floorGroupsByType) 
                     {
                         string otd = floor.get_Parameter(new Guid(BIM_BOP_ГруппировкаПомещенийПромежуточная)).AsString(); //ADSK_Примечание
                         if (otd != null)
@@ -157,20 +174,43 @@ namespace BIMv2
                     }
 
                     //clean list
-                    List<string> newList3 = new List<string>(numroomListPom.Distinct());
+                    List<string> listWithNamberRoom = new List<string>(numroomListPom.Distinct());
 
-                    newList3.Sort();
+                    listWithNamberRoom.Sort();
 
-                    string numbersAllRoomString2 = string.Join(", ", newList3.ToArray());
+
+                    //тут стринг с именами и номерами помещений
+                    string numbersAllRoomString2 = string.Join(", ", listWithNamberRoom.ToArray());
+                    string[] separators = new string[] { ",", " " };
+
+                    string[] strings = numbersAllRoomString2.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+
+                    //пройдемся по листу и вытащим номера которые подтянут площади
+
+                    foreach (string floor in strings)
+                    {
+                        //var floorString = floor.Replace(",", "");
+                        var floorString = floor.TrimEnd();
+
+                        string sq = GetSquareFloorByNameRoom(floor, floorGroupsByType);
+                        if (sq != null)
+                        {
+                            squeFloorList.Add(sq);
+                        }
+                    }
+
+                    string squeFloorString = string.Join(" + ", squeFloorList.ToArray());
 
                     numroomListPom.Clear();
 
-                    foreach (Element t in floorGroups2)
+                    foreach (Element t in floorGroupsByType)
                     {
-                        t.get_Parameter(new Guid(BIM_BOP_ГруппировкаПомещений)).Set(numbersAllRoomString2); 
+                        t.get_Parameter(new Guid(BIM_BOP_ГруппировкаПомещений)).Set(numbersAllRoomString2);
+                        t.get_Parameter(new Guid(BIM_BOP_ГруппировкаПлощадей)).Set(squeFloorString);
                     }
-
-
+                    squeFloorList .Clear();
+                    squeFloorString = "";
                 }
 
             }
@@ -183,7 +223,34 @@ namespace BIMv2
                 .OfCategory(BuiltInCategory.OST_Floors)
                 .WhereElementIsNotElementType();
             IList<Element> allFloors = floor_collector.ToElements();
+            
             return allFloors;
+        }
+
+
+        public string GetSquareFloorByNameRoom(string name, List<Floor> floors)
+        {
+            string square = "";
+
+            foreach (Floor floor in floors) 
+            {
+                var pr=floor.get_Parameter(new Guid(ADSK_Примечание)).AsString();
+
+                if(pr == name)
+                {
+                    square = floor.get_Parameter(BuiltInParameter.HOST_AREA_COMPUTED).AsValueString();
+                    return square;
+                    break;
+                }
+                else
+                {
+                    return null;
+                }
+
+            }
+
+            return square;
+
         }
 
     }
