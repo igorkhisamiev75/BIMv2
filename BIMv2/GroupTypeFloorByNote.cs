@@ -6,7 +6,7 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 
 namespace BIMv2
-{
+{ 
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]
     public class GroupTypeFloorByNote : IExternalCommand
@@ -35,9 +35,6 @@ namespace BIMv2
 
         public void WriteToComment(Document doc)
         {
-            string BIM_BOP_ГруппировкаПлощадей = "54b611f4-9020-4616-8023-a13988d3a46e";
-            string BIM_BOP_ГруппировкаПомещений = "801dc37f-9ac6-477b-91b4-8459334cb5f5";
-
             IList<Element> allFloors = GetAllFloorElements(doc);
             AllF.Clear();
 
@@ -52,12 +49,12 @@ namespace BIMv2
                 {
                     continue;
                 }
-                
+
             }
 
             //group by level
             IEnumerable<IGrouping<string, Floor>> groups = AllF.GroupBy(p2 =>
-                p2.LookupParameter("Level").AsValueString());
+                p2.get_Parameter(BuiltInParameter.LEVEL_PARAM).AsValueString());
 
             foreach (IGrouping<string, Floor> group in groups)
             {
@@ -82,8 +79,7 @@ namespace BIMv2
                     //создаем массив с номерами помещений
                     foreach (Element t in element)
                     {
-                        //ADSK_Примечание
-                        string otd = t.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString();
+                        string otd = t.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString(); //ADSK_Примечание
                         if (otd != null)
                         {
                             //string[] subs = otd.Split(' ');
@@ -105,8 +101,7 @@ namespace BIMv2
 
                     foreach (Element t in element)
                     {
-                        //ADSK_Отделка_Группировка
-                        t.get_Parameter(new Guid("6b89127c-f4ec-4724-b120-8d4b5cdcdcb6")).Set(numbersAllRoomString);
+                        t.get_Parameter(new Guid("6b89127c-f4ec-4724-b120-8d4b5cdcdcb6")).Set(numbersAllRoomString); //ADSK_Отделка_Группировка
                     }
 
                 }

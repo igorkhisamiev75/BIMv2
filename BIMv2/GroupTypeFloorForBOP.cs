@@ -57,82 +57,119 @@ namespace BIMv2
 
             }
 
-            //group by level
+            //group by level группировка по уровню
             IEnumerable<IGrouping<string, Floor>> groups = AllF.GroupBy(p2 =>
-                p2.LookupParameter("Level").AsValueString());
+                p2.get_Parameter(BuiltInParameter.LEVEL_PARAM).AsValueString());
 
             foreach (IGrouping<string, Floor> group in groups)
             {
                 List<Floor> floorGroups = new List<Floor>();
                 floorGroups.Clear();
 
-                foreach (Floor elWall in group)
+                foreach (Floor el in group)
                 {
-                    floorGroups.Add(elWall);
+                  
+                  floorGroups.Add(el);
+                  
                 }
 
                 //группировка по типу 
                 IEnumerable<IGrouping<string, Floor>> groupsN = floorGroups.GroupBy(p => p.Name);
 
-                List<Floor> floorGroups2 = new List<Floor>();
-                floorGroups2.Clear();
+                string squeFloor = "";
 
-                foreach (Floor elWall in groupsN)
+                foreach (IGrouping<string, Floor> group2 in groupsN)
                 {
-                    floorGroups2.Add(elWall);
-                }
+                    List<Floor> floorGroups2 = new List<Floor>();
+                    floorGroups2.Clear();
 
-
-
-
-                //группировка по имени помещения 
-                //ALL_MODEL_INSTANCE_COMMENTS
-                IEnumerable<IGrouping<string, Floor>> groupsN2 = floorGroups2.GroupBy(p => 
-                p.LookupParameter("Комментарии").AsString());   
-
-                //пробегаемся по сгруппированным значениям
-
-                foreach (IGrouping<string, Element> element in groupsN2)
-                {
-                    IList<string> numroomList = new List<string>();
-                    numroomList.Clear();
-
-                    string nameRoom = "";
-
-                    //создаем массив с номерами помещений
-                    foreach (Element t in element)
+                    foreach (Floor elWall in group2)
                     {
-                        //ADSK_Примечание
-                        string otd = t.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString();
+
+                        floorGroups2.Add(elWall);
+
+                    }
+
+                    //группировка по имени помещения 
+                    //ALL_MODEL_INSTANCE_COMMENTS
+                    IEnumerable<IGrouping<string, Floor>> groupsN2 = floorGroups2.GroupBy(p =>
+                    p.LookupParameter("Комментарии").AsString());
+
+                    //пробегаемся по сгруппированным значениям
+
+                    foreach (IGrouping<string, Floor> element in groupsN2)
+                    {
+                        IList<string> numroomList = new List<string>();
+                        numroomList.Clear();
+
+                        string nameRoom = "";
+
+                        //создаем массив с номерами помещений
+                        foreach (Element t in element)
+                        {
+                            //ADSK_Примечание
+                            string otd = t.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString();
+                            if (otd != null)
+                            {
+                                //string[] subs = otd.Split(' ');
+                                numroomList.Add(otd);
+                            }
+
+                            nameRoom = t.LookupParameter("Комментарии").AsString();
+
+                        }
+
+                        //clean list
+                        List<string> newList = new List<string>(numroomList.Distinct());
+
+                        newList.Sort();
+
+                        string numbersAllRoomString = string.Join(", ", newList.ToArray());
+
+                        numroomList.Clear();
+
+                        //и записываем это массив в каждый номер этого массива
+
+                        foreach (Element t in element)
+                        {
+                            //ADSK_Отделка_Группировка
+                            //t.get_Parameter(new Guid("6b89127c-f4ec-4724-b120-8d4b5cdcdcb6")).Set(numbersAllRoomString);
+                            //BIM_BOP_ГруппировкаПомещенийПромежуточная
+                            t.get_Parameter(new Guid(BIM_BOP_ГруппировкаПомещенийПромежуточная)).Set(nameRoom + " пом.: " + numbersAllRoomString);
+
+                        }
+                        doc.Regenerate();
+
+                    }
+
+                    //пройтись и собрать сгруппированые с помещениями
+                    IList<string> numroomListPom = new List<string>();
+
+                    foreach (Floor floor in floorGroups2) 
+                    {
+                        string otd = floor.get_Parameter(new Guid(BIM_BOP_ГруппировкаПомещенийПромежуточная)).AsString(); //ADSK_Примечание
                         if (otd != null)
                         {
                             //string[] subs = otd.Split(' ');
-                            numroomList.Add(otd);
+                            numroomListPom.Add(otd);
                         }
-
-                        nameRoom = t.LookupParameter("Комментарии").AsString();
 
                     }
 
                     //clean list
-                    List<string> newList = new List<string>(numroomList.Distinct());
+                    List<string> newList3 = new List<string>(numroomListPom.Distinct());
 
-                    newList.Sort();
+                    newList3.Sort();
 
-                    string numbersAllRoomString = string.Join(", ", newList.ToArray());
+                    string numbersAllRoomString2 = string.Join(", ", newList3.ToArray());
 
-                    numroomList.Clear();
+                    numroomListPom.Clear();
 
-                    //и записываем это массив в каждый номер этого массива
-
-                    foreach (Element t in element)
+                    foreach (Element t in floorGroups2)
                     {
-                        //ADSK_Отделка_Группировка
-                        //t.get_Parameter(new Guid("6b89127c-f4ec-4724-b120-8d4b5cdcdcb6")).Set(numbersAllRoomString);
-                        //BIM_BOP_ГруппировкаПомещенийПромежуточная
-                        t.get_Parameter(new Guid(BIM_BOP_ГруппировкаПомещенийПромежуточная)).Set(nameRoom+" пом.: " +numbersAllRoomString);
-
+                        t.get_Parameter(new Guid(BIM_BOP_ГруппировкаПомещений)).Set(numbersAllRoomString2); 
                     }
+
 
                 }
 
