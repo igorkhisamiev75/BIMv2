@@ -243,6 +243,7 @@
     <Compile Include="GetRoomForElementsFinishing.cs" />
     <Compile Include="GroupByMarkEqupmentFurnitureAndWriteToComment.cs" />
     <Compile Include="GroupingLighting.cs" />
+    <Compile Include="GroupTypeFloorForBOP.cs" />
     <Compile Include="GroupWallsBeams.cs" />
     <Compile Include="JoinWalls.cs" />
     <Compile Include="MakingHolesForDoorsLink.cs" />

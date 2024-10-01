@@ -28,10 +28,9 @@ namespace BIMv2
             {
                 t.Start("Select all plumbing fixtures");
                 WriteNameRoomInElementMethod(uiApp);
-                TaskDialog.Show("У тебя получилось", "Complite!!!☺☺☺");
+                TaskDialog.Show("У тебя получилось", "Выполнено!1");
                 t.Commit();
-                t.Start();
-                var res = t.Commit();
+
             }
             return Result.Succeeded;
         }
@@ -39,70 +38,111 @@ namespace BIMv2
         {
             var allElements = GetAllElements();
 
-            foreach (var e in allElements)
+            //foreach (var e in allElements)
+            //{
+            //    try
+            //    {
+            //        //e.get_Parameter(new Guid("a5b27858-5ce0-450c-9c3a-08693b326453")).Set("");
+            //        //e.get_Parameter(new Guid("7ae9b62e-a182-476b-8297-1b871e262038")).Set("");
+            //    }
+            //    catch
+            //    {
+            //        continue;
+            //    }
+
+            //}
+
+            _doc.Regenerate();
+
+
+            foreach (Element e in allElements)
             {
-                var loc = e.Location;
-                var locPoint = (LocationPoint)loc;
-                var pointPF = locPoint.Point;
-                var myRoom = FindRoom(_doc, pointPF);
-                var nameRoom = "";
-                var numberRoom = "";
-
-                var BIM_NumRoom = "7ae9b62e-a182-476b-8297-1b871e262038";
-                var BIM_NameRoom = "a5b27858-5ce0-450c-9c3a-08693b326453";
-
-                var etag = "9eabf56c-a6cd-4b5c-a9d0-e9223e19ea3f";
-                var levElement = e.get_Parameter(BuiltInParameter.SCHEDULE_LEVEL_PARAM).AsValueString();
-                e.get_Parameter(new Guid(etag)).Set(levElement);
-
-
-                if (myRoom != null)
+                try
                 {
-                    numberRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();
-                    nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+                    var faz = e.ArePhasesModifiable();
 
-                    e.get_Parameter(new Guid(BIM_NumRoom)).Set(numberRoom);
-                    e.get_Parameter(new Guid(BIM_NameRoom)).Set(nameRoom);
-
-                }
-                else
-                {
-
-
-                    var linkedInstances = FindLinkedInstances();
-                    foreach (var linkInstance in linkedInstances)
+                    if (faz == true)
                     {
-                        var transform = linkInstance.GetTotalTransform().Inverse;
-                        var targetPoint = transform.OfPoint(pointPF);
-                        var linkDocument = linkInstance.GetLinkDocument();
+                        var loc = e.Location;
 
-                        var room = FindRoom(linkDocument, targetPoint);
+                        var L2 = e as FamilyInstance;
 
-                        if (room != null)
+                        XYZ verPoint = L2.GetSpatialElementCalculationPoint();
+
+                        LocationPoint locPoint = (LocationPoint)loc;
+                        LocationPoint pointPF = locPoint;
+
+                        //if (verPoint != null)
+
+
+                        var myRoom = FindRoom(_doc, verPoint);
+
+                        var nameRoom = "";
+                        var numberRoom = "";
+
+                        var BIM_NumRoom = "7ae9b62e-a182-476b-8297-1b871e262038";
+                        var BIM_NameRoom = "a5b27858-5ce0-450c-9c3a-08693b326453";
+
+
+                        if (myRoom != null)
                         {
-                            string[] subs = room.Name.Split(' ');
+                            nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+                            numberRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();
 
-                            e.get_Parameter(new Guid(BIM_NumRoom))
-                                .Set(room.Number + " " + subs[0]);
+                            e.get_Parameter(new Guid("a5b27858-5ce0-450c-9c3a-08693b326453")).Set(nameRoom);
+                            e.get_Parameter(new Guid("7ae9b62e-a182-476b-8297-1b871e262038")).Set(numberRoom);
+
+
+
                         }
                         else
                         {
-                            nameRoom = "Проверить точку привязки к помещению";
-                            e.get_Parameter(new Guid(BIM_NameRoom))
-                                .Set(nameRoom);
-                        }
+                            //nameRoom = "Проверь точку в семействе и помещение в проекте";
+                            //numberRoom = "Проверь точку в семействе и помещение в проекте";
+                            //e.get_Parameter(new Guid("a5b27858-5ce0-450c-9c3a-08693b326453")).Set(nameRoom);
+                            //e.get_Parameter(new Guid("7ae9b62e-a182-476b-8297-1b871e262038")).Set(numberRoom);
 
+
+                            //var linkedInstances = FindLinkedInstances();
+                            //foreach (var linkInstance in linkedInstances)
+                            //{
+                            //    var transform = linkInstance.GetTotalTransform().Inverse;
+                            //    var targetPoint = transform.OfPoint(pointPF);
+                            //    var linkDocument = linkInstance.GetLinkDocument();
+
+                            //    var room = FindRoom(linkDocument, targetPoint);
+                            //    if (room != null)
+                            //    {
+                            //        string[] subs = room.Name.Split(' ');
+
+                            //        e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
+                            //            .Set(room.Number + " " + subs[0]);
+                            //    }
+                            //    else
+                            //    {
+                            //        nameRoom = "It's not in Room";
+                            //        e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
+                            //            .Set(nameRoom);
+                            //    }
+
+                            //}
+                        }
                     }
+
+
+
                 }
+                catch { }
+
             }
         }
+
         public IList<Element> GetAllElements()
         {
             // List all plumbing fixtures
             //var plumbingFixCollector = new FilteredElementCollector(_doc).OfClass(typeof(FamilyInstance));
             //plumbingFixCollector.OfCategory(BuiltInCategory.OST_PlumbingFixtures);
             //var plFixList = plumbingFixCollector.ToElements();
-
             //// List all generic
             //var genericCollector = new FilteredElementCollector(_doc).OfClass(typeof(FamilyInstance));
             //genericCollector.OfCategory(BuiltInCategory.OST_GenericModel);
@@ -114,12 +154,10 @@ namespace BIMv2
             //var plFixList3 = seCollector.ToElements();
             //foreach (var VARIABLE in plFixList3) plFixList.Add(VARIABLE);
             //// List all furniture
-            ///
-            //IList<Element> plFixList = new List<Element>();
             var fCollector = new FilteredElementCollector(_doc).OfClass(typeof(FamilyInstance));
             fCollector.OfCategory(BuiltInCategory.OST_Furniture);
             var plFixList4 = fCollector.ToElements();
-            //foreach (var VARIABLE in plFixList4) plFixList.Add(VARIABLE);
+            
             return plFixList4;
         }
         private IEnumerable<RevitLinkInstance> FindLinkedInstances()
