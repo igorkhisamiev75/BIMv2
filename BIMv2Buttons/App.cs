@@ -323,6 +323,23 @@ namespace BIMv2Buttons
             BitmapImage pb1ImageB3_7 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-stairs-32.png"));
             pb1B3_7.LargeImage = pb1ImageB3_7;
 
+            // Add a new ribbon panel
+            RibbonPanel ribbonPanelb3 = application.CreateRibbonPanel(tabNameB2, "Надстройка для ПТО"); //подпись под кнопками
+
+            // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData pto1Data = new PushButtonData("cmdGroupTypeFloorForBOP.cs", "Подчет перекрытий"
+                + Environment.NewLine + "для ВОРовиков", thisAssemblyPath, "BIMv2.GroupTypeFloorForBOP");
+
+            PushButton pbPTO1 = ribbonPanelb3.AddItem(pto1Data) as PushButton;
+            pbPTO1.ToolTip = "Магическим образом не понятным никому, кроме Игоря, объединяет и группирует перекрытия";
+
+            BitmapImage pbPTO1Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-builder-32.png"));
+            pbPTO1.LargeImage = pbPTO1Image;
+
+            //попробуем создать еще одну кнопку
+            ribbonPanelb2.AddSeparator(); //разделитель между кнопками
+
+
             #endregion
 
             #region BIMv2
