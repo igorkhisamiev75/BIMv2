@@ -23,6 +23,7 @@ namespace BIMv2
         string BIM_BOP_ГруппировкаПлощадей = "54b611f4-9020-4616-8023-a13988d3a46e";
         string BIM_BOP_ГруппировкаПомещений = "801dc37f-9ac6-477b-91b4-8459334cb5f5";
         string BIM_BOP_ГруппировкаПомещенийПромежуточная = "9f547840-1277-4e0d-8006-38a8abd24744";
+        string BIM_BOP_СуммарнаяПлощадьПоТипу = "f830d403-0bd6-462b-b32a-f2e4d69b7a95";
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -202,6 +203,16 @@ namespace BIMv2
                         }
                     }
 
+                    List<float> numberList = new List<float>();
+
+                    float sum = 0;
+                    foreach (string sq in squeFloorList)
+                    {
+                        float number =Convert.ToSingle(sq);
+                        sum += number;
+                    }
+
+
                     string squeFloorString = string.Join(" + ", squeFloorList.ToArray());
 
                    
@@ -210,6 +221,7 @@ namespace BIMv2
                     {
                         t.get_Parameter(new Guid(BIM_BOP_ГруппировкаПомещений)).Set(numbersAllRoomString2);
                         t.get_Parameter(new Guid(BIM_BOP_ГруппировкаПлощадей)).Set(squeFloorString);
+                        t.get_Parameter(new Guid(BIM_BOP_СуммарнаяПлощадьПоТипу)).Set(sum.ToString());
                     }
 
                     numroomListPom.Clear();
@@ -234,8 +246,7 @@ namespace BIMv2
 
         public string GetSquareFloorByNameRoom(string name, List<Floor> floors)
         {
-            string square = "1";
-
+            
             IEnumerable<Floor> gg = floors.Where(x => x.get_Parameter(new Guid(ADSK_Примечание))
           .AsString() == name);
 
