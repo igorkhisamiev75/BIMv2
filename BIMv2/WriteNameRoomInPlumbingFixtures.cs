@@ -69,12 +69,6 @@ namespace BIMv2
 
                         XYZ verPoint = L2.GetSpatialElementCalculationPoint();
 
-                        LocationPoint locPoint = (LocationPoint)loc;
-                        LocationPoint pointPF = locPoint;
-
-                        //if (verPoint != null)
-
-
                         var myRoom = FindRoom(_doc, verPoint);
 
                         var nameRoom = "";

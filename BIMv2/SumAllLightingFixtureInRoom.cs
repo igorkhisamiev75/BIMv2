@@ -7,8 +7,11 @@ using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
+using Autodesk.Revit.DB.Mechanical;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Selection;
+
+using ExcelDataReader.Log;
 
 #endregion
 
@@ -29,18 +32,20 @@ namespace BIMv2
             _app = uiApp.Application;
             _doc = uiDoc.Document;
 
-            Selection selection = uiDoc.Selection;
-            IList<Element> sElements = selection.PickElementsByRectangle();
+            //Selection selection = uiDoc.Selection;
+            //IList<Element> sElements = selection.PickElementsByRectangle();
 
 
             using (var t = new Transaction(_doc))
             {
                 t.Start("Select all lighting fixtures");
-                
+
+                IList<Element> sElements= GetAllElements();
+
                 WriteNameRoomInElementMethod(uiApp, sElements);
                 SumAllLightningFixInRoom();
 
-                TaskDialog.Show("Complite!", "Complite!  ☺☺☺");
+                TaskDialog.Show("Выполнено", "Чисто Мишане за 5-ку обновил плагин 2");
 
                 t.Commit();
                
@@ -51,75 +56,76 @@ namespace BIMv2
 
         public void WriteNameRoomInElementMethod(UIApplication uiApp, IList<Element> sElements) //проставляем помещения в светильники
         {
-            IList<Element> allElements = new List<Element>();
+            //IList<Element> allElements = new List<Element>();
 
             //Selection selection = uiApp.ActiveUIDocument.Selection;
             //IList<Element> sElements2 = selection.PickElementsByRectangle();
             
-            if (sElements == null)
-            {
-                allElements = GetAllElements(); //get all lighting
-            }
-            else
-            {
-                allElements = sElements;
-            }
+            //if (sElements == null)
+            //{
+            //    allElements = GetAllElements(); //get all lighting
+            //}
+            //else
+            //{
+            //    allElements = sElements;
+            //}
 
             
 
-            foreach (var e in allElements)
+            foreach (var e in sElements)
             {
-                Room myRoom;
+                Space myRoom;
                 var nameRoom = "";
                 var familyInstance = (FamilyInstance)e;
 
                 if (familyInstance.HasSpatialElementCalculationPoint) // if calculation point == true
                 {
-                    var scp = familyInstance.GetSpatialElementCalculationPoint();
-                    myRoom = FindRoom(_doc, scp);
+                    XYZ scp = familyInstance.GetSpatialElementCalculationPoint();
+
+                    myRoom = FindSpace(_doc, scp);
 
                     if (myRoom != null)
                     {
-                        nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
-                                   myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+                        nameRoom = myRoom.get_Parameter(BuiltInParameter.SPACE_ASSOC_ROOM_NUMBER).AsString() + " " +
+                                   myRoom.get_Parameter(BuiltInParameter.SPACE_ASSOC_ROOM_NAME).AsString();
 
                         e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
                             .Set(nameRoom);
-                        break;
+                     
                     }
 
-                    else
-                    {
-                        var linkedInstances = FindLinkedInstances(); //get all linked files
-                        foreach (var linkInstance in linkedInstances)
-                        {
-                            var transform = linkInstance.GetTotalTransform().Inverse;
-                            var targetPoint = transform.OfPoint(scp);
-                            var linkDocument = linkInstance.GetLinkDocument();
+                    //else
+                    //{
+                    //    var linkedInstances = FindLinkedInstances(); //get all linked files
+                    //    foreach (var linkInstance in linkedInstances)
+                    //    {
+                    //        var transform = linkInstance.GetTotalTransform().Inverse;
+                    //        var targetPoint = transform.OfPoint(scp);
+                    //        var linkDocument = linkInstance.GetLinkDocument();
 
-                            var room = FindRoom(linkDocument, targetPoint);
-                            if (room != null)
-                            {
-                                nameRoom = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
-                                           room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
-                                //var subs = room.Name.Split(' ');
+                    //        var room = FindSpace(linkDocument, targetPoint);
+                    //        if (room != null)
+                    //        {
+                    //            nameRoom = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
+                    //                       room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+                    //            //var subs = room.Name.Split(' ');
 
-                                //e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
-                                //    .Set(room.Number + " " + subs[0]);
+                    //            //e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
+                    //            //    .Set(room.Number + " " + subs[0]);
 
-                                e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
-                                    .Set(nameRoom);
+                    //            e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
+                    //                .Set(nameRoom);
                                 
-                                break;
-                            }
-                            else
-                            {
-                                nameRoom = "It's not in Room";
-                                e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
-                                    .Set(nameRoom);
-                            }
-                        }
-                    }
+                    //            break;
+                    //        }
+                    //        else
+                    //        {
+                    //            nameRoom = "It's not in Room";
+                    //            e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
+                    //                .Set(nameRoom);
+                    //        }
+                    //    }
+                    //}
                     
                 }
 
@@ -129,49 +135,49 @@ namespace BIMv2
                     var locPoint = (LocationPoint)loc;
                     var pointPF = locPoint.Point;
 
-                    myRoom = FindRoom(_doc, pointPF);
+                    myRoom = FindSpace(_doc, pointPF);
                     if (myRoom != null)
                     {
-                        nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
-                                   myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+                        nameRoom = myRoom.get_Parameter(BuiltInParameter.SPACE_ASSOC_ROOM_NUMBER).AsString() + " " +
+                                  myRoom.get_Parameter(BuiltInParameter.SPACE_ASSOC_ROOM_NAME).AsString();
 
                         e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
                             .Set(nameRoom);
                     }
 
-                    else
-                    {
-                        var linkedInstances = FindLinkedInstances(); //get all linked files
-                        foreach (var linkInstance in linkedInstances)
-                        {
-                            var transform = linkInstance.GetTotalTransform().Inverse;
-                            var targetPoint = transform.OfPoint(pointPF);
-                            var linkDocument = linkInstance.GetLinkDocument();
+                    //else
+                    //{
+                    //    var linkedInstances = FindLinkedInstances(); //get all linked files
+                    //    foreach (var linkInstance in linkedInstances)
+                    //    {
+                    //        var transform = linkInstance.GetTotalTransform().Inverse;
+                    //        var targetPoint = transform.OfPoint(pointPF);
+                    //        var linkDocument = linkInstance.GetLinkDocument();
 
-                            var room = FindRoom(linkDocument, targetPoint);
-                            if (room != null)
-                            {
-                                nameRoom = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
-                                           room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+                    //        var room = FindSpace(linkDocument, targetPoint);
+                    //        if (room != null)
+                    //        {
+                    //            nameRoom = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
+                    //                       room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
 
-                                //var subs = room.Name.Split(' ');
+                    //            //var subs = room.Name.Split(' ');
 
-                                //e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
-                                //    .Set(room.Number + " " + subs[0]);
-                                e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
-                                    .Set(nameRoom);
-                                break;
+                    //            //e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
+                    //            //    .Set(room.Number + " " + subs[0]);
+                    //            e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
+                    //                .Set(nameRoom);
+                    //            break;
 
-                            }
-                            else
-                            {
-                                nameRoom = "It's not in Room";
-                                e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
-                                    .Set(nameRoom);
-                            }
-                        }
+                    //        }
+                    //        else
+                    //        {
+                    //            nameRoom = "It's not in Room";
+                    //            e.get_Parameter(new Guid("c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5"))
+                    //                .Set(nameRoom);
+                    //        }
+                    //    }
 
-                    }
+                    //}
                 }
                 
                 
@@ -243,5 +249,16 @@ namespace BIMv2
 
             return null;
         }
+
+        private static Space FindSpace(Document document, XYZ point)
+        {
+                return document
+                    .Phases
+                    .Cast<Phase>()
+                    .Select(x => document.GetSpaceAtPoint(point, x))
+                    .FirstOrDefault(x => x != null);
+           
+        }
+
     }
 }

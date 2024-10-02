@@ -250,7 +250,7 @@
     <Compile Include="HelpBIMTelegram\HelpBIMTelegram.cs" />
     <Compile Include="HelpBimYouTube\HelpBIMYouTube.cs" />
     <Compile Include="HelpBIMBlog\HelpBIMBlog.cs" />
-    <Compile Include="LightingFixtures\SumAllLightingFixtureInRoom.cs" />
+    <Compile Include="SumAllLightingFixtureInRoom\SumAllLightingFixtureInRoom.cs" />
     <Compile Include="MakingHolesForFacadeWindowsDoors\MakingHolesForFacadeWindowsDoors.cs" />
     <Compile Include="MakingHolesForFacadeWindows\MakingHolesForFacadeWindows.cs" />
     <Compile Include="MakingHolesForWindows\MakingHolesForWindows.cs" />
