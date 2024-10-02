@@ -8,6 +8,8 @@ using Autodesk.Revit.UI;
 
 using Microsoft.Office.Interop.Excel;
 
+using static Autodesk.Revit.DB.SpecTypeId;
+
 using Floor = Autodesk.Revit.DB.Floor;
 
 namespace BIMv2
@@ -86,7 +88,7 @@ namespace BIMv2
                     List<Floor> floorGroupsByType = new List<Floor>();
 
                     floorGroupsByType.Clear();
-                    squeFloorList.Clear();
+                    //squeFloorList.Clear();
                     foreach (Floor elFloor in group2)
                     {
                         floorGroupsByType.Add(elFloor);
@@ -183,7 +185,7 @@ namespace BIMv2
                     string numbersAllRoomString2 = string.Join(", ", listWithNamberRoom.ToArray());
                     string[] separators = new string[] { ",", " " };
 
-                    string[] strings = numbersAllRoomString2.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    string[] strings = numbersAllRoomString2.Split(separators, StringSplitOptions.RemoveEmptyEntries);
 
 
                     //пройдемся по листу и вытащим номера которые подтянут площади
@@ -194,7 +196,7 @@ namespace BIMv2
                         var floorString = floor.TrimEnd();
 
                         string sq = GetSquareFloorByNameRoom(floor, floorGroupsByType);
-                        if (sq != null)
+                        if (sq != string.Empty)
                         {
                             squeFloorList.Add(sq);
                         }
@@ -202,15 +204,17 @@ namespace BIMv2
 
                     string squeFloorString = string.Join(" + ", squeFloorList.ToArray());
 
-                    numroomListPom.Clear();
+                   
 
                     foreach (Element t in floorGroupsByType)
                     {
                         t.get_Parameter(new Guid(BIM_BOP_ГруппировкаПомещений)).Set(numbersAllRoomString2);
                         t.get_Parameter(new Guid(BIM_BOP_ГруппировкаПлощадей)).Set(squeFloorString);
                     }
+
+                    numroomListPom.Clear();
                     squeFloorList .Clear();
-                    squeFloorString = "";
+                    //squeFloorString = "";
                 }
 
             }
@@ -230,27 +234,24 @@ namespace BIMv2
 
         public string GetSquareFloorByNameRoom(string name, List<Floor> floors)
         {
-            string square = "";
+            string square = "1";
 
-            foreach (Floor floor in floors) 
+            IEnumerable<Floor> gg = floors.Where(x => x.get_Parameter(new Guid(ADSK_Примечание))
+          .AsString() == name);
+
+            //gg.get_Parameter(BuiltInParameter.HOST_AREA_COMPUTED).AsValueString();
+            if (gg.Count() != 0)
             {
-                var pr=floor.get_Parameter(new Guid(ADSK_Примечание)).AsString();
+                Floor f = gg.FirstOrDefault();
 
-                if(pr == name)
-                {
-                    square = floor.get_Parameter(BuiltInParameter.HOST_AREA_COMPUTED).AsValueString();
-                    return square;
-                    break;
-                }
-                else
-                {
-                    return null;
-                }
-
+                return f.get_Parameter(BuiltInParameter.HOST_AREA_COMPUTED).AsValueString();
+                //return square;
             }
+           
+            else { return string.Empty; }
+           
 
-            return square;
-
+            
         }
 
     }
