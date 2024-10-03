@@ -19,7 +19,7 @@ namespace BIMv2
         string ADSK_Примечание = "a85b7661-26b0-412f-979c-66af80b4b2c3";
      
         string BIM_BOP_ПериметрСВычетомДверныхПроемов = "a0f435e9-380d-4734-905c-9f96ca39ca87";
-        string BIM_BOP_ПериметрСВычетомДверныхПроемовЧисловой = "a0f435e9-380d-4734-905c-9f96ca39ca87";
+        string BIM_BOP_ПериметрСВычетомДверныхПроемовЧисловой = "3e207c92-bd4d-4876-b309-2b64c77ef7f9";
 
 
         private Document _doc;
@@ -61,12 +61,12 @@ namespace BIMv2
 
                 }
 
-                TaskDialog.Show("Сделано", $"Дверей в проекте АР {doorList.Count}");
+                //TaskDialog.Show("Сделано", $"Дверей в проекте АР {doorList.Count}");
 
 
                 WriteToComment(doc, doorList, documentLinkModelAr);
 
-                TaskDialog.Show("Сделано", "Периметры прописаны в перекрытия с вычетом дверных проемов для ВОР");
+                //TaskDialog.Show("Сделано", "Периметры прописаны в перекрытия с вычетом дверных проемов для ВОР");
 
                 t.Commit();
 
@@ -119,11 +119,17 @@ namespace BIMv2
                                 string numberDoorToRoom = familyInstance.ToRoom.Number;
                                 string numberDoorFromRoom = familyInstance.FromRoom.Number;
 
-                                if (namberRoomFloor == numberDoorToRoom || namberRoomFloor == numberDoorFromRoom)
+                                if (namberRoomFloor == numberDoorToRoom )
                                 {
                                     perimetrInt = perimetrInt - widhtDoorInt;
                                 }
-                               
+
+
+                                if ( namberRoomFloor == numberDoorFromRoom)
+                                {
+                                    perimetrInt = perimetrInt - widhtDoorInt;
+                                }
+
                             }
                             catch { }
 
@@ -132,7 +138,13 @@ namespace BIMv2
                     }
 
                     floorElement.get_Parameter(new Guid(BIM_BOP_ПериметрСВычетомДверныхПроемов)).Set(perimetrInt.ToString());
-                    floorElement.get_Parameter(new Guid(BIM_BOP_ПериметрСВычетомДверныхПроемовЧисловой)).Set(perimetrInt);
+
+                    double perDouble=Convert.ToDouble(perimetrInt.ToString());
+                    var perimetrInt2 = UnitUtils.ConvertToInternalUnits (perDouble, UnitTypeId.Millimeters);
+
+                  
+
+                    floorElement.get_Parameter(new Guid(BIM_BOP_ПериметрСВычетомДверныхПроемовЧисловой)).Set(perimetrInt2);
 
                 }
                 catch (Exception e)
