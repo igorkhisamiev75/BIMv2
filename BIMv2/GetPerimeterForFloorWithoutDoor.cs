@@ -19,6 +19,8 @@ namespace BIMv2
         string ADSK_Примечание = "a85b7661-26b0-412f-979c-66af80b4b2c3";
      
         string BIM_BOP_ПериметрСВычетомДверныхПроемов = "a0f435e9-380d-4734-905c-9f96ca39ca87";
+        string BIM_BOP_ПериметрСВычетомДверныхПроемовЧисловой = "a0f435e9-380d-4734-905c-9f96ca39ca87";
+
 
         private Document _doc;
 
@@ -32,10 +34,12 @@ namespace BIMv2
 
             Document doc = commandData.Application.ActiveUIDocument.Document;
 
+          
+
             using (var t = new Transaction(doc))
             {
                 t.Start("Stage 2");
-
+                Document documentLinkModelAr = doc;
                 //получить все двери со связей
 
                 IList<Element> doorList= new List<Element>();
@@ -52,6 +56,7 @@ namespace BIMv2
                     if (d!=null &&  d.Title == "27_PD_AR_ALL_MRGT_R23_SHD")
                     {
                         doorList = GetAllDoorElements(d);
+                        documentLinkModelAr = d;
                     }
 
                 }
@@ -59,7 +64,7 @@ namespace BIMv2
                 TaskDialog.Show("Сделано", $"Дверей в проекте АР {doorList.Count}");
 
 
-                WriteToComment(doc, doorList);
+                WriteToComment(doc, doorList, documentLinkModelAr);
 
                 TaskDialog.Show("Сделано", "Периметры прописаны в перекрытия с вычетом дверных проемов для ВОР");
 
@@ -71,7 +76,7 @@ namespace BIMv2
 
         }
 
-        public void WriteToComment(Document doc, IList<Element> elementsDoor)
+        public void WriteToComment(Document doc, IList<Element> elementsDoor, Document d2)
         {
             IList<Element> allFloors = GetAllFloorElements(doc);
 
@@ -84,7 +89,7 @@ namespace BIMv2
                     string perimetrStringFloor = floorElement.get_Parameter(BuiltInParameter.HOST_PERIMETER_COMPUTED).AsValueString();
                     int perimetrInt = Convert.ToInt32(perimetrStringFloor);
 
-                    //номер помещения
+                    //номер помещения записанный в перекрытии
                     string namberRoomFloor = floorElement.get_Parameter(new Guid(ADSK_Примечание)).AsString();
 
                     //проходим по дверям
@@ -92,7 +97,7 @@ namespace BIMv2
                     {
                         FamilyInstance familyInstance = doorElement as FamilyInstance;
 
-                        ElementType type = _doc.GetElement(doorElement.GetTypeId()) as ElementType;
+                        ElementType type = d2.GetElement(doorElement.GetTypeId()) as ElementType;
                         string widhtDoor = "0";
 
                         //ширина двери в типе
@@ -127,12 +132,13 @@ namespace BIMv2
                     }
 
                     floorElement.get_Parameter(new Guid(BIM_BOP_ПериметрСВычетомДверныхПроемов)).Set(perimetrInt.ToString());
+                    floorElement.get_Parameter(new Guid(BIM_BOP_ПериметрСВычетомДверныхПроемовЧисловой)).Set(perimetrInt);
 
                 }
                 catch (Exception e)
 
                 {
-                    //floorElement.get_Parameter(new Guid(BIM_BOP_ПериметрСВычетомДверныхПроемов)).Set("Error");
+                    floorElement.get_Parameter(new Guid(BIM_BOP_ПериметрСВычетомДверныхПроемов)).Set("Error");
                 }
              }
 
