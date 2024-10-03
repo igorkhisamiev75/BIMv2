@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Controls;
 
 using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;
@@ -46,7 +47,7 @@ namespace BIMv2
                 WriteNameRoomInElementMethod(uiApp, sElements);
                 SumAllLightningFixInRoom();
 
-                TaskDialog.Show("Выполнено", "Чисто Мишане за 5-ку обновил плагин 2");
+                TaskDialog.Show("Выполнено", "Чисто Мишане за 10-ку обновил плагин ");
 
                 t.Commit();
 
@@ -191,6 +192,8 @@ namespace BIMv2
 
             var listLightFixtturel = GetAllElements();
             var sharedGUIDZONA = "c78f0a7d-b68b-4d21-a247-1c8c6ced8bc5";
+
+            //число светильников
             var sharedGUIDCOUNTLIGHTFIX = "bd940efd-bae8-43c6-a839-454b44ff6baa";
 
             foreach (var svet in listLightFixtturel)
@@ -211,10 +214,17 @@ namespace BIMv2
         public string getFamilyName(Element e)
         {
             var sharedADSKNaimenovanie = "e6e0f5cd-3e26-485b-9342-23882b20eb43";
+            var sharedADSKNaimenovanie2 = "f194bf60-b880-4217-b793-1e0c30dda5e9";
+
             //var eId = e.GetTypeId();
             //var elementType = (ElementType)_doc.GetElement(eId);
             //var familyName = elementType.FamilyName;
-            var nameADSKNaimenovanie = e.GetTypeId().ToString();
+            //var nameADSKNaimenovanie = e.GetTypeId().ToString();
+
+            ElementType type = _doc.GetElement(e.GetTypeId()) as ElementType;
+
+            var nameADSKNaimenovanie = type.get_Parameter(new Guid(sharedADSKNaimenovanie2)).AsString();
+
             return nameADSKNaimenovanie;
         }
 
