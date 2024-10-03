@@ -240,6 +240,7 @@
     <Compile Include="FindNameRoomForWall.cs" />
     <Compile Include="FindRoomsForWallsBeams.cs" />
     <Compile Include="FinishingOnTheStairs.cs" />
+    <Compile Include="GetPerimeterForFloorWithoutDoor.cs" />
     <Compile Include="GetRoomForElementsFinishing.cs" />
     <Compile Include="GroupByMarkEqupmentFurnitureAndWriteToComment.cs" />
     <Compile Include="GroupingLighting.cs" />
