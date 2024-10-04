@@ -87,10 +87,17 @@ namespace BIMv2
 
                     //периметр перекрытия
                     string perimetrStringFloor = floorElement.get_Parameter(BuiltInParameter.HOST_PERIMETER_COMPUTED).AsValueString();
-                    int perimetrInt = Convert.ToInt32(perimetrStringFloor);
+
+                    double perimetrInt = Convert.ToDouble(perimetrStringFloor);
 
                     //номер помещения записанный в перекрытии
-                    string namberRoomFloor = floorElement.get_Parameter(new Guid(ADSK_Примечание)).AsString();
+                    string namberRoomFloor = floorElement.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).AsValueString()
+                        +" "+ floorElement.get_Parameter(new Guid(ADSK_Примечание)).AsString();
+
+                    //получим уровень
+
+                    var floorLevel=floorElement.get_Parameter(BuiltInParameter.SCHEDULE_LEVEL_PARAM).AsValueString();
+
 
                     //проходим по дверям
                     foreach (Element doorElement in elementsDoor)
@@ -99,6 +106,7 @@ namespace BIMv2
 
                         ElementType type = d2.GetElement(doorElement.GetTypeId()) as ElementType;
                         string widhtDoor = "0";
+                        string levelDoor = doorElement.get_Parameter(BuiltInParameter.SCHEDULE_LEVEL_PARAM).AsValueString();
 
                         //ширина двери в типе
                         if (type != null)
@@ -108,25 +116,34 @@ namespace BIMv2
                         }
 
 
-                        int widhtDoorInt = Convert.ToInt32(widhtDoor);
+                        double widhtDoorInt = Convert.ToDouble(widhtDoor);
 
 
-                        if (familyInstance != null)
+                        if (familyInstance != null && 
+                            familyInstance.Name != "ADSK_Дверь_Проем"&&
+                            floorLevel==levelDoor
+                            )
                         {
 
                             try
                             {
-                                string numberDoorToRoom = familyInstance.ToRoom.Number;
-                                string numberDoorFromRoom = familyInstance.FromRoom.Number;
+                                string numberDoorToRoom = familyInstance.ToRoom.Name;
+                                string numberDoorFromRoom = familyInstance.FromRoom.Name;
 
                                 if (namberRoomFloor == numberDoorToRoom )
                                 {
+                                    //TaskDialog.Show("Сделано", $"Зашли сюда numberDoorToRoom {numberDoorToRoom}");
+                                    //TaskDialog.Show("Сделано", $"Зашли сюда дверь numberDoorToRoom {doorElement.Name}");
+
                                     perimetrInt = perimetrInt - widhtDoorInt;
                                 }
 
 
-                                if ( namberRoomFloor == numberDoorFromRoom)
+                                if (namberRoomFloor == numberDoorFromRoom)
                                 {
+                                    //TaskDialog.Show("Сделано", $"Дверей в проекте АР numberDoorFromRoom {numberDoorFromRoom}");
+                                    //TaskDialog.Show("Сделано", $"Зашли сюда дверь numberDoorToRoom {doorElement.Name}");
+
                                     perimetrInt = perimetrInt - widhtDoorInt;
                                 }
 
@@ -150,6 +167,7 @@ namespace BIMv2
                 catch (Exception e)
 
                 {
+                    //TaskDialog.Show("Сделано", $"{e.Message}");
                     floorElement.get_Parameter(new Guid(BIM_BOP_ПериметрСВычетомДверныхПроемов)).Set("Error");
                 }
              }
