@@ -209,6 +209,7 @@
     <Compile Include="CreateFinishWallinRooms.cs" />
     <Compile Include="CreateFinishWallinSelectedRoom.cs" />
     <Compile Include="CreateFloorInRoom.cs" />
+    <Compile Include="CreateFromDWG.cs" />
     <Compile Include="CreateNewTypeAnnotation.cs" />
     <Compile Include="CreateNotPlacedRooms.cs" />
     <Compile Include="CreateOpeningsInWallForStructuralFraming.cs" />
