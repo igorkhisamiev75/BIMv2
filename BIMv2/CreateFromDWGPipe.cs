@@ -56,49 +56,52 @@ namespace BIMv2
                     foreach (var e in R2)
                     {
                         Element elem = uiDoc.Document.GetElement(e);
+                      
                         elements1.Add(elem);
                     }
 
 
                 }
 
-                List<myPipeFromLine> myPipeFromLines = new List<myPipeFromLine>(); 
+                List<myPipeFromLine> myPipeFromLines = new List<myPipeFromLine>();
 
                 foreach (Element item in elements1)
                 {
                     myPipeFromLine myPipeFromLine2 = new myPipeFromLine();
 
-                    DetailLine detaiLine = item as DetailLine;
+                    DetailLine detaiLine;
+                    DetailArc detaiLine2;
 
-                    string nameLine = detaiLine.LineStyle.Name;
+                    detaiLine = item as DetailLine;
+                    detaiLine2 = item as DetailArc;
 
-                    if (nameLine != null)
+                    string nameLine = "";
+
+                    if (detaiLine != null)
                     {
+
+                        nameLine=detaiLine.LineStyle.Name;
                         string[] separators = new string[] { "_", " " };
 
                         string[] strings = nameLine.Split(separators, StringSplitOptions.RemoveEmptyEntries);
 
-                        var d = Convert.ToSingle(strings.Last);
+                        var d = Convert.ToSingle(strings.LastOrDefault());
 
                         if (d > 0)
                         {
-                            myPipeFromLine2.dPipe = Convert.ToSingle(strings.Last);
+                            myPipeFromLine2.dPipe = d;
                         }
                         else
                         {
                             myPipeFromLine2.dPipe = 25;
                         }
-                        
-                    }
 
-                    if (detaiLine != null)
-                    {
                         var gg = detaiLine.GeometryCurve;
 
                         var f = gg.Tessellate();
 
-                        myPipeFromLine2.firstPoint=f.FirstOrDefault();
-                        myPipeFromLine2.lastPoint=f.LastOrDefault();
+                        myPipeFromLine2.firstPoint = f.FirstOrDefault();
+                        myPipeFromLine2.lastPoint = f.LastOrDefault();
 
 
                         myPipeFromLines.Add(myPipeFromLine2);
@@ -117,7 +120,7 @@ namespace BIMv2
                 {
                     try
                     {
-                       var pipe = CreateNewPipe(_doc, systemType, level.Id, item);
+                        var pipe = CreateNewPipe(_doc, systemType, level.Id, item);
                         double d1 = item.dPipe;
 
                         double d2 = UnitUtils.ConvertToInternalUnits(d1, UnitTypeId.Millimeters);
@@ -126,9 +129,9 @@ namespace BIMv2
                     }
 
                     catch (Exception ex) { }
-                    
+
                 }
-               
+
 
 
 
@@ -141,12 +144,13 @@ namespace BIMv2
                 //CreateElement(elements1, elem3);
                 //CreateAnyElementInLinkedFiles(elem);
 
+
                 TaskDialog.Show("Complite!", $"Размещено {elements1.Count} элементов");
                 t.Commit();
 
-            }
 
-            return Result.Succeeded;
+                return Result.Succeeded;
+            }
         }
 
         private void CreateElement(List<Element> elemList, Element elementSplinkler)
