@@ -89,7 +89,10 @@ namespace BIMv2
 
                 if (importInstance != null) {
 
-                   var transf = importInstance.GetTransform().Origin;
+                    //var transf = importInstance.GetTransform().Origin;
+                    XYZ transf = (element.get_BoundingBox( _doc.ActiveView).Min+ element.get_BoundingBox(_doc.ActiveView).Max)/2;
+
+
 
                     FamilyInstance instLight = _doc.Create.NewFamilyInstance(
                               transf, familySymbol, level1, StructuralType.NonStructural);
