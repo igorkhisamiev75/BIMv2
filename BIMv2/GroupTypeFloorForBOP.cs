@@ -98,7 +98,8 @@ namespace BIMv2
 
                     //группировка по имени помещения 
                     //ALL_MODEL_INSTANCE_COMMENTS
-                    IEnumerable<IGrouping<string, Floor>> groupsN2ByComment = floorGroupsByType.GroupBy(p =>
+                    IEnumerable<IGrouping<string, Floor>> groupsN2ByComment = 
+                        floorGroupsByType.GroupBy(p =>
                     p.LookupParameter("Комментарии").AsString());
 
                     //пробегаемся по сгруппированным значениям

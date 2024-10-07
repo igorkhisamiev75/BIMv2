@@ -38,7 +38,9 @@ namespace BIMv2
             using (var t = new Transaction(_doc))
             {
                 t.Start("Create");
-                
+
+                TaskDialog.Show("Complite!", "Выбрать DWG элементы");
+
                 IList<Reference> R2 = uiDoc.Selection.PickObjects(ObjectType.Element,  "SELECT ELEMENTS");
 
                 //
@@ -57,6 +59,7 @@ namespace BIMv2
 
                 }
 
+                TaskDialog.Show("Complite!", "Выбрать элемент размещения");
                 Reference r = uiDoc.Selection.PickObject(ObjectType.Element, "Выбрать сплинклер");
                 Element elem3 = uiDoc.Document.GetElement(r);
 

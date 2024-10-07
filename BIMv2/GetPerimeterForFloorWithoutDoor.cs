@@ -157,7 +157,7 @@ namespace BIMv2
                     floorElement.get_Parameter(new Guid(BIM_BOP_ПериметрСВычетомДверныхПроемов)).Set(perimetrInt.ToString());
 
                     double perDouble=Convert.ToDouble(perimetrInt.ToString());
-                    var perimetrInt2 = UnitUtils.ConvertToInternalUnits (perDouble, UnitTypeId.Millimeters);
+                    double perimetrInt2 = UnitUtils.ConvertToInternalUnits(perDouble, UnitTypeId.Millimeters);
 
                   
 
