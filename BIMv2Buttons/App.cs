@@ -390,9 +390,6 @@ namespace BIMv2Buttons
             PushButtonData pushButtonData3Count = new PushButtonData("cmdCountFinishCeiling.cs", "Посчитать отделку - потолки", thisAssemblyPath, "BIMv2.CountFinishCeiling");
             pushButtonData3Count.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-floor-32.png"));
 
-
-
-
             // Make a split button now 
             SplitButtonData splitBtnDataCount = new SplitButtonData("SplitButton3", "Split Button3");
             SplitButton splitBtnCount = ribbonPanel.AddItem(splitBtnDataCount) as SplitButton;
@@ -723,20 +720,52 @@ namespace BIMv2Buttons
             BitmapImage pb17Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-ws-32.png"));
             pb17.LargeImage = pb17Image;
 
+            ////попробуем создать еще одну кнопку
+            //ribbonPanel4.AddSeparator(); //разделитель между кнопками
+
+            //PushButtonData b20Data = new PushButtonData("cmdCreateModelTextRoomNameInRoom.cs", "Подписать"
+            //    + Environment.NewLine + "помещения в 3D", thisAssemblyPath, "BIMv2.CreateModelTextRoomNameInRoom");
+
+            //PushButton pb20 = ribbonPanel4.AddItem(b20Data) as PushButton;
+            //pb20.ToolTip = "Подписать помещения с помощью семейства Для подписи помещений.rfa";
+
+            //BitmapImage pb20Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-sign-32.png"));
+            //pb20.LargeImage = pb20Image;
+
+
+
+            ////попробуем создать еще одну кнопку
+            //ribbonPanel4.AddSeparator(); //разделитель между кнопками
+
             //попробуем создать еще одну кнопку
             ribbonPanel4.AddSeparator(); //разделитель между кнопками
 
-            PushButtonData b20Data = new PushButtonData("cmdCreateModelTextRoomNameInRoom.cs", "Подписать"
-                + Environment.NewLine + "помещения в 3D", thisAssemblyPath, "BIMv2.CreateModelTextRoomNameInRoom");
+            // Create three push buttons for split button drop down 
 
-            PushButton pb20 = ribbonPanel4.AddItem(b20Data) as PushButton;
-            pb20.ToolTip = "Подписать помещения с помощью семейства Для подписи помещений.rfa";
+            // #1 
+            PushButtonData pushButtonBIM = new PushButtonData("cmdCreateModelTextRoomNameInRoom.cs", "Подписать помещения в 3D", thisAssemblyPath, "BIMv2.CreateModelTextRoomNameInRoom");
+            pushButtonBIM.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-sign-32.png"));
+            // #2 
+            PushButtonData pushButtonBIM2 = new PushButtonData("cmdBIMv2.CreateFromDWG.cs", "Расставить элементы по DWG", thisAssemblyPath, "BIMv2.CreateFromDWG");
+            pushButtonBIM2.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-sign-32.png"));
+            // #3 
+            PushButtonData pushButtonBIM3 = new PushButtonData("cmdCreateFromDWGPipe.cs", "Расставить трубы по DWG", thisAssemblyPath, "BIMv2.CreateFromDWGPipe");
+            pushButtonBIM3.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-sign-32.png"));
 
-            BitmapImage pb20Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-sign-32.png"));
-            pb20.LargeImage = pb20Image;
+
+
+
+            // Make a split button now 
+            SplitButtonData splitBtnBIMCount = new SplitButtonData("SplitButtonBIM", "Split ButtonBIM");
+            SplitButton splitBtnBIM = ribbonPanel4.AddItem(splitBtnBIMCount) as SplitButton;
+
+            splitBtnBIM.AddPushButton(pushButtonBIM);
+            splitBtnBIM.AddPushButton(pushButtonBIM2);
+            splitBtnBIM.AddPushButton(pushButtonBIM3);
 
             //попробуем создать еще одну кнопку
             ribbonPanel4.AddSeparator(); //разделитель между кнопками
+
 
 
             PushButtonData b25Data = new PushButtonData("cmdDuplicateSheets.cs", "Скопировать"

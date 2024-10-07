@@ -89,13 +89,13 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="PresentationFramework" />
-    <Reference Include="RevitAPI, Version=19.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2019\RevitAPI.dll</HintPath>
+    <Reference Include="RevitAPI">
+      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2021\RevitAPI.dll</HintPath>
+      <Private>False</Private>
     </Reference>
-    <Reference Include="RevitAPIUI, Version=19.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2019\RevitAPIUI.dll</HintPath>
+    <Reference Include="RevitAPIUI">
+      <HintPath>..\..\..\..\..\..\Program Files\Autodesk\Revit 2021\RevitAPIUI.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -200,6 +200,8 @@
     <Compile Include="CreateFinishWallinRooms\ViewWPF.xaml.cs">
       <DependentUpon>ViewWPF.xaml</DependentUpon>
     </Compile>
+    <Compile Include="CreateFromDWG\CreateFromDWG.cs" />
+    <Compile Include="CreateFromDWG\CreateFromDWGPipe.cs" />
     <Compile Include="CreateLightingInRoom\CreateLightingInRoom.cs" />
     <Compile Include="CreateModelTextRoomNameInRoom\CreateModelTextRoomNameInRoom.cs" />
     <Compile Include="CreateModelText\CreateModelText.cs" />
