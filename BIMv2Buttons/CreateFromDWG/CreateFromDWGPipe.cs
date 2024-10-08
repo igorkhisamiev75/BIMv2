@@ -56,7 +56,7 @@ namespace BIMv2
                     foreach (var e in R2)
                     {
                         Element elem = uiDoc.Document.GetElement(e);
-                      
+
                         elements1.Add(elem);
                     }
 
@@ -80,7 +80,7 @@ namespace BIMv2
                     if (detaiLine != null)
                     {
 
-                        nameLine=detaiLine.LineStyle.Name;
+                        nameLine = detaiLine.LineStyle.Name;
                         string[] separators = new string[] { "_", " " };
 
                         string[] strings = nameLine.Split(separators, StringSplitOptions.RemoveEmptyEntries);
@@ -123,7 +123,10 @@ namespace BIMv2
                         var pipe = CreateNewPipe(_doc, systemType, level.Id, item);
                         double d1 = item.dPipe;
 
-                        double d2 = UnitUtils.ConvertToInternalUnits(d1, UnitTypeId.Millimeters);
+                        //double d2 = UnitUtils.ConvertToInternalUnits(d1, UnitTypeId.Millimeters);
+
+                        double d2 = UnitUtils.Convert(d1, DisplayUnitType.DUT_MILLIMETERS,
+                                            DisplayUnitType.DUT_DECIMAL_INCHES);
                         pipe.get_Parameter(BuiltInParameter.RBS_PIPE_DIAMETER_PARAM).Set(d2);
 
                     }
@@ -184,7 +187,7 @@ namespace BIMv2
 
             }
 
-           
+
 
         }
 
@@ -238,9 +241,9 @@ namespace BIMv2
 
     public class myPipeFromLine
     {
-        public double dPipe {  get; set; }
+        public double dPipe { get; set; }
         public XYZ firstPoint { get; set; }
-        public XYZ lastPoint { get; set; }    
+        public XYZ lastPoint { get; set; }
 
 
     }

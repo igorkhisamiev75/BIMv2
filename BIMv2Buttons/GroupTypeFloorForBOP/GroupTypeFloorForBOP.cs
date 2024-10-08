@@ -8,7 +8,7 @@ using Autodesk.Revit.UI;
 
 using Microsoft.Office.Interop.Excel;
 
-using static Autodesk.Revit.DB.SpecTypeId;
+//using static Autodesk.Revit.DB.SpecTypeId;
 
 using Floor = Autodesk.Revit.DB.Floor;
 

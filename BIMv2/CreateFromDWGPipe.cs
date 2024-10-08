@@ -123,7 +123,10 @@ namespace BIMv2
                         var pipe = CreateNewPipe(_doc, systemType, level.Id, item);
                         double d1 = item.dPipe;
 
-                        double d2 = UnitUtils.ConvertToInternalUnits(d1, UnitTypeId.Millimeters);
+                        //double d2 = UnitUtils.ConvertToInternalUnits(d1, UnitTypeId.Millimeters);
+
+                        double d2 = UnitUtils.Convert(d1, DisplayUnitType.DUT_DECIMAL_INCHES,
+                                            DisplayUnitType.DUT_MILLIMETERS);
                         pipe.get_Parameter(BuiltInParameter.RBS_PIPE_DIAMETER_PARAM).Set(d2);
 
                     }
