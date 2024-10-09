@@ -126,7 +126,7 @@ namespace BIMv2
                         //double d2 = UnitUtils.ConvertToInternalUnits(d1, UnitTypeId.Millimeters);
 
                         double d2 = UnitUtils.Convert(d1, DisplayUnitType.DUT_MILLIMETERS,
-                                            DisplayUnitType.DUT_DECIMAL_INCHES);
+                                            DisplayUnitType.DUT_DECIMAL_FEET);
                         pipe.get_Parameter(BuiltInParameter.RBS_PIPE_DIAMETER_PARAM).Set(d2);
 
                     }
