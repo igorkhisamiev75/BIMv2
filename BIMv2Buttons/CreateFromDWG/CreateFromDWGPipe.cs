@@ -41,7 +41,7 @@ namespace BIMv2
             {
                 t.Start("Create");
 
-                TaskDialog.Show("Complite!", "Выбрать DWG элементы");
+                TaskDialog.Show("Complite!", "Выбрать DWG элементы!!!");
 
                 IList<Reference> R2 = uiDoc.Selection.PickObjects(ObjectType.Element, "SELECT ELEMENTS");
 
@@ -123,12 +123,14 @@ namespace BIMv2
                         var pipe = CreateNewPipe(_doc, systemType, level.Id, item);
                         double d1 = item.dPipe;
 
-                        //double d2 = UnitUtils.ConvertToInternalUnits(d1, UnitTypeId.Millimeters);
-
-                        double d2 = UnitUtils.Convert(d1, DisplayUnitType.DUT_MILLIMETERS,
-                                            DisplayUnitType.DUT_DECIMAL_FEET);
+#if R2019 || R2020
+ double d2 = UnitUtils.Convert(d1, DisplayUnitType.DUT_MILLIMETERS,
+                                             DisplayUnitType.DUT_DECIMAL_FEET);
                         pipe.get_Parameter(BuiltInParameter.RBS_PIPE_DIAMETER_PARAM).Set(d2);
-
+                        
+#else
+                        double d2 = UnitUtils.ConvertToInternalUnits(d1, UnitTypeId.Millimeters);
+#endif
                     }
 
                     catch (Exception ex) { }
@@ -148,7 +150,7 @@ namespace BIMv2
                 //CreateAnyElementInLinkedFiles(elem);
 
 
-                TaskDialog.Show("Complite!", $"Размещено {elements1.Count} элементов");
+                TaskDialog.Show("Complite!", $"Размещено {elements1.Count} элементов!");
                 t.Commit();
 
 
