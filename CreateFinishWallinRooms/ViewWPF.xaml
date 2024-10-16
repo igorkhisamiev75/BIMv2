@@ -46,6 +46,10 @@
          BorderThickness="1" 
          Grid.RowSpan="1"
          Grid.Column="1"/>
+        <Border BorderBrush="#FF787070" 
+         BorderThickness="1" 
+         Grid.RowSpan="3"
+         Grid.Column="1"/>
         <ListBox 
             Name="ListBox"
             Grid.Column="0"
@@ -67,7 +71,7 @@
                 VerticalAlignment="Top" 
                 Click="finish1_Click">
             <Button.Content>
-                <TextBlock Text="Выбрать помещение на плане" 
+                <TextBlock Text="Выбрать помещения на плане" 
                            TextWrapping="Wrap" 
                            TextAlignment="Center"/>
             </Button.Content>
@@ -82,7 +86,7 @@
                 Click="finishCeiling_Click" 
         >
             <Button.Content>
-                <TextBlock Text="Выбрать помещение на плане" 
+                <TextBlock Text="Выбрать помещения на плане" 
                     TextWrapping="Wrap" 
                     TextAlignment="Center"/>
             </Button.Content>
@@ -98,7 +102,7 @@
                 Click="finishFloorInOneRoom_Click" 
                >
             <Button.Content>
-                <TextBlock Text="Выбрать помещение на плане" 
+                <TextBlock Text="Выбрать помещения на плане" 
                            TextWrapping="Wrap" 
                            TextAlignment="Center"/>
             </Button.Content>

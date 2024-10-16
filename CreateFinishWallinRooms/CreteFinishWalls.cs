@@ -130,7 +130,6 @@ namespace CreateFinishWallinRooms
             filteredElementCollectorCeiling.OfClass(typeof(CeilingType));
             m_ceilingTypeCollection = filteredElementCollectorCeiling.Cast<CeilingType>().ToList<CeilingType>();
 
-
             roomsCollection = GetAllRooms(_doc);
 
             foreach (var rooms in roomsCollection)
@@ -198,7 +197,7 @@ namespace CreateFinishWallinRooms
             //get selected ceilingtype
             CeilingType selectedCeilingType = vpViewWpf.typeCeilingSelected;
 
-            TaskDialog.Show("2bim.ru", $" selected {selectedCeilingType.Name}");
+            //TaskDialog.Show("2bim.ru", $" selected {selectedCeilingType.Name}");
 
             //get rooms checked
             List<String> checkRoomsString = vpViewWpf.checkRooms;
@@ -229,6 +228,8 @@ namespace CreateFinishWallinRooms
             //whats button
             string whatsButton = vpViewWpf.whatsButton;
 
+            //граница помещения
+
             bool rb = vpViewWpf.roomBoording;
 
             using (Transaction t = new Transaction(_doc))
@@ -249,11 +250,32 @@ namespace CreateFinishWallinRooms
                 if (whatsButton == "отделкаВыборомПомещения")
                 {
 
-                    //TaskDialog.Show("2bim.ru", $"{rb.ToString()}");
-                    Element elem = SelectedElement(_doc); //select room
+                    TaskDialog.Show("2bim.ru", "Выберите помещения на плане");
+
+                    IList<Reference> R2 = uiDoc.Selection.PickObjects(ObjectType.Element, "Выбрать помещения");
+
+                    List<Element> elements1 = new List<Element>();
+
+                    if (R2 != null)
+                    {
+
+                        foreach (var e in R2)
+                        {
+                            Element elem2 = uiDoc.Document.GetElement(e);
+                            elements1.Add(elem2);
+                        }
+
+
+                    }
+
+                    //Element elem = SelectedElement(_doc); //select room
                     try
                     {
-                        CreateWallInRoom(elem, uiDoc, roomBoardingWall, selectedWallTpe);
+                        foreach (var elem in elements1)
+                        {
+                            CreateWallInRoom(elem, uiDoc, roomBoardingWall, selectedWallTpe);
+                        }
+                            
                         TaskDialog.Show("2bim.ru", "Отделка стен создана ☺☺☺");
                     }
 
@@ -292,15 +314,32 @@ namespace CreateFinishWallinRooms
 
                 if (whatsButton == "полыВыборомПомещения")
                 {
-
+                    TaskDialog.Show("2bim.ru", "Выберите помещения на плане");
                     //TaskDialog.Show("2bim.ru", "Выбери помещение на плане");
+                    IList<Reference> R2 = uiDoc.Selection.PickObjects(ObjectType.Element, "Выбрать помещения");
 
-                    Element elem = SelectedElement(_doc); //select room
+                    List<Element> elements1 = new List<Element>();
+
+                    if (R2 != null)
+                    {
+
+                        foreach (var e in R2)
+                        {
+                            Element elem2 = uiDoc.Document.GetElement(e);
+                            elements1.Add(elem2);
+                        }
+
+
+                    }
+                    //Element elem = SelectedElement(_doc); //select room
 
                     try
                     {
-                        CreateFloorInRooms(elem, selectedFloorType);
-
+                        foreach (var elem in elements1)
+                        {
+                            CreateFloorInRooms(elem, selectedFloorType);
+                            CreateFloorOpenings(elem);
+                        }
                         TaskDialog.Show("2bim.ru", "Полы созданы ☺☺☺");
 
                     }
@@ -314,20 +353,22 @@ namespace CreateFinishWallinRooms
                     t.Commit(options);
                     //_doc.Regenerate();
 
-                    try
-                    {
+                    //try
+                    //{
 
-                        t.Start();
-                        CreateFloorOpenings(elem);
+                    //    t.Start();
+                    //    foreach (var elem in elements1)
+                    //    {
+                    //        CreateFloorOpenings(elem);
+                    //    }
+                    //    TransactionStatus res = t.Commit(options);
+                    //}
 
-                        TransactionStatus res = t.Commit(options);
-                    }
+                    //catch (Exception ex)
+                    //{
+                    //    TaskDialog.Show("2bim.ru", $"{ex} ");
 
-                    catch (Exception ex)
-                    {
-                        TaskDialog.Show("2bim.ru", $"{ex} ");
-
-                    }
+                    //}
 
 
 
@@ -389,13 +430,34 @@ namespace CreateFinishWallinRooms
                 if (whatsButton == "отделкаВыборомПомещенияПотолки")
                 {
 
-                    TaskDialog.Show("2bim.ru", "отделкаВыборомПомещенияПотолки Выбери помещение на плане");
+                    TaskDialog.Show("2bim.ru", "Выберите помещения на плане");
 
-                    Element elem = SelectedElement(_doc); //select room
+                    IList<Reference> R2 = uiDoc.Selection.PickObjects(ObjectType.Element, "Выбрать помещения");
+
+                    List<Element> elements1 = new List<Element>();
+
+                    if (R2 != null)
+                    {
+
+                        foreach (var e in R2)
+                        {
+                            Element elem2 = uiDoc.Document.GetElement(e);
+                            elements1.Add(elem2);
+                        }
+
+
+                    }
+
+                    //Element elem = SelectedElement(_doc); //select room
 
                     try
                     {
-                        CreateCeilingInRooms(elem, selectedCeilingType);
+                        foreach(var elem in elements1)
+                        {
+                            CreateCeilingInRooms(elem, selectedCeilingType);
+                            //CreateCeilingOpenings(elem);
+                        }
+                        
 
                         TaskDialog.Show("2bim.ru", "Потолки созданы ☺☺☺");
 
@@ -410,23 +472,6 @@ namespace CreateFinishWallinRooms
                     t.Commit(options);
                     //_doc.Regenerate();
 
-                    try
-                    {
-
-                        //t.Start();
-                        //CreateCeilingOpenings(elem);
-
-                        //TransactionStatus res = t.Commit(options);
-                    }
-
-                    catch (Exception ex)
-                    {
-                        TaskDialog.Show("2bim.ru", $"{ex} ");
-
-                    }
-
-
-
 
                 }
 
@@ -440,10 +485,7 @@ namespace CreateFinishWallinRooms
 
                         try
                         {
-                            CreateFloorInRooms(elem, selectedFloorType);
-
-                            //TaskDialog.Show("2bim.ru", "Пол создан ☺☺☺");
-                            //_doc.Regenerate();
+                            CreateCeilingInRooms(elem, selectedCeilingType);
 
                         }
 
@@ -452,31 +494,10 @@ namespace CreateFinishWallinRooms
                             TaskDialog.Show("2bim.ru", $"{ex} ");
                         }
 
-                        t.Commit(options);
-
-                        //if (failureHandler.ErrorMessage != "")
-                        //{
-                        //    MessageBox.Show(failureHandler.ErrorSeverity + " || "
-                        //      + failureHandler.ErrorMessage);
-                        //}
-
-                        try
-                        {
-
-                            t.Start();
-                            CreateFloorOpenings(elem);
-
-                        }
-
-
-
-                        catch (Exception ex)
-                        {
-                            TaskDialog.Show("2bim.ru", $"{ex} ");
-
-                        }
-
+                        
                     }
+                    t.Commit(options);
+                    TaskDialog.Show("2bim.ru", "Потолки созданы ☺☺☺");
 
                 }
 
@@ -979,17 +1000,16 @@ namespace CreateFinishWallinRooms
 
             //IList<Element> rooms;
 
+            //CurveArray roomsCurves = new CurveArray();
+            Room room = (Room)elem;
 
-            CurveArray roomsCurves = new CurveArray();
-            Room r1 = (Room)elem;
-
-            level = r1.Level;
+            level = room.Level;
 
             string ADSK_Primechanie = "a85b7661-26b0-412f-979c-66af80b4b2c3";
-            string numberRoom = r1.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();
-            string nameRoom = r1.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+            string numberRoom = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();
+            string nameRoom = room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
 
-            double heightRoom = r1.get_Parameter(BuiltInParameter.ROOM_HEIGHT).AsDouble();
+            double heightRoom = room.get_Parameter(BuiltInParameter.ROOM_HEIGHT).AsDouble();
 
             double offsetWallInRoom = wallOffset;
 
@@ -1006,40 +1026,77 @@ namespace CreateFinishWallinRooms
 
 
             SpatialElementBoundaryOptions bo = new SpatialElementBoundaryOptions();
-            IList<IList<BoundarySegment>> segments2 = r1.GetBoundarySegments(bo);
+            IList<IList<BoundarySegment>> segments2 = room.GetBoundarySegments(bo);
 
-            CurveArray temp = new CurveArray();
+            CurveArray tempCurveArray = new CurveArray();
+            IList<CurveLoop> looplist = new List<CurveLoop>();
+            CurveLoop profile = new CurveLoop();
+
+            //TaskDialog.Show("Всего бондарей", $"{segments2.Count}"); //3
 
             if (null != segments2)
             {
-                IList<BoundarySegment> segmentList = segments2[0];
-
-
-                foreach (BoundarySegment boundarySegment in segmentList)
+                foreach (IList<BoundarySegment> segment in segments2)
                 {
-                    Curve c = boundarySegment.GetCurve();
-                    temp.Append(c);
+                    //TaskDialog.Show("Зашли в BondarySegments", $"{segment.Count}"); //1 -4 2 -2
+
+                    //IList<BoundarySegment> segmentList = segments2[0];
+                    profile = new CurveLoop();
+                    tempCurveArray = new CurveArray();
+                    //if( segment != null )
+
+                    foreach (BoundarySegment boundarySegment in segment)
+                    {
+                        Curve c = boundarySegment.GetCurve();
+                        tempCurveArray.Append(c);
+                    }
+                    CurveArray newSortCurve = SortCurves(tempCurveArray);
+
+                    //TaskDialog.Show("newSortCurve", $"{newSortCurve.Size}"); // 1 - 4 2 - 2
+
+                    foreach (var c in newSortCurve)
+                    {
+
+                        try
+                        {
+                            Line line = c as Line;
+                            //TaskDialog.Show("Line", $"{c.ToString()}");//1
+                            profile.Append(line);
+                        }
+                        catch
+                        {
+                            Arc line = c as Arc;
+                            //TaskDialog.Show("Arc", $"{c.ToString()}");
+                            profile.Append(line);
+                        }
+
+                    }
+
+                    //TaskDialog.Show("В профиль добавили", $"{profile.Count()}");//4 2
+
+
+                    looplist.Add(profile);
+                    //TaskDialog.Show("looplist", $"{looplist.Count()}");//1 2
+
                 }
-                var newSortCurve = SortCurves(temp);
 
-                CurveLoop profile = new CurveLoop();
-
-                foreach (var g in temp)
-                {
-                    profile.Append((Line)g);
-                }
+               
 
 
+            }
+
+            string v = looplist.Count.ToString();
+
+            //TaskDialog.Show("looplist", $"{v}");
 
 #if R2019 || R2020 || R2021 || R2022
                 floor = _doc.Create.NewFloor(newSortCurve, floorType3, r1.Level, false);
                 floor.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
                 floor.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
 #else
-                TaskDialog.Show("У тебя получилось", $"{profile.GetType()} Потолок создается ☺☺☺");
+            //TaskDialog.Show("У тебя получилось", $"{profile.GetType()} Потолок создается ☺☺☺");
 
-                ceiling = Ceiling.Create(_doc, new List<CurveLoop> { profile }, ceilingType.Id, level.Id);
-
+            ceiling = Ceiling.Create(_doc,  looplist , ceilingType.Id, level.Id);
 
                 ceiling.get_Parameter(BuiltInParameter.CEILING_HEIGHTABOVELEVEL_PARAM).Set(heightRoom);
 
@@ -1052,48 +1109,48 @@ namespace CreateFinishWallinRooms
                 // createdFloor = floor;
                 _doc.Regenerate();
 
-            }
+            
 
 
         }
 
         //содание отверстия в потолке
 
-        public void CreateCeilingOpenings(Element elem)
-        {
-            //CurveArray roomsCurves = new CurveArray();
-            var r1 = (Room)elem;
+        //public void CreateCeilingOpenings(Element elem)
+        //{
+        //    //CurveArray roomsCurves = new CurveArray();
+        //    var r1 = (Room)elem;
 
-            SpatialElementBoundaryOptions bo = new SpatialElementBoundaryOptions();
-            IList<IList<BoundarySegment>> segments2 = r1.GetBoundarySegments(bo);
+        //    SpatialElementBoundaryOptions bo = new SpatialElementBoundaryOptions();
+        //    IList<IList<BoundarySegment>> segments2 = r1.GetBoundarySegments(bo);
 
-            CurveArray temp2 = new CurveArray();
+        //    CurveArray temp2 = new CurveArray();
 
-            if (null != segments2)
-            {
-                for (int j = 1; j < segments2.Count; j++)
-                {
-                    IList<BoundarySegment> segmentList = segments2[j];
+        //    if (null != segments2)
+        //    {
+        //        for (int j = 1; j < segments2.Count; j++)
+        //        {
+        //            IList<BoundarySegment> segmentList = segments2[j];
 
-                    foreach (BoundarySegment boundarySegment in segmentList)
-                    {
-                        Curve c = boundarySegment.GetCurve();
-                        temp2.Append(c);
-                    }
-                    //SortCurves(temp2);
+        //            foreach (BoundarySegment boundarySegment in segmentList)
+        //            {
+        //                Curve c = boundarySegment.GetCurve();
+        //                temp2.Append(c);
+        //            }
+        //            //SortCurves(temp2);
 
-                    //Opening opening = _doc.Create.NewOpening(createdFloor, temp2, true); //create opening
+        //            //Opening opening = _doc.Create.NewOpening(createdFloor, temp2, true); //create opening
 
-                    _doc.Create.NewOpening(createdCeiling, temp2, true); //create opening
+        //            _doc.Create.NewOpening(createdCeiling, temp2, true); //create opening
 
-                    //_doc.Regenerate();
-                }
+        //            //_doc.Regenerate();
+        //        }
 
-            }
+        //    }
 
 
 
-        }
+        //}
 
     }
 }
