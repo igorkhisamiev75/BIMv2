@@ -1114,43 +1114,7 @@ namespace CreateFinishWallinRooms
 
         }
 
-        //содание отверстия в потолке
-
-        //public void CreateCeilingOpenings(Element elem)
-        //{
-        //    //CurveArray roomsCurves = new CurveArray();
-        //    var r1 = (Room)elem;
-
-        //    SpatialElementBoundaryOptions bo = new SpatialElementBoundaryOptions();
-        //    IList<IList<BoundarySegment>> segments2 = r1.GetBoundarySegments(bo);
-
-        //    CurveArray temp2 = new CurveArray();
-
-        //    if (null != segments2)
-        //    {
-        //        for (int j = 1; j < segments2.Count; j++)
-        //        {
-        //            IList<BoundarySegment> segmentList = segments2[j];
-
-        //            foreach (BoundarySegment boundarySegment in segmentList)
-        //            {
-        //                Curve c = boundarySegment.GetCurve();
-        //                temp2.Append(c);
-        //            }
-        //            //SortCurves(temp2);
-
-        //            //Opening opening = _doc.Create.NewOpening(createdFloor, temp2, true); //create opening
-
-        //            _doc.Create.NewOpening(createdCeiling, temp2, true); //create opening
-
-        //            //_doc.Regenerate();
-        //        }
-
-        //    }
-
-
-
-        //}
+      
 
     }
 }

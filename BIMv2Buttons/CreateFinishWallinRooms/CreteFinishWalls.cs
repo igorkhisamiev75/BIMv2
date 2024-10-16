@@ -22,21 +22,22 @@ namespace BIMv2
     {
         // Private Members
         IList<WallType> m_wallTypeCollection;         // Store all the wall types in current document
+        IList<CeilingType> m_ceilingTypeCollection;         // Store all the wall types in current document
         IList<FloorType> m_FloorTypeCollection;
         private const double PRECISION = 0.00000001;
         private CurveArray profile;
         public Autodesk.Revit.Creation.Application creApp;
         public FloorType floorType;
+        public CeilingType ceilingType;
         private Application _app;
         private Document _doc;
         public Floor createdFloor;
+        public Ceiling createdCeiling;
         private Level level;
         public ICollection<Element> roomsCollection = new List<Element>();
 
         public List<Level> levelCollection2 = new List<Level>();
-
         public List<Room> roomsCollection2 = new List<Room>();
-
         public List<String> roomsNameInProject = new List<String>();
 
         //public ICollection<Element> filtersCollectionCopy = new List<Element>();
@@ -59,6 +60,14 @@ namespace BIMv2
             get
             {
                 return m_wallTypeCollection;
+            }
+        }
+
+        public IList<CeilingType> CeilingTypes
+        {
+            get
+            {
+                return m_ceilingTypeCollection;
             }
         }
         // the Level on which the floors are to be placed
@@ -117,6 +126,10 @@ namespace BIMv2
             filteredElementCollectorFloor.OfClass(typeof(FloorType));
             m_FloorTypeCollection = filteredElementCollectorFloor.Cast<FloorType>().ToList<FloorType>();
 
+            // Search all the Ceiling types in the Revit
+            FilteredElementCollector filteredElementCollectorCeiling = new FilteredElementCollector(_doc);
+            filteredElementCollectorCeiling.OfClass(typeof(CeilingType));
+            m_ceilingTypeCollection = filteredElementCollectorCeiling.Cast<CeilingType>().ToList<CeilingType>();
 
             roomsCollection = GetAllRooms(_doc);
 
@@ -135,7 +148,7 @@ namespace BIMv2
             }
 
             //create form 
-            ViewWPF vpViewWpf = new ViewWPF(roomsNameInProject, WallTypes, levelCollection2, FloorTypes);
+            ViewWPF vpViewWpf = new ViewWPF(roomsNameInProject, WallTypes, levelCollection2, FloorTypes, CeilingTypes);
 
             //show form
             vpViewWpf.WindowStartupLocation = WindowStartupLocation.CenterScreen;
@@ -147,13 +160,10 @@ namespace BIMv2
 
             //TaskDialog.Show("1Смещение от уровня", $"{vpViewWpf.ofsetWallS}");
             //TaskDialog.Show("2Смещение от уровня", $"{wallOffset}");
-
 #if R2019 || R2020 || R2021 || R2022
-
             wallOffset = UnitUtils.Convert(wallOffset, DisplayUnitType.DUT_MILLIMETERS, DisplayUnitType.DUT_DECIMAL_FEET);
 #else
             wallOffset = UnitUtils.ConvertFromInternalUnits(wallOffset, UnitTypeId.Millimeters);
-
 #endif
 
             //TaskDialog.Show("3Смещение от уровня", $"{wallOffset}");
@@ -185,6 +195,11 @@ namespace BIMv2
             //get selected floortype
             FloorType selectedFloorType = vpViewWpf.typeFloorSelected;
 
+            //get selected ceilingtype
+            CeilingType selectedCeilingType = vpViewWpf.typeCeilingSelected;
+
+            //TaskDialog.Show("2bim.ru", $" selected {selectedCeilingType.Name}");
+
             //get rooms checked
             List<String> checkRoomsString = vpViewWpf.checkRooms;
 
@@ -214,6 +229,8 @@ namespace BIMv2
             //whats button
             string whatsButton = vpViewWpf.whatsButton;
 
+            //граница помещения
+
             bool rb = vpViewWpf.roomBoording;
 
             using (Transaction t = new Transaction(_doc))
@@ -234,11 +251,32 @@ namespace BIMv2
                 if (whatsButton == "отделкаВыборомПомещения")
                 {
 
-                    //TaskDialog.Show("2bim.ru", $"{rb.ToString()}");
-                    Element elem = SelectedElement(_doc); //select room
+                    TaskDialog.Show("2bim.ru", "Выберите помещения на плане");
+
+                    IList<Reference> R2 = uiDoc.Selection.PickObjects(ObjectType.Element, "Выбрать помещения");
+
+                    List<Element> elements1 = new List<Element>();
+
+                    if (R2 != null)
+                    {
+
+                        foreach (var e in R2)
+                        {
+                            Element elem2 = uiDoc.Document.GetElement(e);
+                            elements1.Add(elem2);
+                        }
+
+
+                    }
+
+                    //Element elem = SelectedElement(_doc); //select room
                     try
                     {
-                        CreateWallInRoom(elem, uiDoc, roomBoardingWall, selectedWallTpe);
+                        foreach (var elem in elements1)
+                        {
+                            CreateWallInRoom(elem, uiDoc, roomBoardingWall, selectedWallTpe);
+                        }
+
                         TaskDialog.Show("2bim.ru", "Отделка стен создана ☺☺☺");
                     }
 
@@ -277,15 +315,32 @@ namespace BIMv2
 
                 if (whatsButton == "полыВыборомПомещения")
                 {
-
+                    TaskDialog.Show("2bim.ru", "Выберите помещения на плане");
                     //TaskDialog.Show("2bim.ru", "Выбери помещение на плане");
+                    IList<Reference> R2 = uiDoc.Selection.PickObjects(ObjectType.Element, "Выбрать помещения");
 
-                    Element elem = SelectedElement(_doc); //select room
+                    List<Element> elements1 = new List<Element>();
+
+                    if (R2 != null)
+                    {
+
+                        foreach (var e in R2)
+                        {
+                            Element elem2 = uiDoc.Document.GetElement(e);
+                            elements1.Add(elem2);
+                        }
+
+
+                    }
+                    //Element elem = SelectedElement(_doc); //select room
 
                     try
                     {
-                        CreateFloorInRooms(elem, selectedFloorType);
-
+                        foreach (var elem in elements1)
+                        {
+                            CreateFloorInRooms(elem, selectedFloorType);
+                            CreateFloorOpenings(elem);
+                        }
                         TaskDialog.Show("2bim.ru", "Полы созданы ☺☺☺");
 
                     }
@@ -299,20 +354,22 @@ namespace BIMv2
                     t.Commit(options);
                     //_doc.Regenerate();
 
-                    try
-                    {
+                    //try
+                    //{
 
-                        t.Start();
-                        CreateFloorOpenings(elem);
+                    //    t.Start();
+                    //    foreach (var elem in elements1)
+                    //    {
+                    //        CreateFloorOpenings(elem);
+                    //    }
+                    //    TransactionStatus res = t.Commit(options);
+                    //}
 
-                        TransactionStatus res = t.Commit(options);
-                    }
+                    //catch (Exception ex)
+                    //{
+                    //    TaskDialog.Show("2bim.ru", $"{ex} ");
 
-                    catch (Exception ex)
-                    {
-                        TaskDialog.Show("2bim.ru", $"{ex} ");
-
-                    }
+                    //}
 
 
 
@@ -366,6 +423,82 @@ namespace BIMv2
                         }
 
                     }
+
+                }
+
+                //ceiling in selected room
+
+                if (whatsButton == "отделкаВыборомПомещенияПотолки")
+                {
+
+                    TaskDialog.Show("2bim.ru", "Выберите помещения на плане");
+
+                    IList<Reference> R2 = uiDoc.Selection.PickObjects(ObjectType.Element, "Выбрать помещения");
+
+                    List<Element> elements1 = new List<Element>();
+
+                    if (R2 != null)
+                    {
+
+                        foreach (var e in R2)
+                        {
+                            Element elem2 = uiDoc.Document.GetElement(e);
+                            elements1.Add(elem2);
+                        }
+
+
+                    }
+
+                    //Element elem = SelectedElement(_doc); //select room
+
+                    try
+                    {
+                        foreach (var elem in elements1)
+                        {
+                            CreateCeilingInRooms(elem, selectedCeilingType);
+                            //CreateCeilingOpenings(elem);
+                        }
+
+
+                        TaskDialog.Show("2bim.ru", "Потолки созданы ☺☺☺");
+
+                    }
+
+                    catch (Exception ex)
+                    {
+                        TaskDialog.Show("2bim.ru", $"{ex} ");
+
+                    }
+
+                    t.Commit(options);
+                    //_doc.Regenerate();
+
+
+                }
+
+                //floors with schedule
+
+                if (whatsButton == "отделкаПоСпекеПотолки")
+                {
+                    foreach (Room room in checkRooms)
+                    {
+                        Element elem = (Element)room; //select room
+
+                        try
+                        {
+                            CreateCeilingInRooms(elem, selectedCeilingType);
+
+                        }
+
+                        catch (Exception ex)
+                        {
+                            TaskDialog.Show("2bim.ru", $"{ex} ");
+                        }
+
+
+                    }
+                    t.Commit(options);
+                    TaskDialog.Show("2bim.ru", "Потолки созданы ☺☺☺");
 
                 }
 
@@ -581,6 +714,7 @@ namespace BIMv2
             Room room = (Room)elem;
 
             ElementId levelId = room.LevelId;
+
             double heightRoom = room.get_Parameter(BuiltInParameter.ROOM_HEIGHT).AsDouble();
 
             double offsetWallInRoom = wallOffset;
@@ -853,6 +987,135 @@ namespace BIMv2
                 return FailureProcessingResult.Continue;
             }
         }
+
+        //создание потолка
+
+        public void CreateCeilingInRooms(Element elem, CeilingType ceilingType)
+        {
+
+
+            //FloorType floorType2 = GetFloorTypeInProject(_doc);
+
+            //TaskDialog.Show("У тебя получилось", $"{ceilingType.GetType()} Пол создан ☺☺☺");
+            Ceiling ceiling;
+
+            //IList<Element> rooms;
+
+            //CurveArray roomsCurves = new CurveArray();
+            Room room = (Room)elem;
+
+            level = room.Level;
+
+            string ADSK_Primechanie = "a85b7661-26b0-412f-979c-66af80b4b2c3";
+            string numberRoom = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();
+            string nameRoom = room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+
+            double heightRoom = room.get_Parameter(BuiltInParameter.ROOM_HEIGHT).AsDouble();
+
+            double offsetWallInRoom = wallOffset;
+
+
+            if (wallHeight != 0)
+            {
+                heightRoom = wallHeight;
+            }
+
+            if (heightRoom < 0)
+            {
+                heightRoom = 1;
+            }
+
+
+            SpatialElementBoundaryOptions bo = new SpatialElementBoundaryOptions();
+            IList<IList<BoundarySegment>> segments2 = room.GetBoundarySegments(bo);
+
+            CurveArray tempCurveArray = new CurveArray();
+            IList<CurveLoop> looplist = new List<CurveLoop>();
+            CurveLoop profile = new CurveLoop();
+
+            //TaskDialog.Show("Всего бондарей", $"{segments2.Count}"); //3
+
+            if (null != segments2)
+            {
+                foreach (IList<BoundarySegment> segment in segments2)
+                {
+                    //TaskDialog.Show("Зашли в BondarySegments", $"{segment.Count}"); //1 -4 2 -2
+
+                    //IList<BoundarySegment> segmentList = segments2[0];
+                    profile = new CurveLoop();
+                    tempCurveArray = new CurveArray();
+                    //if( segment != null )
+
+                    foreach (BoundarySegment boundarySegment in segment)
+                    {
+                        Curve c = boundarySegment.GetCurve();
+                        tempCurveArray.Append(c);
+                    }
+                    CurveArray newSortCurve = SortCurves(tempCurveArray);
+
+                    //TaskDialog.Show("newSortCurve", $"{newSortCurve.Size}"); // 1 - 4 2 - 2
+
+                    foreach (var c in newSortCurve)
+                    {
+
+                        try
+                        {
+                            Line line = c as Line;
+                            //TaskDialog.Show("Line", $"{c.ToString()}");//1
+                            profile.Append(line);
+                        }
+                        catch
+                        {
+                            Arc line = c as Arc;
+                            //TaskDialog.Show("Arc", $"{c.ToString()}");
+                            profile.Append(line);
+                        }
+
+                    }
+
+                    //TaskDialog.Show("В профиль добавили", $"{profile.Count()}");//4 2
+
+
+                    looplist.Add(profile);
+                    //TaskDialog.Show("looplist", $"{looplist.Count()}");//1 2
+
+                }
+
+
+
+
+            }
+
+            string v = looplist.Count.ToString();
+
+            //TaskDialog.Show("looplist", $"{v}");
+
+#if R2019 || R2020 || R2021 || R2022
+                floor = _doc.Create.NewFloor(newSortCurve, floorType3, r1.Level, false);
+                floor.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
+                floor.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
+#else
+            //TaskDialog.Show("У тебя получилось", $"{profile.GetType()} Потолок создается ☺☺☺");
+
+            ceiling = Ceiling.Create(_doc, looplist, ceilingType.Id, level.Id);
+
+            ceiling.get_Parameter(BuiltInParameter.CEILING_HEIGHTABOVELEVEL_PARAM).Set(heightRoom);
+
+
+#endif
+            //set room name and number
+            ceiling.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
+            ceiling.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
+
+            // createdFloor = floor;
+            _doc.Regenerate();
+
+
+
+
+        }
+
+
 
     }
 }
