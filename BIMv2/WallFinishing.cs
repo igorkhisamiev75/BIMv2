@@ -14,6 +14,10 @@ namespace BIMv2
     {
         public List<Wall> AllFinishWall = new List<Wall>();
 
+        string adskPrim = "a85b7661-26b0-412f-979c-66af80b4b2c3";
+        string MRGT_ВидОтделкиСтенаПлощадь = "2c097f7a-e32f-4455-9e8a-ac72e131b24c";
+        string MRGT_ВидОтделкиСтены = "68cc39f3-189c-4992-8c72-d7bfc4bec9ae";
+
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             Document doc = commandData.Application.ActiveUIDocument.Document;
@@ -22,8 +26,11 @@ namespace BIMv2
             {
                 t.Start("Записываем суммарную площадь отделки");
 
+                TaskDialog.Show("Сделано", "Отделка посчитана 1665");
+
                 //записываем суммарную площадь в каждую стену
                 WriteToWallSquare(doc);
+                doc.Regenerate();   
 
                 //записываем из типа стены в параметр экземпляра
                 WriteFinishToWall(doc);
@@ -36,7 +43,7 @@ namespace BIMv2
                 //записываем информацию в помещения
                 WriteToRooms(doc);
 
-                TaskDialog.Show("Сделано", "Отделка посчитана 465");
+                TaskDialog.Show("Сделано", "Отделка посчитана 1465");
 
                 t.Commit();
 
@@ -55,7 +62,8 @@ namespace BIMv2
                 {
                     var wall = (Wall)element;
 
-                    var descriptionWallType = wall.WallType.LookupParameter("Описание").AsString();
+                    //var descriptionWallType = wall.WallType.LookupParameter("Описание").AsString();
+                    var descriptionWallType = wall.WallType.LookupParameter("О_Наименование краткое").AsString();
 
                     if (descriptionWallType == "Отделка")
                     {
@@ -73,7 +81,7 @@ namespace BIMv2
 
             //group by room
             IEnumerable<IGrouping<string, Wall>> groups = AllFinishWall.GroupBy(p2 =>
-                p2.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString());
+                p2.get_Parameter(new Guid(adskPrim)).AsString());
 
             foreach (IGrouping<string, Wall> group in groups)
             {
@@ -112,7 +120,7 @@ namespace BIMv2
                     foreach (var t in element)
                     {
                         //var r = sqFootToSquareM(squeWall);
-                        t.get_Parameter(new Guid("2c097f7a-e32f-4455-9e8a-ac72e131b24c")).Set(squeWall);
+                        t.get_Parameter(new Guid(MRGT_ВидОтделкиСтенаПлощадь)).Set(squeWall);
                     }
 
                 }
@@ -134,7 +142,8 @@ namespace BIMv2
                 {
                     var wall = (Wall)element;
 
-                    var descriptionWallType = wall.WallType.LookupParameter("Описание").AsString();
+                    //var descriptionWallType = wall.WallType.LookupParameter("Описание").AsString();
+                    var descriptionWallType = wall.WallType.LookupParameter("О_Наименование краткое").AsString();
 
                     if (descriptionWallType == "Отделка")
                     {
@@ -154,7 +163,7 @@ namespace BIMv2
             {
                 var NameOfBaseFinish = wall.WallType.LookupParameter("MRGT_СлоиОтделки").AsString();
 
-                wall.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).Set(NameOfBaseFinish);
+                wall.get_Parameter(new Guid(MRGT_ВидОтделкиСтены)).Set(NameOfBaseFinish);
             }
 
         }
@@ -170,7 +179,8 @@ namespace BIMv2
                 {
                     var wall = (Wall)element;
 
-                    var descriptionWallType = wall.WallType.LookupParameter("Описание").AsString();
+                    //var descriptionWallType = wall.WallType.LookupParameter("Описание").AsString();
+                    var descriptionWallType = wall.WallType.LookupParameter("О_Наименование краткое").AsString();
 
                     if (descriptionWallType == "Отделка")
                     {
@@ -204,11 +214,13 @@ namespace BIMv2
                 {
                     foreach (var wall in grouping)
                     {
+                        //MRGT_ВидОтделкиСтены
                         pirog = wall.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).AsString();
+                        //MRGT_ВидОтделкиСтенаПлощадь
                         square = wall.get_Parameter(new Guid("2c097f7a-e32f-4455-9e8a-ac72e131b24c")).AsValueString();
 
-                        pirog = "1";
-                        square = "1";
+                        //pirog = "1";
+                        //square = "1";
 
                         wall.get_Parameter(new Guid("6533b173-94cb-465e-964c-ed1e0dfce339")).Set(pirog);
                         wall.get_Parameter(new Guid("1e2bf482-d000-4acd-a903-17caa723e563")).Set(square);
@@ -256,8 +268,8 @@ namespace BIMv2
                     foreach (var wall in grouping)
                     {
 
-                        pirog = "1";
-                        square = "1";
+                        //pirog = "1";
+                        //square = "1";
                         wall.get_Parameter(new Guid("6533b173-94cb-465e-964c-ed1e0dfce339")).Set(pirog);
 
                         wall.get_Parameter(new Guid("1e2bf482-d000-4acd-a903-17caa723e563")).Set(square);
@@ -289,7 +301,8 @@ namespace BIMv2
                 {
                     var wall = (Wall)VARIABLE;
 
-                    var descriptionWallType = wall.WallType.LookupParameter("Описание").AsString();
+                    //var descriptionWallType = wall.WallType.LookupParameter("Описание").AsString();
+                    var descriptionWallType = wall.WallType.LookupParameter("О_Наименование краткое").AsString();
 
                     if (descriptionWallType == "Отделка")
                     {

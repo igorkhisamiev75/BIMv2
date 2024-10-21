@@ -67,7 +67,7 @@
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <AssemblyName>$(AssemblyName)</AssemblyName>
   </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'R2024|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'R2024|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -218,9 +218,13 @@
     <Compile Include="CheckRooms\CheckRoomsSelectLink.xaml.cs">
       <DependentUpon>CheckRoomsSelectLink.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ClearProjectBrowser.cs" />
+    <Compile Include="ClearProjectBrowserViewsNotSheets.cs" />
     <Compile Include="CollisionsWithWall.cs" />
+    <Compile Include="ConvertGrids3Dto2D.cs" />
     <Compile Include="CopyRoomsFromLink.cs" />
     <Compile Include="Create3DViewFromSpace.cs" />
+    <Compile Include="CreateAnyElementsInRooms.cs" />
     <Compile Include="CreateCeiling.cs" />
     <Compile Include="CreateDoorsForFinish.cs" />
     <Compile Include="CreateFinishWallinRooms.cs" />
@@ -228,8 +232,13 @@
     <Compile Include="CreateFloorInRoom.cs" />
     <Compile Include="CreateFromDWG.cs" />
     <Compile Include="CreateFromDWGPipe.cs" />
+    <Compile Include="CreateLightingInRoom.cs" />
+    <Compile Include="CreateModelText.cs" />
+    <Compile Include="CreateModelTextRoomNameInRoom.cs" />
     <Compile Include="CreateNewTypeAnnotation.cs" />
     <Compile Include="CreateNotPlacedRooms.cs" />
+    <Compile Include="CreateNumberRoomForFloors.cs" />
+    <Compile Include="CreateNumberRoomForWall.cs" />
     <Compile Include="CreateOpeningsInWallForStructuralFraming.cs" />
     <Compile Include="CreateRailingInRooms.cs" />
     <Compile Include="CreateRailingsInAllRooms.cs" />
@@ -238,7 +247,10 @@
     <Compile Include="CreateSectionInSelectedRooms.cs" />
     <Compile Include="CreateViewByLinkedFiles.cs" />
     <Compile Include="CreateViewForCollisions.cs" />
+    <Compile Include="CreateViewForLevels.cs" />
     <Compile Include="CreateWindowsForFinish.cs" />
+    <Compile Include="CreateWorksets.cs" />
+    <Compile Include="DeletedFilter.cs" />
     <Compile Include="DeletingCollisions.cs" />
     <Compile Include="DelUnplacedRoom.cs" />
     <Compile Include="DoorsInformationTransfer.cs" />
@@ -261,64 +273,49 @@
     <Compile Include="FinishingOnTheStairs.cs" />
     <Compile Include="GetPerimeterForFloorWithoutDoor.cs" />
     <Compile Include="GetRoomForElementsFinishing.cs" />
+    <Compile Include="GetRoomNameForSelectElement.cs" />
     <Compile Include="GroupByMarkEqupmentFurnitureAndWriteToComment.cs" />
     <Compile Include="GroupingLighting.cs" />
+    <Compile Include="GroupTypeCeilingAndWriteToComment.cs" />
+    <Compile Include="GroupTypeCeilingByNote.cs" />
+    <Compile Include="GroupTypeFloorAndWriteToComment.cs" />
+    <Compile Include="GroupTypeFloorByNote.cs" />
     <Compile Include="GroupTypeFloorForBOP.cs" />
+    <Compile Include="GroupTypeWallsAndWriteToComment.cs" />
+    <Compile Include="GroupTypeWallsByNote.cs" />
+    <Compile Include="GroupTypeWallSweepsAndWriteToComment.cs" />
     <Compile Include="GroupWallsBeams.cs" />
+    <Compile Include="HelpBIM.cs" />
     <Compile Include="JoinWalls.cs" />
     <Compile Include="MakingHolesForDoorsLink.cs" />
     <Compile Include="MakingHolesForFacadeWindows.cs" />
     <Compile Include="MakingHolesForFacadeWindowsDoors.cs" />
     <Compile Include="MakingHolesForWindows.cs" />
     <Compile Include="MakingHolesForWindowsCheck.cs" />
+    <Compile Include="NormalIlluminationForLightFix.cs" />
     <Compile Include="PluginFinish2BIM\CeilingFinish.cs" />
-    <Compile Include="ClearProjectBrowser.cs" />
-    <Compile Include="ClearProjectBrowserViewsNotSheets.cs" />
-    <Compile Include="ConvertGrids3Dto2D.cs" />
-    <Compile Include="CreateAnyElementsInRooms.cs" />
-    <Compile Include="CreateLightingInRoom.cs" />
-    <Compile Include="CreateModelText.cs" />
-    <Compile Include="CreateModelTextRoomNameInRoom.cs" />
-    <Compile Include="CreateNumberRoomForFloors.cs" />
-    <Compile Include="CreateNumberRoomForWall.cs" />
-    <Compile Include="CreateViewForLevels.cs" />
-    <Compile Include="CreateWorksets.cs" />
-    <Compile Include="DeletedFilter.cs" />
     <Compile Include="PluginFinish2BIM\CreateWallFiltersByRoomNumber.cs" />
     <Compile Include="PluginFinish2BIM\FindRoomForElementsFinish.cs" />
     <Compile Include="PluginFinish2BIM\FloorFinish.cs" />
-    <Compile Include="GetRoomNameForSelectElement.cs" />
-    <Compile Include="GroupTypeCeilingAndWriteToComment.cs" />
-    <Compile Include="GroupTypeCeilingByNote.cs" />
-    <Compile Include="GroupTypeFloorAndWriteToComment.cs" />
-    <Compile Include="GroupTypeFloorByNote.cs" />
-    <Compile Include="GroupTypeWallsAndWriteToComment.cs" />
-    <Compile Include="GroupTypeWallsByNote.cs" />
-    <Compile Include="GroupTypeWallSweepsAndWriteToComment.cs" />
-    <Compile Include="HelpBIM.cs" />
-    <Compile Include="NormalIlluminationForLightFix.cs" />
     <Compile Include="PowerFactorElectrical.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PluginFinish2BIM\Test\WallFinishAlliance.cs" />
+    <Compile Include="PluginFinish2BIM\Test\WallFinishComposition.cs" />
+    <Compile Include="PluginFinish2BIM\WallFinishing.cs" />
     <Compile Include="RoomsByFloorFinishType.cs" />
     <Compile Include="SolarSystemFunProject.cs" />
     <Compile Include="SumAllLightingFixtureInRoom.cs" />
     <Compile Include="Test.cs" />
-    <Compile Include="PluginFinish2BIM\Test\WallFinishAlliance.cs" />
-    <Compile Include="PluginFinish2BIM\Test\WallFinishComposition.cs" />
-    <Compile Include="PluginFinish2BIM\WallFinishing.cs" />
+    <Compile Include="TransferParamRoonToWalls.cs" />
     <Compile Include="VarificationCeiling.cs" />
     <Compile Include="VarificationFloors.cs" />
     <Compile Include="VarificationWalls.cs" />
+    <Compile Include="WallFinishing.cs" />
+    <Compile Include="WallSection.cs" />
     <Compile Include="WriteNameRoomInFurniture.cs" />
     <Compile Include="WriteNameRoomInMechanicalEquipment.cs" />
     <Compile Include="WriteNameRoomInPlumbingFixtures.cs" />
-    <Compile Include="TransferParamRoonToWalls.cs" />
-    <Compile Include="WallFinishing.cs" />
-    <Compile Include="WallSection.cs" />
     <Compile Include="WriteTypeRooms.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="CheckRooms\CheckRoomsSelectLink.xaml">
