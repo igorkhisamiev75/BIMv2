@@ -218,6 +218,7 @@
     <Compile Include="CheckRooms\CheckRoomsSelectLink.xaml.cs">
       <DependentUpon>CheckRoomsSelectLink.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ClearDependencies.cs" />
     <Compile Include="ClearProjectBrowser.cs" />
     <Compile Include="ClearProjectBrowserViewsNotSheets.cs" />
     <Compile Include="CollisionsWithWall.cs" />
