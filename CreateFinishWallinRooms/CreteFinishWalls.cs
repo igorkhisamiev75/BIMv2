@@ -275,7 +275,7 @@ namespace CreateFinishWallinRooms
                         {
                             CreateWallInRoom(elem, uiDoc, roomBoardingWall, selectedWallTpe);
                         }
-                            
+
                         TaskDialog.Show("2bim.ru", "Отделка стен создана ☺☺☺");
                     }
 
@@ -452,12 +452,12 @@ namespace CreateFinishWallinRooms
 
                     try
                     {
-                        foreach(var elem in elements1)
+                        foreach (var elem in elements1)
                         {
                             CreateCeilingInRooms(elem, selectedCeilingType);
                             //CreateCeilingOpenings(elem);
                         }
-                        
+
 
                         TaskDialog.Show("2bim.ru", "Потолки созданы ☺☺☺");
 
@@ -494,7 +494,7 @@ namespace CreateFinishWallinRooms
                             TaskDialog.Show("2bim.ru", $"{ex} ");
                         }
 
-                        
+
                     }
                     t.Commit(options);
                     TaskDialog.Show("2bim.ru", "Потолки созданы ☺☺☺");
@@ -589,7 +589,7 @@ namespace CreateFinishWallinRooms
                 }
 
 #if R2019 || R2020 || R2021 || R2022
-                floor = _doc.Create.NewFloor(newSortCurve, floorType3, r1.Level, false);
+                 floor = _doc.Create.NewFloor(newSortCurve, floorType3, r1.Level, false);
                 floor.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
                 floor.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
 #else
@@ -1080,7 +1080,7 @@ namespace CreateFinishWallinRooms
 
                 }
 
-               
+
 
 
             }
@@ -1090,9 +1090,9 @@ namespace CreateFinishWallinRooms
             //TaskDialog.Show("looplist", $"{v}");
 
 #if R2019 || R2020 || R2021 || R2022
-                floor = _doc.Create.NewFloor(newSortCurve, floorType3, r1.Level, false);
-                floor.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
-                floor.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
+            var floor = _doc.Create.NewFloor(newSortCurve, floorType3, r1.Level, false);
+            floor.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
+            floor.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
 #else
             //TaskDialog.Show("У тебя получилось", $"{profile.GetType()} Потолок создается ☺☺☺");
 
@@ -1102,19 +1102,21 @@ namespace CreateFinishWallinRooms
 
 
 #endif
-                //set room name and number
-                ceiling.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
-                ceiling.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
 
-                // createdFloor = floor;
-                _doc.Regenerate();
+#if R2023
+            //set room name and number
+            ceiling.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
+            ceiling.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
+#endif
+            // createdFloor = floor;
+            _doc.Regenerate();
 
-            
+
 
 
         }
 
-      
+
 
     }
 }

@@ -292,6 +292,7 @@
     <Compile Include="MakingHolesForFacadeWindowsDoors.cs" />
     <Compile Include="MakingHolesForWindows.cs" />
     <Compile Include="MakingHolesForWindowsCheck.cs" />
+    <Compile Include="MIrrorCheck.cs" />
     <Compile Include="NormalIlluminationForLightFix.cs" />
     <Compile Include="PluginFinish2BIM\CeilingFinish.cs" />
     <Compile Include="PluginFinish2BIM\CreateWallFiltersByRoomNumber.cs" />

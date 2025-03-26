@@ -34,6 +34,8 @@ namespace BIMv2
                 var allDoors = GetAllDoorElements(_doc);
                 int i = 0;
 
+                var allWindows = GetAllWindowsElements(_doc);
+
                 foreach (var door in allDoors)
                 {
                     try
@@ -62,7 +64,36 @@ namespace BIMv2
 
                 }
 
-                TaskDialog.Show("Сделано!", $"Информация перенесена для {i} отзеркаленных дверей");
+                foreach (var door in allWindows)
+                {
+                    try
+                    {
+                        FamilyInstance doorFamilyInstance = door as FamilyInstance;
+
+                        bool mirFI = doorFamilyInstance.Mirrored;
+
+
+                        if (mirFI == true)
+                        {
+                            i++;
+
+                            door.LookupParameter("BIM_Зeркальный").Set(1);
+
+                        }
+
+                        else
+                        {
+                            door.LookupParameter("BIM_Зeркальный").Set(0);
+                        }
+
+                    }
+
+                    catch { }
+
+
+                }
+
+                TaskDialog.Show("Сделано!", $"Информация перенесена для {i} отзеркаленных дверей и окон");
 
                 t.Commit();
 
@@ -78,6 +109,17 @@ namespace BIMv2
             // List all Door's
             var collector = new FilteredElementCollector(document)
                 .OfCategory(BuiltInCategory.OST_Doors)
+                .WhereElementIsNotElementType();
+
+            IList<Element> elements = collector.ToElements();
+            return elements;
+        }
+
+        public IList<Element> GetAllWindowsElements(Document document)
+        {
+            // List all Door's
+            var collector = new FilteredElementCollector(document)
+                .OfCategory(BuiltInCategory.OST_Windows)
                 .WhereElementIsNotElementType();
 
             IList<Element> elements = collector.ToElements();

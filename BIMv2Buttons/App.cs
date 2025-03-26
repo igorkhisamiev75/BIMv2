@@ -119,8 +119,8 @@ namespace BIMv2Buttons
             ribbonPanelbAI1.AddSeparator(); //разделитель между кнопками
 
             // create push button for CurveTotalLength  //namespace и класс
-            PushButtonData pbAI2Data = new PushButtonData("cmdFindDoorsMirror.cs", "Найти"
-                + Environment.NewLine + "отзеркаленные двери", thisAssemblyPath, "BIMv2.FindDoorsMirror");
+            PushButtonData pbAI2Data = new PushButtonData("cmdFindDoorsMirror.cs", "Найти двери и"
+                + Environment.NewLine + "окна отзеркаленные", thisAssemblyPath, "BIMv2.FindDoorsMirror");
 
             PushButton pbAI2 = ribbonPanelbAI1.AddItem(pbAI2Data) as PushButton;
             pbAI2.ToolTip = "Найти отзеркаленные двери в свойстве BIM_Зеральный появится галочка";
@@ -196,18 +196,18 @@ namespace BIMv2Buttons
             //попробуем создать еще одну кнопку
             ribbonPanelb2.AddSeparator(); //разделитель между кнопками
 
-            //// create push button for CurveTotalLength  //namespace и класс
-            //PushButtonData b23Data = new PushButtonData("cmdWriteTypeRooms.cs", "Записать"
-            //    + Environment.NewLine + "тип квартиры", thisAssemblyPath, "BIMv2.WriteTypeRooms");
+            // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData b23Data = new PushButtonData("cmdWriteTypeRooms.cs", "Записать"
+                + Environment.NewLine + "тип квартиры", thisAssemblyPath, "BIMv2.WriteTypeRooms");
 
-            //PushButton pb23 = ribbonPanelb2.AddItem(b23Data) as PushButton;
-            //pb23.ToolTip = "Записать тип квартиры";
+            PushButton pb23 = ribbonPanelb2.AddItem(b23Data) as PushButton;
+            pb23.ToolTip = "Записать тип квартиры";
 
-            //BitmapImage pb23Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-typeRoom-32.png"));
-            //pb23.LargeImage = pb23Image;
+            BitmapImage pb23Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-typeRoom-32.png"));
+            pb23.LargeImage = pb23Image;
 
-            ////попробуем создать еще одну кнопку
-            //ribbonPanelb2.AddSeparator(); //разделитель между кнопками
+            //попробуем создать еще одну кнопку
+            ribbonPanelb2.AddSeparator(); //разделитель между кнопками
 
             // create push button for CurveTotalLength  //namespace и класс
             PushButtonData b1DataB2_2 = new PushButtonData("cmdCreteFinishWalls.cs", "Создать отделку"
@@ -533,14 +533,14 @@ namespace BIMv2Buttons
             //pb15.LargeImage = pb15Image;
 
 
-            // Make a split button now 
-            SplitButtonData splitBtnData2 = new SplitButtonData("SplitButton2", "Split Button2");
-            SplitButton splitBtn2 = ribbonPanel.AddItem(splitBtnData2) as SplitButton;
+            //// Make a split button now 
+            //SplitButtonData splitBtnData2 = new SplitButtonData("SplitButton2", "Split Button2");
+            //SplitButton splitBtn2 = ribbonPanel.AddItem(splitBtnData2) as SplitButton;
 
-            splitBtn2.AddPushButton(b12Data);
-            splitBtn2.AddPushButton(b13Data);
-            splitBtn2.AddPushButton(b14Data);
-            splitBtn2.AddPushButton(b15Data);
+            //splitBtn2.AddPushButton(b12Data);
+            //splitBtn2.AddPushButton(b13Data);
+            //splitBtn2.AddPushButton(b14Data);
+            //splitBtn2.AddPushButton(b15Data);
 
             //попробуем создать еще одну кнопку
             ribbonPanel.AddSeparator(); //разделитель между кнопками

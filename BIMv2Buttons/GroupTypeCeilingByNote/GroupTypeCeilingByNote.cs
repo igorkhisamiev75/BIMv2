@@ -93,7 +93,7 @@ namespace BIMv2Buttons
 
                     foreach (var t in element)
                     {
-
+                        //ADSK_Отделка_Группировка
                         t.get_Parameter(new Guid("6b89127c-f4ec-4724-b120-8d4b5cdcdcb6")).Set(numbersAllRoomString);
                     }
 

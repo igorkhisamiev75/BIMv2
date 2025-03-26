@@ -85,11 +85,20 @@ namespace BIMv2
 
                         string[] strings = nameLine.Split(separators, StringSplitOptions.RemoveEmptyEntries);
 
-                        var d = Convert.ToSingle(strings.LastOrDefault());
+                        float d = 25;
+                        float d2=0;
 
-                        if (d > 0)
+                        try {
+                            d2 = Convert.ToSingle(strings.LastOrDefault());
+                        }
+                        catch {
+                            
+                        }
+                       
+
+                        if (d2 > 0)
                         {
-                            myPipeFromLine2.dPipe = d;
+                            myPipeFromLine2.dPipe = d2;
                         }
                         else
                         {
