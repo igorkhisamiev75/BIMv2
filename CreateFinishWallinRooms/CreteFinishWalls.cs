@@ -454,8 +454,11 @@ namespace CreateFinishWallinRooms
                     {
                         foreach (var elem in elements1)
                         {
+#if R2023
+
                             CreateCeilingInRooms(elem, selectedCeilingType);
                             //CreateCeilingOpenings(elem);
+#endif
                         }
 
 
@@ -485,8 +488,10 @@ namespace CreateFinishWallinRooms
 
                         try
                         {
-                            CreateCeilingInRooms(elem, selectedCeilingType);
+#if R2023
 
+                            CreateCeilingInRooms(elem, selectedCeilingType);
+#endif
                         }
 
                         catch (Exception ex)
@@ -989,6 +994,7 @@ namespace CreateFinishWallinRooms
 
         //создание потолка
 
+
         public void CreateCeilingInRooms(Element elem, CeilingType ceilingType)
         {
 
@@ -1032,6 +1038,10 @@ namespace CreateFinishWallinRooms
             IList<CurveLoop> looplist = new List<CurveLoop>();
             CurveLoop profile = new CurveLoop();
 
+            //создаем ньюморт
+
+            CurveArray newSortCurve = new CurveArray(); 
+
             //TaskDialog.Show("Всего бондарей", $"{segments2.Count}"); //3
 
             if (null != segments2)
@@ -1050,7 +1060,7 @@ namespace CreateFinishWallinRooms
                         Curve c = boundarySegment.GetCurve();
                         tempCurveArray.Append(c);
                     }
-                    CurveArray newSortCurve = SortCurves(tempCurveArray);
+                    newSortCurve = SortCurves(tempCurveArray);
 
                     //TaskDialog.Show("newSortCurve", $"{newSortCurve.Size}"); // 1 - 4 2 - 2
 
@@ -1090,9 +1100,9 @@ namespace CreateFinishWallinRooms
             //TaskDialog.Show("looplist", $"{v}");
 
 #if R2019 || R2020 || R2021 || R2022
-            var floor = _doc.Create.NewFloor(newSortCurve, floorType3, r1.Level, false);
-            floor.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
-            floor.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
+            //var floor = _doc.Create.NewFloor(newSortCurve, floorType3, r1.Level, false);
+            //floor.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
+            //floor.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
 #else
             //TaskDialog.Show("У тебя получилось", $"{profile.GetType()} Потолок создается ☺☺☺");
 
