@@ -1091,9 +1091,9 @@ namespace BIMv2
             //TaskDialog.Show("looplist", $"{v}");
 
 #if R2019 || R2020 || R2021 || R2022
-            floor = _doc.Create.NewFloor(newSortCurve, floorType3, r1.Level, false);
-            floor.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
-            floor.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
+            //floor = _doc.Create.NewFloor(newSortCurve, floorType3, r1.Level, false);
+            //floor.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
+            //floor.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
 #else
             //TaskDialog.Show("У тебя получилось", $"{profile.GetType()} Потолок создается ☺☺☺");
 
@@ -1104,8 +1104,8 @@ namespace BIMv2
 
 #endif
             //set room name and number
-            ceiling.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
-            ceiling.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
+            //ceiling.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
+            //ceiling.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
 
             // createdFloor = floor;
             _doc.Regenerate();

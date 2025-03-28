@@ -170,7 +170,6 @@ namespace BIMv2
         public void GetRoomInProject(out IList<Element> rooms)
         {
 
-
             // The normal vector (0,0,1) that must be perpendicular to the profile.
             //XYZ normal = XYZ.BasisZ;
 

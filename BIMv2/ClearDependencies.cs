@@ -5,6 +5,7 @@ using System.Linq;
 using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
+using Autodesk.Revit.DB.Structure;
 using Autodesk.Revit.UI;
 
 namespace BIMv2
@@ -22,41 +23,54 @@ namespace BIMv2
             _app = uiApp.Application;
             _doc = uiDoc.Document;
 
+            IList<ElementId> dependenciesList = new List<ElementId>();
+            ElementClassFilter filter = new ElementClassFilter(typeof(Dimension));
+
             //получить все светильники
 
             var allElements = GetAllLightElements(_doc);
             //найти у них зависимости
 
-            foreach (var element in allElements) { 
+            //foreach (var element in allElements) {
+
+            //    if(element.GetDependentElements(filter).FirstOrDefault()==Alig)
+            //    dependenciesList.Add(element.GetDependentElements(filter).FirstOrDefault());
+
+
             
-            }
+            //}
 
 
             //пройтись по ним и удалить
 
 
             //active view
-            var notForDeleetedId = _doc.ActiveView.Id;
+            //var notForDeleetedId = _doc.ActiveView.Id;
 
-            ViewSet m_allViews = new ViewSet();
+            //ViewSet m_allViews = new ViewSet();
 
-            //IEnumerable<View> views = new FilteredElementCollector(_doc).
-            //    OfClass(typeof(View))
-            //    .WhereElementIsNotElementType()
-            //    .Cast<View>();
+            ////IEnumerable<View> views = new FilteredElementCollector(_doc).
+            ////    OfClass(typeof(View))
+            ////    .WhereElementIsNotElementType()
+            ////    .Cast<View>();
 
-            List<ElementId> viewsForDel = new FilteredElementCollector(_doc).
-                OfClass(typeof(View)).ToElements().Cast<View>().
-                Select(y => y.Id).ToList();
+            //List<ElementId> viewsForDel = new FilteredElementCollector(_doc).
+            //    OfClass(typeof(View)).ToElements().Cast<View>().
+            //    Select(y => y.Id).ToList();
 
-            viewsForDel.Remove(notForDeleetedId);
+            //viewsForDel.Remove(notForDeleetedId);
 
-          
+            var idElement=GetConstrains(_doc);
+
+            TaskDialog.Show("Error", $"Зависимостей {idElement.Count()}");
+
             using (Transaction t = new Transaction(_doc))
             {
-                t.Start("Deleting Views");
+                t.Start("Del aligment");
 
-                foreach (var n in viewsForDel)
+
+
+                foreach (var n in idElement)
                 {
                     try
                     {
@@ -70,17 +84,7 @@ namespace BIMv2
                 }
 
 
-                //_doc.Delete(L);
-                //_doc.Delete(L2);
-                //_doc.Delete(L3);
-                //_doc.Delete(L4);
-                //_doc.Delete(L5);
-                //_doc.Delete(L6);
-                //_doc.Delete(L7);
-                //_doc.Delete(L8);
-                //_doc.Delete(L9);
-                //_doc.Delete(L10);
-                //_doc.Delete(L11);
+               
 
 
                 t.Commit();
@@ -104,6 +108,16 @@ namespace BIMv2
 
             IList<Element> allFloors = floor_collector.ToElements();
             return allFloors;
+        }
+
+        public IList<ElementId> GetConstrains(Document document)
+        {
+            // List all Floor's
+            var floor_collector = new FilteredElementCollector(document)
+                .OfCategory(BuiltInCategory.OST_Constraints).ToElementIds().ToList();
+
+           
+            return floor_collector;
         }
     }
 }
