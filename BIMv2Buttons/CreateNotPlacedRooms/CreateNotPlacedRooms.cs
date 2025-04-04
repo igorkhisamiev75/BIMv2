@@ -24,7 +24,7 @@ namespace BIMv2
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
 
         {
-            string pathToFile = @"V:\Отдел капитального строительства\BIM\05_ФОП\Классификатор помещений (справочно).xlsx";
+            string pathToFile = @"\\AMB2-SERVER\projects\BIM\00_Стандарты и инструкции\ЛСР_Библиотеки_ТИМ\03_Скрипты\АР\Квартирография\Классификатор помещений (справочно).xlsx";
 
             // Создаем поток для чтения.
             var stream = File.Open(pathToFile, FileMode.Open, FileAccess.Read);
