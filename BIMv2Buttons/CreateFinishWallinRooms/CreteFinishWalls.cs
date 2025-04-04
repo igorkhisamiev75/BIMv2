@@ -13,6 +13,9 @@ using System.Diagnostics;
 using Floor = Autodesk.Revit.DB.Floor;
 
 
+
+
+
 namespace BIMv2
 {
     [Transaction(TransactionMode.Manual)]
@@ -24,8 +27,8 @@ namespace BIMv2
         IList<WallType> m_wallTypeCollection;         // Store all the wall types in current document
         IList<CeilingType> m_ceilingTypeCollection;         // Store all the wall types in current document
         IList<FloorType> m_FloorTypeCollection;
-        private const double PRECISION = 0.00000001;
-        private CurveArray profile;
+        public const double PRECISION = 0.00000001;
+        public CurveArray profile;
         public Autodesk.Revit.Creation.Application creApp;
         public FloorType floorType;
         public CeilingType ceilingType;
@@ -160,7 +163,10 @@ namespace BIMv2
 
             //TaskDialog.Show("1Смещение от уровня", $"{vpViewWpf.ofsetWallS}");
             //TaskDialog.Show("2Смещение от уровня", $"{wallOffset}");
-#if R2019 || R2020 || R2021 || R2022
+#if R2019 || R2020 || R2021 
+
+           wallOffset = UnitUtils.Convert(wallOffset, DisplayUnitType.DUT_MILLIMETERS, DisplayUnitType.DUT_DECIMAL_FEET);
+
             wallOffset = UnitUtils.Convert(wallOffset, DisplayUnitType.DUT_MILLIMETERS, DisplayUnitType.DUT_DECIMAL_FEET);
 #else
             wallOffset = UnitUtils.ConvertFromInternalUnits(wallOffset, UnitTypeId.Millimeters);
@@ -172,7 +178,7 @@ namespace BIMv2
             {
                 wallHeight = Convert.ToDouble(vpViewWpf.heighWallUser);
 
-#if R2019 || R2020 || R2021 || R2022
+#if R2019 || R2020 || R2021 
                 wallHeight = UnitUtils.Convert(wallHeight, DisplayUnitType.DUT_MILLIMETERS, DisplayUnitType.DUT_DECIMAL_FEET);
 #else
                 wallHeight = UnitUtils.ConvertFromInternalUnits(wallHeight, UnitTypeId.Millimeters);
