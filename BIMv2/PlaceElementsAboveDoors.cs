@@ -48,6 +48,13 @@ namespace BIMv2
                     //ВЫСОТА ДВЕРИ
                     var haightDoor=door.LookupParameter("Высота").AsDouble();
 
+                    //haightDoor = UnitUtils.Convert(haightDoor, DisplayUnitType.DUT_MILLIMETERS, DisplayUnitType.DUT_DECIMAL_FEET);
+
+                    if (haightDoor == null)
+                    {
+                        haightDoor = 0;
+                    }
+
                     Element wall=door.Host;
                     // Get door location and orientation
                     LocationPoint doorLoc = door.Location as LocationPoint;
@@ -66,7 +73,7 @@ namespace BIMv2
                     XYZ placementPoint = new XYZ(
                         doorPosition.X,
                         doorPosition.Y,
-                        doorPosition.Z + haightDoor
+                        doorPosition.Z 
                     );
 
                     //TaskDialog.Show("точка", $"{placementPoint}");
@@ -82,15 +89,7 @@ namespace BIMv2
                             Autodesk.Revit.DB.Structure.StructuralType.NonStructural
                         );
 
-                        ////создаем окно
-                        //FamilyInstance instance2 =
-                        //    _doc.Create.NewFamilyInstance(
-                        //        placementPoint, elementSymbol, wall, level, StructuralType.NonStructural);
-
-                        //// Rotate light to match door orientation
-                        //Line axis = Line.CreateBound(placementPoint, placementPoint + XYZ.BasisZ);
-                        //light.Location.Rotate(axis, doorDirection.AngleTo(XYZ.BasisY));
-
+                        light.LookupParameter("Отметка перемычки").Set(haightDoor);
                         _doc.Regenerate();
                         continue;
 
@@ -105,7 +104,7 @@ namespace BIMv2
                
             }
 
-                TaskDialog.Show("Complite!", $"Размещено  перемычек");
+                TaskDialog.Show("Complite!", $"Размещено  {doorCollector.Count()} перемычек над дверьми");
                 t.Commit();
 
                 return Result.Succeeded;
