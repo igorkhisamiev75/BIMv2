@@ -7,6 +7,8 @@ using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Structure;
 using Autodesk.Revit.UI;
+
+using Microsoft.Office.Interop.Excel;
 #endregion
 
 namespace BIMv2
@@ -43,12 +45,16 @@ namespace BIMv2
 
                 foreach (FamilyInstance door in doorCollector)
                 {
+                    //ВЫСОТА ДВЕРИ
+                    var haightDoor=door.LookupParameter("Высота").AsDouble();
+
+                    Element wall=door.Host;
                     // Get door location and orientation
                     LocationPoint doorLoc = door.Location as LocationPoint;
                     if (doorLoc == null) continue;
 
                     XYZ doorPosition = doorLoc.Point;
-                    XYZ doorDirection = door.FacingOrientation;
+                    //XYZ doorDirection = door.FacingOrientation;
 
                     //double x2 = doorLoc.Point.X;
                     //double y2 = doorLoc.Point.Y;
@@ -60,7 +66,7 @@ namespace BIMv2
                     XYZ placementPoint = new XYZ(
                         doorPosition.X,
                         doorPosition.Y,
-                        doorPosition.Z 
+                        doorPosition.Z + haightDoor
                     );
 
                     //TaskDialog.Show("точка", $"{placementPoint}");
@@ -71,14 +77,20 @@ namespace BIMv2
                         FamilyInstance light = _doc.Create.NewFamilyInstance(
                             placementPoint,
                             elementSymbol,
+                            wall,
                             door.Document.GetElement(door.LevelId) as Level,
                             Autodesk.Revit.DB.Structure.StructuralType.NonStructural
                         );
 
+                        ////создаем окно
+                        //FamilyInstance instance2 =
+                        //    _doc.Create.NewFamilyInstance(
+                        //        placementPoint, elementSymbol, wall, level, StructuralType.NonStructural);
+
                         //// Rotate light to match door orientation
                         //Line axis = Line.CreateBound(placementPoint, placementPoint + XYZ.BasisZ);
                         //light.Location.Rotate(axis, doorDirection.AngleTo(XYZ.BasisY));
-                      
+
                         _doc.Regenerate();
                         continue;
 
