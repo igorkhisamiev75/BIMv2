@@ -460,5 +460,8 @@
   <ItemGroup>
     <Resource Include="Resources\icons8-frame-32.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\zoom_16.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
