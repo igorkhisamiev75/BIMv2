@@ -5,7 +5,7 @@ using System.Windows.Media.Imaging;
 using BIMv2;
 using System.Collections.Generic;
 using System.Configuration.Assemblies;
-
+using AW = Autodesk.Windows;
 
 //using CreateFinishWallinRooms;
 
@@ -169,100 +169,76 @@ namespace BIMv2Buttons
             String tabNameB2 = "BIMv2AR";    // создание вкладки
             application.CreateRibbonTab(tabNameB2);
 
+            string panelName = "Работа с помещениями";
+
             // Add a new ribbon panel
             RibbonPanel ribbonPanelArRoom = application.CreateRibbonPanel(tabNameB2, "Работа с помещениями"); //подпись под кнопками
 
-            // create push button //namespace и класс
-            PushButtonData b22Data = new PushButtonData("cmdCreateNotPlacedRooms.cs", "Создать"
-                + Environment.NewLine + "имена помещений", thisAssemblyPath, "BIMv2.CreateNotPlacedRooms");
+            // Set Image
+            BitmapImage smallImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-clean2-32.png", UriKind.RelativeOrAbsolute));
+            BitmapImage midleImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-clean2-32.png", UriKind.RelativeOrAbsolute));
+            BitmapImage largeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-clean2-32.png", UriKind.RelativeOrAbsolute));
 
-            PushButton pb22 = ribbonPanelArRoom.AddItem(b22Data) as PushButton;
-            pb22.ToolTip = "Создать помещения в проекте по Excel файлу на диске С";
+            string buttonName3 = "Имена помещений";
+            string buttonName4 = "Удалить неразмещенные";
+            string buttonName5 = "Прописать тип квартиры";
 
-            BitmapImage pb22Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-rooms-32.png"));
-            pb22.LargeImage = pb22Image;
-
-
-            //попробуем создать еще одну кнопку
-            ribbonPanelArRoom.AddSeparator(); //разделитель между кнопками
-
-            // create push button for CurveTotalLength  //namespace и класс
-            PushButtonData b24Data = new PushButtonData("cmdDelUnplacedRoom.cs", "Удалить"
-                + Environment.NewLine + "лишнии помещения", thisAssemblyPath, "BIMv2.DelUnplacedRoom");
-
-            PushButton pb24 = ribbonPanelArRoom.AddItem(b24Data) as PushButton;
-            pb24.ToolTip = "Удаляет лишнии помещения из проекта, чтобы было красиво";
-
-            BitmapImage pb24Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-clean2-32.png"));
-            pb24.LargeImage = pb24Image;
-
-            //попробуем создать еще одну кнопку
-            ribbonPanelArRoom.AddSeparator(); //разделитель между кнопками
-                                              //ribbonPanelArRoom.AddStackedItems(b22Data, b24Data, b24Data);
-
-            //IList<RibbonItem> reinforcementItems = ribbonPanelArRoom.AddStackedItems(b22Data, b24Data);
-
-            //PushButton firstButton = reinforcementItems[0] as PushButton;
-            //firstButton.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-clean2-32.png"));
-            //firstButton.Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-clean2-32.png"));
-            //firstButton.ToolTip = "tool tips";
-            //// the second text displays if I add this line
-            //firstButton.ItemText = "first item text";
-
-            //PushButton secondButton = reinforcementItems[1] as PushButton;
-            //secondButton.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-clean2-32.png"));
-            //secondButton.Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-clean2-32.png"));
-            //secondButton.ToolTip = "tool tips";
-
-            //// add rebar for columns
-            //PushButton thirdButton = reinforcementItems[2] as PushButton;
-            //thirdButton.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-clean2-32.png"));
-            //thirdButton.Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-clean2-32.png"));
-            //thirdButton.ToolTip = "tool tips";
 
             // Create three small stacked buttons (16x16 icons)
             IList<RibbonItem> stackedButtons = ribbonPanelArRoom.AddStackedItems(
                 new PushButtonData(
-                    "BtnZoom",
-                    "Zoom",
+                    buttonName3,
+                    "Имена помещений", //\u200B
                     thisAssemblyPath,
-                    "BIMv2.DelUnplacedRoom")
+                    "BIMv2.CreateNotPlacedRooms")
                 {
-                    Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/zoom_16.png")), // 16x16 icon
-                    ToolTip = "Zoom to selected elements"
+                    Image = smallImage, // 16x16 icon
+                    ToolTip = "Создать имена помещений по файлу Excel",
+                   
                 },
                 new PushButtonData(
-                    "BtnMeasure",
-                    "Measure",
+                    buttonName4,
+                    "Удалить неразмещенные",
                    thisAssemblyPath,
                     "BIMv2.DelUnplacedRoom")
                 {
-                    Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/zoom_16.png")), // 16x16 icon
-                    ToolTip = "Measure distance between points"
+                    Image = smallImage, // 16x16 icon
+                    ToolTip = "Удалить лишние помещения"
                 },
                 new PushButtonData(
-                    "BtnAlign",
-                    "Align",
+                    buttonName5,
+                    "Прописать тип квартиры",
                     thisAssemblyPath,
-                    "BIMv2.DelUnplacedRoom")
+                    "BIMv2.WriteTypeRooms")
                 {
-                    Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/zoom_16.png")), // 16x16 icon
-                    ToolTip = "Align selected elements"
+                    Image = smallImage, // 16x16 icon
+                    ToolTip = "Записать тип квартиры"
                 }
             );
 
-            //попробуем создать еще одну кнопку
-            ribbonPanelArRoom.AddSeparator(); //разделитель между кнопками
+            // Find Autodes.Windows.RibbonItems
+            
+            var btnTest3 = GetButton(tabNameB2, panelName, buttonName3);
+            var btnTest4 = GetButton(tabNameB2, panelName, buttonName4);
+            var btnTest5 = GetButton(tabNameB2, panelName, buttonName5);
 
-            // create push button for CurveTotalLength  //namespace и класс
-            PushButtonData b23Data = new PushButtonData("cmdWriteTypeRooms.cs", "Записать"
-                + Environment.NewLine + "тип квартиры", thisAssemblyPath, "BIMv2.WriteTypeRooms");
+            btnTest3.ShowText = false;
+            btnTest4.ShowText = false;
+            btnTest5.ShowText = false;
 
-            PushButton pb23 = ribbonPanelArRoom.AddItem(b23Data) as PushButton;
-            pb23.ToolTip = "Записать тип квартиры";
 
-            BitmapImage pb23Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-typeRoom-32.png"));
-            pb23.LargeImage = pb23Image;
+            ////попробуем создать еще одну кнопку
+            //ribbonPanelArRoom.AddSeparator(); //разделитель между кнопками
+
+            //// create push button for CurveTotalLength  //namespace и класс
+            //PushButtonData b23Data = new PushButtonData("cmdWriteTypeRooms.cs", "Записать"
+            //    + Environment.NewLine + "тип квартиры", thisAssemblyPath, "BIMv2.WriteTypeRooms");
+
+            //PushButton pb23 = ribbonPanelArRoom.AddItem(b23Data) as PushButton;
+            //pb23.ToolTip = "Записать тип квартиры";
+
+            //BitmapImage pb23Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-typeRoom-32.png"));
+            //pb23.LargeImage = pb23Image;
 
             //попробуем создать еще одну кнопку
             ribbonPanelArRoom.AddSeparator(); //разделитель между кнопками
@@ -272,8 +248,6 @@ namespace BIMv2Buttons
             RibbonPanel ribbonPanelb2 = application.CreateRibbonPanel(tabNameB2, "Архитектурные надстройки"); //подпись под кнопками
 
            
-
-          
 
             // create push button for CurveTotalLength  //namespace и класс
             PushButtonData b1DataB2_2 = new PushButtonData("cmdCreteFinishWalls.cs", "Создать отделку"
@@ -1015,5 +989,27 @@ namespace BIMv2Buttons
                 return null;
             }
         }
+
+        public static AW.RibbonItem GetButton(string tabName, string panelName, string itemName)
+        {
+            AW.RibbonControl ribbon = AW.ComponentManager.Ribbon;
+            foreach (AW.RibbonTab tab in ribbon.Tabs)
+            {
+                if (tab.Name == tabName)
+                {
+                    foreach (AW.RibbonPanel panel in tab.Panels)
+                    {
+                        if (panel.Source.Title == panelName)
+                        {
+                            return panel.FindItem("CustomCtrl_%CustomCtrl_%"
+                              + tabName + "%" + panelName + "%" + itemName,
+                              true) as AW.RibbonItem;
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
     }
 }
