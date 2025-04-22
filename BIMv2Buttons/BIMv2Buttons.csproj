@@ -63,7 +63,7 @@
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <AssemblyName>$(AssemblyName)</AssemblyName>
   </PropertyGroup>
-   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'R2024|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'R2024|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -76,6 +76,10 @@
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AdWindows">
+      <HintPath>..\..\..\..\..\..\..\Program Files\Autodesk\Revit 2021\AdWindows.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Aspose.Cells, Version=24.1.0.0, Culture=neutral, PublicKeyToken=716fcc553a201e56, processorArchitecture=MSIL">
       <HintPath>..\packages\Aspose.Cells.24.1.0\lib\net40\Aspose.Cells.dll</HintPath>
       <Private>False</Private>
@@ -181,7 +185,7 @@
         </Reference>
       </ItemGroup>
     </When>
-     <When Condition=" '$(Configuration)'=='R2024' ">
+    <When Condition=" '$(Configuration)'=='R2024' ">
       <ItemGroup>
         <Reference Include="RevitAPI">
           <HintPath>..\..\..\..\..\..\..\Program Files\Autodesk\Revit 2024\RevitAPI.dll</HintPath>
@@ -452,10 +456,22 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="NewFolder1\" />
+    <Folder Include="PlaceElementsAboveDoors\" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\icons8-builder-32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\icons8-frame-32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\zoom_16.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\icons8-n-16.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\icons8-n-24.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

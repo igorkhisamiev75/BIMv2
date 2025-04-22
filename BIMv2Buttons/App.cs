@@ -3,7 +3,9 @@ using System.Reflection;
 using Autodesk.Revit.UI;
 using System.Windows.Media.Imaging;
 using BIMv2;
-
+using System.Collections.Generic;
+using System.Configuration.Assemblies;
+using AW = Autodesk.Windows;
 
 //using CreateFinishWallinRooms;
 
@@ -167,47 +169,86 @@ namespace BIMv2Buttons
             String tabNameB2 = "BIMv2AR";    // создание вкладки
             application.CreateRibbonTab(tabNameB2);
 
+            string panelName = "Работа с помещениями";
+
+            // Add a new ribbon panel
+            RibbonPanel ribbonPanelArRoom = application.CreateRibbonPanel(tabNameB2, "Работа с помещениями"); //подпись под кнопками
+
+            // Set Image
+            BitmapImage smallImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-clean2-32.png", UriKind.RelativeOrAbsolute));
+            BitmapImage midleImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-clean2-32.png", UriKind.RelativeOrAbsolute));
+            BitmapImage largeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-clean2-32.png", UriKind.RelativeOrAbsolute));
+
+            string buttonName3 = "Имена помещений";
+            string buttonName4 = "Удалить неразмещенные";
+            string buttonName5 = "Прописать тип квартиры";
+
+
+            // Create three small stacked buttons (16x16 icons)
+            IList<RibbonItem> stackedButtons = ribbonPanelArRoom.AddStackedItems(
+                new PushButtonData(
+                    buttonName3,
+                    "Имена помещений", //\u200B
+                    thisAssemblyPath,
+                    "BIMv2.CreateNotPlacedRooms")
+                {
+                    Image = smallImage, // 16x16 icon
+                    ToolTip = "Создать имена помещений по файлу Excel",
+
+                   
+                },
+                new PushButtonData(
+                    buttonName4,
+                    "Удалить неразмещенные",
+                   thisAssemblyPath,
+                    "BIMv2.DelUnplacedRoom")
+                {
+                    Image = smallImage, // 16x16 icon
+                    ToolTip = "Удалить лишние помещения"
+                },
+                new PushButtonData(
+                    buttonName5,
+                    "Прописать тип квартиры",
+                    thisAssemblyPath,
+                    "BIMv2.WriteTypeRooms")
+                {
+                    Image = smallImage, // 16x16 icon
+                    ToolTip = "Записать тип квартиры"
+                }
+            );
+
+            // Find Autodes.Windows.RibbonItems
+            
+            var btnTest3 = GetButton(tabNameB2, panelName, buttonName3);
+            var btnTest4 = GetButton(tabNameB2, panelName, buttonName4);
+            var btnTest5 = GetButton(tabNameB2, panelName, buttonName5);
+
+            btnTest3.ShowText = false;
+            btnTest4.ShowText = false;
+            btnTest5.ShowText = false;
+
+
+            ////попробуем создать еще одну кнопку
+            //ribbonPanelArRoom.AddSeparator(); //разделитель между кнопками
+
+            //// create push button for CurveTotalLength  //namespace и класс
+            //PushButtonData b23Data = new PushButtonData("cmdWriteTypeRooms.cs", "Записать"
+            //    + Environment.NewLine + "тип квартиры", thisAssemblyPath, "BIMv2.WriteTypeRooms");
+
+            //PushButton pb23 = ribbonPanelArRoom.AddItem(b23Data) as PushButton;
+            //pb23.ToolTip = "Записать тип квартиры";
+
+            //BitmapImage pb23Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-typeRoom-32.png"));
+            //pb23.LargeImage = pb23Image;
+
+            //попробуем создать еще одну кнопку
+            ribbonPanelArRoom.AddSeparator(); //разделитель между кнопками
+
+
             // Add a new ribbon panel
             RibbonPanel ribbonPanelb2 = application.CreateRibbonPanel(tabNameB2, "Архитектурные надстройки"); //подпись под кнопками
 
-            // create push button for CurveTotalLength  //namespace и класс
-            PushButtonData b22Data = new PushButtonData("cmdCreateNotPlacedRooms.cs", "Создать"
-                + Environment.NewLine + "имена помещений", thisAssemblyPath, "BIMv2.CreateNotPlacedRooms");
-
-            PushButton pb22 = ribbonPanelb2.AddItem(b22Data) as PushButton;
-            pb22.ToolTip = "Создать помещения в проекте по Excel файлу на диске С";
-
-            BitmapImage pb22Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-rooms-32.png"));
-            pb22.LargeImage = pb22Image;
-
-            //попробуем создать еще одну кнопку
-            ribbonPanelb2.AddSeparator(); //разделитель между кнопками
-
-            // create push button for CurveTotalLength  //namespace и класс
-            PushButtonData b24Data = new PushButtonData("cmdDelUnplacedRoom.cs", "Удалить"
-                + Environment.NewLine + "лишнии помещения", thisAssemblyPath, "BIMv2.DelUnplacedRoom");
-
-            PushButton pb24 = ribbonPanelb2.AddItem(b24Data) as PushButton;
-            pb24.ToolTip = "Удаляет лишнии помещения из проекта, чтобы было красиво";
-
-            BitmapImage pb24Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-clean2-32.png"));
-            pb24.LargeImage = pb24Image;
-
-            //попробуем создать еще одну кнопку
-            ribbonPanelb2.AddSeparator(); //разделитель между кнопками
-
-            // create push button for CurveTotalLength  //namespace и класс
-            PushButtonData b23Data = new PushButtonData("cmdWriteTypeRooms.cs", "Записать"
-                + Environment.NewLine + "тип квартиры", thisAssemblyPath, "BIMv2.WriteTypeRooms");
-
-            PushButton pb23 = ribbonPanelb2.AddItem(b23Data) as PushButton;
-            pb23.ToolTip = "Записать тип квартиры";
-
-            BitmapImage pb23Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-typeRoom-32.png"));
-            pb23.LargeImage = pb23Image;
-
-            //попробуем создать еще одну кнопку
-            ribbonPanelb2.AddSeparator(); //разделитель между кнопками
+           
 
             // create push button for CurveTotalLength  //namespace и класс
             PushButtonData b1DataB2_2 = new PushButtonData("cmdCreteFinishWalls.cs", "Создать отделку"
@@ -338,6 +379,8 @@ namespace BIMv2Buttons
 
             //попробуем создать еще одну кнопку
             ribbonPanelb2.AddSeparator(); //разделитель между кнопками
+
+            
 
 
             #endregion
@@ -931,5 +974,43 @@ namespace BIMv2Buttons
             AddRibbonPanel(application);
             return Result.Succeeded;
         }
+
+        public System.Windows.Media.ImageSource LoadImage(string imageName)
+        {
+            try
+            {
+                // Load from embedded resources
+                System.IO.Stream stream = this.GetType().Assembly.GetManifestResourceStream(
+                    "MyNamespace.Resources." + imageName);
+
+                return System.Windows.Media.Imaging.BitmapFrame.Create(stream);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public static AW.RibbonItem GetButton(string tabName, string panelName, string itemName)
+        {
+            AW.RibbonControl ribbon = AW.ComponentManager.Ribbon;
+            foreach (AW.RibbonTab tab in ribbon.Tabs)
+            {
+                if (tab.Name == tabName)
+                {
+                    foreach (AW.RibbonPanel panel in tab.Panels)
+                    {
+                        if (panel.Source.Title == panelName)
+                        {
+                            return panel.FindItem("CustomCtrl_%CustomCtrl_%"
+                              + tabName + "%" + panelName + "%" + itemName,
+                              true) as AW.RibbonItem;
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
     }
 }
