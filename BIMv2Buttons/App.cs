@@ -171,12 +171,12 @@ namespace BIMv2Buttons
 
             // #2 
             PushButtonData pushButtonDataAI3 = new PushButtonData
-               ("cmdDoorsInformationTransferComplectation.cs", "Перенести BIM_Комплектация в двери", thisAssemblyPath, "BIMv2.DoorsInformationTransferComplectation");
+               ("cmdDoorsInformationTransferComplectation.cs", "BIM_Комплектация двери", thisAssemblyPath, "BIMv2.DoorsInformationTransferComplectation");
             pushButtonDataAI3.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-doorsArm-32.png"));
 
             // #3 
             PushButtonData pushButtonDataAI4 = new PushButtonData
-               ("cmdDDoorsInformationTransferColorFurniture.cs", "Перенести BIM_Цвет фурнитуры в двери", thisAssemblyPath, "BIMv2.DoorsInformationTransferColorFurniture");
+               ("cmdDDoorsInformationTransferColorFurniture.cs", "BIM_Цвет фурнитура двери", thisAssemblyPath, "BIMv2.DoorsInformationTransferColorFurniture");
             pushButtonDataAI4.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-backet-32.png"));
 
 
@@ -188,6 +188,8 @@ namespace BIMv2Buttons
             splitBtnAI2.AddPushButton(pushButtonDataAI3);
             splitBtnAI2.AddPushButton(pushButtonDataAI4);
 
+            ///////////////////////
+
             // create push button for CurveTotalLength  //namespace и класс
             PushButtonData pbAI2Data = new PushButtonData("cmdFindDoorsMirror.cs", "Зеркально", thisAssemblyPath, "BIMv2.FindDoorsMirror");
 
@@ -196,6 +198,31 @@ namespace BIMv2Buttons
 
             BitmapImage pbAI2Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-mir-32.png"));
             pbAI2.LargeImage = pbAI2Image;
+
+            // #1 
+            PushButtonData pushButtonDataHl1 = new PushButtonData
+                ("cmdMakingHolesForWindows.cs", "Отверстия для окон", thisAssemblyPath, "BIMv2.MakingHolesForWindows");
+            pushButtonDataHl1.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-doors-32.png", UriKind.RelativeOrAbsolute));
+
+            // #2 
+            PushButtonData pushButtonDataHl2 = new PushButtonData
+               ("cmdMakingHolesForFacadeWindows.cs", "Отверстия для фасада", thisAssemblyPath, "BIMv2.MakingHolesForFacadeWindows");
+            pushButtonDataHl2.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-doorsArm-32.png"));
+
+            // #3 
+            PushButtonData pushButtonDataHl3 = new PushButtonData
+               ("cmdMakingHolesForFacadeWindowsDoors.cs", "Отверстия окна, двери, фасад", thisAssemblyPath, "BIMv2.MakingHolesForFacadeWindowsDoors");
+            pushButtonDataHl3.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-backet-32.png"));
+
+
+            // Make a split button now 
+            SplitButtonData splitBtnDatHl = new SplitButtonData("SplitButtonHl", "Split ButtonHl");
+            SplitButton splitBtnHl = ribbonPanelAR.AddItem(splitBtnDatHl) as SplitButton;
+
+            splitBtnHl.AddPushButton(pushButtonDataHl1);
+            splitBtnHl.AddPushButton(pushButtonDataHl2);
+            splitBtnHl.AddPushButton(pushButtonDataHl3);
+
 
 
             // #0 
@@ -281,16 +308,7 @@ namespace BIMv2Buttons
             splitBtnCount.AddPushButton(pushButtonData2Count);
             splitBtnCount.AddPushButton(pushButtonData3Count);
 
-            // create push button for CurveTotalLength  //namespace и класс
-            PushButtonData pbAI1Data = new PushButtonData("cmdCreateRailingInRooms.cs", "Создать"
-                + Environment.NewLine + "плинтуса в помещении", thisAssemblyPath, "BIMv2.CreateRailingInRooms");
-
-            PushButton pbAI1 = ribbonPanelAi.AddItem(pbAI1Data) as PushButton;
-            pbAI1.ToolTip = "Создать плинтус от_Плинтус напольный_2000х60 в выбранном помещении";
-
-            BitmapImage pbAI1Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-rail-3-32.png"));
-            pbAI1.LargeImage = pbAI1Image;
-
+           
 
             //// create push button for CurveTotalLength  //namespace и класс
             //PushButtonData b21Data = new PushButtonData("cmdWallFinishing", "Посчитать"
@@ -340,6 +358,17 @@ namespace BIMv2Buttons
             splitBtn.AddPushButton(pushButtonData5);
 
 
+            // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData pbAI1Data = new PushButtonData("cmdCreateRailingInRooms.cs", "Создать"
+                + Environment.NewLine + "плинтуса в помещении", thisAssemblyPath, "BIMv2.CreateRailingInRooms");
+
+            PushButton pbAI1 = ribbonPanelAi.AddItem(pbAI1Data) as PushButton;
+            pbAI1.ToolTip = "Создать плинтус от_Плинтус напольный_2000х60 в выбранном помещении";
+
+            BitmapImage pbAI1Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-rail-3-32.png"));
+            pbAI1.LargeImage = pbAI1Image;
+
+
             ////попробуем создать еще одну кнопку
             //ribbonPanelAi.AddSeparator(); //разделитель между кнопками
 
@@ -360,6 +389,8 @@ namespace BIMv2Buttons
             //ribbonPanelArRoom.AddSeparator(); //разделитель между кнопками
 
             // Create three push buttons for split button drop down 
+
+            ///////////////////// ES
 
             string buttonES1 = "Посчитать светильники";
             string buttonES2 = "Записать освещенности";
@@ -391,6 +422,10 @@ namespace BIMv2Buttons
             splitBtnES.AddPushButton(pushButtonDataES2);
             splitBtnES.AddPushButton(pushButtonDataES3);
 
+
+
+            //////////////////// AN
+
             // create push button for CurveTotalLength  //namespace и класс
             PushButtonData b1DataB2_1 = new PushButtonData("cmdConvertGrids3Dto2D", "Оси 2D/3D"
                 + Environment.NewLine + "поменять", thisAssemblyPath, "BIMv2.ConvertGrids3Dto2D");
@@ -404,15 +439,15 @@ namespace BIMv2Buttons
             //попробуем создать еще одну кнопку
             ribbonPanelAnnotation.AddSeparator(); //разделитель между кнопками
 
-            // create push button for CurveTotalLength  //namespace и класс
-            PushButtonData b1DataB3_1 = new PushButtonData("cmdCreateNewTypeAnnotation", "Создать"
-                + Environment.NewLine + "флажок", thisAssemblyPath, "BIMv2.CreateNewTypeAnnotation");
+            //// create push button for CurveTotalLength  //namespace и класс
+            //PushButtonData b1DataB3_1 = new PushButtonData("cmdCreateNewTypeAnnotation", "Создать"
+            //    + Environment.NewLine + "флажок", thisAssemblyPath, "BIMv2.CreateNewTypeAnnotation");
 
-            PushButton pb1B3_1 = ribbonPanelAnnotation.AddItem(b1DataB3_1) as PushButton;
-            pb1B3_1.ToolTip = "Создает и обновляет флажки";
+            //PushButton pb1B3_1 = ribbonPanelAnnotation.AddItem(b1DataB3_1) as PushButton;
+            //pb1B3_1.ToolTip = "Создает и обновляет флажки";
 
-            BitmapImage pb1ImageB3_1 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-flag-32.png"));
-            pb1B3_1.LargeImage = pb1ImageB3_1;
+            //BitmapImage pb1ImageB3_1 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-flag-32.png"));
+            //pb1B3_1.LargeImage = pb1ImageB3_1;
 
             // create push button for CurveTotalLength  //namespace и класс
             PushButtonData b1DataB3_6 = new PushButtonData("cmdWallSection", "Разрез"
@@ -424,8 +459,7 @@ namespace BIMv2Buttons
             BitmapImage pb1ImageB3_6 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-double-arrows32.png"));
             pb1B3_6.LargeImage = pb1ImageB3_6;
 
-            PushButtonData b25Data = new PushButtonData("cmdDuplicateSheets.cs", "Скопировать"
-               + Environment.NewLine + "лист с видами", thisAssemblyPath, "BIMv2.DuplicateSheets");
+            PushButtonData b25Data = new PushButtonData("cmdDuplicateSheets.cs", "Копия листа", thisAssemblyPath, "BIMv2.DuplicateSheets");
 
             PushButton pb25 = ribbonPanelAnnotation.AddItem(b25Data) as PushButton;
             pb25.ToolTip = "Скопировать лист с видами размещенным на нем";
@@ -433,8 +467,55 @@ namespace BIMv2Buttons
             BitmapImage pb25Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-sheets-32.png"));
             pb25.LargeImage = pb25Image;
 
-            PushButtonData b9Data = new PushButtonData("cmdDeletedFilter", "Удалить"
-    + Environment.NewLine + "фильтры из проекта", thisAssemblyPath, "BIMv2.DeletedFilter");
+            string buttonName33 = "Рабочие наборы";
+            string buttonName43 = "3D связей";
+            string buttonName53 = "Коллизии";
+
+
+            // Create three small stacked buttons (16x16 icons)
+            IList<RibbonItem> stackedButtonsBIM = ribbonPanelBIM.AddStackedItems(
+                new PushButtonData(
+                    buttonName33,
+                    "Рабочие наборы", //\u200B
+                    thisAssemblyPath,
+                    "BIMv2.CreateWorksets")
+                {
+                    Image = NImage, // 16x16 icon
+                    ToolTip = "Создать рабочие наборы в файле",
+
+
+                },
+                new PushButtonData(
+                    buttonName43,
+                    "3D связей",
+                   thisAssemblyPath,
+                    "BIMv2.CreateViewByLinkedFiles")
+                {
+                    Image = binImage, // 16x16 icon
+                    ToolTip = "Создать 3D виды для связанных файлов"
+                },
+                new PushButtonData(
+                    buttonName53,
+                    "Создать коллизии",
+                    thisAssemblyPath,
+                    "BIMv2.CreateViewForCollisions")
+                {
+                    Image = TImage, // 16x16 icon
+                    ToolTip = "Создает 3D виды коллизий по отчету на диске С, имя файла должно быть BIMv2_ClashView.xml"
+                }
+            );
+
+            // Find Autodes.Windows.RibbonItems
+
+            AW.RibbonItem btnTest33 = GetButton(tabNameB2, panelNameBim, buttonName33);
+            AW.RibbonItem btnTest43 = GetButton(tabNameB2, panelNameBim, buttonName43);
+            AW.RibbonItem btnTest53 = GetButton(tabNameB2, panelNameBim, buttonName53);
+
+            btnTest33.ShowText = false;
+            btnTest43.ShowText = false;
+            btnTest53.ShowText = false;
+
+            PushButtonData b9Data = new PushButtonData("cmdDeletedFilter", "Удалить"+ Environment.NewLine + "фильтры", thisAssemblyPath, "BIMv2.DeletedFilter");
 
             PushButton pb9 = ribbonPanelBIM.AddItem(b9Data) as PushButton;
             pb9.ToolTip = "Удалить фильтры";
@@ -442,8 +523,7 @@ namespace BIMv2Buttons
             BitmapImage pb9Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-clean-32.png"));
             pb9.LargeImage = pb9Image;
 
-            PushButtonData b11Data = new PushButtonData("cmdClearProjectBrowser", "Удалить"
-                                        + Environment.NewLine + "всё из диспетчера", thisAssemblyPath, "BIMv2.ClearProjectBrowser");
+            PushButtonData b11Data = new PushButtonData("cmdClearProjectBrowser", "Удалить всё", thisAssemblyPath, "BIMv2.ClearProjectBrowser");
 
             PushButton pb11 = ribbonPanelBIM.AddItem(b11Data) as PushButton;
             pb11.ToolTip = "Удалить всё кроме активного вида";
@@ -451,13 +531,13 @@ namespace BIMv2Buttons
             BitmapImage pb11Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-clean3-32.png"));
             pb11.LargeImage = pb11Image;
 
-            PushButtonData b17Data = new PushButtonData("cmdCreateWorksets", "Рабочие наборы", thisAssemblyPath, "BIMv2.CreateWorksets");
+            //PushButtonData b17Data = new PushButtonData("cmdCreateWorksets", "Рабочие наборы", thisAssemblyPath, "BIMv2.CreateWorksets");
 
-            PushButton pb17 = ribbonPanelBIM.AddItem(b17Data) as PushButton;
-            pb17.ToolTip = "Создание рабочих наборов по списку";
+            //PushButton pb17 = ribbonPanelBIM.AddItem(b17Data) as PushButton;
+            //pb17.ToolTip = "Создание рабочих наборов по списку";
 
-            BitmapImage pb17Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-ws-32.png"));
-            pb17.LargeImage = pb17Image;
+            //BitmapImage pb17Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-ws-32.png"));
+            //pb17.LargeImage = pb17Image;
 
 
             // Create three push buttons for split button drop down 
@@ -483,34 +563,51 @@ namespace BIMv2Buttons
             splitBtnBIM.AddPushButton(pushButtonBIM2);
             splitBtnBIM.AddPushButton(pushButtonBIM3);
 
-            PushButtonData b26Data = new PushButtonData("cmdCreateViewByLinkedFiles.cs", "3D связей", thisAssemblyPath, "BIMv2.CreateViewByLinkedFiles");
+            //PushButtonData b26Data = new PushButtonData("cmdCreateViewByLinkedFiles.cs", "3D связей", thisAssemblyPath, "BIMv2.CreateViewByLinkedFiles");
 
-            PushButton pb26 = ribbonPanelBIM.AddItem(b26Data) as PushButton;
-            pb26.ToolTip = "Создать 3D виды для связанных файлов";
+            //PushButton pb26 = ribbonPanelBIM.AddItem(b26Data) as PushButton;
+            //pb26.ToolTip = "Создать 3D виды для связанных файлов";
 
-            BitmapImage pb26Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-3d-modeling-32.png"));
-            pb26.LargeImage = pb26Image;
+            //BitmapImage pb26Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-3d-modeling-32.png"));
+            //pb26.LargeImage = pb26Image;
 
-            PushButtonData b28Data = new PushButtonData("cmdCreateViewForCollisions.cs", "Коллизии", thisAssemblyPath, "BIMv2.CreateViewForCollisions");
+            //PushButtonData b28Data = new PushButtonData("cmdCreateViewForCollisions.cs", "Коллизии", thisAssemblyPath, "BIMv2.CreateViewForCollisions");
 
-            PushButton pb28 = ribbonPanelBIM.AddItem(b28Data) as PushButton;
-            pb28.ToolTip = "Создает инфу по отчету на диске С, имя файла должно быть BIMv2_ClashView.xml";
+            //PushButton pb28 = ribbonPanelBIM.AddItem(b28Data) as PushButton;
+            //pb28.ToolTip = "Создает инфу по отчету на диске С, имя файла должно быть BIMv2_ClashView.xml";
 
-            BitmapImage pb28Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-bi-32.png"));
-            pb28.LargeImage = pb28Image;
+            //BitmapImage pb28Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-bi-32.png"));
+            //pb28.LargeImage = pb28Image;
 
+
+            //PushButtonData bHData5 = new PushButtonData("cmdHelpBIMYouTube", "Подпишись на"
+            //  + Environment.NewLine + "YouTube", thisAssemblyPath, "BIMv2.HelpBIMYouTube");
+
+            //PushButton pbH5 = ribbonPanelInfo.AddItem(bHData5) as PushButton;
+            //pbH5.ToolTip = "Подписываемся, ставим лайки, комментируем";
+
+            //BitmapImage pbHImage5 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-youtube-32.png"));
+            //pbH5.LargeImage = pbHImage5;
+
+            PushButtonData bHData2 = new PushButtonData("cmdHelpBIMBlog", "Блог", thisAssemblyPath, "BIMv2.HelpBIMBlog");
+
+            PushButton pbH2 = ribbonPanelInfo.AddItem(bHData2) as PushButton;
+            pbH2.ToolTip = "Подписываемся, ставим лайки, комментируем";
+
+            BitmapImage pbHImage2 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/blog2bim.png"));
+            pbH2.LargeImage = pbHImage2;
 
 
 
 
             // Add a new ribbon panel
-            RibbonPanel ribbonPanelb2 = application.CreateRibbonPanel(tabNameB2, "Архитектурные надстройки"); //подпись под кнопками
+            //RibbonPanel ribbonPanelb2 = application.CreateRibbonPanel(tabNameB2, "Архитектурные надстройки"); //подпись под кнопками
 
-           
 
-        
 
-            
+
+
+
 
             ////попробуем создать еще одну кнопку
             //ribbonPanelb2.AddSeparator(); //разделитель между кнопками
@@ -528,51 +625,17 @@ namespace BIMv2Buttons
             ////попробуем создать еще одну кнопку
             //ribbonPanelb2.AddSeparator(); //разделитель между кнопками
 
-            // create push button for CurveTotalLength  //namespace и класс
-            PushButtonData b1DataB3_3 = new PushButtonData("cmdMakingHolesForWindows", "Отверстия"
-                + Environment.NewLine + "для окон", thisAssemblyPath, "BIMv2.MakingHolesForWindows");
 
-            PushButton pb1B3_3 = ribbonPanelb2.AddItem(b1DataB3_3) as PushButton;
-            pb1B3_3.ToolTip = "Создаем отверстия и обновляем тут";
-
-            BitmapImage pb1ImageB3_3 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-win-32.png"));
-            pb1B3_3.LargeImage = pb1ImageB3_3;
 
             //попробуем создать еще одну кнопку
-            ribbonPanelb2.AddSeparator(); //разделитель между кнопками
+            //ribbonPanelb2.AddSeparator(); //разделитель между кнопками
 
-            // create push button for CurveTotalLength  //namespace и класс
-            PushButtonData b1DataB3_4 = new PushButtonData("cmdMakingHolesForFacadeWindows", "Отверстия"
-                + Environment.NewLine + "для окон в фасаде", thisAssemblyPath, "BIMv2.MakingHolesForFacadeWindows");
 
-            PushButton pb1B3_4 = ribbonPanelb2.AddItem(b1DataB3_4) as PushButton;
-            pb1B3_4.ToolTip = "Создаем отверстия в фасадном файле";
 
-            BitmapImage pb1ImageB3_4 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-win-32.png"));
-            pb1B3_4.LargeImage = pb1ImageB3_4;
+            ////попробуем создать еще одну кнопку
+            //ribbonPanelb2.AddSeparator(); //разделитель между кнопками
 
-            //попробуем создать еще одну кнопку
-            ribbonPanelb2.AddSeparator(); //разделитель между кнопками
 
-            // create push button for CurveTotalLength  //namespace и класс
-            PushButtonData b1DataB3_5 = new PushButtonData("cmdMakingHolesForFacadeWindowsDoors", "Отверстия"
-                + Environment.NewLine + "для окон, дверей, витражей в фасаде", thisAssemblyPath, "BIMv2.MakingHolesForFacadeWindowsDoors");
-
-            PushButton pb1B3_5 = ribbonPanelb2.AddItem(b1DataB3_5) as PushButton;
-            pb1B3_5.ToolTip = "Создаем отверстия в фасадном файле по архитектурной модели";
-
-            BitmapImage pb1ImageB3_5 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-fsd-32.png"));
-            pb1B3_5.LargeImage = pb1ImageB3_5;
-
-            //попробуем создать еще одну кнопку
-            ribbonPanelb2.AddSeparator(); //разделитель между кнопками
-
-            
-
-            //попробуем создать еще одну кнопку
-            ribbonPanelb2.AddSeparator(); //разделитель между кнопками
-
-           
 
             //// Add a new ribbon panel
             //RibbonPanel ribbonPanelb3 = application.CreateRibbonPanel(tabNameB2, "Надстройка для ПТО"); //подпись под кнопками
@@ -590,18 +653,18 @@ namespace BIMv2Buttons
             ////попробуем создать еще одну кнопку
             //ribbonPanelb2.AddSeparator(); //разделитель между кнопками
 
-            
+
 
 
             #endregion
 
             #region BIMv2
 
-            String tabName = "BIMv2";    // создание вкладки
-            application.CreateRibbonTab(tabName);
+            //String tabName = "BIMv2";    // создание вкладки
+            //application.CreateRibbonTab(tabName);
 
-            // Add a new ribbon panel
-            RibbonPanel ribbonPanel = application.CreateRibbonPanel(tabName, "Надстройки для архитектора"); //подпись под кнопками
+            //// Add a new ribbon panel
+            //RibbonPanel ribbonPanel = application.CreateRibbonPanel(tabName, "Надстройки для архитектора"); //подпись под кнопками
 
             //// create push button for CurveTotalLength  //namespace и класс
             //PushButtonData b1Data = new PushButtonData("cmdWriteNameRoomInPlumbingFixtures", "Помещения" 
@@ -612,7 +675,7 @@ namespace BIMv2Buttons
 
             //BitmapImage pb1Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/transferNameRoom.png"));
             //pb1.LargeImage = pb1Image;
-            
+
 
             ////попробуем создать еще одну кнопку
             //ribbonPanel.AddSeparator(); //разделитель между кнопками
@@ -629,11 +692,11 @@ namespace BIMv2Buttons
 
 
             //попробуем создать еще одну кнопку
-            ribbonPanel.AddSeparator(); //разделитель между кнопками
+            //ribbonPanel.AddSeparator(); //разделитель между кнопками
 
             // Create three push buttons for split button drop down 
 
-           
+
 
             //create push button for CurveTotalLength  //namespace и класс
             // PushButtonData b11Data = new PushButtonData("cmdCreateNumberRoomForFloors", "Записать"
@@ -663,7 +726,7 @@ namespace BIMv2Buttons
             //12 группировка полов
 
             //попробуем создать еще одну кнопку
-            ribbonPanel.AddSeparator(); //разделитель между кнопками
+            //ribbonPanel.AddSeparator(); //разделитель между кнопками
 
             // create push button for CurveTotalLength  //namespace и класс
             PushButtonData b12Data = new PushButtonData("GroupTypeFloorAndWriteToComment.cs", "Сгруппировать полы", thisAssemblyPath, "BIMv2.GroupTypeFloorAndWriteToComment");
@@ -732,18 +795,18 @@ namespace BIMv2Buttons
             //splitBtn2.AddPushButton(b15Data);
 
             //попробуем создать еще одну кнопку
-            ribbonPanel.AddSeparator(); //разделитель между кнопками
+            //ribbonPanel.AddSeparator(); //разделитель между кнопками
             
 
-            // create push button for CurveTotalLength  //namespace и класс
-            PushButtonData b3Data = new PushButtonData("cmdCreateModelText.cs", "Создать"
-                + Environment.NewLine + "текст модели", thisAssemblyPath, "BIMv2.CreateModelText");
+            //// create push button for CurveTotalLength  //namespace и класс
+            //PushButtonData b3Data = new PushButtonData("cmdCreateModelText.cs", "Создать"
+            //    + Environment.NewLine + "текст модели", thisAssemblyPath, "BIMv2.CreateModelText");
 
-            PushButton pb3 = ribbonPanel.AddItem(b3Data) as PushButton;
-            pb3.ToolTip = "Создать текст модели на основе .ТХТ файла с диска С";
+            //PushButton pb3 = ribbonPanel.AddItem(b3Data) as PushButton;
+            //pb3.ToolTip = "Создать текст модели на основе .ТХТ файла с диска С";
 
-            BitmapImage pb3Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/creteModelText.png"));
-            pb3.LargeImage = pb3Image;
+            //BitmapImage pb3Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/creteModelText.png"));
+            //pb3.LargeImage = pb3Image;
 
 
             //// Add a new ribbon panel
@@ -842,49 +905,49 @@ namespace BIMv2Buttons
 
 
             // Add a new ribbon panel
-            RibbonPanel ribbonPanel4 = application.CreateRibbonPanel(tabName, "Надстройки для всех"); //подпись под кнопками
+            //RibbonPanel ribbonPanel4 = application.CreateRibbonPanel(tabName, "Надстройки для всех"); //подпись под кнопками
 
             // create push button for CurveTotalLength  //namespace и класс
             //PushButtonData b7Data = new PushButtonData("cmdCreateAnyElementsInRooms", "Расставить"
             //    + Environment.NewLine + "элементы в помещениях", thisAssemblyPath, "BIMv2.CreateAnyElementsInRooms");
 
-            PushButtonData b7Data = new PushButtonData("cmdCreateElementsInRooms", "Расставить"
-                + Environment.NewLine + "элементы в помещениях", thisAssemblyPath, "BIMv2.CreateElementsInRooms");
+            //PushButtonData b7Data = new PushButtonData("cmdCreateElementsInRooms", "Расставить"
+            //    + Environment.NewLine + "элементы в помещениях", thisAssemblyPath, "BIMv2.CreateElementsInRooms");
 
-            PushButton pb7 = ribbonPanel4.AddItem(b7Data) as PushButton;
-            pb7.ToolTip = "Расставить выбранное семейство в помещениях";
+            //PushButton pb7 = ribbonPanel4.AddItem(b7Data) as PushButton;
+            //pb7.ToolTip = "Расставить выбранное семейство в помещениях";
 
-            BitmapImage pb7Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-crane-machine-32.png"));
-            pb7.LargeImage = pb7Image;
+            //BitmapImage pb7Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-crane-machine-32.png"));
+            //pb7.LargeImage = pb7Image;
 
 
 
-            //попробуем создать еще одну кнопку
-            ribbonPanel4.AddSeparator(); //разделитель между кнопками
+            ////попробуем создать еще одну кнопку
+            //ribbonPanel4.AddSeparator(); //разделитель между кнопками
 
             
 
 
-            //попробуем создать еще одну кнопку
-            ribbonPanel4.AddSeparator(); //разделитель между кнопками
+            ////попробуем создать еще одну кнопку
+            //ribbonPanel4.AddSeparator(); //разделитель между кнопками
 
 
-            PushButtonData b10Data = new PushButtonData("cmdDeletedUnFilter", "Удалить"
-                                        + Environment.NewLine + "неиспользуемые фильтры", thisAssemblyPath, "BIMv2.DeletedUnFilter");
+            //PushButtonData b10Data = new PushButtonData("cmdDeletedUnFilter", "Удалить"
+            //                            + Environment.NewLine + "неиспользуемые фильтры", thisAssemblyPath, "BIMv2.DeletedUnFilter");
 
-            PushButton pb10 = ribbonPanel4.AddItem(b10Data) as PushButton;
-            pb10.ToolTip = "Удалить только неиспользуемые фильтры";
+            //PushButton pb10 = ribbonPanel4.AddItem(b10Data) as PushButton;
+            //pb10.ToolTip = "Удалить только неиспользуемые фильтры";
 
-            BitmapImage pb10Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-clean2-32.png"));
-            pb10.LargeImage = pb10Image;
+            //BitmapImage pb10Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-clean2-32.png"));
+            //pb10.LargeImage = pb10Image;
 
-            //попробуем создать еще одну кнопку
-            ribbonPanel4.AddSeparator(); //разделитель между кнопками
+            ////попробуем создать еще одну кнопку
+            //ribbonPanel4.AddSeparator(); //разделитель между кнопками
 
            
 
-            //попробуем создать еще одну кнопку
-            ribbonPanel4.AddSeparator(); //разделитель между кнопками
+            ////попробуем создать еще одну кнопку
+            //ribbonPanel4.AddSeparator(); //разделитель между кнопками
 
             
 
@@ -903,15 +966,15 @@ namespace BIMv2Buttons
 
 
             ////попробуем создать еще одну кнопку
-            //ribbonPanel4.AddSeparator(); //разделитель между кнопками
+            ////ribbonPanel4.AddSeparator(); //разделитель между кнопками
 
-            //попробуем создать еще одну кнопку
-            ribbonPanel4.AddSeparator(); //разделитель между кнопками
+            ////попробуем создать еще одну кнопку
+            //ribbonPanel4.AddSeparator(); //разделитель между кнопками
 
            
 
-            //попробуем создать еще одну кнопку
-            ribbonPanel4.AddSeparator(); //разделитель между кнопками
+            ////попробуем создать еще одну кнопку
+            //ribbonPanel4.AddSeparator(); //разделитель между кнопками
 
 
 
@@ -989,14 +1052,7 @@ namespace BIMv2Buttons
 //            //попробуем создать еще одну кнопку
 //            ribbonPanelLinks1.AddSeparator(); //разделитель между кнопками
 
-//            PushButtonData bHData2 = new PushButtonData("cmdHelpBIMBlog", "Мой"
-//              + Environment.NewLine + "блог", thisAssemblyPath, "BIMv2.HelpBIMBlog");
-
-//            PushButton pbH2 = ribbonPanelLinks1.AddItem(bHData2) as PushButton;
-//            pbH2.ToolTip = "Подписываемся, ставим лайки, комментируем";
-
-//            BitmapImage pbHImage2 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/blog2bim.png"));
-//            pbH2.LargeImage = pbHImage2;
+//           
 
 //            //попробуем создать еще одну кнопку
 //            ribbonPanelLinks1.AddSeparator(); //разделитель между кнопками
@@ -1026,14 +1082,7 @@ namespace BIMv2Buttons
 //            //попробуем создать еще одну кнопку
 //            ribbonPanelLinks1.AddSeparator(); //разделитель между кнопками
 
-//            PushButtonData bHData5 = new PushButtonData("cmdHelpBIMYouTube", "Подпишись на"
-//              + Environment.NewLine + "YouTube", thisAssemblyPath, "BIMv2.HelpBIMYouTube");
-
-//            PushButton pbH5 = ribbonPanelLinks1.AddItem(bHData5) as PushButton;
-//            pbH5.ToolTip = "Подписываемся, ставим лайки, комментируем";
-
-//            BitmapImage pbHImage5 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-youtube-32.png"));
-//            pbH5.LargeImage = pbHImage5;
+//            
 
 //            //попробуем создать еще одну кнопку
 //            ribbonPanelLinks1.AddSeparator(); //разделитель между кнопками
