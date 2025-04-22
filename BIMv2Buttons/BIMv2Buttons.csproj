@@ -473,5 +473,18 @@
   <ItemGroup>
     <Resource Include="Resources\icons8-n-24.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\icons8-bin-16.png" />
+    <Resource Include="Resources\icons8-circled-n-16.png" />
+    <Resource Include="Resources\icons8-t-16.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\icons8-cl-32.png" />
+    <Resource Include="Resources\icons8-nl-32.png" />
+    <Resource Include="Resources\icons8-sl-32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\icons8-paint-bucket-32.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
