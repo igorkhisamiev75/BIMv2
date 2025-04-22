@@ -194,6 +194,7 @@ namespace BIMv2Buttons
                 {
                     Image = smallImage, // 16x16 icon
                     ToolTip = "Создать имена помещений по файлу Excel",
+
                    
                 },
                 new PushButtonData(
