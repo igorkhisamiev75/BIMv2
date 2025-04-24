@@ -332,19 +332,19 @@ namespace BIMv2Buttons
 
             // #2 
             PushButtonData pushButtonData2 = new PushButtonData("cmdGroupTypeCeilingByNote.cs", "Сгруппировать потолки", thisAssemblyPath, "BIMv2Buttons.GroupTypeCeilingByNote");
-            pushButtonData2.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-ceiling-32.png"));
+            pushButtonData2.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-floor-32.png"));
 
             // #3 
             PushButtonData pushButtonData3 = new PushButtonData("cmdGroupTypeWallsByNote.cs", "Сгруппировать стены", thisAssemblyPath, "BIMv2Buttons.GroupTypeWallsByNote");
-            pushButtonData3.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-wall-32.png"));
+            pushButtonData3.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-floor-32.png"));
 
             // #4 
             PushButtonData pushButtonData4 = new PushButtonData("cmdGroupByMarkEqupmentFurnitureAndWriteToComment.cs", "Сгруппировать оборудование и мебель", thisAssemblyPath, "BIMv2.GroupByMarkEqupmentFurnitureAndWriteToComment");
-            pushButtonData4.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-groupCoins-32.png"));
+            pushButtonData4.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-floor-32.png"));
 
             // #5 
             PushButtonData pushButtonData5 = new PushButtonData("cmdGroupingLighting.cs", "Сгруппировать светильники", thisAssemblyPath, "BIMv2.GroupingLighting");
-            pushButtonData5.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/countLampInRoom.png"));
+            pushButtonData5.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-floor-32.png"));
 
 
             // Make a split button now 
