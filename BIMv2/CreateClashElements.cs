@@ -90,13 +90,20 @@ namespace BIMv2
 
                 foreach ( var clash in clashTests[0].Results)
                 {
-                    XYZ pointRoom = new XYZ(clash.X, clash.Y, clash.Y);
+                    //clash.X = UnitUtils.ConvertFromInternalUnits(clash.X,
+                        double feetX = UnitUtils.Convert(clash.X, UnitTypeId.Meters, UnitTypeId.Feet);
+                        double feetY = UnitUtils.Convert(clash.Y, UnitTypeId.Meters, UnitTypeId.Feet);
+                        double feetZ = UnitUtils.Convert(clash.Z, UnitTypeId.Meters, UnitTypeId.Feet);
+
+
+                    XYZ pointRoom = new XYZ(feetX, feetY, feetZ);
                    string name = clash.Name;
 
                     FamilyInstance familyInstance = _doc.Create.NewFamilyInstance(
-                       pointRoom, symbol, StructuralType.NonStructural);
-                    familyInstance.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(name);
+                       pointRoom,  symbol, StructuralType.NonStructural);
 
+                    familyInstance.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(name);
+                                       
                 }
 
 
