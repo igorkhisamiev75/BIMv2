@@ -227,6 +227,7 @@
     <Compile Include="Create3DViewFromSpace.cs" />
     <Compile Include="CreateAnyElementsInRooms.cs" />
     <Compile Include="CreateCeiling.cs" />
+    <Compile Include="CreateClashElements.cs" />
     <Compile Include="CreateDoorsForFinish.cs" />
     <Compile Include="CreateFinishWallinRooms.cs" />
     <Compile Include="CreateFinishWallinSelectedRoom.cs" />

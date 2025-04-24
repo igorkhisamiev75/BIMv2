@@ -112,10 +112,10 @@ namespace BIMv2Buttons
                     buttonName3,
                     "Имена помещений", //\u200B
                     thisAssemblyPath,
-                    "BIMv2.CreateNotPlacedRooms")
+                    "BIMv2.CreateNameSet")
                 {
                     Image = NImage, // 16x16 icon
-                    ToolTip = "Создать имена помещений по файлу Excel",
+                    ToolTip = "Создать имена помещений по списку с разделителем точка-запятая ;",
 
                    
                 },

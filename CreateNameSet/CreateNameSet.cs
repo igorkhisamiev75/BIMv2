@@ -9,6 +9,7 @@ using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Application = Autodesk.Revit.ApplicationServices.Application;
+using Autodesk.Revit.DB.Architecture;
 
 #endregion
 
@@ -27,66 +28,56 @@ namespace CreateNameSet
             Document doc = uidoc.Document;
 
             ViewWPF viewWpf = new ViewWPF();
+            viewWpf.WindowStartupLocation = WindowStartupLocation.CenterScreen;
 
             viewWpf.ShowDialog();
+         
 
             //get list 
             List<string> listWS=viewWpf.listWs; //0 1 2 3 4
 
-            if (listWS.Count>=2)
+            //Document doc = commandData.Application.ActiveUIDocument.Document;
+            Phase newConstructionPhase = doc.Phases.get_Item(1);
+
+            using (var t = new Transaction(doc))
             {
-
-                int countWorkset = listWS.Count; //5
-
-                //last workset with 2 chair
-                string lastWS = listWS[listWS.Count - 1]; //4\r\n
-
-                int intLast = lastWS.Length; //3
+                t.Start("Create Rooms");
 
 
-                lastWS = lastWS.Remove(lastWS.Length - 2);
-
-
-                listWS[listWS.Count - 1] = lastWS;
-
-                doc.EnableWorksharing($"{listWS[0]}", $"{listWS[1]}");
-
-                //Workset newWorkset = null;
-                // Worksets can only be created in a document with worksharing enabled
-                if (doc.IsWorkshared)
+                try
                 {
-                    if (countWorkset > 2)
+                    // create room using Phase
+
+                    int k = 0;
+
+                    foreach (var roomName in listWS)
                     {
-                        for (int j = 1; j < countWorkset - 1; j++)
-                        {
-                            if (listWS[j + 1] != null)
-                            {
-                                string worksetName = listWS[j + 1];
+                        Room newScheduleRoom = doc.Create.NewRoom(newConstructionPhase);
 
-                                // Workset name must not be in use by another workset
-                                if (WorksetTable.IsWorksetNameUnique(doc, worksetName))
-                                {
-                                    using (Transaction worksetTransaction = new Transaction(doc, "Set preview view id"))
-                                    {
-                                        worksetTransaction.Start();
+                        // set the Room Number and Name
+                        string newRoomNumber = "удалить";
+                        string newRoomName = roomName;
+                        newScheduleRoom.Name = newRoomName;
+                        newScheduleRoom.Number = newRoomNumber;
 
-                                        Workset newWorkset = Workset.Create(doc, worksetName);
-                                        WorksetTable daf = doc.GetWorksetTable();
-
-                                        daf.SetActiveWorksetId(newWorkset.Id);
-                                        worksetTransaction.Commit();
-                                    }
-                                }
-                            }
-
-                        }
-
+                        //doc.Regenerate();
+                        k++;
                     }
 
-                }
-            }
+                    t.Commit();
+                    return Result.Succeeded;
 
-            return Result.Succeeded;
+                }
+
+
+
+                catch (Exception ex)
+                {
+                    TaskDialog.Show("Revit", ex.Message);
+                    return Result.Failed;
+                }
+
+            }
         }
     }
 }

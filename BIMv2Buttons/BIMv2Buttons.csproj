@@ -230,6 +230,10 @@
     <Compile Include="CreateLightingInRoom\CreateLightingInRoom.cs" />
     <Compile Include="CreateModelTextRoomNameInRoom\CreateModelTextRoomNameInRoom.cs" />
     <Compile Include="CreateModelText\CreateModelText.cs" />
+    <Compile Include="CreateNameSet\CreateNameSet.cs" />
+    <Compile Include="CreateNameSet\ViewWPF.xaml.cs">
+      <DependentUpon>ViewWPF.xaml</DependentUpon>
+    </Compile>
     <Compile Include="CreateNewTypeAnnotation\CreateNewTypeAnnotation.cs" />
     <Compile Include="CreateNotPlacedRooms\CreateNotPlacedRooms.cs" />
     <Compile Include="CreateNumberRoomForFloors\CreateNumberRoomForFloors.cs" />
@@ -329,6 +333,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="CreateFinishWallinRooms\ViewWPF.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="CreateNameSet\ViewWPF.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

@@ -7,7 +7,9 @@
         mc:Ignorable="d" 
         Title="Создать имена помещений"
         Height="752" 
-        Width="554">
+        Width="554"
+                
+        >
     <Grid Margin="0,0,-5.714,12.429">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
@@ -28,7 +30,7 @@
                      Name="RichTextBox"
                      HorizontalAlignment="Left" 
                      Height="704" 
-                     Margin="10,20,10,10" 
+                     Margin="10,00,10,10" 
                      VerticalAlignment="Center" 
                      Width="446">
             <FlowDocument>
