@@ -11,6 +11,11 @@ using Autodesk.Revit.UI.Selection;
 using System.Xml.Linq;
 using Autodesk.Revit.DB.Structure;
 
+using System.Xml.Linq;
+using System.Linq;
+using Microsoft.Office.Interop.Excel;
+using System.Globalization;
+
 #endregion
 
 namespace BIMv2
@@ -35,7 +40,7 @@ namespace BIMv2
 
             List < pointAndNameClash > nameClashes= new List<pointAndNameClash>();
 
-            XYZ pointRoom = new XYZ();
+           
 
             FamilySymbol symbol = GetSymbol(_doc, "Для подписи пересечений", "Для подписи пересечений");
 
@@ -55,42 +60,53 @@ namespace BIMv2
                 xDoc.Load(@"C:\Users\i.khisamiev\Downloads\ОВ2 ВК подвал.xml");
                 // получим корневой элемент
                 XmlElement xRoot = xDoc.DocumentElement;
-                if (xRoot != null)
-                {
-                    // обход всех узлов в корневом элементе
-                    foreach (XmlElement xnode in xRoot)
+
+                XDocument doci = XDocument.Load(@"C:\Users\i.khisamiev\Downloads\ОВ2 ВК подвал.xml");
+
+                IFormatProvider formatter = new NumberFormatInfo { NumberDecimalSeparator = "." };
+
+                // Then parse like this:
+                var clashTests = doci.Descendants("clashtest")
+                    .Select(t1 => new ClashTest
                     {
-                        pointAndNameClash pointAndNameClash=new pointAndNameClash("1", 0, 0, 0);
-
-                        // получаем атрибут name
-                        XmlNode attr = xnode.Attributes.GetNamedItem("clashresults");
-
-                        // обходим все дочерние узлы элемента 
-                        foreach (XmlNode childnode in xnode.ChildNodes)
-                        {
-                            // если узел - company
-                            if (childnode.Name == "clashresult name")
+                        Name = t1.Attribute("name")?.Value,
+                        TestType = t1.Attribute("test_type")?.Value,
+                        Status = t1.Attribute("status")?.Value,
+                        Results = t1.Descendants("clashresult")
+                            .Select(r => new ClashResult
                             {
-                                pointAndNameClash.clashName = childnode.InnerText;
-                            }
-                            // если узел age
-                            if (childnode.Name == "clashpoint")
-                            {
-                                //pointAndNameClash.xPoint = childnode.InnerText;
-                            }
+                                Name = r.Attribute("name")?.Value,
+                                Guid = r.Attribute("guid")?.Value,
+                                X = double.Parse(r.Descendants("pos3f").FirstOrDefault()?.Attribute("x")?.Value, formatter) ,
+                                Y = double.Parse(r.Descendants("pos3f").FirstOrDefault()?.Attribute("y")?.Value, formatter) ,
+                                Z = double.Parse(r.Descendants("pos3f").FirstOrDefault()?.Attribute("z")?.Value, formatter) 
+                            })
+                            .ToList()
+                    })
+                    .ToList();
 
-                            nameClashes.Add(pointAndNameClash);
-                        }
-                        
-                    }
+
+                TaskDialog.Show("'k", $"{clashTests[0].Results.Count }");
+
+                foreach ( var clash in clashTests[0].Results)
+                {
+                    XYZ pointRoom = new XYZ(clash.X, clash.Y, clash.Y);
+                   string name = clash.Name;
+
+                    FamilyInstance familyInstance = _doc.Create.NewFamilyInstance(
+                       pointRoom, symbol, StructuralType.NonStructural);
+                    familyInstance.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(name);
+
                 }
 
 
 
 
-                    //XmlNode node = xmldoc.DocumentElement.SelectSingleNode("/name/value");
 
-                    //получить координаты и имя конфликта
+
+                //XmlNode node = xmldoc.DocumentElement.SelectSingleNode("/name/value");
+
+                //получить координаты и имя конфликта
 
                 //    string[] sometheng = xmldoc.InnerText.Split(' '); //объекта7579247ID
 
@@ -173,10 +189,9 @@ namespace BIMv2
 
                 //размещаем элемени
 
-                FamilyInstance familyInstance = _doc.Create.NewFamilyInstance(
-                   pointRoom, symbol,  StructuralType.NonStructural);
 
-                TaskDialog.Show("2bim.ru", "Проблемные места расставлены");
+
+                //TaskDialog.Show("2bim.ru", "Проблемные места расставлены");
 
                 t.Commit();
 
@@ -201,16 +216,28 @@ namespace BIMv2
     class pointAndNameClash
     {
         public string clashName { get; set; }
-        public int xPoint { get; set; }
-        public int yPoint { get; set; }
-        public int zPoint { get; set; }
+        public double xPoint { get; set; }
+        public double yPoint { get; set; }
+        public double zPoint { get; set; }
                
-        public pointAndNameClash(string name, int x, int y, int z)
-        {
-            clashName = name;
-            xPoint = x;
-            yPoint = y;
-            zPoint = z;
-        }
+        
+    }
+
+
+    public class ClashTest
+    {
+        public string Name { get; set; }
+        public string TestType { get; set; }
+        public string Status { get; set; }
+        public List<ClashResult> Results { get; set; } = new List<ClashResult>();
+    }
+
+    public class ClashResult
+    {
+        public string Name { get; set; }
+        public string Guid { get; set; }
+        public double X { get; set; }
+        public double Y { get; set; }
+        public double Z { get; set; }
     }
 }
