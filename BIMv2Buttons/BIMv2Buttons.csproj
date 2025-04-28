@@ -212,6 +212,7 @@
     <Compile Include="CountFinishFloor\CountFinishFloor.cs" />
     <Compile Include="CountFinishWall\CountFinishWall.cs" />
     <Compile Include="CreateAnyElementsInRooms\CreateAnyElementsInRooms.cs" />
+    <Compile Include="CreateClashElements\CreateClashElements.cs" />
     <Compile Include="CreateElementsInRooms\CreateElementsInRooms.cs" />
     <Compile Include="CreateElementsInRooms\ElementOnCeilingCreator.cs" />
     <Compile Include="CreateElementsInRooms\RoomInfoForm.cs">

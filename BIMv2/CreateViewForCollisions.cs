@@ -3,13 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.Xml;
 using System.Linq;
-
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
-using Autodesk.Revit.UI.Selection;
-using System.Xml.Linq;
-
+using System.Windows.Forms;
 #endregion
 
 namespace BIMv2
@@ -32,6 +29,8 @@ namespace BIMv2
             Document doc = commandData.Application.ActiveUIDocument.Document;
             List<int> ints = new List<int>();
 
+            string strfilename=""; //имя файла
+           
             // get a ViewFamilyType for a 3D View
             ViewFamilyType viewFamilyType =
                 (from v in new FilteredElementCollector(_doc).OfClass(typeof(ViewFamilyType)).Cast<ViewFamilyType>()
@@ -40,15 +39,25 @@ namespace BIMv2
 
             using (var t = new Transaction(doc))
             {
-
                 t.Start("Create view for collisions");
 
+                //открывается окно для выбора файла 
+                OpenFileDialog fbd = new OpenFileDialog();
 
+                fbd.Title = "Загрузи11 XML с коллизиями, в отчете должны быть только ID";
+                fbd.Filter = "XML files|*.xml";
 
-                //XDocument xdoc = XDocument.Load(@"C:\Users\i.khisamiev\Downloads\V FS.xml");
+                if (fbd.ShowDialog() == DialogResult.OK)
+                {
+
+                    strfilename = fbd.FileName;
+
+                }
 
                 XmlDocument xmldoc = new XmlDocument();
-                xmldoc.Load(@"C:\BIMv2_ClashView.xml");
+
+                //xmldoc.Load(@"C:\BIMv2_ClashView.xml");
+                xmldoc.Load($@"{strfilename}");
 
                 //XmlNode node = xmldoc.DocumentElement.SelectSingleNode("/name/value");
 
@@ -90,7 +99,7 @@ namespace BIMv2
                             View3D view = View3D.CreateIsometric(_doc, viewFamilyType.Id);
 
                             // Set the name of the view
-                            view.Name = "Временны_" + x + " Проблемное место 3D вид";
+                            view.Name = "TEMP_" + x + " Проблемное место 3D вид";
 
                             //t.SetName("Create view " + view.Name);
                             // Create a new BoundingBoxXYZ to define a 3D rectangular space
@@ -103,26 +112,7 @@ namespace BIMv2
                             view.SetSectionBox(boundingBoxXYZ);
                         }
 
-                        //var bb = elem.Location
-
-                        //if(bb != null)
-                        //{
-                        //    continue;
-                        //}
-
-                        //else
-                        //{
-                        //    break;
-                        //}
-
-                       
-
-
-                        //view.CropBox = boundingBoxXYZ;
-
-
-
-                        //_doc.Regenerate();
+                      
                     }
 
                     catch

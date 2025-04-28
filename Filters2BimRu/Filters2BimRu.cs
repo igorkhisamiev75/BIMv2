@@ -28,9 +28,6 @@ namespace Filters2BimRu
             //_app = uiApp.Application;
             _doc = uiDoc.Document;
 
-           
-
-
 
             //ViewWPF vpViewWpf = new ViewWPF();
 

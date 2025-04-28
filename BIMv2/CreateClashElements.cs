@@ -60,7 +60,7 @@ namespace BIMv2
 
                 OpenFileDialog fbd = new OpenFileDialog();
 
-                fbd.Title = "Загрузи XML с коллизиями";
+                fbd.Title = "Загрузи XML с коллизиями, в отчете должны быть точки";
                 fbd.Filter = "XML files|*.xml";
 
                 if (fbd.ShowDialog() == DialogResult.OK)

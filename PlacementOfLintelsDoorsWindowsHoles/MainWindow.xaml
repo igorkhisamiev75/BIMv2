@@ -1,0 +1,92 @@
+﻿<Window x:Class="PlacementOfLintelsDoorsWindowsHoles.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Revit Door Schedule" 
+        Height="450" 
+        Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Filter Controls -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10,10,10,5">
+            <StackPanel Width="150" Margin="0,0,10,0">
+                <TextBlock Text="Level Filter" FontWeight="Bold"/>
+                <ComboBox x:Name="LevelFilter" DisplayMemberPath="Key" SelectedValuePath="Value" 
+                          SelectionChanged="OnFilterChanged" IsEditable="True" 
+                          Text="All Levels" StaysOpenOnEdit="True"/>
+            </StackPanel>
+
+            <StackPanel Width="150" Margin="0,0,10,0">
+                <TextBlock Text="Type Filter" FontWeight="Bold"/>
+                <ComboBox x:Name="TypeFilter" DisplayMemberPath="Key" SelectedValuePath="Value" 
+                          SelectionChanged="OnFilterChanged" IsEditable="True" 
+                          Text="All Types" StaysOpenOnEdit="True"/>
+            </StackPanel>
+
+            <StackPanel Width="150" Margin="0,0,10,0">
+                <TextBlock Text="Room Filter" FontWeight="Bold"/>
+                <ComboBox x:Name="RoomFilter" DisplayMemberPath="Key" SelectedValuePath="Value" 
+                          SelectionChanged="OnFilterChanged" IsEditable="True" 
+                          Text="All Rooms" StaysOpenOnEdit="True"/>
+            </StackPanel>
+
+            <StackPanel Width="200" Margin="0,0,10,0">
+                <TextBlock Text="Mark Filter" FontWeight="Bold"/>
+                <TextBox x:Name="MarkFilter" TextChanged="OnTextFilterChanged" 
+                         Margin="0,5,0,0" Padding="5"/>
+            </StackPanel>
+            <Button 
+                Content="Clear Filters" 
+                Click="ClearFilters_Click" 
+                Margin="0,20,0,0" 
+                Padding="10,5" 
+                HorizontalAlignment="Right"/>
+        </StackPanel>
+        <!-- DataGrid -->
+        <DataGrid 
+            x:Name="DoorsDataGrid" 
+            Grid.Row="1" 
+            AutoGenerateColumns="False" 
+            Margin="10,0,10,10"
+            CanUserAddRows="False" 
+            CanUserDeleteRows="False" 
+            CanUserReorderColumns="True"
+            CanUserResizeColumns="True" 
+            CanUserResizeRows="False" 
+            CanUserSortColumns="True">
+            
+            <DataGrid.Columns>
+                
+                <DataGridTextColumn 
+                    Header="Door ID" 
+                    Binding="{Binding Id}" 
+                    Width="80"/>
+                <DataGridTextColumn 
+                    Header="Mark" 
+                    Binding="{Binding Mark}" 
+                    Width="80"/>
+                <DataGridTextColumn 
+                    Header="Type" 
+                    Binding="{Binding TypeName}"
+                    Width="120"/>
+                <DataGridTextColumn 
+                    Header="Level" 
+                    Binding="{Binding LevelName}" 
+                    Width="100"/>
+                <DataGridTextColumn Header="Room" Binding="{Binding RoomName}" Width="120"/>
+                <DataGridTextColumn Header="Width" Binding="{Binding Width}" Width="80"/>
+                <DataGridTextColumn Header="Height" Binding="{Binding Height}" Width="80"/>
+            </DataGrid.Columns>
+            
+            
+
+
+        </DataGrid>
+        
+        
+        
+    </Grid>
+</Window>

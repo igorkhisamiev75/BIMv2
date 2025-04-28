@@ -552,6 +552,10 @@ namespace BIMv2Buttons
             PushButtonData pushButtonBIM3 = new PushButtonData("cmdCreateFromDWGPipe.cs", "Трубы по DWG", thisAssemblyPath, "BIMv2.CreateFromDWGPipe");
             pushButtonBIM3.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-sign-32.png"));
 
+            // #3 
+            PushButtonData pushButtonBIM4 = new PushButtonData("cmdCreateClashElements.cs", "Точки из Navisworks", thisAssemblyPath, "BIMv2.CreateClashElements");
+            pushButtonBIM4.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-sign-32.png"));
+
 
 
 
@@ -562,6 +566,8 @@ namespace BIMv2Buttons
             splitBtnBIM.AddPushButton(pushButtonBIM);
             splitBtnBIM.AddPushButton(pushButtonBIM2);
             splitBtnBIM.AddPushButton(pushButtonBIM3);
+            splitBtnBIM.AddPushButton(pushButtonBIM4);
+
 
             //PushButtonData b26Data = new PushButtonData("cmdCreateViewByLinkedFiles.cs", "3D связей", thisAssemblyPath, "BIMv2.CreateViewByLinkedFiles");
 
