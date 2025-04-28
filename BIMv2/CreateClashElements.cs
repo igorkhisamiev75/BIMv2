@@ -15,6 +15,8 @@ using System.Xml.Linq;
 using System.Linq;
 using Microsoft.Office.Interop.Excel;
 using System.Globalization;
+using System.Windows.Forms;
+using System.IO;
 
 #endregion
 
@@ -40,8 +42,9 @@ namespace BIMv2
 
             List < pointAndNameClash > nameClashes= new List<pointAndNameClash>();
 
+            string strfilename; //имя файла
+            string fullPath="";
            
-
             FamilySymbol symbol = GetSymbol(_doc, "Для подписи пересечений", "Для подписи пересечений");
 
             // get a ViewFamilyType for a 3D View
@@ -55,13 +58,29 @@ namespace BIMv2
 
                 t.Start("Create view for collisions");
 
+                OpenFileDialog fbd = new OpenFileDialog();
+
+                fbd.Title = "Загрузи XML с коллизиями";
+                fbd.Filter = "XML files|*.xml";
+
+                if (fbd.ShowDialog() == DialogResult.OK)
+                {
+
+                    strfilename = fbd.FileName;
+                    
+                    //получение пути
+                    fullPath = strfilename;
+
+                }
+
+
 
                 XmlDocument xDoc = new XmlDocument();
-                xDoc.Load(@"C:\Users\i.khisamiev\Downloads\ОВ2 ВК подвал.xml");
+                xDoc.Load($@"{fullPath}");
                 // получим корневой элемент
                 XmlElement xRoot = xDoc.DocumentElement;
 
-                XDocument doci = XDocument.Load(@"C:\Users\i.khisamiev\Downloads\ОВ2 ВК подвал.xml");
+                XDocument doci = XDocument.Load($@"{fullPath}");
 
                 IFormatProvider formatter = new NumberFormatInfo { NumberDecimalSeparator = "." };
 
@@ -86,7 +105,7 @@ namespace BIMv2
                     .ToList();
 
 
-                TaskDialog.Show("'k", $"{clashTests[0].Results.Count }");
+                TaskDialog.Show("Колличество коллизий = ", $"{clashTests[0].Results.Count }");
 
                 foreach ( var clash in clashTests[0].Results)
                 {
@@ -106,99 +125,6 @@ namespace BIMv2
                                        
                 }
 
-
-
-
-
-
-                //XmlNode node = xmldoc.DocumentElement.SelectSingleNode("/name/value");
-
-                //получить координаты и имя конфликта
-
-                //    string[] sometheng = xmldoc.InnerText.Split(' '); //объекта7579247ID
-
-                //for (int i = 1; i < sometheng.Length; i++)
-                //{
-                //    string stroka = sometheng[i];
-                //    stroka = stroka.Substring(7);
-                //    stroka = stroka.Substring(0, stroka.Length - 2);
-
-                //    try
-                //    {
-                //        int x = Convert.ToInt32(stroka);
-                //        ints.Add(x);
-                //    }
-
-                //    catch { }
-
-                //}
-
-                //var clearList = ints.Distinct();
-
-                //foreach (int x in clearList)
-                //{
-                //    try
-                //    {
-                //        ElementId elementId = new ElementId(x);
-
-                //        var elem = _doc.GetElement(elementId);
-
-                //        var par = elem.Category;
-
-                //        if (par != null)
-                //        {
-                //            BoundingBoxXYZ boundingBoxXYZ = new BoundingBoxXYZ();
-
-                //            // Create the 3d view
-                //            View3D view = View3D.CreateIsometric(_doc, viewFamilyType.Id);
-
-                //            // Set the name of the view
-                //            view.Name = "Временны_" + x + " Проблемное место 3D вид";
-
-                //            //t.SetName("Create view " + view.Name);
-                //            // Create a new BoundingBoxXYZ to define a 3D rectangular space
-
-                //            boundingBoxXYZ.Min = elem.get_BoundingBox(_doc.ActiveView).Min;
-                //            boundingBoxXYZ.Max = elem.get_BoundingBox(_doc.ActiveView).Max;
-
-                //            // Apply this bouding box to the view's section box
-
-                //            view.SetSectionBox(boundingBoxXYZ);
-                //        }
-
-                //        //var bb = elem.Location
-
-                //        //if(bb != null)
-                //        //{
-                //        //    continue;
-                //        //}
-
-                //        //else
-                //        //{
-                //        //    break;
-                //        //}
-
-
-
-
-                //        //view.CropBox = boundingBoxXYZ;
-
-
-
-                //        //_doc.Regenerate();
-                //    }
-
-                //    catch
-                //    {
-                //        continue;
-                //    }
-                //}
-
-                //размещаем элемени
-
-
-
-                //TaskDialog.Show("2bim.ru", "Проблемные места расставлены");
 
                 t.Commit();
 
