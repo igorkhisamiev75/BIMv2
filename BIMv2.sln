@@ -36,6 +36,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CreateNameSet", "CreateName
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PlacementOfLintelsDoorsWindowsHoles", "PlacementOfLintelsDoorsWindowsHoles\PlacementOfLintelsDoorsWindowsHoles.csproj", "{E1C414C0-C228-4B38-ABAC-DBA895C8DF98}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LintelsOnTheFloor", "LintelsOnTheFloor\LintelsOnTheFloor.csproj", "{9CDFE9EC-5FE1-40BE-93C9-440B7BBA974E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -320,6 +322,22 @@ Global
 		{E1C414C0-C228-4B38-ABAC-DBA895C8DF98}.R2024|Any CPU.Build.0 = Release|Any CPU
 		{E1C414C0-C228-4B38-ABAC-DBA895C8DF98}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E1C414C0-C228-4B38-ABAC-DBA895C8DF98}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9CDFE9EC-5FE1-40BE-93C9-440B7BBA974E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9CDFE9EC-5FE1-40BE-93C9-440B7BBA974E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9CDFE9EC-5FE1-40BE-93C9-440B7BBA974E}.R2019|Any CPU.ActiveCfg = Release|Any CPU
+		{9CDFE9EC-5FE1-40BE-93C9-440B7BBA974E}.R2019|Any CPU.Build.0 = Release|Any CPU
+		{9CDFE9EC-5FE1-40BE-93C9-440B7BBA974E}.R2020|Any CPU.ActiveCfg = Release|Any CPU
+		{9CDFE9EC-5FE1-40BE-93C9-440B7BBA974E}.R2020|Any CPU.Build.0 = Release|Any CPU
+		{9CDFE9EC-5FE1-40BE-93C9-440B7BBA974E}.R2021|Any CPU.ActiveCfg = Release|Any CPU
+		{9CDFE9EC-5FE1-40BE-93C9-440B7BBA974E}.R2021|Any CPU.Build.0 = Release|Any CPU
+		{9CDFE9EC-5FE1-40BE-93C9-440B7BBA974E}.R2022|Any CPU.ActiveCfg = Release|Any CPU
+		{9CDFE9EC-5FE1-40BE-93C9-440B7BBA974E}.R2022|Any CPU.Build.0 = Release|Any CPU
+		{9CDFE9EC-5FE1-40BE-93C9-440B7BBA974E}.R2023|Any CPU.ActiveCfg = Release|Any CPU
+		{9CDFE9EC-5FE1-40BE-93C9-440B7BBA974E}.R2023|Any CPU.Build.0 = Release|Any CPU
+		{9CDFE9EC-5FE1-40BE-93C9-440B7BBA974E}.R2024|Any CPU.ActiveCfg = Release|Any CPU
+		{9CDFE9EC-5FE1-40BE-93C9-440B7BBA974E}.R2024|Any CPU.Build.0 = Release|Any CPU
+		{9CDFE9EC-5FE1-40BE-93C9-440B7BBA974E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9CDFE9EC-5FE1-40BE-93C9-440B7BBA974E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
