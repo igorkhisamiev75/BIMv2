@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:LintelsOnTheFloor2"
              mc:Ignorable="d" 
              Title="Перемычкер v.1.0" 
-        Height="450" Width="500">
+        Height="550" Width="500">
     
     <Window.Background>
         <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
