@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:LintelsOnTheFloor2"
              mc:Ignorable="d" 
              Title="Перемычкер v.1.0" 
-        Height="450" Width="400">
+        Height="450" Width="500">
     
     <Window.Background>
         <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
@@ -28,11 +28,12 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="0.5*"/>
+            <ColumnDefinition Width="0.5*"/>
         </Grid.ColumnDefinitions>
         <Label 
             Content="Уровень размещения:" 
@@ -43,76 +44,90 @@
             Grid.Column="1"
             Margin="0,0,0,0"/>
         <Label 
-            Content="Тип обобщенной модели:" 
+            Content="Имя семейства перемычки:" 
+            Grid.Row="1"
+            Grid.Column="0"
+            VerticalAlignment="Top"
+            />
+        <TextBox 
+            x:Name="txtName" 
+            Grid.Row="1" 
+            Grid.Column="1"
+            Margin="0,2,0,2" 
+            Text="ADSK_Обобщенная модель_Перемычка составная"/>
+        <Label 
+            Content="Имя типа:" 
             Grid.Row="2"
             Grid.Column="0"
+            VerticalAlignment="Bottom"
             />
-        <ComboBox 
-            x:Name="cmbLintelTypes" 
+        <TextBox 
+            x:Name="txtName2" 
             Grid.Row="2" 
             Grid.Column="1"
-            Margin="0,0,0,0"/>
+            Margin="0,2,0,2" 
+            Text="Перемычка составная"/>
         <Label 
             Content="Тип 1-го элемента перемычки" 
-            Grid.Row="4"/>
+            Grid.Row="3"/>
         <TextBox 
             x:Name="txtType1" 
-            Grid.Row="4" 
+            Grid.Row="3" 
             Grid.Column="1"
             Margin="0,5,0,10" 
             Text="2ПБ 17-2"/>
         <Label 
             Content="Тип 2-го элемента перемычки" 
-            Grid.Row="5"/>
+            Grid.Row="4"/>
         <TextBox 
             x:Name="txtType2" 
-            Grid.Row="5" 
+            Grid.Row="4" 
             Grid.Column="1"
             Margin="0,5,0,10" 
             Text="2ПБ 17-2"/>  
         <Label 
             Content="Тип 3-го элемента перемычки" 
-            Grid.Row="6"/>
+            Grid.Row="5"/>
         <TextBox 
              x:Name="txtType3" 
-             Grid.Row="6" 
+             Grid.Row="5" 
              Grid.Column="1"
              Margin="0,5,0,10" 
              Text="2ПБ 17-2"/>
         <Label 
             Content="Тип 4-го элемента перемычки" 
-            Grid.Row="7"/>
+            Grid.Row="6"/>
         <TextBox 
             x:Name="txtType4" 
-            Grid.Row="7" 
+            Grid.Row="6" 
             Grid.Column="1"
             Margin="0,5,0,10" 
             Text="2ПБ 17-2"/>
         <Label 
             Content="Тип 5-го элемента перемычки" 
-            Grid.Row="8"/>
+            Grid.Row="7"/>
         <TextBox 
             x:Name="txtType5" 
-            Grid.Row="8" 
+            Grid.Row="7" 
             Grid.Column="1"
             Margin="0,5,0,10" 
             Text="2ПБ 17-2"/>
         <Label 
             Content="Тип 6-го элемента перемычки" 
-            Grid.Row="9"/>
+            Grid.Row="8"/>
         <TextBox 
             x:Name="txtType6" 
-            Grid.Row="9" 
+            Grid.Row="8" 
             Grid.Column="1"
             Margin="0,5,0,10" 
             Text="2ПБ 17-2"/>
         <Label 
-            Content="Элемент размещаем над:" 
-            Grid.Row="10"/>
+            Content="Элемент размещаем:" 
+            Grid.Row="9"/>
         <CheckBox x:Name="cbDoors"
           IsChecked="True"
           Grid.Column="0" 
-          Grid.Row="11" 
+          Grid.Row="10" 
           HorizontalAlignment="Left" 
           Margin="0,10,10,10" 
           VerticalAlignment="Top">
@@ -124,9 +139,9 @@
         </CheckBox>
         <CheckBox x:Name="cbWindows"
           IsChecked="False"
-          Grid.Column="1" 
-          Grid.Row="11" 
-          HorizontalAlignment="Left" 
+          Grid.Column="0" 
+          Grid.Row="10" 
+          HorizontalAlignment="Right" 
           Margin="0,10,10,10" 
           VerticalAlignment="Top">  
             <CheckBox.Content>
@@ -137,14 +152,24 @@
         </CheckBox>
         <Button 
             x:Name="createLintels" 
-            Grid.Row="12" 
+            Grid.Row="11" 
+            VerticalAlignment="Top"
             Content="Разместить перемычки везде" 
-            Height="30"/>
+            Height="30" 
+            Click="createLintels_Click"/>
         <Button 
              x:Name="createLintel" 
+            VerticalAlignment="Bottom"
              Grid.Row="12" 
-            Grid.Column="1"
+            Grid.Column="0"
              Content="По выбранным элементам" 
-             Height="30"/>
+             Height="30" Click="createLintel_Click"/>
+        <Button 
+             x:Name="btnDelAll" 
+             VerticalAlignment="Bottom"
+             Grid.Row="11" 
+             Grid.Column="1"
+             Content="Удалить все перемычки" 
+             Height="30" Click="btnDelAll_Click"/>
     </Grid>
 </Window>

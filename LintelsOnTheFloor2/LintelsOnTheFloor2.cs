@@ -10,6 +10,8 @@ using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI.Selection;
 using System.Diagnostics;
 using System.Windows.Controls;
+using Autodesk.Revit.Creation;
+using System.Windows.Media;
 
 namespace LintelsOnTheFloor2
 {
@@ -18,11 +20,22 @@ namespace LintelsOnTheFloor2
     public class LintelsOnTheFloor2 : Window, IExternalCommand
     {
         private Application _app;
-        private Document _doc;
+        private Autodesk.Revit.DB.Document _doc;
 
         //Levels
         public List<Level> levelCollection = new List<Level>();
+        //обобщенные модели
         public ICollection<Element> lintelsCollection = new List<Element>();
+
+        //выбарнный уровень
+        Level checkedlevel;
+        //имя семейства
+        string selectedElenet;
+        string selectedElenet2;
+        //лоические
+        public bool doorCheck;
+        public bool windowCheck;
+
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -38,23 +51,70 @@ namespace LintelsOnTheFloor2
             //обобщенные модели
             lintelsCollection = GetGenericModel();
 
+            //количество циклов
 
+            int k = 0;
+
+            //создаем форму и передаем в нее данные
             MainWindow vpViewWpf = new MainWindow(levelCollection, lintelsCollection);
 
+            vpViewWpf.WindowStartupLocation = WindowStartupLocation.CenterScreen;
             vpViewWpf.ShowDialog();
 
-            //var checkFilters = vpViewWpf.checkFilters;
+            checkedlevel = vpViewWpf.selectedLevel;
+            selectedElenet = vpViewWpf.selectedElement;
+            selectedElenet2=vpViewWpf.selectedElement2;
+            doorCheck = vpViewWpf.doorCheck;
+            windowCheck = vpViewWpf.windowCheck;
+
+
 
             using (var t = new Transaction(_doc))
             {
-                t.Start("Run");
+                t.Start("Расставляем перемычки");
                 uiApp = commandData.Application;
                 uiDoc = uiApp.ActiveUIDocument;
 
-                //del filters checked
-                //ViewFiltersDelete(_doc, checkFilters);
+                //семейство перемычки
+                FamilySymbol elementSymbol = GetSymbol(_doc, selectedElenet, selectedElenet2);
 
-                TaskDialog.Show("here", "here");
+
+                if (doorCheck) {
+
+                    // Получаем все двери в проекте
+                    IList<Element> doors = GetAllDoors();
+                    //проходимся по всем дверям
+                        foreach (Element doorElement in doors)
+                        {
+                            CreatingJumperDoor(doorElement, elementSymbol, checkedlevel);
+                        }
+
+                    _doc.Regenerate();
+
+                    TaskDialog.Show("Выполнено", $"Перемычки расставлены на двери");
+                }
+
+                if (windowCheck){
+
+                    // Получаем все окна в проекте
+                    IList<FamilyInstance> windows = GetAllWindows(_doc);
+
+                    //TaskDialog.Show("Окон", $"{windows.Count}");
+
+                    //проходимся по всем окнам
+                    foreach (Element windowElement in windows)
+                    {
+                        CreatingJumperWindow(windowElement, elementSymbol, checkedlevel);
+                    }
+
+                    _doc.Regenerate();
+
+                    TaskDialog.Show("Выполнено", $"Перемычки расставлены на окна");
+
+
+                }
+
+
                 t.Commit();
 
             }
@@ -85,6 +145,233 @@ namespace LintelsOnTheFloor2
 
             return genericModels;
         }
+
+        public IList<Element> GetAllDoors()
+        {
+            BuiltInCategory doorsCategory = BuiltInCategory.OST_Doors;
+            ElementCategoryFilter categoryFilter = new ElementCategoryFilter(doorsCategory);
+
+            FilteredElementCollector collector = new FilteredElementCollector(_doc);
+            return collector.WherePasses(categoryFilter)
+                          .WhereElementIsNotElementType()
+                          .ToElements();
+
+        }
+
+        public void CreatingJumperDoor(Element element, FamilySymbol elementSymbol, Level level)
+        {
+            FamilyInstance door = element as FamilyInstance;
+
+           
+            //уровень 
+
+            Level testLevel = _doc.GetElement(door.LevelId) as Level;
+
+            //TaskDialog.Show("Выполнено", $"уровень  {testLevel} ");
+            //TaskDialog.Show("Выполнено", $"уровень  {level} ");
+
+
+            if (testLevel.Name == level.Name)
+            {
+                double haightDoor = 0;
+                //ВЫСОТА ДВЕРИ
+                try
+                {
+                    haightDoor = door.LookupParameter("Высота").AsDouble();
+                }
+
+                catch 
+                
+                {
+                   // Выбираем семейство для анализа(можно заменить на выбор пользователя)
+                   //находим высоту в типе
+                     FamilySymbol familyType = new FilteredElementCollector(_doc)
+                    .OfClass(typeof(FamilySymbol))
+                    .FirstOrDefault(e => e.Name == door.Name.ToString()) as FamilySymbol;
+
+                    haightDoor = familyType.LookupParameter("Высота").AsDouble(); 
+
+                    
+                }
+                
+                
+
+                if (haightDoor == null)
+                {
+                    haightDoor = 0;
+                }
+
+                Element wall = door.Host;
+                // Get door location and orientation
+                LocationPoint doorLoc = door.Location as LocationPoint;
+
+                XYZ doorPosition = doorLoc.Point;
+
+                // Calculate position above door
+                XYZ placementPoint = new XYZ(
+                    doorPosition.X,
+                    doorPosition.Y,
+                    doorPosition.Z
+                );
+
+                try
+                {
+                    // Create the light (aligned with door direction)
+                    FamilyInstance light = _doc.Create.NewFamilyInstance(
+                        placementPoint,
+                        elementSymbol,
+                        wall,
+                        level,
+                        Autodesk.Revit.DB.Structure.StructuralType.NonStructural
+                    );
+
+                    light.LookupParameter("Отметка перемычки").Set(haightDoor);
+                   
+
+
+                }
+                catch
+                {
+
+                }
+
+            }
+
+           
+
+        }
+
+        public FamilySymbol GetSymbol(Autodesk.Revit.DB.Document document, string familyName, string symbolName)
+        {
+            return new FilteredElementCollector(_doc)
+                .OfClass(typeof(Family)).OfType<Family>()
+                .FirstOrDefault(f => f.Name.Equals(familyName))?.GetFamilySymbolIds()
+                .Select(id => document.GetElement(id)).OfType<FamilySymbol>().FirstOrDefault(symbol => symbol.Name.Equals(symbolName));
+        }
+
+
+        public static IList<FamilyInstance> GetAllWindows(Autodesk.Revit.DB.Document document)
+        {
+            // Получаем все экземпляры окон
+            var allWindows = new FilteredElementCollector(document)
+                .OfCategory(BuiltInCategory.OST_Windows)
+                .WhereElementIsNotElementType()
+                .Cast<FamilyInstance>();
+
+            // Фильтруем, оставляя только основные окна
+            return allWindows.Where(w => !IsNestedWindow(w)).ToList();
+        }
+
+        public void CreatingJumperWindow(Element element, FamilySymbol elementSymbol, Level level)
+        {
+            FamilyInstance door = element as FamilyInstance;
+
+
+            //уровень 
+
+            Level testLevel = _doc.GetElement(door.LevelId) as Level;
+
+            //TaskDialog.Show("Выполнено", $"уровень  {testLevel} ");
+            //TaskDialog.Show("Выполнено", $"уровень  {level} ");
+
+
+            if (testLevel.Name == level.Name)
+            {
+                double haightDoor = 0;
+                //ВЫСОТА 
+                try
+                {
+                    haightDoor = door.LookupParameter("Высота").AsDouble();
+                }
+
+                catch
+
+                {
+                    // Выбираем семейство для анализа(можно заменить на выбор пользователя)
+                    //находим высоту в типе
+                    FamilySymbol familyType = new FilteredElementCollector(_doc)
+                   .OfClass(typeof(FamilySymbol))
+                   .FirstOrDefault(e => e.Name == door.Name.ToString()) as FamilySymbol;
+
+                    haightDoor = familyType.LookupParameter("Высота").AsDouble();
+
+
+                }
+
+
+
+                if (haightDoor == null)
+                {
+                    haightDoor = 0;
+                }
+
+                Element wall = door.Host;
+                // Get door location and orientation
+                LocationPoint doorLoc = door.Location as LocationPoint;
+
+                XYZ doorPosition = doorLoc.Point;
+
+                // Calculate position above door
+                XYZ placementPoint = new XYZ(
+                    doorPosition.X,
+                    doorPosition.Y,
+                    doorPosition.Z
+                );
+
+                try
+                {
+                    // Create the light (aligned with door direction)
+                    FamilyInstance light = _doc.Create.NewFamilyInstance(
+                        placementPoint,
+                        elementSymbol,
+                        wall,
+                        level,
+                        Autodesk.Revit.DB.Structure.StructuralType.NonStructural
+                    );
+
+                    light.LookupParameter("Отметка перемычки").Set(haightDoor);
+
+
+
+                }
+                catch
+                {
+
+                }
+
+            }
+
+
+
+        }
+
+        /// <summary>
+        /// Проверяет, является ли окно вложенным
+        /// </summary>
+        private static bool IsNestedWindow(FamilyInstance window)
+        {
+            // 1. Проверяем, находится ли окно внутри другого семейства
+            if (window.SuperComponent != null)
+            {
+                return true;
+            }
+
+            // 2. Проверяем, находится ли окно в группе
+            if (window.GroupId != ElementId.InvalidElementId)
+            {
+                return true;
+            }
+
+            // 3. Дополнительная проверка через хост-элемент
+            Element host = window.Host;
+            if (host != null && !(host is Wall)) // Если хост не стена (например, другое семейство)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
 
     }
 }
