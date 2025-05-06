@@ -245,7 +245,10 @@
     <Compile Include="CreateOpeningsInWallForStructuralFraming.cs" />
     <Compile Include="CreateRailingInRooms.cs" />
     <Compile Include="CreateRailingsInAllRooms.cs" />
+    <Compile Include="CreateRoomExplodedViews.cs" />
     <Compile Include="CreateRoomNumber.cs" />
+    <Compile Include="CreateRoomSectionsCommand.cs" />
+    <Compile Include="CreateRoomUnfolds.cs" />
     <Compile Include="CreateScheduleRooms.cs" />
     <Compile Include="CreateSectionInSelectedRooms.cs" />
     <Compile Include="CreateViewByLinkedFiles.cs" />

@@ -6,6 +6,7 @@ using BIMv2;
 using System.Collections.Generic;
 using System.Configuration.Assemblies;
 using AW = Autodesk.Windows;
+using Autodesk.Windows;
 
 //using CreateFinishWallinRooms;
 
@@ -78,19 +79,19 @@ namespace BIMv2Buttons
             string panelNameInfo = "Info";
 
             // Add a new ribbon panel
-            RibbonPanel ribbonPanelArRoom = application.CreateRibbonPanel(tabNameB2, panelNameRooms); //подпись под кнопками
+            Autodesk.Revit.UI.RibbonPanel ribbonPanelArRoom = application.CreateRibbonPanel(tabNameB2, panelNameRooms); //подпись под кнопками
             // Add a new ribbon panel
-            RibbonPanel ribbonPanelAR = application.CreateRibbonPanel(tabNameB2, panelNameAR); //подпись под кнопками
+            Autodesk.Revit.UI.RibbonPanel ribbonPanelAR = application.CreateRibbonPanel(tabNameB2, panelNameAR); //подпись под кнопками
             // Add a new ribbon panel
-            RibbonPanel ribbonPanelAi = application.CreateRibbonPanel(tabNameB2, panelNameAI); //подпись под кнопками
+            Autodesk.Revit.UI.RibbonPanel ribbonPanelAi = application.CreateRibbonPanel(tabNameB2, panelNameAI); //подпись под кнопками
+                                                                                                                 // Add a new ribbon panel
+            Autodesk.Revit.UI.RibbonPanel ribbonPanelElectric = application.CreateRibbonPanel(tabNameB2, panelNameElectric); //подпись под кнопками
             // Add a new ribbon panel
-            RibbonPanel ribbonPanelElectric = application.CreateRibbonPanel(tabNameB2, panelNameElectric); //подпись под кнопками
+            Autodesk.Revit.UI.RibbonPanel ribbonPanelAnnotation = application.CreateRibbonPanel(tabNameB2, panelNameAnnotation); //подпись под кнопками
             // Add a new ribbon panel
-            RibbonPanel ribbonPanelAnnotation = application.CreateRibbonPanel(tabNameB2, panelNameAnnotation); //подпись под кнопками
+            Autodesk.Revit.UI.RibbonPanel ribbonPanelBIM = application.CreateRibbonPanel(tabNameB2, panelNameBim); //подпись под кнопками
             // Add a new ribbon panel
-            RibbonPanel ribbonPanelBIM = application.CreateRibbonPanel(tabNameB2, panelNameBim); //подпись под кнопками
-            // Add a new ribbon panel
-            RibbonPanel ribbonPanelInfo = application.CreateRibbonPanel(tabNameB2, panelNameInfo); //подпись под кнопками
+            Autodesk.Revit.UI.RibbonPanel ribbonPanelInfo = application.CreateRibbonPanel(tabNameB2, panelNameInfo); //подпись под кнопками
 
 
 
@@ -106,8 +107,8 @@ namespace BIMv2Buttons
             string buttonName5 = "Прописать тип квартиры";
 
 
-            // Create three small stacked buttons (16x16 icons)
-            IList<RibbonItem> stackedButtons = ribbonPanelArRoom.AddStackedItems(
+            // Create three small stacked buttons (16x16 icons)  //A r ui.ribonitems 
+            IList<Autodesk.Revit.UI.RibbonItem> stackedButtons = ribbonPanelArRoom.AddStackedItems(
                 new PushButtonData(
                     buttonName3,
                     "Имена помещений", //\u200B
@@ -161,6 +162,62 @@ namespace BIMv2Buttons
 
 
             //////////////////////////////// AR //////////////////////////////////////////
+            ///
+
+
+            // Set Image
+            BitmapImage SImageAR1 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-bd-16.png", UriKind.RelativeOrAbsolute));
+
+
+            string buttonNameAR1 = "Перемычкер";
+            string buttonNameAR2 = "Перемычкер2";
+            string buttonNameAR3 = "Перемычкер3";
+
+
+            // Create three small stacked buttons (16x16 icons)
+            IList<Autodesk.Revit.UI.RibbonItem> stackedButtonsAR1 = ribbonPanelAR.AddStackedItems(
+                new PushButtonData(
+                    buttonNameAR1,
+                    "Перемычки", //\u200B
+                    thisAssemblyPath,
+                    "LintelsOnTheFloor2.LintelsOnTheFloor2")
+                {
+                    Image = SImageAR1, // 16x16 icon
+                    ToolTip = "Создать перемчки и кайфовать",
+
+
+                },
+                new PushButtonData(
+                    buttonNameAR2,
+                    "Перемычки2",
+                   thisAssemblyPath,
+                    "LintelsOnTheFloor2.LintelsOnTheFloor2")
+                {
+                    Image = SImageAR1, // 16x16 icon
+                    ToolTip = "Создать перемчки и кайфовать"
+                },
+                new PushButtonData(
+                    buttonNameAR3,
+                    "Перемычки3",
+                    thisAssemblyPath,
+                    "LintelsOnTheFloor2.LintelsOnTheFloor2")
+                {
+                    Image = SImageAR1, // 16x16 icon
+                    ToolTip = "Создать перемчки и кайфовать"
+                }
+            );
+
+            // Find Autodes.Windows.RibbonItems
+
+            AW.RibbonItem btnNameAR1 = GetButton(tabNameB2, panelNameAR, buttonNameAR1);
+            AW.RibbonItem btnNameAR2 = GetButton(tabNameB2, panelNameAR, buttonNameAR2);
+            AW.RibbonItem btnNameAR3 = GetButton(tabNameB2, panelNameAR, buttonNameAR3);
+
+            btnNameAR1.ShowText = false;
+            btnNameAR2.ShowText = false;
+            btnNameAR3.ShowText = false;
+
+
 
             // Create three push buttons for split button drop down 
 
@@ -473,7 +530,7 @@ namespace BIMv2Buttons
 
 
             // Create three small stacked buttons (16x16 icons)
-            IList<RibbonItem> stackedButtonsBIM = ribbonPanelBIM.AddStackedItems(
+            IList<Autodesk.Revit.UI.RibbonItem> stackedButtonsBIM = ribbonPanelBIM.AddStackedItems(
                 new PushButtonData(
                     buttonName33,
                     "Рабочие наборы", //\u200B

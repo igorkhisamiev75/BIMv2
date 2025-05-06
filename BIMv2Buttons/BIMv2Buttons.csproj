@@ -282,6 +282,10 @@
     <Compile Include="HelpBIMTelegram\HelpBIMTelegram.cs" />
     <Compile Include="HelpBimYouTube\HelpBIMYouTube.cs" />
     <Compile Include="HelpBIMBlog\HelpBIMBlog.cs" />
+    <Compile Include="LintelsOnTheFloor2\LintelsOnTheFloor2.cs" />
+    <Compile Include="LintelsOnTheFloor2\MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="SumAllLightingFixtureInRoom\SumAllLightingFixtureInRoom.cs" />
     <Compile Include="MakingHolesForFacadeWindowsDoors\MakingHolesForFacadeWindowsDoors.cs" />
     <Compile Include="MakingHolesForFacadeWindows\MakingHolesForFacadeWindows.cs" />
@@ -352,6 +356,10 @@
     <Page Include="DelUnUesdFilters\ViewWPF.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="LintelsOnTheFloor2\MainWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
   </ItemGroup>
   <ItemGroup>
@@ -494,6 +502,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\icons8-paint-bucket-32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\icons8-bd-16.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

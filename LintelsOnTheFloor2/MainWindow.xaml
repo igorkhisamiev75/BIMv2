@@ -154,7 +154,7 @@
             x:Name="createLintels" 
             Grid.Row="11" 
             VerticalAlignment="Top"
-            Content="Разместить перемычки везде" 
+            Content="Разместить перемычки" 
             Height="30" 
             Click="createLintels_Click"/>
         <Button 

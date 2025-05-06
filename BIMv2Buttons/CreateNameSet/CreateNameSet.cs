@@ -2,14 +2,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Collections;
 using System.Windows;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using BIMv2Buttons.CreateNameSet;
-using Application = Autodesk.Revit.ApplicationServices.Application;
 using Autodesk.Revit.DB.Architecture;
 
 #endregion
@@ -29,6 +26,7 @@ namespace BIMv2
             Document doc = uidoc.Document;
 
             ViewWPF viewWpf = new ViewWPF();
+            viewWpf.WindowStartupLocation = WindowStartupLocation.CenterScreen;
 
             viewWpf.ShowDialog();
 

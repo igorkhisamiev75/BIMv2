@@ -1,14 +1,11 @@
 ﻿#region Namespaces
-
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Collections;
+
 using System.Windows;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
-using Application = Autodesk.Revit.ApplicationServices.Application;
 using Autodesk.Revit.DB.Architecture;
 
 #endregion
@@ -17,7 +14,7 @@ namespace CreateNameSet
 {
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]
-    //[Journaling(JournalingMode.NoCommandData)]
+    
     public class CreateNameSet : Window, IExternalCommand
     {
 

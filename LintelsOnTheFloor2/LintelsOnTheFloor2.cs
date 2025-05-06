@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.Windows.Controls;
 using Autodesk.Revit.Creation;
 using System.Windows.Media;
+using System.Windows.Media.Media3D;
 
 namespace LintelsOnTheFloor2
 {
@@ -167,10 +168,6 @@ namespace LintelsOnTheFloor2
 
             Level testLevel = _doc.GetElement(door.LevelId) as Level;
 
-            //TaskDialog.Show("Выполнено", $"уровень  {testLevel} ");
-            //TaskDialog.Show("Выполнено", $"уровень  {level} ");
-
-
             if (testLevel.Name == level.Name)
             {
                 double haightDoor = 0;
@@ -226,7 +223,8 @@ namespace LintelsOnTheFloor2
                     );
 
                     light.LookupParameter("Отметка перемычки").Set(haightDoor);
-                   
+
+                    light.LookupParameter("Комментарии").Set(wall.Name);
 
 
                 }
@@ -248,7 +246,6 @@ namespace LintelsOnTheFloor2
                 .FirstOrDefault(f => f.Name.Equals(familyName))?.GetFamilySymbolIds()
                 .Select(id => document.GetElement(id)).OfType<FamilySymbol>().FirstOrDefault(symbol => symbol.Name.Equals(symbolName));
         }
-
 
         public static IList<FamilyInstance> GetAllWindows(Autodesk.Revit.DB.Document document)
         {
@@ -294,7 +291,7 @@ namespace LintelsOnTheFloor2
                    .FirstOrDefault(e => e.Name == door.Name.ToString()) as FamilySymbol;
 
                     haightDoor = familyType.LookupParameter("Высота").AsDouble();
-
+                   
 
                 }
 
@@ -330,7 +327,7 @@ namespace LintelsOnTheFloor2
                     );
 
                     light.LookupParameter("Отметка перемычки").Set(haightDoor);
-
+                    light.LookupParameter("Комментарии").Set(wall.Name);
 
 
                 }
@@ -371,7 +368,6 @@ namespace LintelsOnTheFloor2
 
             return false;
         }
-
 
     }
 }
