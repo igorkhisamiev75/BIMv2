@@ -8,9 +8,7 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
 
-using Microsoft.Office.Interop.Excel;
-
-namespace RoomSectionCreator
+namespace BIMv2
 {
     [Transaction(TransactionMode.Manual)]
     public class CreateRoomSectionsCommand : IExternalCommand
@@ -24,7 +22,7 @@ namespace RoomSectionCreator
             try
             {
                 // Получаем все помещения в проекте
-                IList<Room> rooms = new FilteredElementCollector(doc)
+                var rooms = new FilteredElementCollector(doc)
                     .OfCategory(BuiltInCategory.OST_Rooms)
                     .WhereElementIsNotElementType()
                     .Cast<Room>()
@@ -36,15 +34,19 @@ namespace RoomSectionCreator
                     return Result.Cancelled;
                 }
 
-                // Начинаем транзакцию
                 using (Transaction trans = new Transaction(doc, "Создание разрезов помещений"))
                 {
                     trans.Start();
 
-                    // Создаем секции для каждого помещения
                     foreach (Room room in rooms)
                     {
-                        CreateSectionsAroundRoom(doc, room);
+                        try
+                        {
+                            CreateSectionsAroundRoom(doc, room);
+                        }
+
+                        catch { }
+                        
                     }
 
                     trans.Commit();
@@ -61,69 +63,66 @@ namespace RoomSectionCreator
 
         private void CreateSectionsAroundRoom(Document doc, Room room)
         {
-            // Получаем границы помещения
-            SpatialElementBoundaryOptions options = new SpatialElementBoundaryOptions();
-            options.SpatialElementBoundaryLocation = SpatialElementBoundaryLocation.Finish;
+            var options = new SpatialElementBoundaryOptions
+            {
+                SpatialElementBoundaryLocation = SpatialElementBoundaryLocation.Finish
+            };
+
             IList<IList<BoundarySegment>> boundaries = room.GetBoundarySegments(options);
+            if (boundaries == null || boundaries.Count == 0) return;
 
-            if (boundaries == null || boundaries.Count == 0)
-                return;
-
-            // Получаем уровень помещения
             Level level = doc.GetElement(room.LevelId) as Level;
+            double roomHeight = GetRoomHeight(doc, room, level);
+            XYZ roomCenter = GetRoomCenter(room);
 
-            // Получаем высоту помещения (берем высоту уровня выше или стандартную 3м)
-            double roomHeight = 3000 / 304.8; // 3 метра в футах
-            ElementId nextLevelId = level.GetDependentElements(new ElementCategoryFilter(BuiltInCategory.OST_Levels))
-                .Select(x => doc.GetElement(x))
-                .OfType<Level>()
-                .Where(l => l.Elevation > level.Elevation)
-                .OrderBy(l => l.Elevation)
-                .Select(l => l.Id)
-                .FirstOrDefault();
-
-            if (nextLevelId != null)
+            foreach (var boundary in boundaries)
             {
-                Level nextLevel = doc.GetElement(nextLevelId) as Level;
-                roomHeight = nextLevel.Elevation - level.Elevation;
-            }
-
-            // Получаем ограничивающую рамку помещения
-            BoundingBoxXYZ bb = room.get_BoundingBox(null);
-            XYZ roomCenter = (bb.Max + bb.Min) * 0.5;
-
-            // Создаем секции для каждой границы
-            foreach (IList<BoundarySegment> boundary in boundaries)
-            {
-                foreach (BoundarySegment segment in boundary)
+                foreach (var segment in boundary)
                 {
                     Element boundaryElement = doc.GetElement(segment.ElementId);
-                    if (boundaryElement == null)
-                        continue;
+                    if (boundaryElement == null) continue;
 
-                    // Получаем кривую границы
                     Curve curve = segment.GetCurve();
-                    if (curve == null)
-                        continue;
+                    if (curve == null) continue;
 
-                    // Создаем смещение на 10 мм (0.0328 фута)
                     XYZ offsetDirection = GetOffsetDirection(curve, roomCenter);
                     double offset = 0.0328; // 10 мм в футах
                     Curve offsetCurve = curve.CreateOffset(offset, offsetDirection);
 
-                    // Генерируем уникальное имя для вида
-                    string baseName = $"Развертка {room.Name} ";
-                    string viewName = GetUniqueName(doc, baseName, typeof(ViewSection));
-
-                    //Создание объекта для генерации чисел
-                    Random rnd = new Random();
-                    int value = rnd.Next();
-
-                    // Создаем секцию
-                    CreateSectionView(doc, offsetCurve, room.Number + "_" + boundaryElement.Id.ToString() + viewName+value, level, roomHeight);
-                    
+                    CreateSectionView(doc, offsetCurve, room, level, roomHeight);
                 }
             }
+        }
+
+        private XYZ GetRoomCenter(Room room)
+        {
+            LocationPoint locPoint = room.Location as LocationPoint;
+            if (locPoint != null) return locPoint.Point;
+
+            BoundingBoxXYZ bb = room.get_BoundingBox(null);
+            return (bb.Max + bb.Min) * 0.5;
+        }
+
+        private double GetRoomHeight(Document doc, Room room, Level level)
+        {
+            // Попробуем получить высоту из параметра помещения
+            Parameter heightParam = room.get_Parameter(BuiltInParameter.ROOM_HEIGHT);
+            if (heightParam != null && heightParam.HasValue)
+            {
+                return heightParam.AsDouble();
+            }
+
+            // Или вычисляем по следующему уровню
+            var nextLevel = new FilteredElementCollector(doc)
+                .OfClass(typeof(Level))
+                .Cast<Level>()
+                .Where(l => l.Elevation > level.Elevation)
+                .OrderBy(l => l.Elevation)
+                .FirstOrDefault();
+
+            return nextLevel != null ?
+                nextLevel.Elevation - level.Elevation :
+                3.0 / 0.3048; // 3 метра по умолчанию
         }
 
         private XYZ GetOffsetDirection(Curve curve, XYZ roomCenter)
@@ -131,71 +130,45 @@ namespace RoomSectionCreator
             XYZ curveCenter = (curve.GetEndPoint(0) + curve.GetEndPoint(1)) * 0.5;
             XYZ direction = (roomCenter - curveCenter).Normalize();
 
-            // Для вертикальных стен проверяем направление
             if (Math.Abs(curve.GetEndPoint(0).Z - curve.GetEndPoint(1).Z) > 0.001)
             {
                 return XYZ.BasisZ;
             }
 
-            // Для горизонтальных стен возвращаем вектор, перпендикулярный кривой
             XYZ tangent = (curve.GetEndPoint(1) - curve.GetEndPoint(0)).Normalize();
             return new XYZ(-tangent.Y, tangent.X, 0);
         }
 
-        private void CreateSectionView(Document doc, Curve curve, string viewName, Level level, double height)
+        private void CreateSectionView(Document doc, Curve curve, Room room, Level level, double height)
         {
-            // Создаем BoundingBoxXYZ для секции
-            BoundingBoxXYZ sectionBox = new BoundingBoxXYZ();
-
-            // Устанавливаем направление секции
+            XYZ curveMidPoint = (curve.GetEndPoint(0) + curve.GetEndPoint(1)) * 0.5;
             XYZ curveDirection = (curve.GetEndPoint(1) - curve.GetEndPoint(0)).Normalize();
             XYZ viewDirection = new XYZ(-curveDirection.Y, curveDirection.X, 0);
 
-            // Устанавливаем преобразование координат
-            Transform transform = Transform.Identity;
-            transform.BasisX = viewDirection;
-            transform.BasisY = XYZ.BasisZ;
-            transform.BasisZ = curveDirection;
-            sectionBox.Transform = transform;
-
-            // Устанавливаем границы секции
-            XYZ min = curve.GetEndPoint(0);
-            XYZ max = curve.GetEndPoint(1);
-
-            // Добавляем отступы
-            double padding = 1.0; // 1 фут (~300 мм) отступ от границы
-            sectionBox.Min = new XYZ(-padding, level.Elevation, -padding);
-            sectionBox.Max = new XYZ(padding, level.Elevation + height, Math.Max(min.DistanceTo(max) + padding, 2 * padding));
-
-           
-
-            // Создаем вид секции
-            ViewSection sectionView = ViewSection.CreateSection(doc, doc.GetDefaultElementTypeId(ElementTypeGroup.ViewTypeSection), sectionBox);
-
-            // Настраиваем имя вида
-            sectionView.Name = "Разрез_" + viewName;
-
-            // Настраиваем масштаб
-            sectionView.Scale = 50;
-        }
-
-        // Метод для генерации уникального имени
-        private string GetUniqueName(Document doc, string baseName, Type elementType)
-        {
-            string name = baseName;
-            int counter = 1;
-
-            // Получаем все элементы указанного типа в проекте
-            FilteredElementCollector collector = new FilteredElementCollector(doc);
-            collector.OfClass(elementType);
-
-            // Проверяем, существует ли уже имя
-            while (collector.Any(x => x.Name == name))
+            var sectionBox = new BoundingBoxXYZ
             {
-                name = $"{baseName} ({counter++})";
-            }
+                Transform = Transform.CreateTranslation(curveMidPoint) *
+                           Transform.CreateRotation(XYZ.BasisZ, Math.Atan2(viewDirection.Y, viewDirection.X))
+            };
 
-            return name;
+            double sectionWidth = curve.Length + 2.0;
+            double sectionDepth = 1.0;
+
+            sectionBox.Min = new XYZ(-sectionDepth, 0, -sectionWidth / 2);
+            sectionBox.Max = new XYZ(sectionDepth, height, sectionWidth / 2);
+
+            ViewSection sectionView = ViewSection.CreateSection(doc,
+                doc.GetDefaultElementTypeId(ElementTypeGroup.ViewTypeSection),
+                sectionBox);
+
+            //Создание объекта для генерации чисел
+            Random rnd = new Random();
+            int value = rnd.Next();
+
+            sectionView.Name = $"Разрез_{room.Number}_{room.Id}_{value.ToString()}";
+            sectionView.Scale = 50;
+
+            doc.Regenerate();
         }
     }
 }
