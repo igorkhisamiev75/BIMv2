@@ -6,10 +6,10 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Selection;
 
-namespace DimensionReferencesChanger
+namespace WallDimensionReferences
 {
     [Transaction(TransactionMode.Manual)]
-    public class DimensionReferencesChanger : IExternalCommand
+    public class AdjustDimensionLeaders : IExternalCommand
     {
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -20,47 +20,49 @@ namespace DimensionReferencesChanger
             try
             {
                 // Выбираем размер
-                Reference dimRef = uiDoc.Selection.PickObject(ObjectType.Element, "Выберите параллельный размер");
+                Reference dimRef = uiDoc.Selection.PickObject(ObjectType.Element,
+                    new DimensionSelectionFilter(), "Выберите параллельный размер");
                 Dimension dimension = doc.GetElement(dimRef) as Dimension;
 
-                if (dimension == null)
+                if (dimension == null || !(dimension.Curve is Line))
                 {
-                    TaskDialog.Show("Ошибка", "Выбранный элемент не является размером");
+                    TaskDialog.Show("Ошибка", "Пожалуйста, выберите линейный размер");
                     return Result.Failed;
                 }
 
-                // Проверяем что размер параллельный
-                if (!(dimension.Curve is Line))
-                {
-                    TaskDialog.Show("Ошибка", "Пожалуйста, выберите параллельный размер");
-                    return Result.Failed;
-                }
-
-                // Получаем текущие привязки
-                ReferenceArray currentReferences = dimension.References;
-                ReferenceArray newReferences = new ReferenceArray();
-
-                using (Transaction t = new Transaction(doc, "Изменение привязок размера"))
+                using (Transaction t = new Transaction(doc, "Привязка к стенам"))
                 {
                     t.Start();
 
-                    foreach (Reference reference in currentReferences)
-                    {
-                        Element element = doc.GetElement(reference.ElementId);
+                    // Получаем геометрию размера
+                    Line dimLine = dimension.Curve as Line;
+                    XYZ direction = dimLine.Direction;
 
-                        // Если привязка к двери - заменяем на привязку к стене
-                        if (element is FamilyInstance door && door.Category.Id.IntegerValue == (int)BuiltInCategory.OST_Doors)
+                    // Создаем новые привязки
+                    ReferenceArray newReferences = new ReferenceArray();
+                    bool allReferencesValid = true;
+
+                    foreach (Reference reference in dimension.References)
+                    {
+                        Element element = doc.GetElement(reference);
+
+                        if (element is FamilyInstance instance &&
+                            instance.Category.Id.IntegerValue == (int)BuiltInCategory.OST_Doors)
                         {
-                            // Находим стену, к которой принадлежит дверь
-                            HostObject host = door.Host as HostObject;
-                            if (host != null)
+                            // Для дверей ищем стену
+                            HostObject host = instance.Host as HostObject;
+                            if (host == null)
                             {
-                                Reference wallReference = GetWallReferenceForDimension(host, door, dimension, doc);
-                                if (wallReference != null)
-                                {
-                                    newReferences.Append(wallReference);
-                                    continue;
-                                }
+                                allReferencesValid = false;
+                                break;
+                            }
+
+                            // Получаем грань стены
+                            Reference wallRef = GetWallReference(host, instance, direction, dimension.View);
+                            if (wallRef != null)
+                            {
+                                newReferences.Append(wallRef);
+                                continue;
                             }
                         }
 
@@ -68,34 +70,21 @@ namespace DimensionReferencesChanger
                         newReferences.Append(reference);
                     }
 
-                    // Вместо изменения References создаем новый размер
-                    if (newReferences.Size == currentReferences.Size)
+                    if (allReferencesValid && newReferences.Size > 0)
                     {
-                        // Создаем новый размер с нужными привязками
-                        Line dimLine = dimension.Curve as Line;
-                        Dimension newDimension = doc.Create.NewDimension(
-                            dimension.View,
-                            dimLine,
-                            newReferences);
-
-                        // Удаляем старый размер
+                        // Создаем новый размер и удаляем старый
+                        Dimension newDim = doc.Create.NewDimension(dimension.View, dimLine, newReferences);
                         doc.Delete(dimension.Id);
 
                         t.Commit();
-                        TaskDialog.Show("Успех", "Привязки размера успешно изменены");
+                        TaskDialog.Show("Готово", "Привязки успешно изменены на стены");
+                        return Result.Succeeded;
                     }
-                    else
-                    {
-                        t.RollBack();
-                        TaskDialog.Show("Ошибка", "Не удалось найти подходящие привязки для всех элементов");
-                    }
-                }
 
-                return Result.Succeeded;
-            }
-            catch (Autodesk.Revit.Exceptions.OperationCanceledException)
-            {
-                return Result.Cancelled;
+                    t.RollBack();
+                    TaskDialog.Show("Ошибка", "Не удалось найти подходящие привязки к стенам");
+                    return Result.Failed;
+                }
             }
             catch (Exception ex)
             {
@@ -104,23 +93,8 @@ namespace DimensionReferencesChanger
             }
         }
 
-        private Reference GetWallReferenceForDimension(HostObject wall, FamilyInstance door, Dimension dimension, Document doc)
+        private Reference GetWallReference(HostObject wall, FamilyInstance door, XYZ dimensionDirection, View view)
         {
-            View view = dimension.View;
-            if (view == null) return null;
-
-            // Получаем положение двери
-            XYZ doorLocation = (door.Location as LocationPoint)?.Point;
-            if (doorLocation == null) return null;
-
-            // Получаем линию размера
-            Line dimLine = dimension.Curve as Line;
-            if (dimLine == null) return null;
-
-            // Направление размера (перпендикулярно стене)
-            XYZ dimensionDirection = dimLine.Direction;
-
-            // Получаем геометрию стены в контексте вида
             Options options = new Options
             {
                 ComputeReferences = true,
@@ -128,43 +102,50 @@ namespace DimensionReferencesChanger
                 IncludeNonVisibleObjects = false
             };
 
-            Reference targetReference = null;
-            double minDistance = double.MaxValue;
+            // Получаем точку двери
+            XYZ doorPoint = (door.Location as LocationPoint)?.Point;
+            if (doorPoint == null) return null;
 
-            foreach (GeometryObject geomObj in wall.get_Geometry(options))
+            // Ищем подходящую грань стены
+            foreach (GeometryObject geom in wall.get_Geometry(options))
             {
-                Solid solid = geomObj as Solid;
-                if (solid == null) continue;
+                if (!(geom is Solid solid)) continue;
 
                 foreach (Face face in solid.Faces)
                 {
-                    PlanarFace planarFace = face as PlanarFace;
-                    if (planarFace == null) continue;
+                    if (!(face is PlanarFace planarFace)) continue;
 
-                    // Проверяем что грань примерно перпендикулярна виду
-                    XYZ faceNormal = planarFace.FaceNormal;
-                    if (Math.Abs(faceNormal.DotProduct(view.ViewDirection)) > 0.1)
+                    // Проверяем ориентацию грани
+                    if (Math.Abs(planarFace.FaceNormal.DotProduct(dimensionDirection)) > 0.1)
                         continue;
 
-                    // Проверяем что грань параллельна направлению размера
-                    if (Math.Abs(faceNormal.DotProduct(dimensionDirection)) < 0.1)
+                    // Проверяем видимость в виде
+                    if (Math.Abs(planarFace.FaceNormal.DotProduct(view.ViewDirection)) > 0.1)
+                        continue;
+
+                    // Проверяем что точка двери проецируется на грань
+                    IntersectionResult proj = planarFace.Project(doorPoint);
+                    if (proj != null)
                     {
-                        // Получаем проекцию двери на грань
-                        IntersectionResult ir = planarFace.Project(doorLocation);
-                        if (ir != null)
-                        {
-                            double distance = ir.Distance;
-                            if (distance < minDistance)
-                            {
-                                minDistance = distance;
-                                targetReference = planarFace.Reference;
-                            }
-                        }
+                        return planarFace.Reference;
                     }
                 }
             }
 
-            return targetReference;
+            return null;
+        }
+    }
+
+    public class DimensionSelectionFilter : ISelectionFilter
+    {
+        public bool AllowElement(Element elem)
+        {
+            return elem is Dimension;
+        }
+
+        public bool AllowReference(Reference reference, XYZ position)
+        {
+            return false;
         }
     }
 }
