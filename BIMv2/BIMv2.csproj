@@ -211,6 +211,7 @@
     </When>
   </Choose>
   <ItemGroup>
+    <Compile Include="AdjustDimensionLeaders.cs" />
     <Compile Include="BeamsFinish.cs" />
     <Compile Include="BIMStandart.cs" />
     <Compile Include="ChangeTypeParametersByExcel.cs" />

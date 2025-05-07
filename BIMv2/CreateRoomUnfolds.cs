@@ -1,5 +1,4 @@
-﻿//Создание объекта для генерации чисел
-using Autodesk.Revit.Attributes;
+﻿using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI.Selection;
@@ -7,8 +6,7 @@ using Autodesk.Revit.UI;
 using System.Collections.Generic;
 using System;
 using System.Linq;
-using Microsoft.Office.Interop.Excel;
-using System.IO;
+
 
 [Transaction(TransactionMode.Manual)]
 [Regeneration(RegenerationOption.Manual)]
@@ -65,6 +63,8 @@ public class CreateRoomUnfolds : IExternalCommand
             {
                 trans.Start();
 
+                int sectionNumber = 1;
+
                 foreach (IList<BoundarySegment> boundary in boundaries)
                 {
                     foreach (BoundarySegment segment in boundary)
@@ -107,37 +107,7 @@ public class CreateRoomUnfolds : IExternalCommand
                         XYZ upDirection = XYZ.BasisZ;
                         XYZ rightDirection = viewDirection.CrossProduct(upDirection);
 
-                        //// Создание трансформации
-                        //Transform transform = Transform.Identity;
-                        //transform.BasisX = rightDirection;
-                        //transform.BasisY = upDirection;
-                        //transform.BasisZ = rightDirection.CrossProduct(upDirection);
-
-                        //// Центр сечения - середина стены с отступом 10 мм внутрь
-                        //XYZ sectionCenter = (curveStart + curveEnd) / 2 + viewDirection * OffsetInward;
-
-                        //TaskDialog.Show("t", $"{sectionCenter.ToString()}");
-
-                        // Создание BoundingBox
-                        //BoundingBoxXYZ sectionBox = new BoundingBoxXYZ
-                        //{
-                        //    Transform = transform,
-                        //    Min = new XYZ(-(curve.Length / 2 + 0.5), -0.5, -0.5),
-                        //    Max = new XYZ(curve.Length / 2 + 0.5, 5.0, roomHeight + 0.5)
-                        //};
-
-                        // Установка флагов
-                        //for (int i = 0; i < 3; i++)
-                        //{
-                        //    sectionBox.set_MinEnabled(i, true);
-                        //    sectionBox.set_MaxEnabled(i, true);
-                        //}
-
-                        // Установка центра сечения
-                        //sectionBox.Transform.Origin = sectionCenter;
-                        //sectionBox.Transform.Origin = new XYZ(10,10,10);
-
-                        //sectionBox.Transform.OfPoint(new XYZ(10, 10, 10));
+                       
 
                         //ransform trf = sectionBox.Transform;
 
@@ -165,8 +135,13 @@ public class CreateRoomUnfolds : IExternalCommand
                         // Создание сечения
                         ViewSection section = ViewSection.CreateSection(doc, sectionType.Id, sectionBox2);
 
+                        // Создаем базовое имя для разреза
+                        string baseSectionName = $"Разрез в пом. {room.Number}-{sectionNumber++}";
 
-                        section.Name = $"Разрез {room.Name} - {sections.Count + 1}";
+                        // Получаем уникальное имя
+                        string uniqueName = GetUniqueViewName(doc, baseSectionName);
+
+                        section.Name = uniqueName;
 
                         // Установка масштаба 1:50
                         Autodesk.Revit.DB.Parameter scaleParam = section.get_Parameter(BuiltInParameter.VIEW_SCALE_PULLDOWN_METRIC);
@@ -202,8 +177,9 @@ public class CreateRoomUnfolds : IExternalCommand
                     try
                     {
                         sheet = CreateSheetWithSpecificTitleblock(doc, "Форма 3");
-                        sheet.Name = $"Разрезы {room.Name}";
-                        sheet.SheetNumber = "АР"; // Или ваша нумерация
+                       
+                        sheet.Name = $"Разрезы {room.Number+"_"+room.Name}";
+                        sheet.SheetNumber = $"({DateTime.Now:yyyyMMdd-HHmmss})"; ; // Или ваша нумерация
                     }
                     catch (Exception ex)
                     {
@@ -364,6 +340,26 @@ public class CreateRoomUnfolds : IExternalCommand
         // Create the sheet
         ViewSheet sheet = ViewSheet.Create(doc, titleblock.Id);
         return sheet;
+    }
+
+    private static string GetUniqueViewName(Document doc, string baseName)
+    {
+        var existingNames = new HashSet<string>(
+            new FilteredElementCollector(doc)
+                .OfClass(typeof(View))
+                .Cast<View>()
+                .Select(v => v.Name));
+
+        if (!existingNames.Contains(baseName)) return baseName;
+
+        int counter = 1;
+        string newName;
+        do
+        {
+            newName = $"{baseName}_{counter++}";
+        } while (existingNames.Contains(newName));
+
+        return newName;
     }
 }
 

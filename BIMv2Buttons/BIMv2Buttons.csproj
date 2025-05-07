@@ -239,6 +239,7 @@
     <Compile Include="CreateNotPlacedRooms\CreateNotPlacedRooms.cs" />
     <Compile Include="CreateNumberRoomForFloors\CreateNumberRoomForFloors.cs" />
     <Compile Include="CreateRailingInRooms\CreateRailingInRooms.cs" />
+    <Compile Include="CreateRoomUnfolds\CreateRoomUnfolds.cs" />
     <Compile Include="CreateViewByLinkedFiles\CreateViewByLinkedFiles.cs" />
     <Compile Include="CreateViewForCollisions\CreateViewForCollisions.cs" />
     <Compile Include="CreateWS\CreateWorksets.cs" />
@@ -505,6 +506,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\icons8-bd-16.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\icons8-r-32.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

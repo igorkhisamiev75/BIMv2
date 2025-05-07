@@ -484,17 +484,18 @@ namespace BIMv2Buttons
             //////////////////// AN
 
             // create push button for CurveTotalLength  //namespace и класс
-            PushButtonData b1DataB2_1 = new PushButtonData("cmdConvertGrids3Dto2D", "Оси 2D/3D"
-                + Environment.NewLine + "поменять", thisAssemblyPath, "BIMv2.ConvertGrids3Dto2D");
+            PushButtonData b1DataR = new PushButtonData("cmdCreateRoomUnfolds", "Создание"
+                + Environment.NewLine + "разверток", thisAssemblyPath, "CreateRoomUnfolds");
 
-            PushButton pb1B2_1 = ribbonPanelAnnotation.AddItem(b1DataB2_1) as PushButton;
-            pb1B2_1.ToolTip = "Перевести оси в 2D либо 3D";
+            PushButton pb1R = ribbonPanelAnnotation.AddItem(b1DataR) as PushButton;
+            b1DataR.ToolTip = "Создать разрезы в помещеини и разместить их на новом листе";
 
-            BitmapImage pb1ImageB2_1 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-2d-16.png"));
-            pb1B2_1.LargeImage = pb1ImageB2_1;
+            BitmapImage pb1ImageR = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-r-32.png"));
+            pb1R.LargeImage = pb1ImageR;
+
 
             //попробуем создать еще одну кнопку
-            ribbonPanelAnnotation.AddSeparator(); //разделитель между кнопками
+            //ribbonPanelAnnotation.AddSeparator(); //разделитель между кнопками
 
             //// create push button for CurveTotalLength  //namespace и класс
             //PushButtonData b1DataB3_1 = new PushButtonData("cmdCreateNewTypeAnnotation", "Создать"
@@ -520,6 +521,16 @@ namespace BIMv2Buttons
 
             PushButton pb25 = ribbonPanelAnnotation.AddItem(b25Data) as PushButton;
             pb25.ToolTip = "Скопировать лист с видами размещенным на нем";
+
+            // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData b1DataB2_1 = new PushButtonData("cmdConvertGrids3Dto2D", "Оси 2D/3D"
+                + Environment.NewLine + "поменять", thisAssemblyPath, "BIMv2.ConvertGrids3Dto2D");
+
+            PushButton pb1B2_1 = ribbonPanelAnnotation.AddItem(b1DataB2_1) as PushButton;
+            pb1B2_1.ToolTip = "Перевести оси в 2D либо 3D";
+
+            BitmapImage pb1ImageB2_1 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-2d-16.png"));
+            pb1B2_1.LargeImage = pb1ImageB2_1;
 
             BitmapImage pb25Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-sheets-32.png"));
             pb25.LargeImage = pb25Image;
@@ -652,7 +663,7 @@ namespace BIMv2Buttons
             //BitmapImage pbHImage5 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-youtube-32.png"));
             //pbH5.LargeImage = pbHImage5;
 
-            PushButtonData bHData2 = new PushButtonData("cmdHelpBIMBlog", "Блог", thisAssemblyPath, "BIMv2.HelpBIMBlog");
+            PushButtonData bHData2 = new PushButtonData("cmdHelpBIMBlog", "Blog" + Environment.NewLine + "2bim.ru", thisAssemblyPath, "BIMv2.HelpBIMBlog");
 
             PushButton pbH2 = ribbonPanelInfo.AddItem(bHData2) as PushButton;
             pbH2.ToolTip = "Подписываемся, ставим лайки, комментируем";
