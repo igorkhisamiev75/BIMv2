@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 using Microsoft.Office.Interop.Excel;
+using System.IO;
 
 [Transaction(TransactionMode.Manual)]
 [Regeneration(RegenerationOption.Manual)]
@@ -195,30 +196,65 @@ public class CreateRoomUnfolds : IExternalCommand
                         return Result.Failed;
                     }
 
-                    ViewSheet sheet = ViewSheet.Create(doc, sheetType.Id);
-                    sheet.Name = $"Разрезы {room.Name}";
 
-                    // Параметры размещения
-                    double x = 0.1;
-                    double y = 0.1;
-                    double width = 0.3;
-                    double height = 0.2;
-                    double spacing = 0.05;
+                    // Создаем лист с конкретной рамкой
+                    ViewSheet sheet;
+                    try
+                    {
+                        sheet = CreateSheetWithSpecificTitleblock(doc, "Форма 3");
+                        sheet.Name = $"Разрезы {room.Name}";
+                        sheet.SheetNumber = "АР"; // Или ваша нумерация
+                    }
+                    catch (Exception ex)
+                    {
+                        message = ex.Message;
+                        return Result.Failed;
+                    }
+
+                    // Create sheet with more robust naming
+                    //ViewSheet sheet = ViewSheet.Create(doc, sheetType.Id);
+                    //sheet.Name = $"Разрезы {room.Name} ({DateTime.Now:yyyyMMdd-HHmm})";
+
+                    // Placement parameters - consider making these configurable
+                    double startX = 0.1;  // 10% from left edge
+                    double startY = 0.1;  // 10% from bottom edge
+                    double currentX = startX;
+                    double currentY = startY;
+
+                    double viewportWidth = 0.3;  // 30% of sheet width
+                    double viewportHeight = 0.2; // 20% of sheet height
+                    double spacing = 0.05;      // 5% spacing
 
                     foreach (ViewSection section in sections)
                     {
-                        if (x + width > 0.95)
+                        // Check if we need to move to next row
+                        if (currentX + viewportWidth > 0.95) // 95% of sheet width
                         {
-                            x = 0.1;
-                            y += height + spacing;
+                            currentX = startX;
+                            currentY += viewportHeight + spacing;
+
+                            // Check if we've run out of vertical space
+                            if (currentY + viewportHeight > 0.95)
+                            {
+                                // Create a new sheet if current one is full
+                                //sheet = ViewSheet.Create(doc, sheetType.Id);
+                                //sheet.Name = $"Разрезы {room.Name} ({DateTime.Now:yyyyMMdd-HHmm}) продолжение";
+                                currentX = startX;
+                                currentY = startY;
+                            }
                         }
 
-                        Viewport viewport = Viewport.Create(doc, sheet.Id, section.Id, new XYZ(x, y, 0));
+                        // Create viewport
+                        Viewport viewport = Viewport.Create(doc, sheet.Id, section.Id, new XYZ(currentX, currentY, 0));
 
-                        // Настройка размера viewport
-                        viewport.get_Parameter(BuiltInParameter.VIEWPORT_DETAIL_NUMBER).Set(section.Name);
+                        // Set detail number to section name
+                        Autodesk.Revit.DB.Parameter detailNumParam = viewport.get_Parameter(BuiltInParameter.VIEWPORT_DETAIL_NUMBER);
+                        if (detailNumParam != null && !detailNumParam.IsReadOnly)
+                        {
+                            detailNumParam.Set(section.Name);
+                        }
 
-                        x += width + spacing;
+                        currentX += viewportWidth + spacing;
                     }
 
                     trans.Commit();
@@ -254,12 +290,80 @@ public class CreateRoomUnfolds : IExternalCommand
             .FirstOrDefault(x => x.ViewFamily == ViewFamily.Section);
     }
 
-    private ViewFamilyType GetFirstSheetType(Document doc)
+    ViewFamilyType GetFirstSheetType(Document doc)
     {
-        return new FilteredElementCollector(doc)
-            .OfClass(typeof(ViewFamilyType))
-            .Cast<ViewFamilyType>()
-            .FirstOrDefault(x => x.ViewFamily == ViewFamily.Sheet);
+        // Filter for title block family symbols (sheet types)
+        FilteredElementCollector collector = new FilteredElementCollector(doc);
+        collector.OfClass(typeof(ViewFamilyType));
+
+        foreach (ViewFamilyType vft in collector)
+        {
+            if (vft.ViewFamily == ViewFamily.Sheet)
+            {
+                return vft;
+            }
+        }
+
+        return null;
+    }
+
+    public ViewSheet CreateSheetWithSpecificTitleblock(Document doc, string titleblockName)
+    {
+        // Find all title blocks in the project
+        FilteredElementCollector collector = new FilteredElementCollector(doc)
+            .OfCategory(BuiltInCategory.OST_TitleBlocks)
+            .WhereElementIsElementType();
+
+        // Find the specific title block by name
+        FamilySymbol titleblock = null;
+        foreach (Element e in collector)
+        {
+            if (e.Name.Equals(titleblockName, StringComparison.OrdinalIgnoreCase))
+            {
+                titleblock = e as FamilySymbol;
+                break;
+            }
+        }
+
+        //if (titleblock == null)
+        //{
+        //    // Try to load the title block if not found
+        //    string defaultTitleBlockPath = @"C:\ProgramData\Autodesk\RVT 2021\Libraries\US Imperial\Titleblocks\OS_Titleblock.rfa";
+
+        //    if (File.Exists(defaultTitleBlockPath))
+        //    {
+        //        using (Transaction loadTrans = new Transaction(doc, "Load Titleblock"))
+        //        {
+        //            loadTrans.Start();
+        //            if (doc.LoadFamily(defaultTitleBlockPath, out Family family))
+        //            {
+        //                // Get the first symbol from loaded family
+        //                var symbolIds = family.GetFamilySymbolIds();
+        //                if (symbolIds.Count > 0)
+        //                {
+        //                    titleblock = doc.GetElement(symbolIds.First()) as FamilySymbol;
+        //                }
+        //            }
+        //            loadTrans.Commit();
+        //        }
+        //    }
+
+        //    if (titleblock == null)
+        //    {
+        //        throw new Exception($"Titleblock '{titleblockName}' not found in project and couldn't be loaded.");
+        //    }
+        //}
+
+        // Check if titleblock is active
+        if (!titleblock.IsActive)
+        {
+            titleblock.Activate();
+            doc.Regenerate();
+        }
+
+        // Create the sheet
+        ViewSheet sheet = ViewSheet.Create(doc, titleblock.Id);
+        return sheet;
     }
 }
 
