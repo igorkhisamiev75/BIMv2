@@ -1,15 +1,15 @@
-﻿using System;
-
-using Autodesk.Revit.ApplicationServices;
-using Autodesk.Revit.Attributes;
+﻿using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Selection;
 
-namespace WallDimensionReferences
+using System;
+using System.Linq;
+
+namespace DimensionToWall
 {
     [Transaction(TransactionMode.Manual)]
-    public class AdjustDimensionLeaders : IExternalCommand
+    public class MoveDimensionToWallCommand : IExternalCommand
     {
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -20,45 +20,43 @@ namespace WallDimensionReferences
             try
             {
                 // Выбираем размер
-                Reference dimRef = uiDoc.Selection.PickObject(ObjectType.Element,
-                    new DimensionSelectionFilter(), "Выберите параллельный размер");
-                Dimension dimension = doc.GetElement(dimRef) as Dimension;
+                var dimRef = uiDoc.Selection.PickObject(ObjectType.Element,
+                    new DimensionSelectionFilter(), "Выберите размер, привязанный к двери");
 
-                if (dimension == null || !(dimension.Curve is Line))
+                var dimension = doc.GetElement(dimRef) as Dimension;
+                if (dimension == null) return Result.Failed;
+
+                // Получаем линию размера
+                if (!(dimension.Curve is Line dimLine))
                 {
-                    TaskDialog.Show("Ошибка", "Пожалуйста, выберите линейный размер");
+                    TaskDialog.Show("Ошибка", "Выбранный размер не является линейным");
                     return Result.Failed;
                 }
 
-                using (Transaction t = new Transaction(doc, "Привязка к стенам"))
+                using (var t = new Transaction(doc, "Перенос привязки на стену"))
                 {
                     t.Start();
 
-                    // Получаем геометрию размера
-                    Line dimLine = dimension.Curve as Line;
-                    XYZ direction = dimLine.Direction;
-
                     // Создаем новые привязки
-                    ReferenceArray newReferences = new ReferenceArray();
-                    bool allReferencesValid = true;
+                    var newReferences = new ReferenceArray();
+                    bool success = true;
 
                     foreach (Reference reference in dimension.References)
                     {
-                        Element element = doc.GetElement(reference);
+                        var element = doc.GetElement(reference);
 
-                        if (element is FamilyInstance instance &&
-                            instance.Category.Id.IntegerValue == (int)BuiltInCategory.OST_Doors)
+                        if (element is FamilyInstance door &&
+                            door.Category.Id.IntegerValue == (int)BuiltInCategory.OST_Doors)
                         {
-                            // Для дверей ищем стену
-                            HostObject host = instance.Host as HostObject;
-                            if (host == null)
+                            // Получаем стену-хост
+                            if (!(door.Host is Wall wall))
                             {
-                                allReferencesValid = false;
+                                success = false;
                                 break;
                             }
 
-                            // Получаем грань стены
-                            Reference wallRef = GetWallReference(host, instance, direction, dimension.View);
+                            // Находим грань стены для привязки
+                            var wallRef = GetWallReference(wall, door, dimLine.Direction, dimension.View);
                             if (wallRef != null)
                             {
                                 newReferences.Append(wallRef);
@@ -66,23 +64,23 @@ namespace WallDimensionReferences
                             }
                         }
 
-                        // Для других элементов оставляем как есть
+                        // Оставляем другие привязки без изменений
                         newReferences.Append(reference);
                     }
 
-                    if (allReferencesValid && newReferences.Size > 0)
+                    if (success && newReferences.Size > 0)
                     {
                         // Создаем новый размер и удаляем старый
-                        Dimension newDim = doc.Create.NewDimension(dimension.View, dimLine, newReferences);
+                        doc.Create.NewDimension(dimension.View, dimLine, newReferences);
                         doc.Delete(dimension.Id);
 
                         t.Commit();
-                        TaskDialog.Show("Готово", "Привязки успешно изменены на стены");
+                        TaskDialog.Show("Готово", "Привязка успешно перенесена на стену");
                         return Result.Succeeded;
                     }
 
                     t.RollBack();
-                    TaskDialog.Show("Ошибка", "Не удалось найти подходящие привязки к стенам");
+                    TaskDialog.Show("Ошибка", "Не удалось перенести привязку на стену");
                     return Result.Failed;
                 }
             }
@@ -93,9 +91,9 @@ namespace WallDimensionReferences
             }
         }
 
-        private Reference GetWallReference(HostObject wall, FamilyInstance door, XYZ dimensionDirection, View view)
+        private Reference GetWallReference(Wall wall, FamilyInstance door, XYZ dimensionDir, View view)
         {
-            Options options = new Options
+            var options = new Options
             {
                 ComputeReferences = true,
                 View = view,
@@ -103,29 +101,27 @@ namespace WallDimensionReferences
             };
 
             // Получаем точку двери
-            XYZ doorPoint = (door.Location as LocationPoint)?.Point;
-            if (doorPoint == null) return null;
+            var doorLoc = (door.Location as LocationPoint)?.Point;
+            if (doorLoc == null) return null;
 
-            // Ищем подходящую грань стены
-            foreach (GeometryObject geom in wall.get_Geometry(options))
+            // Получаем грань стены
+            var geometry = wall.get_Geometry(options);
+            foreach (var geomObj in geometry)
             {
-                if (!(geom is Solid solid)) continue;
+                if (!(geomObj is Solid solid)) continue;
 
                 foreach (Face face in solid.Faces)
                 {
                     if (!(face is PlanarFace planarFace)) continue;
 
                     // Проверяем ориентацию грани
-                    if (Math.Abs(planarFace.FaceNormal.DotProduct(dimensionDirection)) > 0.1)
-                        continue;
+                    if (!faceNormal.IsPerpendicularTo(dimensionDir)) continue;
 
                     // Проверяем видимость в виде
-                    if (Math.Abs(planarFace.FaceNormal.DotProduct(view.ViewDirection)) > 0.1)
-                        continue;
+                    if (Math.Abs(faceNormal.DotProduct(view.ViewDirection)) > 0.1) continue;
 
-                    // Проверяем что точка двери проецируется на грань
-                    IntersectionResult proj = planarFace.Project(doorPoint);
-                    if (proj != null)
+                    // Проверяем проекцию двери на грань
+                    if (planarFace.Project(doorLoc) != null)
                     {
                         return planarFace.Reference;
                     }
@@ -138,14 +134,23 @@ namespace WallDimensionReferences
 
     public class DimensionSelectionFilter : ISelectionFilter
     {
-        public bool AllowElement(Element elem)
+        public bool AllowElement(Element elem) => elem is Dimension;
+        public bool AllowReference(Reference reference, XYZ position) => false;
+    }
+
+    public class App : IExternalApplication
+    {
+        public Result OnStartup(UIControlledApplication app)
         {
-            return elem is Dimension;
+            var panel = app.CreateRibbonPanel("Размеры");
+            panel.AddItem(new PushButtonData(
+                "MoveDimToWall",
+                "На стену",
+                System.Reflection.Assembly.GetExecutingAssembly().Location,
+                "DimensionToWall.MoveDimensionToWallCommand"));
+            return Result.Succeeded;
         }
 
-        public bool AllowReference(Reference reference, XYZ position)
-        {
-            return false;
-        }
+        public Result OnShutdown(UIControlledApplication app) => Result.Succeeded;
     }
 }
