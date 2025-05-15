@@ -46,7 +46,7 @@ public class EnhancedStairFinishing : IExternalCommand
                 t.Start();
 
                 //создает пол на лестничных клетках
-                CreateLandingFinishes(stairs);
+                //CreateLandingFinishes(stairs);
                 CreateRunFinishes(stairs);
 
                 t.Commit();
@@ -105,7 +105,7 @@ public class EnhancedStairFinishing : IExternalCommand
         var baseOffset = stairs.get_Parameter(BuiltInParameter.STAIRS_BASE_OFFSET).AsDouble();
         var level = _doc.GetElement(baseLevelId) as Level;
 
-        foreach (var runId in runs)
+        foreach (ElementId runId in runs)
         {
             StairsRun run = _doc.GetElement(runId) as StairsRun;
             double riserHeight = run.get_Parameter(BuiltInParameter.STAIRS_RUN_ACTUAL_RISER_HEIGHT).AsDouble();
@@ -135,7 +135,7 @@ public class EnhancedStairFinishing : IExternalCommand
         List<CurveLoop> treadBoundaries = new List<CurveLoop>();
 
         // Classify curves as sides or ends based on angle to run direction
-        foreach (var curve in boundary)
+        foreach (Curve curve in boundary)
         {
             var line = curve as Line;
             if (line == null) continue;
@@ -164,16 +164,16 @@ public class EnhancedStairFinishing : IExternalCommand
     private CurveLoop CreateTreadProfile(Curve baseline, XYZ runDirection, double runWidth)
     {
         // Create a rectangular profile for each tread
-        var start = baseline.GetEndPoint(0);
-        var end = baseline.GetEndPoint(1);
+        XYZ start = baseline.GetEndPoint(0);
+        XYZ end = baseline.GetEndPoint(1);
 
-        var widthVector = (end - start).Normalize().CrossProduct(XYZ.BasisZ) * runWidth;
-        var p1 = start;
-        var p2 = end;
-        var p3 = end + widthVector;
-        var p4 = start + widthVector;
+        XYZ widthVector = (end - start).Normalize().CrossProduct(XYZ.BasisZ) * runWidth;
+        XYZ p1 = start;
+        XYZ p2 = end;
+        XYZ p3 = end + widthVector;
+        XYZ p4 = start + widthVector;
 
-        var profile = new CurveLoop();
+        CurveLoop profile = new CurveLoop();
         profile.Append(Line.CreateBound(p1, p2));
         profile.Append(Line.CreateBound(p2, p3));
         profile.Append(Line.CreateBound(p3, p4));
