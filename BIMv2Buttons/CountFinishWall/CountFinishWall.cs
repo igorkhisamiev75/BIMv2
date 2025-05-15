@@ -128,7 +128,7 @@ namespace BIMv2
                     }
 
                 }
-
+                doc.Regenerate();
 
             }
 

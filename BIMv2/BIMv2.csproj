@@ -225,6 +225,7 @@
     <Compile Include="CollisionsWithWall.cs" />
     <Compile Include="ConvertGrids3Dto2D.cs" />
     <Compile Include="CopyRoomsFromLink.cs" />
+    <Compile Include="CountFinishWall.cs" />
     <Compile Include="Create3DViewFromSpace.cs" />
     <Compile Include="CreateAnyElementsInRooms.cs" />
     <Compile Include="CreateCeiling.cs" />
@@ -267,6 +268,7 @@
     <Compile Include="DoorsInformationTransferFinishDoor.cs" />
     <Compile Include="DuplicateSheets.cs" />
     <Compile Include="EditDimentionsForPlans.cs" />
+    <Compile Include="EnhancedStairFinishing .cs" />
     <Compile Include="FindDoorsMirror.cs" />
     <Compile Include="FindDuctFiting.cs" />
     <Compile Include="FindFloorParametr.cs" />

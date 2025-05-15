@@ -17,6 +17,7 @@ namespace BIMv2
         {
             Document doc = commandData.Application.ActiveUIDocument.Document;
 
+            TaskDialog.Show("Сделано", "3Потолки сгруппированы");
             using (var t = new Transaction(doc))
             {
                 t.Start("Stage 2");
@@ -46,7 +47,7 @@ namespace BIMv2
 
             //группировка по уровню
             var groups = AllF.GroupBy(p2 =>
-                p2.LookupParameter("Level").AsValueString());
+                p2.LookupParameter("Уровень").AsValueString());
 
             foreach (var group in groups)
             {
