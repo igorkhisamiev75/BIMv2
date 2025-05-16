@@ -336,8 +336,8 @@ namespace BIMv2Buttons
             //ribbonPanelAi.AddSeparator();
 
             // create push button for CurveTotalLength  //namespace и класс
-            PushButtonData b1DataB3_7 = new PushButtonData("cmdFinishingOnTheStairs", "Отделка"
-                + Environment.NewLine + "лестницы", thisAssemblyPath, "BIMv2.FinishingOnTheStairs");
+            PushButtonData b1DataB3_7 = new PushButtonData("cmdFinishStairs", "Отделка"
+                + Environment.NewLine + "лестницы", thisAssemblyPath, "FinishStairs.FinishingOnTheStairs");
 
             PushButton pb1B3_7 = ribbonPanelAi.AddItem(b1DataB3_7) as PushButton;
             pb1B3_7.ToolTip = "Сделать отделку на лестнице";
@@ -670,6 +670,15 @@ namespace BIMv2Buttons
 
             BitmapImage pbHImage2 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/blog2bim.png"));
             pbH2.LargeImage = pbHImage2;
+
+            PushButtonData bHData1 = new PushButtonData("cmdHelpBIM", "На кофе"
+               + Environment.NewLine + "программисту", thisAssemblyPath, "BIMv2.HelpBIMTelegram");
+
+            PushButton pbH1 = ribbonPanelInfo.AddItem(bHData1) as PushButton;
+            pbH1.ToolTip = "Подписываемся, ставим лайки, комментируем";
+
+            BitmapImage pbHImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/blog2bim.png"));
+            pbH1.LargeImage = pbHImage;
 
 
 

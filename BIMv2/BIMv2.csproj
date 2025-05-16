@@ -235,6 +235,7 @@
     <Compile Include="CreateFinishWallinSelectedRoom.cs" />
     <Compile Include="CreateFloorFromRoom.cs" />
     <Compile Include="CreateFloorInRoom.cs" />
+    <Compile Include="CreateFloorUnderStairRun.cs" />
     <Compile Include="CreateFromDWG.cs" />
     <Compile Include="CreateFromDWGPipe.cs" />
     <Compile Include="CreateLightingInRoom.cs" />

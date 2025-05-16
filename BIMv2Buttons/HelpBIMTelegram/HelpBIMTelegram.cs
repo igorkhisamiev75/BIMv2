@@ -21,7 +21,7 @@ namespace BIMv2
             try
             {
                 System.Diagnostics.Process.Start(
-                    "https://t.me/khisamievRU");
+                    "https://www.tbank.ru/cf/1NP0aPa1Ecs");
                 return Result.Succeeded;
                 //System.Diagnostics.Process.Start(
                 //    "https://wa.me/79218720713?text=У%20меня%20проблемы%20с%20Revit%20помоги!");

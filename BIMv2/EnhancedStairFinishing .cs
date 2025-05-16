@@ -46,7 +46,7 @@ public class EnhancedStairFinishing : IExternalCommand
                 t.Start();
 
                 //создает пол на лестничных клетках
-                //CreateLandingFinishes(stairs);
+                CreateLandingFinishes(stairs);
                 CreateRunFinishes(stairs);
 
                 t.Commit();
