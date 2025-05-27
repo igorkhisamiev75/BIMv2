@@ -213,18 +213,18 @@
   <ItemGroup>
     <Compile Include="AdjustDimensionLeaders.cs" />
     <Compile Include="BeamsFinish.cs" />
-    <Compile Include="BIMStandart.cs" />
-    <Compile Include="ChangeTypeParametersByExcel.cs" />
+    <Compile Include="archive\BIMStandart.cs" />
+    <Compile Include="archive\ChangeTypeParametersByExcel.cs" />
     <Compile Include="CheckRooms\CheckRooms.cs" />
     <Compile Include="CheckRooms\CheckRoomsSelectLink.xaml.cs">
       <DependentUpon>CheckRoomsSelectLink.xaml</DependentUpon>
     </Compile>
     <Compile Include="ClearDependencies.cs" />
-    <Compile Include="ClearProjectBrowser.cs" />
+    <Compile Include="archive\ClearProjectBrowser.cs" />
     <Compile Include="ClearProjectBrowserViewsNotSheets.cs" />
     <Compile Include="CollisionsWithWall.cs" />
-    <Compile Include="ConvertGrids3Dto2D.cs" />
-    <Compile Include="CopyRoomsFromLink.cs" />
+    <Compile Include="archive\ConvertGrids3Dto2D.cs" />
+    <Compile Include="archive\CopyRoomsFromLink.cs" />
     <Compile Include="CountFinishWall.cs" />
     <Compile Include="Create3DViewFromSpace.cs" />
     <Compile Include="CreateAnyElementsInRooms.cs" />
@@ -236,16 +236,16 @@
     <Compile Include="CreateFloorFromRoom.cs" />
     <Compile Include="CreateFloorInRoom.cs" />
     <Compile Include="CreateFloorUnderStairRun.cs" />
-    <Compile Include="CreateFromDWG.cs" />
-    <Compile Include="CreateFromDWGPipe.cs" />
+    <Compile Include="archive\CreateFromDWG.cs" />
+    <Compile Include="archive\CreateFromDWGPipe.cs" />
     <Compile Include="CreateLightingInRoom.cs" />
-    <Compile Include="CreateModelText.cs" />
+    <Compile Include="archive\CreateModelText.cs" />
     <Compile Include="CreateModelTextRoomNameInRoom.cs" />
     <Compile Include="CreateNewTypeAnnotation.cs" />
     <Compile Include="CreateNotPlacedRooms.cs" />
     <Compile Include="CreateNumberRoomForFloors.cs" />
     <Compile Include="CreateNumberRoomForWall.cs" />
-    <Compile Include="CreateOpeningsInWallForStructuralFraming.cs" />
+    <Compile Include="archive\CreateOpeningsInWallForStructuralFraming.cs" />
     <Compile Include="CreateRailingInRooms.cs" />
     <Compile Include="CreateRailingsInAllRooms.cs" />
     <Compile Include="CreateRoomExplodedViews.cs" />
@@ -271,7 +271,7 @@
     <Compile Include="EditDimentionsForPlans.cs" />
     <Compile Include="EnhancedStairFinishing .cs" />
     <Compile Include="FindDoorsMirror.cs" />
-    <Compile Include="FindDuctFiting.cs" />
+    <Compile Include="archive\FindDuctFiting.cs" />
     <Compile Include="FindFloorParametr.cs" />
     <Compile Include="FindLostTags.cs" />
     <Compile Include="FindNameRoomForCeiling.cs" />
@@ -297,6 +297,7 @@
     <Compile Include="GroupWallsBeams.cs" />
     <Compile Include="HelpBIM.cs" />
     <Compile Include="JoinWalls.cs" />
+    <Compile Include="LG_RoomsInformation.cs" />
     <Compile Include="MakingHolesForDoorsLink.cs" />
     <Compile Include="MakingHolesForFacadeWindows.cs" />
     <Compile Include="MakingHolesForFacadeWindowsDoors.cs" />
