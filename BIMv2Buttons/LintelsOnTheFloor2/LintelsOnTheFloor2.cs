@@ -1,18 +1,14 @@
-﻿using System;
+﻿
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+
 using Application = Autodesk.Revit.ApplicationServices.Application;
-using Autodesk.Revit.DB.Architecture;
-using Autodesk.Revit.UI.Selection;
-using System.Diagnostics;
-using System.Windows.Controls;
-using Autodesk.Revit.Creation;
-using System.Windows.Media;
-using System.Windows.Media.Media3D;
+
 
 namespace LintelsOnTheFloor2
 {
@@ -53,7 +49,6 @@ namespace LintelsOnTheFloor2
             lintelsCollection = GetGenericModel();
 
             //количество циклов
-
             int k = 0;
 
             //создаем форму и передаем в нее данные
@@ -64,11 +59,9 @@ namespace LintelsOnTheFloor2
 
             checkedlevel = vpViewWpf.selectedLevel;
             selectedElenet = vpViewWpf.selectedElement;
-            selectedElenet2=vpViewWpf.selectedElement2;
+            selectedElenet2 = vpViewWpf.selectedElement2;
             doorCheck = vpViewWpf.doorCheck;
             windowCheck = vpViewWpf.windowCheck;
-
-
 
             using (var t = new Transaction(_doc))
             {
@@ -76,26 +69,39 @@ namespace LintelsOnTheFloor2
                 uiApp = commandData.Application;
                 uiDoc = uiApp.ActiveUIDocument;
 
+                //TaskDialog.Show("Выполнено", $"{selectedElenet.ToString()}");
+                //TaskDialog.Show("Выполнено", $"{selectedElenet2.ToString()}");
+
+
                 //семейство перемычки
                 FamilySymbol elementSymbol = GetSymbol(_doc, selectedElenet, selectedElenet2);
 
+                //TaskDialog.Show("Выполнено", $"{elementSymbol.Family}");
 
-                if (doorCheck) {
+
+                if (doorCheck)
+
+                {
 
                     // Получаем все двери в проекте
                     IList<Element> doors = GetAllDoors();
                     //проходимся по всем дверям
-                        foreach (Element doorElement in doors)
-                        {
-                            CreatingJumperDoor(doorElement, elementSymbol, checkedlevel);
-                        }
 
-                    _doc.Regenerate();
+                    foreach (Element doorElement in doors)
+                    {
+                        try { CreatingJumperDoor(doorElement, elementSymbol, checkedlevel); }
+                        catch { continue; }
+                        //TaskDialog.Show("Выполнено", $"тут");
+
+
+                    }
+
 
                     TaskDialog.Show("Выполнено", $"Перемычки расставлены на двери");
                 }
 
-                if (windowCheck){
+                if (windowCheck)
+                {
 
                     // Получаем все окна в проекте
                     IList<FamilyInstance> windows = GetAllWindows(_doc);
@@ -105,17 +111,25 @@ namespace LintelsOnTheFloor2
                     //проходимся по всем окнам
                     foreach (Element windowElement in windows)
                     {
-                        CreatingJumperWindow(windowElement, elementSymbol, checkedlevel);
+                        try
+                        {
+                            CreatingJumperWindow(windowElement, elementSymbol, checkedlevel);
+                        }
+                        catch
+                        {
+
+                            continue;
+                        }
+
                     }
 
-                    _doc.Regenerate();
 
                     TaskDialog.Show("Выполнено", $"Перемычки расставлены на окна");
 
 
                 }
 
-
+                _doc.Regenerate();
                 t.Commit();
 
             }
@@ -163,46 +177,46 @@ namespace LintelsOnTheFloor2
         {
             FamilyInstance door = element as FamilyInstance;
 
-           
             //уровень 
 
             Level testLevel = _doc.GetElement(door.LevelId) as Level;
 
             if (testLevel.Name == level.Name)
             {
-                double haightDoor = 0;
+                double haightDoor = 2;
                 //ВЫСОТА ДВЕРИ
                 try
                 {
                     haightDoor = door.LookupParameter("Высота").AsDouble();
                 }
 
-                catch 
-                
+                catch
+
                 {
-                   // Выбираем семейство для анализа(можно заменить на выбор пользователя)
-                   //находим высоту в типе
-                     FamilySymbol familyType = new FilteredElementCollector(_doc)
+                    //TaskDialog.Show("Выполнено", $"тут катче");
+                    // Выбираем семейство для анализа(можно заменить на выбор пользователя)
+                    //находим высоту в типе
+                    FamilySymbol familyType = new FilteredElementCollector(_doc)
                     .OfClass(typeof(FamilySymbol))
                     .FirstOrDefault(e => e.Name == door.Name.ToString()) as FamilySymbol;
 
-                    haightDoor = familyType.LookupParameter("Высота").AsDouble(); 
+                    haightDoor = familyType.LookupParameter("Высота").AsDouble();
+                    //TaskDialog.Show("Выполнено", $"haightDoor={haightDoor}");
 
-                    
                 }
-                
-                
 
-                if (haightDoor == null)
-                {
-                    haightDoor = 0;
-                }
+
+
+                //if (haightDoor == null)
+                //{
+                //    haightDoor = 3;
+                //}
 
                 Element wall = door.Host;
+
+
                 // Get door location and orientation
                 LocationPoint doorLoc = door.Location as LocationPoint;
-
-                
 
                 XYZ doorPosition = doorLoc.Point;
 
@@ -212,6 +226,11 @@ namespace LintelsOnTheFloor2
                     doorPosition.Y,
                     doorPosition.Z
                 );
+
+                //TaskDialog.Show("Выполнено", $"placementPoint{placementPoint}");                
+                //TaskDialog.Show("Выполнено", $"elementSymbol{elementSymbol}");
+                //TaskDialog.Show("Выполнено", $"wall{wall.Name}");
+                //TaskDialog.Show("Выполнено", $"level{level.Name}");
 
                 try
                 {
@@ -224,6 +243,9 @@ namespace LintelsOnTheFloor2
                         Autodesk.Revit.DB.Structure.StructuralType.NonStructural
                     );
 
+                    //TaskDialog.Show("Выполнено", $"Высота двери{haightDoor}");
+
+
                     light.LookupParameter("Отметка перемычки").Set(haightDoor);
 
                     light.LookupParameter("Комментарии").Set(wall.Name);
@@ -233,11 +255,13 @@ namespace LintelsOnTheFloor2
                 catch
                 {
 
+                    //TaskDialog.Show("Выполнено", "ошибка");
+
                 }
 
             }
 
-           
+
 
         }
 
@@ -293,7 +317,7 @@ namespace LintelsOnTheFloor2
                    .FirstOrDefault(e => e.Name == door.Name.ToString()) as FamilySymbol;
 
                     haightDoor = familyType.LookupParameter("Высота").AsDouble();
-                   
+
 
                 }
 

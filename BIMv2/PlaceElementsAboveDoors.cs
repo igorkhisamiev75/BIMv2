@@ -19,6 +19,8 @@ namespace BIMv2
         private Document _doc;
 
         public List<XYZ> pointsList = new List<XYZ>();
+        private double widthInMm;
+        private double width;
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -50,9 +52,24 @@ namespace BIMv2
 
                     //haightDoor = UnitUtils.Convert(haightDoor, DisplayUnitType.DUT_MILLIMETERS, DisplayUnitType.DUT_DECIMAL_FEET);
 
-                    if (haightDoor == null)
+                    // Получаем тип двери
+                    ElementType doorType = _doc.GetElement(door.GetTypeId()) as ElementType;
+
+                    // Получаем конкретный параметр типа
+                    Autodesk.Revit.DB.Parameter param = doorType.get_Parameter(BuiltInParameter.CASEWORK_HEIGHT); // Например, ширина двери
+
+                    if (param != null)
                     {
-                        haightDoor = 0;
+                        width = param.AsDouble(); // значение в внутренних единицах Revit
+
+                        //widthInMm = UnitUtils.ConvertFromInternalUnits(width, DisplayUnitType.DUT_MILLIMETERS);
+                    }
+
+                        if (haightDoor == null)
+                    {
+
+
+                        haightDoor = width;
                     }
 
                     Element wall=door.Host;
