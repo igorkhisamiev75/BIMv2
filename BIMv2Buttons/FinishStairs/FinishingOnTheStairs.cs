@@ -21,6 +21,7 @@ namespace FinishStairs
         private Document _doc;
         private ElementId _floorTypeId;
         private ElementId _wallTypeId;
+        private FloorType floorTypeGlob;
         private const double Precision = 0.0001;
         private Line line1;
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
@@ -77,6 +78,7 @@ namespace FinishStairs
             // Get finishing types
             _floorTypeId = GetFloorTypeId(floorType.Name);
             _wallTypeId = GetWallTypeId(wallType.Name);
+            floorTypeGlob = floorType;
 
             //создает пол на лестничных клетках
             CreateLandingFinishes((Stairs)stair);
@@ -155,7 +157,7 @@ namespace FinishStairs
 
 
 #if R2019 || R2020 || R2021 || R2022
-                    var nf = _doc.Create.NewFloor(temp, floorType, level, false);
+                    var nf = _doc.Create.NewFloor(temp, floorTypeGlob, level, false);
 #else
 
                     Floor nf = Floor.Create(_doc, new List<CurveLoop> { profile }, _floorTypeId, level.Id);
@@ -332,8 +334,12 @@ namespace FinishStairs
 
                         CurveLoop profile = CreateTreadProfile(line1, runDirection, wightStarProst, numberTheads);
 
+                        //тут нужно допилить для 21 ревита, елис нужно))рв
+                        CurveArray tempStair = new CurveArray();
+
+
 #if R2019 || R2020 || R2021 || R2022
-                            var nf = _doc.Create.NewFloor(tempStair, floorType, level, false);
+                        var nf = _doc.Create.NewFloor(tempStair, floorTypeGlob, level, false);
 #else
 
                         var nf = Floor.Create(_doc, new List<CurveLoop> { cll2 }, _floorTypeId, level.Id);

@@ -246,6 +246,7 @@
     <Compile Include="CreateNumberRoomForFloors.cs" />
     <Compile Include="CreateNumberRoomForWall.cs" />
     <Compile Include="archive\CreateOpeningsInWallForStructuralFraming.cs" />
+    <Compile Include="CreatePipeSectionView.cs" />
     <Compile Include="CreateRailingInRooms.cs" />
     <Compile Include="CreateRailingsInAllRooms.cs" />
     <Compile Include="CreateRoomExplodedViews.cs" />
