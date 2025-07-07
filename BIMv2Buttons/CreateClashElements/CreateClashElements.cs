@@ -40,11 +40,11 @@ namespace BIMv2
             Document doc = commandData.Application.ActiveUIDocument.Document;
             //List<int> ints = new List<int>();
 
-            List < pointAndNameClash > nameClashes= new List<pointAndNameClash>();
+            List<pointAndNameClash> nameClashes = new List<pointAndNameClash>();
 
             string strfilename; //имя файла
-            string fullPath="";
-           
+            string fullPath = "";
+
             FamilySymbol symbol = GetSymbol(_doc, "Для подписи пересечений", "Для подписи пересечений");
 
             // get a ViewFamilyType for a 3D View
@@ -67,7 +67,7 @@ namespace BIMv2
                 {
 
                     strfilename = fbd.FileName;
-                    
+
                     //получение пути
                     fullPath = strfilename;
 
@@ -96,33 +96,33 @@ namespace BIMv2
                             {
                                 Name = r.Attribute("name")?.Value,
                                 Guid = r.Attribute("guid")?.Value,
-                                X = double.Parse(r.Descendants("pos3f").FirstOrDefault()?.Attribute("x")?.Value, formatter) ,
-                                Y = double.Parse(r.Descendants("pos3f").FirstOrDefault()?.Attribute("y")?.Value, formatter) ,
-                                Z = double.Parse(r.Descendants("pos3f").FirstOrDefault()?.Attribute("z")?.Value, formatter) 
+                                X = double.Parse(r.Descendants("pos3f").FirstOrDefault()?.Attribute("x")?.Value, formatter),
+                                Y = double.Parse(r.Descendants("pos3f").FirstOrDefault()?.Attribute("y")?.Value, formatter),
+                                Z = double.Parse(r.Descendants("pos3f").FirstOrDefault()?.Attribute("z")?.Value, formatter)
                             })
                             .ToList()
                     })
                     .ToList();
 
 
-                TaskDialog.Show("Колличество коллизий = ", $"{clashTests[0].Results.Count }");
+                TaskDialog.Show("Колличество коллизий = ", $"{clashTests[0].Results.Count}");
 
-                foreach ( var clash in clashTests[0].Results)
+                foreach (var clash in clashTests[0].Results)
                 {
                     //clash.X = UnitUtils.ConvertFromInternalUnits(clash.X,
-                        double feetX = UnitUtils.Convert(clash.X, UnitTypeId.Meters, UnitTypeId.Feet);
-                        double feetY = UnitUtils.Convert(clash.Y, UnitTypeId.Meters, UnitTypeId.Feet);
-                        double feetZ = UnitUtils.Convert(clash.Z, UnitTypeId.Meters, UnitTypeId.Feet);
+                    double feetX = UnitUtils.Convert(clash.X, UnitTypeId.Meters, UnitTypeId.Feet);
+                    double feetY = UnitUtils.Convert(clash.Y, UnitTypeId.Meters, UnitTypeId.Feet);
+                    double feetZ = UnitUtils.Convert(clash.Z, UnitTypeId.Meters, UnitTypeId.Feet);
 
 
                     XYZ pointRoom = new XYZ(feetX, feetY, feetZ);
-                   string name = clash.Name;
+                    string name = clash.Name;
 
                     FamilyInstance familyInstance = _doc.Create.NewFamilyInstance(
-                       pointRoom,  symbol, StructuralType.NonStructural);
+                       pointRoom, symbol, StructuralType.NonStructural);
 
                     familyInstance.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(name);
-                                       
+
                 }
 
 
@@ -152,8 +152,8 @@ namespace BIMv2
         public double xPoint { get; set; }
         public double yPoint { get; set; }
         public double zPoint { get; set; }
-               
-        
+
+
     }
 
 

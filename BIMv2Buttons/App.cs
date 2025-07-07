@@ -73,7 +73,7 @@ namespace BIMv2Buttons
             string panelNameRooms = "Rooms";
             string panelNameAR = "AR-Архитектура";
             string panelNameAI = "AI-Дизайн";
-            string panelNameElectric = "ES-Электрика";
+            string panelNameElectric = "MEP-Надстройки";
             string panelNameAnnotation = "AN-Аннотации";            
             string panelNameBim = "BIM";
             string panelNameInfo = "Info";
@@ -452,6 +452,7 @@ namespace BIMv2Buttons
             string buttonES1 = "Посчитать светильники";
             string buttonES2 = "Записать освещенности";
             string buttonES3 = "Расставить светильники";
+            string buttonES4 = "Разрез по трубе";
 
             // #1 
             PushButtonData pushButtonDataES1 = new PushButtonData
@@ -469,7 +470,12 @@ namespace BIMv2Buttons
             PushButtonData pushButtonDataES3 = new PushButtonData
                ("cmdCreateLightingInRoom.cs", buttonES3, thisAssemblyPath, "BIMv2.CreateLightingInRoom");
             pushButtonDataES3.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-cl-32.png"));
-            //pushButtonDataES3.ToolTip = "Размещает светильники в помещениях";
+
+            // #4 
+            PushButtonData pushButtonDataES4 = new PushButtonData
+               ("cmdCreatePipeSectionView", buttonES4, thisAssemblyPath, "BIMv2.CreatePipeSectionView");
+            pushButtonDataES4.LargeImage = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-double-arrows32.png"));
+            
 
             // Make a split button now 
             SplitButtonData splitBtnDataES = new SplitButtonData("SplitButtonES", "Split ButtonES");
@@ -478,6 +484,7 @@ namespace BIMv2Buttons
             splitBtnES.AddPushButton(pushButtonDataES1);
             splitBtnES.AddPushButton(pushButtonDataES2);
             splitBtnES.AddPushButton(pushButtonDataES3);
+            splitBtnES.AddPushButton(pushButtonDataES4);
 
 
 

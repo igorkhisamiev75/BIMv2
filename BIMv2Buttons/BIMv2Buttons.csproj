@@ -238,6 +238,7 @@
     <Compile Include="CreateNewTypeAnnotation\CreateNewTypeAnnotation.cs" />
     <Compile Include="CreateNotPlacedRooms\CreateNotPlacedRooms.cs" />
     <Compile Include="CreateNumberRoomForFloors\CreateNumberRoomForFloors.cs" />
+    <Compile Include="CreatePipeSectionView\CreatePipeSectionView.cs" />
     <Compile Include="CreateRailingInRooms\CreateRailingInRooms.cs" />
     <Compile Include="CreateRoomUnfolds\CreateRoomUnfolds.cs" />
     <Compile Include="CreateViewByLinkedFiles\CreateViewByLinkedFiles.cs" />
