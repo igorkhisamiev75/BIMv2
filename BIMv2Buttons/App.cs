@@ -452,7 +452,7 @@ namespace BIMv2Buttons
             string buttonES1 = "Посчитать светильники";
             string buttonES2 = "Записать освещенности";
             string buttonES3 = "Расставить светильники";
-            string buttonES4 = "Разрез по трубе";
+            string buttonES4 = "Разрез линейного элемента";
 
             // #1 
             PushButtonData pushButtonDataES1 = new PushButtonData

@@ -4,6 +4,8 @@ using Autodesk.Revit.DB.Plumbing;
 using Autodesk.Revit.UI;
 using Autodesk.Revit.UI.Selection;
 using Autodesk.Revit.Attributes;
+using Autodesk.Revit.DB.Mechanical;
+using Autodesk.Revit.DB.Electrical;
 
 namespace BIMv2
 {
@@ -18,31 +20,52 @@ namespace BIMv2
 
             try
             {
-                // Выбор трубы
-                Reference pipeRef = uiDoc.Selection.PickObject(ObjectType.Element,
-                    new PipeSelectionFilter(), "Выберите трубу");
-                Pipe pipe = doc.GetElement(pipeRef) as Pipe;
+                // Выбор элемента (трубы, лотка или воздуховода)
+                Reference elementRef = uiDoc.Selection.PickObject(ObjectType.Element,
+                    new DuctPipeTraySelectionFilter(), "Выберите трубу, лоток или воздуховод");
 
-                if (pipe == null)
+                Element element = doc.GetElement(elementRef);
+                Curve elementCurve = null;
+                XYZ elementDirection = null;
+                double elementWidth = 0;
+
+                // Определяем тип элемента и получаем его геометрию
+                if (element is Pipe pipe)
                 {
-                    message = "Выбранный элемент не является трубой.";
+                    LocationCurve lc = pipe.Location as LocationCurve;
+                    elementCurve = lc?.Curve;
+                    elementWidth = pipe.Diameter;
+                }
+                else if (element is CableTray cableTray)
+                {
+                    LocationCurve lc = cableTray.Location as LocationCurve;
+                    elementCurve = lc?.Curve;
+                    elementWidth = cableTray.Width;
+                }
+                else if (element is Duct duct)
+                {
+                    LocationCurve lc = duct.Location as LocationCurve;
+                    elementCurve = lc?.Curve;
+                    elementWidth = duct.Width;
+                }
+
+                if (elementCurve == null)
+                {
+                    message = "Выбранный элемент не имеет линейной геометрии.";
                     return Result.Failed;
                 }
 
-                using (Transaction trans = new Transaction(doc, "Create Pipe Section"))
+                elementDirection = (elementCurve.GetEndPoint(1) - elementCurve.GetEndPoint(0)).Normalize();
+                XYZ midpoint = elementCurve.Evaluate(0.5, true);
+
+                using (Transaction trans = new Transaction(doc, "Create Section View"))
                 {
                     trans.Start();
 
-                    // Получаем параметры трубы
-                    LocationCurve lc = pipe.Location as LocationCurve;
-                    Curve curve = lc.Curve;
-                    XYZ pipeDirection = (curve.GetEndPoint(1) - curve.GetEndPoint(0)).Normalize();
-                    XYZ midpoint = curve.Evaluate(0.5, true);
-
                     // Определяем размеры области разреза
-                    double diameter = pipe.Diameter;
-                    double length = curve.Length;
-                    double offset = diameter * 3; // Отступ вокруг трубы
+                    double length = elementCurve.Length;
+                    double offset = elementWidth * 1;
+
 
                     // Создаем ограничивающий ящик
                     BoundingBoxXYZ sectionBox = new BoundingBoxXYZ();
@@ -53,7 +76,7 @@ namespace BIMv2
                     XYZ viewDirection, upDirection, rightDirection;
 
                     // Для вертикальных труб
-                    if (Math.Abs(pipeDirection.Z) > 0.9)
+                    if (Math.Abs(elementDirection.Z) > 0.9)
                     {
                         viewDirection = XYZ.BasisY;
                         upDirection = XYZ.BasisZ;
@@ -62,7 +85,7 @@ namespace BIMv2
                     // Для горизонтальных труб
                     else
                     {
-                        viewDirection = pipeDirection.CrossProduct(XYZ.BasisZ).Normalize();
+                        viewDirection = elementDirection.CrossProduct(XYZ.BasisZ).Normalize();
                         if (viewDirection.IsZeroLength())
                             viewDirection = XYZ.BasisX;
 
@@ -90,7 +113,7 @@ namespace BIMv2
                         return Result.Failed;
                     }
 
-                    sectionView.Name = $"Разрез трубы {pipe.Id}";
+                    sectionView.Name = $"Разрез- {element.Category.Name} {element.Id}";
                     trans.Commit();
 
                     // Активируем созданный вид
@@ -112,9 +135,15 @@ namespace BIMv2
         }
     }
 
-    public class PipeSelectionFilter : ISelectionFilter
+
+    public class DuctPipeTraySelectionFilter : ISelectionFilter
     {
-        public bool AllowElement(Element elem) => elem is Pipe;
+        public bool AllowElement(Element elem)
+        {
+            // Разрешаем выбор труб, кабельных лотков и воздуховодов
+            return elem is Pipe || elem is CableTray || elem is Duct;
+        }
+
         public bool AllowReference(Reference reference, XYZ position) => false;
     }
 }
