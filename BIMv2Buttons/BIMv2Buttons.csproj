@@ -308,6 +308,7 @@
     <Compile Include="WriteTypeRooms\WriteTypeRooms.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="BIMv2Buttons.addin" />
     <None Include="packages.config" />
   </ItemGroup>
