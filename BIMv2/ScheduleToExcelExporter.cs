@@ -1,53 +1,66 @@
 ﻿using System;
 using System.IO;
 using System.Drawing;
-using System.Linq;
+using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using ClosedXML.Excel;
-using Autodesk.Revit.Attributes;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace RevitScheduleImageExport
+namespace BIMv2
 {
     [Transaction(TransactionMode.Manual)]
-    public class ExportScheduleCommand : IExternalCommand
+    public class ExportScheduleToExcel : IExternalCommand
     {
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            UIApplication uiApp = commandData.Application;
-            Document doc = uiApp.ActiveUIDocument.Document;
-
+            
             try
             {
+                var uiApp = commandData.Application;
+                var doc = uiApp.ActiveUIDocument.Document;
+
                 if (!(doc.ActiveView is ViewSchedule schedule))
                 {
-                    TaskDialog.Show("Ошибка", "Пожалуйста, откройте спецификацию для экспорта");
+                    message = "Активное представление не является спецификацией";
                     return Result.Failed;
                 }
 
-                string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-                string excelPath = Path.Combine(desktopPath, $"{schedule.Name}_Export.xlsx");
+                string filePath = GetUniqueFilePath(schedule.Name);
+                ExportScheduleData(schedule, filePath, doc);
 
-                ExportScheduleData(schedule, excelPath);
-
-                TaskDialog.Show("Экспорт завершен", $"Файл сохранен:\n{excelPath}");
+                TaskDialog.Show("Успех", $"Спецификация экспортирована в:\n{filePath}");
                 return Result.Succeeded;
             }
             catch (Exception ex)
             {
-                message = ex.ToString();
-                TaskDialog.Show("Критическая ошибка", message);
+                message = $"Ошибка: {ex.Message}";
+                TaskDialog.Show("Ошибка экспорта", message);
                 return Result.Failed;
             }
         }
 
-        private void ExportScheduleData(ViewSchedule schedule, string excelPath)
+        private string GetUniqueFilePath(string baseName)
         {
-            Document doc = schedule.Document;
+            string desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            string fileName = $"{baseName}.xlsx";
+            string filePath = Path.Combine(desktop, fileName);
 
+            for (int i = 1; File.Exists(filePath); i++)
+            {
+                fileName = $"{baseName}_{i}.xlsx";
+                filePath = Path.Combine(desktop, fileName);
+            }
+
+            return filePath;
+        }
+
+        private void ExportScheduleData(ViewSchedule schedule, string filePath, Document document)
+        {
             using (var workbook = new XLWorkbook())
             {
-                var worksheet = workbook.Worksheets.Add("Данные");
+                var worksheet = workbook.Worksheets.Add("Спецификация");
 
                 TableData tableData = schedule.GetTableData();
                 TableSectionData body = tableData.GetSectionData(SectionType.Body);
@@ -64,12 +77,36 @@ namespace RevitScheduleImageExport
                 {
                     for (int col = 0; col < body.NumberOfColumns; col++)
                     {
-                        string cellValue = schedule.GetCellText(SectionType.Body, row, col);
+                        var cellValue = schedule.GetCellText(SectionType.Body, row, col);
                         var excelCell = worksheet.Cell(row + 1, col + 1);
 
-                        if (IsImageFileReference(cellValue))
+                        if (IsImageReference(cellValue))
                         {
-                            ProcessImageReference(doc, worksheet, cellValue, row + 1, col + 1);
+                            try
+                            {
+                                using (Image image = GetImage(cellValue))
+                                {
+                                    if (image != null)
+                                    {
+                                        AddImageToWorksheet(worksheet, image, row + 1, col + 1);
+                                    }
+                                    else
+                                    {
+                                        var typ=GetImageTypeByName(document, cellValue);
+                                        var path=typ.Path;
+
+                                        string imagePath = path;
+                                        // Загрузка изображения из файла
+                                        Image image2 = Image.FromFile(imagePath);
+                                        AddImageToWorksheet(worksheet, image2, row + 1, col + 1);
+                                        //excelCell.Value = $"[Изображение не найдено: {cellValue}]";
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                excelCell.Value = $"[Ошибка: {ex.Message}]";
+                            }
                         }
                         else
                         {
@@ -78,103 +115,99 @@ namespace RevitScheduleImageExport
                     }
                 }
 
-                worksheet.Columns().AdjustToContents();
-                SaveExcelWithRetry(workbook, excelPath);
+                // Автоподбор ширины столбцов
+                //worksheet.Columns().AdjustToContents();
+
+                // Сохранение с обработкой ошибок
+                SaveWorkbook(workbook, filePath);
             }
         }
 
-        private bool IsImageFileReference(string text)
+        private bool IsImageReference(string cellValue)
         {
-            if (string.IsNullOrWhiteSpace(text)) return false;
-            string ext = Path.GetExtension(text).ToLower();
-            return ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".bmp";
+            return !string.IsNullOrEmpty(cellValue) &&
+                   (cellValue.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                    cellValue.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
+                    cellValue.EndsWith(".bmp", StringComparison.OrdinalIgnoreCase));
         }
 
-        private void ProcessImageReference(Document doc, IXLWorksheet worksheet, string imageName, int row, int col)
+        private Image GetImage(string imagePath)
         {
-            // Поиск ImageType в проекте
-            ImageType imageType = new FilteredElementCollector(doc)
-                .OfClass(typeof(ImageType))
-                .Cast<ImageType>()
-                .FirstOrDefault(img => img.Name.Equals(imageName, StringComparison.OrdinalIgnoreCase));
-
-            if (imageType != null)
+            try
             {
-                string imagePath = ImageType.GetCachedImagePath(imageType.GetImage());
-
                 if (File.Exists(imagePath))
-                {
-                    try
-                    {
-                        using (Image img = Image.FromFile(imagePath))
-                        {
-                            AddImageToExcel(worksheet, img, row, col);
-                            return;
-                        }
-                    }
-                    catch
-                    {
-                        worksheet.Cell(row, col).Value = $"[Ошибка загрузки: {imageName}]";
-                        return;
-                    }
-                }
+                    return Image.FromFile(imagePath);
             }
-
-            // Поиск в папке проекта
-            string projectFolder = Path.GetDirectoryName(doc.PathName);
-            if (!string.IsNullOrEmpty(projectFolder))
+            catch (UnauthorizedAccessException)
             {
-                string possiblePath = Path.Combine(projectFolder, imageName);
-                if (File.Exists(possiblePath))
-                {
-                    try
-                    {
-                        using (Image img = Image.FromFile(possiblePath))
-                        {
-                            AddImageToExcel(worksheet, img, row, col);
-                            return;
-                        }
-                    }
-                    catch
-                    {
-                        // Продолжаем выполнение
-                    }
-                }
+                TaskDialog.Show("Ошибка", $"Нет доступа к файлу: {imagePath}");
             }
-
-            // Изображение не найдено
-            worksheet.Cell(row, col).Value = $"[Изображение отсутствует: {imageName}]";
+            catch (Exception ex)
+            {
+                TaskDialog.Show("Ошибка", $"Ошибка загрузки изображения: {ex.Message}");
+            }
+            return null;
         }
 
-        private void AddImageToExcel(IXLWorksheet worksheet, Image image, int row, int col)
+        private void AddImageToWorksheet(IXLWorksheet worksheet, Image image, int row, int col)
         {
-            using (var ms = new MemoryStream())
+            string tempImagePath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.png");
+
+            try
             {
-                image.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-                var picture = worksheet.AddPicture(ms)
+                image.Save(tempImagePath, System.Drawing.Imaging.ImageFormat.Png);
+
+                var picture = worksheet.AddPicture(tempImagePath)
                     .MoveTo(worksheet.Cell(row, col))
                     .WithSize(100, (int)(100 * ((double)image.Height / image.Width)));
 
                 worksheet.Row(row).Height = picture.Height + 2;
             }
+            finally
+            {
+                if (File.Exists(tempImagePath))
+                {
+                    try { File.Delete(tempImagePath); } catch { }
+                }
+            }
         }
 
-        private void SaveExcelWithRetry(XLWorkbook workbook, string path, int maxAttempts = 3)
+        private void SaveWorkbook(XLWorkbook workbook, string filePath, int maxAttempts = 3)
         {
-            for (int i = 1; i <= maxAttempts; i++)
+            for (int attempt = 1; attempt <= maxAttempts; attempt++)
             {
                 try
                 {
-                    if (File.Exists(path)) File.Delete(path);
-                    workbook.SaveAs(path);
+                    if (File.Exists(filePath))
+                        File.Delete(filePath);
+
+                    workbook.SaveAs(filePath);
                     return;
                 }
-                catch (IOException) when (i < maxAttempts)
+                catch (IOException) when (attempt < maxAttempts)
                 {
                     System.Threading.Thread.Sleep(500);
                 }
             }
-            throw new Exception($"Не удалось сохранить файл после {maxAttempts} попыток");
+        }
+        // <summary>
+        /// Получает все ImageType в проекте
+        /// </summary>
+        public static List<ImageType> GetAllImageTypes(Document doc)
+        {
+            FilteredElementCollector collector = new FilteredElementCollector(doc);
+            return collector.OfClass(typeof(ImageType))
+                           .Cast<ImageType>()
+                           .ToList();
+        }
+
+        /// <summary>
+        /// Получает ImageType по имени файла
+        /// </summary>
+        public static ImageType GetImageTypeByName(Document doc, string imageName)
+        {
+            return GetAllImageTypes(doc)
+                .FirstOrDefault(img => img.Name.Equals(imageName, StringComparison.OrdinalIgnoreCase));
         }
     }
 }
