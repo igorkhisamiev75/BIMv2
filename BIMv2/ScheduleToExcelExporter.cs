@@ -8,8 +8,9 @@ using ClosedXML.Excel;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
+using Autodesk.Revit.Creation;
+using Document = Autodesk.Revit.DB.Document;
 
-//test
 namespace BIMv2
 {
     [Transaction(TransactionMode.Manual)]
@@ -78,7 +79,7 @@ namespace BIMv2
                         {
                             try
                             {
-                                using (Image image = GetImage(cellValue))
+                                using (Image image = GetImage(cellValue, document))
                                 {
                                     if (image != null)
                                     {
@@ -126,12 +127,17 @@ namespace BIMv2
                     cellValue.EndsWith(".bmp", StringComparison.OrdinalIgnoreCase));
         }
 
-        private Image GetImage(string imagePath)
+        private Image GetImage(string imagePath, Document doc)
         {
             try
             {
-                if (File.Exists(imagePath))
-                    return Image.FromFile(imagePath);
+                //попробуем вытащить JPEG
+                ImageType typ = GetImageTypeByName(doc, imagePath);
+
+                Bitmap g = typ.GetImage();
+                return g;
+                //if (File.Exists(imagePath))
+                //    return Image.FromFile(imagePath);
             }
             catch (UnauthorizedAccessException)
             {
