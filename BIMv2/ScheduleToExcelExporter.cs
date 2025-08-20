@@ -7,6 +7,7 @@ using Autodesk.Revit.UI;
 using ClosedXML.Excel;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Forms;
 
 namespace BIMv2
 {
@@ -15,7 +16,7 @@ namespace BIMv2
     {
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            
+
             try
             {
                 var uiApp = commandData.Application;
@@ -27,7 +28,14 @@ namespace BIMv2
                     return Result.Failed;
                 }
 
-                string filePath = GetUniqueFilePath(schedule.Name);
+                // Выбор места сохранения файла
+                string filePath = GetSaveFilePath(schedule.Name);
+                if (string.IsNullOrEmpty(filePath))
+                {
+                    return Result.Cancelled; // Пользователь отменил выбор
+                }
+
+                //string filePath = GetUniqueFilePath(schedule.Name);
                 ExportScheduleData(schedule, filePath, doc);
 
                 TaskDialog.Show("Успех", $"Спецификация экспортирована в:\n{filePath}");
@@ -39,21 +47,6 @@ namespace BIMv2
                 TaskDialog.Show("Ошибка экспорта", message);
                 return Result.Failed;
             }
-        }
-
-        private string GetUniqueFilePath(string baseName)
-        {
-            string desktop = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            string fileName = $"{baseName}.xlsx";
-            string filePath = Path.Combine(desktop, fileName);
-
-            for (int i = 1; File.Exists(filePath); i++)
-            {
-                fileName = $"{baseName}_{i}.xlsx";
-                filePath = Path.Combine(desktop, fileName);
-            }
-
-            return filePath;
         }
 
         private void ExportScheduleData(ViewSchedule schedule, string filePath, Document document)
@@ -92,8 +85,8 @@ namespace BIMv2
                                     }
                                     else
                                     {
-                                        var typ=GetImageTypeByName(document, cellValue);
-                                        var path=typ.Path;
+                                        var typ = GetImageTypeByName(document, cellValue);
+                                        var path = typ.Path;
 
                                         string imagePath = path;
                                         // Загрузка изображения из файла
@@ -159,7 +152,7 @@ namespace BIMv2
 
                 var picture = worksheet.AddPicture(tempImagePath)
                     .MoveTo(worksheet.Cell(row, col))
-                    .WithSize(100, (int)(100 * ((double)image.Height / image.Width)));
+                    .WithSize(200, (int)(200 * ((double)image.Height / image.Width)));
 
                 worksheet.Row(row).Height = picture.Height + 2;
             }
@@ -190,7 +183,8 @@ namespace BIMv2
                 }
             }
         }
-        // <summary>
+
+        /// <summary>
         /// Получает все ImageType в проекте
         /// </summary>
         public static List<ImageType> GetAllImageTypes(Document doc)
@@ -209,5 +203,33 @@ namespace BIMv2
             return GetAllImageTypes(doc)
                 .FirstOrDefault(img => img.Name.Equals(imageName, StringComparison.OrdinalIgnoreCase));
         }
+
+        private string GetSaveFilePath(string baseName)
+        {
+            using (SaveFileDialog saveFileDialog = new SaveFileDialog())
+            {
+                saveFileDialog.Title = "Выберите место для сохранения спецификации";
+                saveFileDialog.FileName = $"{baseName}.xlsx";
+                saveFileDialog.Filter = "Excel Files (*.xlsx)|*.xlsx|All Files (*.*)|*.*";
+                saveFileDialog.DefaultExt = "xlsx";
+                saveFileDialog.AddExtension = true;
+
+                // Начальная директория - рабочий стол
+                saveFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+
+                // Проверка на уникальность имени файла
+                saveFileDialog.OverwritePrompt = true;
+
+                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    return saveFileDialog.FileName;
+                }
+            }
+
+            return null; // Пользователь отменил
+        }
+
+
+
     }
 }

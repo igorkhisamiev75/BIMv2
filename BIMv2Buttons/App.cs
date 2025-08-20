@@ -167,10 +167,11 @@ namespace BIMv2Buttons
 
             // Set Image
             BitmapImage SImageAR1 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-bd-16.png", UriKind.RelativeOrAbsolute));
+            BitmapImage SImageAR2 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-microsoft-excel-16.png", UriKind.RelativeOrAbsolute));
 
 
             string buttonNameAR1 = "Перемычкер";
-            string buttonNameAR2 = "Перемычкер2";
+            string buttonNameAR2 = "ВыгрузкаВExcel";
             string buttonNameAR3 = "Перемычкер3";
 
 
@@ -189,12 +190,12 @@ namespace BIMv2Buttons
                 },
                 new PushButtonData(
                     buttonNameAR2,
-                    "Перемычки2",
+                    "Выгрузка в Excel",
                    thisAssemblyPath,
-                    "LintelsOnTheFloor2.LintelsOnTheFloor2")
+                    "BIMv2.ExportScheduleToExcel")
                 {
-                    Image = SImageAR1, // 16x16 icon
-                    ToolTip = "Создать перемчки и кайфовать"
+                    Image = SImageAR2, // 16x16 icon
+                    ToolTip = "Открыть спецификацию с картинками для выгрузки"
                 },
                 new PushButtonData(
                     buttonNameAR3,
