@@ -121,6 +121,7 @@ namespace BIMv2
         {
             return !string.IsNullOrEmpty(cellValue) &&
                    (cellValue.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                   cellValue.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase) ||
                     cellValue.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
                     cellValue.EndsWith(".bmp", StringComparison.OrdinalIgnoreCase));
         }
