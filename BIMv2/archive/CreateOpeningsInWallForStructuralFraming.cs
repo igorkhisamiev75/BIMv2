@@ -377,6 +377,9 @@ namespace BIMv2
 
     public class Point
     {
+        private int v1;
+        private int v2;
+
         public double X { get; set; }
         public double Y { get; set; }
         public double Z { get; set; }
@@ -386,6 +389,17 @@ namespace BIMv2
             X = x;
             Y = y;
             Z = z;
+        }
+
+        public Point(int v1, int v2)
+        {
+            this.v1 = v1;
+            this.v2 = v2;
+        }
+
+        public static implicit operator System.Drawing.Point(Point v)
+        {
+            throw new NotImplementedException();
         }
     }
 }

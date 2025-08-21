@@ -13,47 +13,258 @@ using Document = Autodesk.Revit.DB.Document;
 
 namespace BIMv2
 {
+    // Форма настроек размера изображений
+    public partial class ImageSettingsForm : System.Windows.Forms.Form
+    {
+        public NumericUpDown WidthNumeric { get; private set; }
+        public NumericUpDown HeightNumeric { get; private set; }
+        public CheckBox KeepAspectRatioCheckBox { get; private set; }
+        public Button OkButton { get; private set; }
+        public Button CancelButton { get; private set; }
+
+        public int ImageWidth => (int)WidthNumeric.Value;
+        public int ImageHeight => (int)HeightNumeric.Value;
+        public bool KeepAspectRatio => KeepAspectRatioCheckBox.Checked;
+
+        public ImageSettingsForm(int defaultWidth = 200, int defaultHeight = 200)
+        {
+            InitializeComponent();
+            WidthNumeric.Value = defaultWidth;
+            HeightNumeric.Value = defaultHeight;
+        }
+
+        private void InitializeComponent()
+        {
+            this.WidthNumeric = new NumericUpDown();
+            this.HeightNumeric = new NumericUpDown();
+            this.KeepAspectRatioCheckBox = new CheckBox();
+            this.OkButton = new Button();
+            this.CancelButton = new Button();
+            var label1 = new Label();
+            var label2 = new Label();
+
+            // WidthNumeric
+            this.WidthNumeric.Location = new System.Drawing.Point(120, 20);
+            this.WidthNumeric.Minimum = 50;
+            this.WidthNumeric.Maximum = 1000;
+            this.WidthNumeric.Value = 200;
+
+            // HeightNumeric
+            this.HeightNumeric.Location = new System.Drawing.Point(120, 50);
+            this.HeightNumeric.Minimum = 50;
+            this.HeightNumeric.Maximum = 1000;
+            this.HeightNumeric.Value = 200;
+
+            // KeepAspectRatioCheckBox
+            this.KeepAspectRatioCheckBox.Location = new System.Drawing.Point(20, 80);
+            this.KeepAspectRatioCheckBox.Size = new System.Drawing.Size(200, 20);
+            this.KeepAspectRatioCheckBox.Text = "Сохранять пропорции";
+            this.KeepAspectRatioCheckBox.Checked = true;
+
+            // OkButton
+            this.OkButton.Location = new System.Drawing.Point(70, 110);
+            this.OkButton.Size = new System.Drawing.Size(75, 23);
+            this.OkButton.Text = "OK";
+            this.OkButton.DialogResult = DialogResult.OK;
+
+            // CancelButton
+            this.CancelButton.Location = new System.Drawing.Point(155, 110);
+            this.CancelButton.Size = new System.Drawing.Size(75, 23);
+            this.CancelButton.Text = "Отмена";
+            this.CancelButton.DialogResult = DialogResult.Cancel;
+
+            // label1
+            label1.Location = new System.Drawing.Point(20, 22);
+            label1.Size = new System.Drawing.Size(100, 20);
+            label1.Text = "Ширина";
+
+            // label2
+            label2.Location = new System.Drawing.Point(20, 52);
+            label2.Size = new System.Drawing.Size(100, 20);
+            label2.Text = "Высота";
+
+            // ImageSettingsForm
+            this.ClientSize = new System.Drawing.Size(250, 150);
+            this.Controls.AddRange(new System.Windows.Forms.Control[] {
+                label1, label2, this.WidthNumeric, this.HeightNumeric,
+                this.KeepAspectRatioCheckBox, this.OkButton, this.CancelButton
+            });
+            this.FormBorderStyle = FormBorderStyle.FixedDialog;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
+            this.StartPosition = FormStartPosition.CenterScreen;
+            this.Text = "Настройки изображений";
+        }
+    }
+
+    // Форма для отображения прогресса
+    public partial class ProgressForm : System.Windows.Forms.Form
+    {
+        public ProgressBar ProgressBar { get; private set; }
+        public Label StatusLabel { get; private set; }
+        public Button CancelButton { get; private set; }
+
+        public bool IsCancelled { get; private set; }
+
+        public ProgressForm(string title, int maxValue)
+        {
+            InitializeComponent();
+            this.Text = title;
+            ProgressBar.Maximum = maxValue;
+            ProgressBar.Value = 0;
+            IsCancelled = false;
+        }
+
+        private void InitializeComponent()
+        {
+            this.ProgressBar = new ProgressBar();
+            this.StatusLabel = new Label();
+            this.CancelButton = new Button();
+            this.SuspendLayout();
+
+            // ProgressBar
+            this.ProgressBar.Location = new System.Drawing.Point(12, 30);
+            this.ProgressBar.Size = new System.Drawing.Size(360, 23);
+            this.ProgressBar.Style = ProgressBarStyle.Continuous;
+
+            // StatusLabel
+            this.StatusLabel.Location = new System.Drawing.Point(12, 10);
+            this.StatusLabel.Size = new System.Drawing.Size(360, 20);
+            this.StatusLabel.Text = "Подготовка...";
+            this.StatusLabel.TextAlign = ContentAlignment.MiddleLeft;
+
+            // CancelButton
+            this.CancelButton.Location = new System.Drawing.Point(297, 60);
+            this.CancelButton.Size = new System.Drawing.Size(75, 23);
+            this.CancelButton.Text = "Отмена";
+            this.CancelButton.Click += (s, e) =>
+            {
+                IsCancelled = true;
+                this.Close();
+            };
+
+            // ProgressForm
+            this.ClientSize = new System.Drawing.Size(384, 95);
+            this.Controls.Add(this.ProgressBar);
+            this.Controls.Add(this.StatusLabel);
+            this.Controls.Add(this.CancelButton);
+            this.FormBorderStyle = FormBorderStyle.FixedDialog;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
+            this.StartPosition = FormStartPosition.CenterScreen;
+            this.ResumeLayout(false);
+        }
+
+        public void UpdateProgress(int value, string status)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action<int, string>(UpdateProgress), value, status);
+                return;
+            }
+
+            ProgressBar.Value = Math.Min(value, ProgressBar.Maximum);
+            StatusLabel.Text = status;
+            //System.Windows.Application.DoEvents();
+        }
+
+        public void Complete()
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action(Complete));
+                return;
+            }
+            this.Close();
+        }
+    }
+
     [Transaction(TransactionMode.Manual)]
     public class ExportScheduleToExcel : IExternalCommand
     {
+        private ProgressForm progressForm;
+        private bool cancellationRequested = false;
+        private ImageSettings imageSettings = new ImageSettings();
+
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-
             try
             {
                 var uiApp = commandData.Application;
                 var doc = uiApp.ActiveUIDocument.Document;
 
-                // Собираем все семейства в проекте
-                var allFamilies5 = CollectAllFamilies(doc);
-
-                // Собираем все ImageType в проекте
-                var allImageTypes5 = CollectAllImageTypes(doc);
-
-                // Собираем информацию о семействах и связанных изображениях
-                var familyImageInfo = CollectFamilyImageInfo(doc, allFamilies5, allImageTypes5);
-
-                if (!(doc.ActiveView is ViewSchedule schedule))
+                // Запрашиваем настройки изображений
+                using (var settingsForm = new ImageSettingsForm())
                 {
-                    message = "Активное представление не является спецификацией";
-                    return Result.Failed;
+                    if (settingsForm.ShowDialog() != DialogResult.OK)
+                    {
+                        return Result.Cancelled;
+                    }
+
+                    imageSettings.Width = settingsForm.ImageWidth;
+                    imageSettings.Height = settingsForm.ImageHeight;
+                    imageSettings.KeepAspectRatio = settingsForm.KeepAspectRatio;
                 }
 
-                // Выбор места сохранения файла
-                string filePath = GetSaveFilePath(schedule.Name);
-                if (string.IsNullOrEmpty(filePath))
+                // Создаем форму прогресса
+                using (progressForm = new ProgressForm("Экспорт спецификации в Excel", 100))
                 {
-                    return Result.Cancelled; // Пользователь отменил выбор
+                    progressForm.Show();
+
+                    // Собираем все семейства в проекте
+                    progressForm.UpdateProgress(10, "Сбор информации о семействах...");
+                    var allFamilies5 = CollectAllFamilies(doc);
+
+                    // Собираем все ImageType в проекте
+                    progressForm.UpdateProgress(20, "Сбор информации об изображениях...");
+                    var allImageTypes5 = CollectAllImageTypes(doc);
+
+                    // Собираем информацию о семействах и связанных изображениях
+                    progressForm.UpdateProgress(30, "Анализ связей...");
+                    var familyImageInfo = CollectFamilyImageInfo(doc, allFamilies5, allImageTypes5);
+
+                    if (!(doc.ActiveView is ViewSchedule schedule))
+                    {
+                        message = "Активное представление не является спецификацией";
+                        return Result.Failed;
+                    }
+
+                    // Проверяем отмену
+                    if (progressForm.IsCancelled)
+                    {
+                        message = "Операция отменена пользователем";
+                        return Result.Cancelled;
+                    }
+
+                    // Выбор места сохранения файла
+                    progressForm.UpdateProgress(40, "Выбор места сохранения...");
+                    string filePath = GetSaveFilePath(schedule.Name);
+                    if (string.IsNullOrEmpty(filePath))
+                    {
+                        return Result.Cancelled;
+                    }
+
+                    // Экспорт данных с прогрессом
+                    progressForm.UpdateProgress(50, "Экспорт данных...");
+                    ExportScheduleData(schedule, filePath, doc);
+
+                    // Проверяем отмену
+                    if (cancellationRequested)
+                    {
+                        message = "Операция отменена пользователем";
+                        return Result.Cancelled;
+                    }
+
+                    progressForm.UpdateProgress(100, "Завершение...");
+                    TaskDialog.Show("Успех", $"Спецификация экспортирована в:\n{filePath}");
+
+                    progressForm.Complete();
+                    return Result.Succeeded;
                 }
-
-                //string filePath = GetUniqueFilePath(schedule.Name);
-                ExportScheduleData(schedule, filePath, doc);
-
-                TaskDialog.Show("Успех", $"Спецификация экспортирована в:\n{filePath}");
-                return Result.Succeeded;
             }
             catch (Exception ex)
             {
+                progressForm?.Complete();
                 message = $"Ошибка: {ex.Message}";
                 TaskDialog.Show("Ошибка экспорта", message);
                 return Result.Failed;
@@ -70,15 +281,26 @@ namespace BIMv2
                 TableSectionData body = tableData.GetSectionData(SectionType.Body);
 
                 // Экспорт заголовков
+                progressForm.UpdateProgress(55, "Экспорт заголовков...");
                 for (int col = 0; col < body.NumberOfColumns; col++)
                 {
                     worksheet.Cell(1, col + 1).Value = schedule.GetCellText(SectionType.Body, 0, col);
                     worksheet.Cell(1, col + 1).Style.Font.Bold = true;
                 }
 
-                // Экспорт данных
+                // Экспорт данных с прогрессом
+                int totalRows = body.NumberOfRows - 1;
                 for (int row = 1; row < body.NumberOfRows; row++)
                 {
+                    if (progressForm.IsCancelled)
+                    {
+                        cancellationRequested = true;
+                        return;
+                    }
+
+                    int progress = 55 + (int)((row * 40.0) / totalRows);
+                    progressForm.UpdateProgress(progress, $"Обработка строки {row} из {totalRows}...");
+
                     for (int col = 0; col < body.NumberOfColumns; col++)
                     {
                         var cellValue = schedule.GetCellText(SectionType.Body, row, col);
@@ -97,13 +319,17 @@ namespace BIMv2
                                     else
                                     {
                                         var typ = GetImageTypeByName(document, cellValue);
-                                        var path = typ.Path;
-
-                                        string imagePath = path;
-                                        // Загрузка изображения из файла
-                                        Image image2 = Image.FromFile(imagePath);
-                                        AddImageToWorksheet(worksheet, image2, row + 1, col + 1);
-                                        //excelCell.Value = $"[Изображение не найдено: {cellValue}]";
+                                        if (typ != null)
+                                        {
+                                            var path = typ.Path;
+                                            string imagePath = path;
+                                            Image image2 = Image.FromFile(imagePath);
+                                            AddImageToWorksheet(worksheet, image2, row + 1, col + 1);
+                                        }
+                                        else
+                                        {
+                                            excelCell.Value = $"[Изображение не найдено: {cellValue}]";
+                                        }
                                     }
                                 }
                             }
@@ -119,12 +345,55 @@ namespace BIMv2
                     }
                 }
 
-
-                // Сохранение с обработкой ошибок
+                progressForm.UpdateProgress(95, "Сохранение файла...");
                 SaveWorkbook(workbook, filePath);
             }
         }
 
+        private void AddImageToWorksheet(IXLWorksheet worksheet, Image image, int row, int col)
+        {
+            string tempImagePath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.png");
+
+            try
+            {
+                image.Save(tempImagePath, System.Drawing.Imaging.ImageFormat.Png);
+
+                // Рассчитываем размеры с учетом настроек
+                int width = imageSettings.Width;
+                int height = imageSettings.Height;
+
+                if (imageSettings.KeepAspectRatio)
+                {
+                    // Сохраняем пропорции
+                    double aspectRatio = (double)image.Height / image.Width;
+                    height = (int)(width * aspectRatio);
+                }
+
+                var picture = worksheet.AddPicture(tempImagePath)
+                    .MoveTo(worksheet.Cell(row, col))
+                    .WithSize(width, height);
+
+                worksheet.Row(row).Height = height + 2;
+                worksheet.Column(col).Width = Math.Max(worksheet.Column(col).Width, width / 7.0 + 2);
+            }
+            finally
+            {
+                if (File.Exists(tempImagePath))
+                {
+                    try { File.Delete(tempImagePath); } catch { }
+                }
+            }
+        }
+
+        // Класс для хранения настроек изображений
+        private class ImageSettings
+        {
+            public int Width { get; set; } = 200;
+            public int Height { get; set; } = 150;
+            public bool KeepAspectRatio { get; set; } = true;
+        }
+
+        // Остальные методы без изменений...
         private bool IsImageReference(string cellValue)
         {
             return !string.IsNullOrEmpty(cellValue) &&
@@ -136,38 +405,11 @@ namespace BIMv2
 
         private Image GetImage2(string imagePath, Document doc)
         {
-         
             try
             {
                 List<ImageType> allImageType = GetAllImageTypes(doc);
-
-                Image im =FindImageInFamilies(doc, imagePath);
-
+                Image im = FindImageInFamilies(doc, imagePath);
                 return im;
-
-                 ImageType foundImage = allImageType
-                    .FirstOrDefault(img => img.Name.Equals(imagePath, StringComparison.OrdinalIgnoreCase));
-
-                //if (foundImage != null)
-                //{
-                //    ImageType foundImage2 = allImageType2
-                //    .FirstOrDefault(img => img.Name.Equals(imagePath, StringComparison.OrdinalIgnoreCase));
-                //    foundImage = foundImage2;
-                //}
-                //else
-                //{
-                //     TaskDialog.Show("Что-то пошло не так и уже давно", "Обратиться в службу 2bim.ru ");
-                //}
-
-               
-
-                //попробуем вытащить JPEG
-                //ImageType typ = GetImageTypeByName(doc, imagePath);
-
-                Bitmap g = foundImage.GetImage();
-                return g;
-                //if (File.Exists(imagePath))
-                //    return Image.FromFile(imagePath);
             }
             catch (UnauthorizedAccessException)
             {
@@ -178,29 +420,6 @@ namespace BIMv2
                 TaskDialog.Show("Ошибка", $"Ошибка загрузки изображения: {ex.Message}");
             }
             return null;
-        }
-
-        private void AddImageToWorksheet(IXLWorksheet worksheet, Image image, int row, int col)
-        {
-            string tempImagePath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.png");
-
-            try
-            {
-                image.Save(tempImagePath, System.Drawing.Imaging.ImageFormat.Png);
-
-                var picture = worksheet.AddPicture(tempImagePath)
-                    .MoveTo(worksheet.Cell(row, col))
-                    .WithSize(200, (int)(200 * ((double)image.Height / image.Width)));
-
-                worksheet.Row(row).Height = picture.Height + 2;
-            }
-            finally
-            {
-                if (File.Exists(tempImagePath))
-                {
-                    try { File.Delete(tempImagePath); } catch { }
-                }
-            }
         }
 
         private void SaveWorkbook(XLWorkbook workbook, string filePath, int maxAttempts = 3)
@@ -222,9 +441,6 @@ namespace BIMv2
             }
         }
 
-        /// <summary>
-        /// Получает все ImageType в проекте
-        /// </summary>
         public List<ImageType> GetAllImageTypes(Document doc)
         {
             FilteredElementCollector collector = new FilteredElementCollector(doc);
@@ -233,9 +449,6 @@ namespace BIMv2
                            .ToList();
         }
 
-        /// <summary>
-        /// Получает ImageType по имени файла
-        /// </summary>
         public ImageType GetImageTypeByName(Document doc, string imageName)
         {
             return GetAllImageTypes(doc)
@@ -251,11 +464,7 @@ namespace BIMv2
                 saveFileDialog.Filter = "Excel Files (*.xlsx)|*.xlsx|All Files (*.*)|*.*";
                 saveFileDialog.DefaultExt = "xlsx";
                 saveFileDialog.AddExtension = true;
-
-                // Начальная директория - рабочий стол
                 saveFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-
-                // Проверка на уникальность имени файла
                 saveFileDialog.OverwritePrompt = true;
 
                 if (saveFileDialog.ShowDialog() == DialogResult.OK)
@@ -263,11 +472,9 @@ namespace BIMv2
                     return saveFileDialog.FileName;
                 }
             }
-
-            return null; // Пользователь отменил
+            return null;
         }
 
-        // Сбор всех семейств в проекте
         private List<Family> CollectAllFamilies(Document doc)
         {
             FilteredElementCollector collector = new FilteredElementCollector(doc);
@@ -276,7 +483,6 @@ namespace BIMv2
                           .ToList();
         }
 
-        // Сбор всех ImageType в проекте
         private List<ImageType> CollectAllImageTypes(Document doc)
         {
             FilteredElementCollector collector = new FilteredElementCollector(doc);
@@ -284,7 +490,7 @@ namespace BIMv2
                           .Cast<ImageType>()
                           .ToList();
         }
-        // Сбор информации о семействах и связанных изображениях
+
         private List<FamilyImageInfo> CollectFamilyImageInfo(Document doc, List<Family> families, List<ImageType> imageTypes)
         {
             var result = new List<FamilyImageInfo>();
@@ -514,5 +720,6 @@ namespace BIMv2
 
             return null;
         }
+
     }
 }
