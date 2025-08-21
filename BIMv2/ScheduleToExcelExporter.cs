@@ -24,6 +24,15 @@ namespace BIMv2
                 var uiApp = commandData.Application;
                 var doc = uiApp.ActiveUIDocument.Document;
 
+                // Собираем все семейства в проекте
+                var allFamilies5 = CollectAllFamilies(doc);
+
+                // Собираем все ImageType в проекте
+                var allImageTypes5 = CollectAllImageTypes(doc);
+
+                // Собираем информацию о семействах и связанных изображениях
+                var familyImageInfo = CollectFamilyImageInfo(doc, allFamilies5, allImageTypes5);
+
                 if (!(doc.ActiveView is ViewSchedule schedule))
                 {
                     message = "Активное представление не является спецификацией";
@@ -79,7 +88,7 @@ namespace BIMv2
                         {
                             try
                             {
-                                using (Image image = GetImage(cellValue, document))
+                                using (Image image = GetImage2(cellValue, document))
                                 {
                                     if (image != null)
                                     {
@@ -110,8 +119,6 @@ namespace BIMv2
                     }
                 }
 
-                // Автоподбор ширины столбцов
-                //worksheet.Columns().AdjustToContents();
 
                 // Сохранение с обработкой ошибок
                 SaveWorkbook(workbook, filePath);
@@ -127,14 +134,37 @@ namespace BIMv2
                     cellValue.EndsWith(".bmp", StringComparison.OrdinalIgnoreCase));
         }
 
-        private Image GetImage(string imagePath, Document doc)
+        private Image GetImage2(string imagePath, Document doc)
         {
+         
             try
             {
-                //попробуем вытащить JPEG
-                ImageType typ = GetImageTypeByName(doc, imagePath);
+                List<ImageType> allImageType = GetAllImageTypes(doc);
 
-                Bitmap g = typ.GetImage();
+                Image im =FindImageInFamilies(doc, imagePath);
+
+                return im;
+
+                 ImageType foundImage = allImageType
+                    .FirstOrDefault(img => img.Name.Equals(imagePath, StringComparison.OrdinalIgnoreCase));
+
+                //if (foundImage != null)
+                //{
+                //    ImageType foundImage2 = allImageType2
+                //    .FirstOrDefault(img => img.Name.Equals(imagePath, StringComparison.OrdinalIgnoreCase));
+                //    foundImage = foundImage2;
+                //}
+                //else
+                //{
+                //     TaskDialog.Show("Что-то пошло не так и уже давно", "Обратиться в службу 2bim.ru ");
+                //}
+
+               
+
+                //попробуем вытащить JPEG
+                //ImageType typ = GetImageTypeByName(doc, imagePath);
+
+                Bitmap g = foundImage.GetImage();
                 return g;
                 //if (File.Exists(imagePath))
                 //    return Image.FromFile(imagePath);
@@ -195,7 +225,7 @@ namespace BIMv2
         /// <summary>
         /// Получает все ImageType в проекте
         /// </summary>
-        public static List<ImageType> GetAllImageTypes(Document doc)
+        public List<ImageType> GetAllImageTypes(Document doc)
         {
             FilteredElementCollector collector = new FilteredElementCollector(doc);
             return collector.OfClass(typeof(ImageType))
@@ -206,7 +236,7 @@ namespace BIMv2
         /// <summary>
         /// Получает ImageType по имени файла
         /// </summary>
-        public static ImageType GetImageTypeByName(Document doc, string imageName)
+        public ImageType GetImageTypeByName(Document doc, string imageName)
         {
             return GetAllImageTypes(doc)
                 .FirstOrDefault(img => img.Name.Equals(imageName, StringComparison.OrdinalIgnoreCase));
@@ -237,7 +267,252 @@ namespace BIMv2
             return null; // Пользователь отменил
         }
 
+        // Сбор всех семейств в проекте
+        private List<Family> CollectAllFamilies(Document doc)
+        {
+            FilteredElementCollector collector = new FilteredElementCollector(doc);
+            return collector.OfClass(typeof(Family))
+                          .Cast<Family>()
+                          .ToList();
+        }
 
+        // Сбор всех ImageType в проекте
+        private List<ImageType> CollectAllImageTypes(Document doc)
+        {
+            FilteredElementCollector collector = new FilteredElementCollector(doc);
+            return collector.OfClass(typeof(ImageType))
+                          .Cast<ImageType>()
+                          .ToList();
+        }
+        // Сбор информации о семействах и связанных изображениях
+        private List<FamilyImageInfo> CollectFamilyImageInfo(Document doc, List<Family> families, List<ImageType> imageTypes)
+        {
+            var result = new List<FamilyImageInfo>();
 
+            foreach (var family in families)
+            {
+                var familyInfo = new FamilyImageInfo
+                {
+                    FamilyName = family.Name,
+                    FamilyId = family.Id,
+                    IsLoaded = family.IsEditable,
+                    FamilyCategory = family.FamilyCategory?.Name ?? "Без категории"
+                };
+
+                // Получаем все типы семейств
+                var familySymbols = GetFamilySymbols(doc, family);
+                familyInfo.SymbolCount = familySymbols.Count;
+
+                // Ищем связанные изображения
+                FindRelatedImages(family, familySymbols, imageTypes, familyInfo);
+
+                result.Add(familyInfo);
+            }
+
+            return result;
+        }
+
+        // Получение всех типов семейств
+        private List<FamilySymbol> GetFamilySymbols(Document doc, Family family)
+        {
+            var symbols = new List<FamilySymbol>();
+            var symbolIds = family.GetFamilySymbolIds();
+
+            foreach (ElementId symbolId in symbolIds)
+            {
+                var symbol = doc.GetElement(symbolId) as FamilySymbol;
+                if (symbol != null)
+                {
+                    symbols.Add(symbol);
+                }
+            }
+
+            return symbols;
+        }
+
+        // Поиск связанных изображений
+        private void FindRelatedImages(Family family, List<FamilySymbol> symbols, List<ImageType> imageTypes, FamilyImageInfo familyInfo)
+        {
+            // Поиск по имени семейства
+            var relatedImages = imageTypes
+                .Where(img => img.Name.IndexOf(family.Name, StringComparison.OrdinalIgnoreCase) >= 0)
+                .ToList();
+
+            // Поиск в параметрах семейства
+            foreach (var symbol in symbols)
+            {
+                FindImagesInElementParameters(symbol, imageTypes, familyInfo);
+            }
+
+            // Поиск в параметрах самого семейства
+            FindImagesInElementParameters(family, imageTypes, familyInfo);
+
+            familyInfo.RelatedImages.AddRange(relatedImages);
+            familyInfo.TotalImageCount = familyInfo.RelatedImages.Count;
+        }
+
+        // Поиск изображений в параметрах элемента
+        private void FindImagesInElementParameters(Element element, List<ImageType> imageTypes, FamilyImageInfo familyInfo)
+        {
+            foreach (Parameter param in element.Parameters)
+            {
+                if (param.StorageType == StorageType.ElementId)
+                {
+                    ElementId elementId = param.AsElementId();
+                    if (elementId != ElementId.InvalidElementId)
+                    {
+                        Element paramElement = element.Document.GetElement(elementId);
+                        if (paramElement is ImageType imageType)
+                        {
+                            if (!familyInfo.RelatedImages.Any(img => img.Id == imageType.Id))
+                            {
+                                familyInfo.RelatedImages.Add(imageType);
+                                familyInfo.ImageParameters.Add($"{element.Name}.{param.Definition.Name}");
+                            }
+                        }
+                    }
+                }
+                else if (param.StorageType == StorageType.String)
+                {
+                    string paramValue = param.AsString();
+                    if (!string.IsNullOrEmpty(paramValue) && IsImageReference(paramValue))
+                    {
+                        var matchingImage = imageTypes.FirstOrDefault(img =>
+                            img.Name.Equals(paramValue, StringComparison.OrdinalIgnoreCase));
+
+                        if (matchingImage != null && !familyInfo.RelatedImages.Any(img => img.Id == matchingImage.Id))
+                        {
+                            familyInfo.RelatedImages.Add(matchingImage);
+                            familyInfo.ImageParameters.Add($"{element.Name}.{param.Definition.Name}");
+                        }
+                    }
+                }
+            }
+        }
+        public class FamilyImageInfo
+        {
+            public string FamilyName { get; set; }
+            public ElementId FamilyId { get; set; }
+            public string FamilyCategory { get; set; }
+            public bool IsLoaded { get; set; }
+            public int SymbolCount { get; set; }
+            public int TotalImageCount { get; set; }
+            public List<ImageType> RelatedImages { get; set; } = new List<ImageType>();
+            public List<string> ImageParameters { get; set; } = new List<string>();
+        }
+
+        private Image FindImageInFamilies(Document doc, string imageName)
+        {
+            try
+            {
+                // Ищем во всех семействах проекта
+                var allFamilies = new FilteredElementCollector(doc)
+                    .OfClass(typeof(Family))
+                    .Cast<Family>();
+
+                foreach (var family in allFamilies)
+                {
+                    // Ищем в параметрах самого семейства
+                    Image imageFromFamily = FindImageInElementParameters(family, imageName);
+                    if (imageFromFamily != null)
+                    {
+                        return imageFromFamily;
+                    }
+
+                    // Ищем в типах семейства
+                    var symbolIds = family.GetFamilySymbolIds();
+                    foreach (ElementId symbolId in symbolIds)
+                    {
+                        var symbol = doc.GetElement(symbolId) as FamilySymbol;
+                        if (symbol != null)
+                        {
+                            Image imageFromSymbol = FindImageInElementParameters(symbol, imageName);
+                            if (imageFromSymbol != null)
+                            {
+                                return imageFromSymbol;
+                            }
+                        }
+                    }
+                }
+
+                return null;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private Image FindImageInElementParameters(Element element, string targetImageName)
+        {
+            foreach (Parameter param in element.Parameters)
+            {
+                if (param.StorageType == StorageType.ElementId)
+                {
+                    // Параметр содержит ElementId (возможно, ImageType)
+                    ElementId elementId = param.AsElementId();
+                    if (elementId != ElementId.InvalidElementId)
+                    {
+                        Element paramElement = element.Document.GetElement(elementId);
+                        if (paramElement is ImageType imageType)
+                        {
+                            // Проверяем совпадение по имени
+                            if (imageType.Name.Equals(targetImageName, StringComparison.OrdinalIgnoreCase))
+                            {
+                                return GetImageFromImageType(imageType);
+                            }
+                        }
+                    }
+                }
+                else if (param.StorageType == StorageType.String)
+                {
+                    // Параметр содержит строку (возможно, путь к изображению)
+                    string paramValue = param.AsString();
+                    if (!string.IsNullOrEmpty(paramValue) &&
+                        paramValue.Equals(targetImageName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Пробуем загрузить изображение из файла
+                        if (File.Exists(paramValue))
+                        {
+                            return Image.FromFile(paramValue);
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private Image GetImageFromImageType(ImageType imageType)
+        {
+            try
+            {
+                // Пытаемся получить изображение через GetImage()
+                Bitmap bitmap = imageType.GetImage();
+                if (bitmap != null)
+                {
+                    return bitmap;
+                }
+            }
+            catch
+            {
+                // Если не удалось, пробуем загрузить из файла
+            }
+
+            // Пробуем загрузить из файла по пути
+            if (File.Exists(imageType.Path))
+            {
+                return Image.FromFile(imageType.Path);
+            }
+
+            // Пробуем найти файл по имени
+            string fileName = Path.GetFileName(imageType.Path);
+            if (File.Exists(fileName))
+            {
+                return Image.FromFile(fileName);
+            }
+
+            return null;
+        }
     }
 }
