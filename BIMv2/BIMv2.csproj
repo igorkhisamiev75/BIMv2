@@ -264,7 +264,7 @@
     <Compile Include="archive\ClearProjectBrowser.cs" />
     <Compile Include="ClearProjectBrowserViewsNotSheets.cs" />
     <Compile Include="CollisionsWithWall.cs" />
-    <Compile Include="archive\ConvertGrids3Dto2D.cs" />
+    <Compile Include="ConvertGrids3Dto2D.cs" />
     <Compile Include="archive\CopyRoomsFromLink.cs" />
     <Compile Include="CountFinishWall.cs" />
     <Compile Include="Create3DViewFromSpace.cs" />

@@ -482,10 +482,10 @@ namespace BIMv2Buttons
             SplitButtonData splitBtnDataES = new SplitButtonData("SplitButtonES", "Split ButtonES");
             SplitButton splitBtnES = ribbonPanelElectric.AddItem(splitBtnDataES) as SplitButton;
 
-            splitBtnES.AddPushButton(pushButtonDataES1);
+            splitBtnES.AddPushButton(pushButtonDataES4);
             splitBtnES.AddPushButton(pushButtonDataES2);
             splitBtnES.AddPushButton(pushButtonDataES3);
-            splitBtnES.AddPushButton(pushButtonDataES4);
+            splitBtnES.AddPushButton(pushButtonDataES1);
 
 
 

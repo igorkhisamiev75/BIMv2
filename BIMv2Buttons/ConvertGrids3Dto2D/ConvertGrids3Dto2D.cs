@@ -1,103 +1,86 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
-
-using Application = Autodesk.Revit.ApplicationServices.Application;
-
 
 namespace BIMv2
 {
     [Transaction(TransactionMode.Manual)]
     class ConvertGrids3Dto2D : IExternalCommand
     {
-        private Application _app;
-        private Document _doc;
-
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            var uiApp = commandData.Application;
-            var uiDoc = uiApp.ActiveUIDocument;
+            UIApplication uiApp = commandData.Application;
+            UIDocument uiDoc = uiApp.ActiveUIDocument;
+            Document doc = uiDoc.Document;
 
-            _app = uiApp.Application;
-            _doc = uiDoc.Document;
-
-            using (var t = new Transaction(_doc))
+            try
             {
-                t.Start("Run");
-                uiApp = commandData.Application;
-                uiDoc = uiApp.ActiveUIDocument;
-                try
+                using (Transaction t = new Transaction(doc, "Convert Grids 2D/3D"))
                 {
-                    ConvertTo2D(_doc, uiDoc);
-                    TaskDialog.Show("Готово", "Оси переведены в 2D/3D");
-                }
-                catch
-                {
-                    TaskDialog.Show("Не сработало", "Вообще программирование это как в лесу на Аляске искать дорогу домой и спрашивать дорогу у глухонемого алеута");
+                    t.Start();
+
+                    ConvertGridsExtentType(doc, uiDoc);
+
+                    t.Commit();
                 }
 
-                t.Commit();
-
+                TaskDialog.Show("Готово", "Оси переведены в 2D/3D");
             }
-
+            catch (Exception ex)
+            {
+                TaskDialog.Show("Ошибка", $"Не удалось выполнить операцию: {ex.Message}");
+                return Result.Failed;
+            }
 
             return Result.Succeeded;
         }
 
-
-        public void ConvertTo2D(Document doc, UIDocument uiDoc)
+        public void ConvertGridsExtentType(Document doc, UIDocument uiDoc)
         {
-            IList<Element> grids = GetAllGridsElements(doc);
+            ICollection<Element> grids = GetAllGridsElements(doc);
 
-            if (grids.Count != 0)
+            if (grids.Count == 0)
             {
-                Grid grid = (Grid)grids[0];
-
-                if ((grid.GetDatumExtentTypeInView(DatumEnds.End0, doc.ActiveView) == DatumExtentType.Model) ||
-                    (grid.GetDatumExtentTypeInView(DatumEnds.End1, doc.ActiveView) == DatumExtentType.Model))
-                {
-                    foreach (Element VARIABLE in grids)
-                    {
-                        Grid grid2 = VARIABLE as Grid;
-
-                        grid2.SetDatumExtentType(DatumEnds.End0, doc.ActiveView, DatumExtentType.ViewSpecific);
-                        grid2.SetDatumExtentType(DatumEnds.End1, doc.ActiveView, DatumExtentType.ViewSpecific);
-
-                    }
-                }
-
-                else
-                {
-                    foreach (var VARIABLE in grids)
-                    {
-                        Grid grid2 = VARIABLE as Grid;
-
-                        grid2.SetDatumExtentType(DatumEnds.End0, doc.ActiveView, DatumExtentType.Model);
-                        grid2.SetDatumExtentType(DatumEnds.End1, doc.ActiveView, DatumExtentType.Model);
-                    }
-                }
+                TaskDialog.Show("Информация", "В проекте не найдены оси");
+                return;
             }
 
+            // Check the first grid to determine current state
+            Grid firstGrid = grids.First() as Grid;
+            if (firstGrid == null) return;
 
+            bool isCurrently3D = firstGrid.GetDatumExtentTypeInView(DatumEnds.End0, doc.ActiveView) == DatumExtentType.Model;
 
+            // Determine target state (toggle between 2D and 3D)
+            DatumExtentType targetExtentType = isCurrently3D ? DatumExtentType.ViewSpecific : DatumExtentType.Model;
+
+            foreach (Element element in grids)
+            {
+                Grid grid = element as Grid;
+                if (grid == null) continue;
+
+                try
+                {
+                    grid.SetDatumExtentType(DatumEnds.End0, doc.ActiveView, targetExtentType);
+                    grid.SetDatumExtentType(DatumEnds.End1, doc.ActiveView, targetExtentType);
+                }
+                catch (Exception ex)
+                {
+                    TaskDialog.Show("Предупреждение", $"Не удалось изменить ось {grid.Name}: {ex.Message}");
+                }
+            }
         }
 
-
-
-        public IList<Element> GetAllGridsElements(Document document)
+        public ICollection<Element> GetAllGridsElements(Document document)
         {
-            // List all Grids's
-            var grid_collector = new FilteredElementCollector(document)
+            return new FilteredElementCollector(document)
                 .OfCategory(BuiltInCategory.OST_Grids)
-                .WhereElementIsNotElementType();
-
-            IList<Element> allGrid = grid_collector.ToElements();
-            return allGrid;
+                .WhereElementIsNotElementType()
+                .ToElements();
         }
     }
-
 }
