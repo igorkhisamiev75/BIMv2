@@ -46,7 +46,16 @@ namespace BIMv2
                 {
                     LocationCurve lc = duct.Location as LocationCurve;
                     elementCurve = lc?.Curve;
-                    elementWidth = duct.Width;
+                    try
+                    {
+                        elementWidth = duct.Width;
+                    }
+                    catch { elementWidth = duct.Diameter; }
+
+
+
+
+
                 }
 
                 if (elementCurve == null)
@@ -135,7 +144,6 @@ namespace BIMv2
         }
     }
 
- 
 
     public class DuctPipeTraySelectionFilter : ISelectionFilter
     {
