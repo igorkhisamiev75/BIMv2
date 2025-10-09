@@ -1,0 +1,17 @@
+<ribbonLayout xmlns="http://schemas.autodesk.com/navisworks/2014/ribbon">
+  <ribbonTab id="ID_CustomTab" label="Мои инструменты">
+    <panel id="ID_ConvertPanel" label="Конвертация Revit">
+      <button id="ID_ConvertButton" 
+              text="Конвертировать RVT в NWD" 
+              toolTip="Конвертировать один Revit файл в Navisworks"
+              showText="true"
+              size="large"/>
+              
+      <button id="ID_BatchConvertButton" 
+              text="Пакетная конвертация" 
+              toolTip="Конвертировать несколько Revit файлов в Navisworks"
+              showText="true"
+              size="large"/>
+    </panel>
+  </ribbonTab>
+</ribbonLayout>
