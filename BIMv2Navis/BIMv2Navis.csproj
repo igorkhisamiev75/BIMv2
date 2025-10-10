@@ -48,16 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ModeSelectionDialog.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="ModeSelectionDialog.Designer.cs">
-      <DependentUpon>ModeSelectionDialog.cs</DependentUpon>
-    </Compile>
-    <Compile Include="ProgressForm .cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="RvtToNwdConverter.cs" />
+    <Compile Include="Class1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
