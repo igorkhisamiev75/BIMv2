@@ -111,7 +111,7 @@ namespace BIMv2
                         {
                             foreach (var room in variable)
                             {
-                                room.get_Parameter(new Guid(adsk_typeRoom)).Set("2(1С)");
+                                room.get_Parameter(new Guid(adsk_typeRoom)).Set("2");
                             }
                             continue;
 
@@ -121,7 +121,7 @@ namespace BIMv2
                         {
                             foreach (var room in variable)
                             {
-                                room.get_Parameter(new Guid(adsk_typeRoom)).Set("1(1С)");
+                                room.get_Parameter(new Guid(adsk_typeRoom)).Set("1");
                             }
                             continue;
 
@@ -131,7 +131,7 @@ namespace BIMv2
                         {
                             foreach (var room in variable)
                             {
-                                room.get_Parameter(new Guid(adsk_typeRoom)).Set("2(2С)");
+                                room.get_Parameter(new Guid(adsk_typeRoom)).Set("2");
                             }
                             continue;
 
@@ -141,7 +141,7 @@ namespace BIMv2
                         {
                             foreach (var room in variable)
                             {
-                                room.get_Parameter(new Guid(adsk_typeRoom)).Set("3(2С)");
+                                room.get_Parameter(new Guid(adsk_typeRoom)).Set("3");
 
                             }
                             continue;
@@ -152,7 +152,7 @@ namespace BIMv2
                         {
                             foreach (var room in variable)
                             {
-                                room.get_Parameter(new Guid(adsk_typeRoom)).Set("3(3С)");
+                                room.get_Parameter(new Guid(adsk_typeRoom)).Set("3");
 
                             }
                             continue;
@@ -163,7 +163,7 @@ namespace BIMv2
                         {
                             foreach (var room in variable)
                             {
-                                room.get_Parameter(new Guid(adsk_typeRoom)).Set("4(3С)");
+                                room.get_Parameter(new Guid(adsk_typeRoom)).Set("4");
 
                             }
                             continue;
@@ -174,7 +174,7 @@ namespace BIMv2
                         {
                             foreach (var room in variable)
                             {
-                                room.get_Parameter(new Guid(adsk_typeRoom)).Set("4(4С)");
+                                room.get_Parameter(new Guid(adsk_typeRoom)).Set("4");
 
                             }
                             continue;
