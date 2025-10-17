@@ -346,6 +346,7 @@
     <Compile Include="LintelsOnTheFloor2\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="RoomExportPlugin\RoomExportPlugin.cs" />
     <Compile Include="SumAllLightingFixtureInRoom\SumAllLightingFixtureInRoom.cs" />
     <Compile Include="MakingHolesForFacadeWindowsDoors\MakingHolesForFacadeWindowsDoors.cs" />
     <Compile Include="MakingHolesForFacadeWindows\MakingHolesForFacadeWindows.cs" />

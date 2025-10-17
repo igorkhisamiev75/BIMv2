@@ -172,7 +172,7 @@ namespace BIMv2Buttons
 
             string buttonNameAR1 = "Перемычкер";
             string buttonNameAR2 = "ВыгрузкаВExcel";
-            string buttonNameAR3 = "Перемычкер3";
+            string buttonNameAR3 = "ВыгрузкаLegenda";
 
 
             // Create three small stacked buttons (16x16 icons)
@@ -199,12 +199,12 @@ namespace BIMv2Buttons
                 },
                 new PushButtonData(
                     buttonNameAR3,
-                    "Перемычки3",
+                    "ВыгрузкаLegenda",
                     thisAssemblyPath,
-                    "LintelsOnTheFloor2.LintelsOnTheFloor2")
+                    "BIMv2.RoomExportCommand")
                 {
-                    Image = SImageAR1, // 16x16 icon
-                    ToolTip = "Создать перемчки и кайфовать"
+                    Image = SImageAR2, // 16x16 icon
+                    ToolTip = "Выгрузить помещения для LEGENDA"
                 }
             );
 
