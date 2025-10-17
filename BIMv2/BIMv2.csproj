@@ -269,6 +269,7 @@
     <Compile Include="archive\ClearProjectBrowser.cs" />
     <Compile Include="ClearProjectBrowserViewsNotSheets.cs" />
     <Compile Include="CollisionsWithWall.cs" />
+    <Compile Include="CombineRoomsAndFindAxes.cs" />
     <Compile Include="ConvertGrids3Dto2D.cs" />
     <Compile Include="archive\CopyRoomsFromLink.cs" />
     <Compile Include="CountFinishWall.cs" />
@@ -363,6 +364,7 @@
     <Compile Include="PluginFinish2BIM\Test\WallFinishAlliance.cs" />
     <Compile Include="PluginFinish2BIM\Test\WallFinishComposition.cs" />
     <Compile Include="PluginFinish2BIM\WallFinishing.cs" />
+    <Compile Include="RoomExportPlugin.cs" />
     <Compile Include="RoomsByFloorFinishType.cs" />
     <Compile Include="ScheduleToExcelExporter.cs">
       <SubType>Form</SubType>
