@@ -161,10 +161,19 @@ namespace BIMv2
                 {
                     double roomArea = UnitUtils.ConvertFromInternalUnits(room.Area, UnitTypeId.SquareMeters);
 
+                    // Создаем уникальное имя помещения с номером, если есть дубликаты
+                    string finalRoomName = cleanedRoomName;
+                    int sameNameCount = apartment.Rooms.Count(r => r.CleanedName == cleanedRoomName);
+                    if (sameNameCount > 0)
+                    {
+                        finalRoomName = $"{cleanedRoomName}_{sameNameCount + 1}";
+                    }
+
                     apartment.Rooms.Add(new RoomInfo
                     {
                         OriginalName = originalRoomName,
                         CleanedName = cleanedRoomName,
+                        FinalName = finalRoomName,
                         Area = roomArea
                     });
 
@@ -210,8 +219,17 @@ namespace BIMv2
                 worksheet.Cells[1, col++] = "Площадь общ.";
                 worksheet.Cells[1, col++] = "Площадь прив.";
 
-                // Добавляем заголовки для площадей разрешенных помещений
-                foreach (var roomName in _allowedRoomNames)
+                // Собираем все уникальные имена помещений из всех квартир
+                var allRoomNames = apartments
+                    .SelectMany(a => a.Rooms)
+                    .Where(r => _allowedRoomNames.Contains(r.CleanedName))
+                    .Select(r => r.FinalName)
+                    .Distinct()
+                    .OrderBy(name => name)
+                    .ToList();
+
+                // Добавляем заголовки для ВСЕХ уникальных помещений
+                foreach (var roomName in allRoomNames)
                 {
                     worksheet.Cells[1, col++] = roomName;
                 }
@@ -340,13 +358,13 @@ namespace BIMv2
                         worksheet.Cells[row, col++] = "Нет данных";
                     }
 
-                    // Площади разрешенных помещений (используем очищенные имена)
+                    // Создаем словарь площадей для всех помещений квартиры
                     var roomAreas = apartment.Rooms
                         .Where(r => _allowedRoomNames.Contains(r.CleanedName))
-                        .GroupBy(r => r.CleanedName)
-                        .ToDictionary(g => g.Key, g => g.Sum(r => r.Area));
+                        .ToDictionary(r => r.FinalName, r => r.Area);
 
-                    foreach (var roomName in _allowedRoomNames)
+                    // Заполняем площади для всех уникальных помещений
+                    foreach (var roomName in allRoomNames)
                     {
                         if (roomAreas.ContainsKey(roomName))
                         {
@@ -466,6 +484,7 @@ namespace BIMv2
     {
         public string OriginalName { get; set; }
         public string CleanedName { get; set; }
+        public string FinalName { get; set; } // Уникальное имя с номером, если есть дубликаты
         public double Area { get; set; }
     }
 }
