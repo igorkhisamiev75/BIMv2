@@ -23,7 +23,7 @@ namespace BIMv2
         private readonly List<string> _allowedRoomNames = new List<string>
         {
             "Гардеробная", "Жилая комната", "Кухня", "Кухня-гостинная",
-            "Кухня-ниша", "Лоджия", "Прихожая", "Санузел"
+            "Кухня-ниша", "Лоджия", "Прихожая", "Коридор", "Санузел"
         };
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
@@ -403,9 +403,18 @@ namespace BIMv2
                 Range dataRange = worksheet.Range["A1", GetExcelColumnName(col - 1) + (row - 1).ToString()];
                 dataRange.Borders.LineStyle = XlLineStyle.xlContinuous;
 
+                // Полное имя файла с путем
+                string fullPath = doc.PathName;
+
+                // Только имя файла
+                string fileName = System.IO.Path.GetFileName(fullPath);
+
+                // Имя без расширения
+                string modelName = System.IO.Path.GetFileNameWithoutExtension(fullPath);
+
                 // Сохраняем файл
                 string savePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) +
-                                 "\\Выгрузка_квартир.xlsx";
+                                 $"\\Выгрузка_квартир для модели {modelName} .xlsx";
                 workbook.SaveAs(savePath);
             }
             catch (Exception ex)
