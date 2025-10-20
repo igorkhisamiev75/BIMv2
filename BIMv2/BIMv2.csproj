@@ -353,6 +353,7 @@
     <Compile Include="MakingHolesForWindows.cs" />
     <Compile Include="MakingHolesForWindowsCheck.cs" />
     <Compile Include="MIrrorCheck.cs" />
+    <Compile Include="MultiFileLoader.cs" />
     <Compile Include="NormalIlluminationForLightFix.cs" />
     <Compile Include="PlaceElementsAboveDoors.cs" />
     <Compile Include="PluginFinish2BIM\CeilingFinish.cs" />
