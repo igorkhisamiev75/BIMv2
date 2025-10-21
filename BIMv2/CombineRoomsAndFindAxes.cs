@@ -1,23 +1,19 @@
-﻿using Autodesk.Revit.ApplicationServices;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Windows.Controls;
-
-using Grid = Autodesk.Revit.DB.Grid;
 
 namespace BIMv2
 {
     [Transaction(TransactionMode.Manual)]
     public class CombineRoomsAndFindAxes : IExternalCommand
     {
-        private const double ACCURACY = 0.1; // 100 мм в метрах
-        private const double MAX_DISTANCE = 2.0; // 2 метра максимальное расстояние для поиска осей
+        private const double OFFSET_DISTANCE = 0.2; // 300 мм в метрах
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -61,19 +57,19 @@ namespace BIMv2
                         string apartmentNumber = apartmentGroup.Key;
                         var rooms = apartmentGroup.ToList();
 
-                        // Получаем solids для всех помещений квартиры
-                        List<Solid> roomSolids = GetRoomSolids(rooms);
+                        // Получаем объединенный контур всех помещений квартиры с отступом 300 мм
+                        List<XYZ> expandedBoundingPoints = GetExpandedBoundingPoints(rooms);
 
-                        if (roomSolids.Count == 0) continue;
+                        if (expandedBoundingPoints.Count == 0) continue;
 
-                        // Находим ограничивающие оси по логике Python скрипта
-                        var (verticalAxes, horizontalAxes) = FindBoundingAxesAdvanced(
-                            roomSolids, verticalGrids, horizontalGrids);
+                        // Находим ближайшие оси для угловых точек
+                        var (closestVerticalAxes, closestHorizontalAxes) = FindClosestAxes(
+                            expandedBoundingPoints, verticalGrids, horizontalGrids);
 
-                        // Форматируем результат как в Python скрипте
-                        string axesInfo = FormatAxesInfo(verticalAxes, horizontalAxes);
+                        // Форматируем результат
+                        string axesInfo = FormatAxesInfo(closestVerticalAxes, closestHorizontalAxes);
 
-                        // Записываем результат в параметр ADSK_Примечание
+                        // Записываем результат в параметр ADSK_Примечание для каждого помещения квартиры
                         foreach (Room room in rooms)
                         {
                             SetParameterValue(room, "ADSK_Примечание", axesInfo);
@@ -95,6 +91,93 @@ namespace BIMv2
             }
         }
 
+        private List<XYZ> GetExpandedBoundingPoints(List<Room> rooms)
+        {
+            List<XYZ> allPoints = new List<XYZ>();
+
+            foreach (Room room in rooms)
+            {
+                try
+                {
+                    // Получаем границы помещения
+                    SpatialElementBoundaryOptions options = new SpatialElementBoundaryOptions
+                    {
+                        SpatialElementBoundaryLocation = SpatialElementBoundaryLocation.Center
+                    };
+
+                    IList<IList<BoundarySegment>> boundaries = room.GetBoundarySegments(options);
+
+                    if (boundaries == null) continue;
+
+                    foreach (IList<BoundarySegment> boundary in boundaries)
+                    {
+                        foreach (BoundarySegment segment in boundary)
+                        {
+                            Curve curve = segment.GetCurve();
+                            if (curve != null && curve.Length > 0.001)
+                            {
+                                allPoints.Add(curve.GetEndPoint(0));
+                                allPoints.Add(curve.GetEndPoint(1));
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // Пропускаем помещения с ошибками границ
+                    continue;
+                }
+            }
+
+            if (allPoints.Count == 0) return allPoints;
+
+            // Находим bounding box всех точек
+            BoundingBoxXYZ bbox = CalculateBoundingBox(allPoints);
+
+            // Расширяем bounding box на 300 мм
+            bbox.Min = new XYZ(bbox.Min.X - OFFSET_DISTANCE, bbox.Min.Y - OFFSET_DISTANCE, bbox.Min.Z);
+            bbox.Max = new XYZ(bbox.Max.X + OFFSET_DISTANCE, bbox.Max.Y + OFFSET_DISTANCE, bbox.Max.Z);
+
+            // Возвращаем угловые точки расширенного bounding box
+            return GetBoundingBoxCorners(bbox);
+        }
+
+        private BoundingBoxXYZ CalculateBoundingBox(List<XYZ> points)
+        {
+            if (points.Count == 0) return null;
+
+            double minX = points[0].X, minY = points[0].Y, minZ = points[0].Z;
+            double maxX = points[0].X, maxY = points[0].Y, maxZ = points[0].Z;
+
+            foreach (XYZ point in points)
+            {
+                minX = Math.Min(minX, point.X);
+                minY = Math.Min(minY, point.Y);
+                minZ = Math.Min(minZ, point.Z);
+                maxX = Math.Max(maxX, point.X);
+                maxY = Math.Max(maxY, point.Y);
+                maxZ = Math.Max(maxZ, point.Z);
+            }
+
+            BoundingBoxXYZ bbox = new BoundingBoxXYZ();
+            bbox.Min = new XYZ(minX, minY, minZ);
+            bbox.Max = new XYZ(maxX, maxY, maxZ);
+
+            return bbox;
+        }
+
+        private List<XYZ> GetBoundingBoxCorners(BoundingBoxXYZ bbox)
+        {
+            // Возвращаем 4 угловые точки в 2D плоскости (Z=0)
+            return new List<XYZ>
+            {
+                new XYZ(bbox.Min.X, bbox.Min.Y, 0), // Левый нижний
+                new XYZ(bbox.Max.X, bbox.Min.Y, 0), // Правый нижний
+                new XYZ(bbox.Max.X, bbox.Max.Y, 0), // Правый верхний
+                new XYZ(bbox.Min.X, bbox.Max.Y, 0)  // Левый верхний
+            };
+        }
+
         private (List<Grid> vertical, List<Grid> horizontal) ClassifyGrids(List<Grid> allGrids)
         {
             List<Grid> verticalGrids = new List<Grid>();
@@ -105,193 +188,108 @@ namespace BIMv2
                 Curve curve = grid.Curve;
                 if (curve == null) continue;
 
-                XYZ direction = curve.GetEndPoint(1) - curve.GetEndPoint(0);
-                direction = direction.Normalize();
+                XYZ direction = GetCurveDirection(curve);
 
-                // Логика классификации осей из Python скрипта
-                if (direction.X != 0 && Math.Abs(direction.Y) < 0.01 && Math.Abs(direction.Z) < 0.01)
-                {
-                    horizontalGrids.Add(grid);
-                }
-                else if (direction.Y != 0 && Math.Abs(direction.X) < 0.01 && Math.Abs(direction.Z) < 0.01)
+                // Классифицируем оси по направлению
+                if (IsVerticalGrid(direction))
                 {
                     verticalGrids.Add(grid);
                 }
-                else if (Math.Abs(Math.Tan(direction.Y / direction.X)) <= 1 && Math.Abs(direction.Z) < 0.01)
+                else if (IsHorizontalGrid(direction))
                 {
                     horizontalGrids.Add(grid);
-                }
-                else if ((Math.Abs(direction.Y) < 0.01 || Math.Abs(Math.Tan(direction.Y / direction.X)) > 1) && Math.Abs(direction.Z) < 0.01)
-                {
-                    verticalGrids.Add(grid);
                 }
             }
-
-            // Сортируем оси по расстоянию от начальной точки
-            XYZ startPoint = new XYZ(-80, -40, 0); // Точка как в Python скрипте (в метрах)
-            verticalGrids.Sort((g1, g2) => SortGrids(g1, g2, startPoint));
-            horizontalGrids.Sort((g1, g2) => SortGrids(g1, g2, startPoint));
 
             return (verticalGrids, horizontalGrids);
         }
 
-        private int SortGrids(Grid grid1, Grid grid2, XYZ startPoint)
+        private XYZ GetCurveDirection(Curve curve)
         {
-            double distance1 = GetDistanceFromPoint(grid1, startPoint);
-            double distance2 = GetDistanceFromPoint(grid2, startPoint);
-            return distance1.CompareTo(distance2);
+            XYZ start = curve.GetEndPoint(0);
+            XYZ end = curve.GetEndPoint(1);
+            return (end - start).Normalize();
         }
 
-        private double GetDistanceFromPoint(Grid grid, XYZ point)
+        private bool IsVerticalGrid(XYZ direction)
         {
-            Curve curve = grid.Curve;
-            if (curve == null) return double.MaxValue;
-
-            Line line = curve as Line;
-            if (line != null)
-            {
-                line = line.Clone() as Line;
-                line.MakeUnbound();
-                return line.Distance(point);
-            }
-
-            return curve.GetEndPoint(0).DistanceTo(point);
+            // Вертикальные оси: преимущественно по Y или под углом близким к вертикали
+            return Math.Abs(direction.Y) > Math.Abs(direction.X) ||
+                   (Math.Abs(direction.Y) > 0.1 && Math.Abs(direction.X) < 0.9);
         }
 
-        private List<Solid> GetRoomSolids(List<Room> rooms)
+        private bool IsHorizontalGrid(XYZ direction)
         {
-            Document document = rooms[0].Document;
-            List<Solid> solids = new List<Solid>();
-            SpatialElementBoundaryOptions options = new SpatialElementBoundaryOptions();
-            SpatialElementGeometryCalculator calculator = new SpatialElementGeometryCalculator(document, options);
+            // Горизонтальные оси: преимущественно по X или под углом близким к горизонтали
+            return Math.Abs(direction.X) > Math.Abs(direction.Y) ||
+                   (Math.Abs(direction.X) > 0.1 && Math.Abs(direction.Y) < 0.9);
+        }
 
-            foreach (Room room in rooms)
+        private (List<Grid> vertical, List<Grid> horizontal) FindClosestAxes(
+            List<XYZ> boundingPoints, List<Grid> verticalGrids, List<Grid> horizontalGrids)
+        {
+            HashSet<Grid> closestVertical = new HashSet<Grid>();
+            HashSet<Grid> closestHorizontal = new HashSet<Grid>();
+
+            foreach (XYZ point in boundingPoints)
             {
-                try
+                // Находим ближайшую вертикальную ось для текущей точки
+                Grid closestVerticalGrid = FindClosestGridToPoint(point, verticalGrids);
+                if (closestVerticalGrid != null)
                 {
-                    SpatialElementGeometryResults results = calculator.CalculateSpatialElementGeometry(room);
-                    Solid solid = results.GetGeometry();
-                    if (solid != null && solid.Volume > 0)
-                    {
-                        solids.Add(solid);
-                    }
+                    closestVertical.Add(closestVerticalGrid);
                 }
-                catch
+
+                // Находим ближайшую горизонтальную ось для текущей точки
+                Grid closestHorizontalGrid = FindClosestGridToPoint(point, horizontalGrids);
+                if (closestHorizontalGrid != null)
                 {
-                    // Пропускаем помещения с ошибками
-                    continue;
+                    closestHorizontal.Add(closestHorizontalGrid);
                 }
             }
 
-            return solids;
+            return (closestVertical.ToList(), closestHorizontal.ToList());
         }
 
-        private (List<Grid> vertical, List<Grid> horizontal) FindBoundingAxesAdvanced(
-            List<Solid> roomSolids, List<Grid> verticalGrids, List<Grid> horizontalGrids)
+        private Grid FindClosestGridToPoint(XYZ point, List<Grid> grids)
         {
-            List<Grid> foundVertical = new List<Grid>();
-            List<Grid> foundHorizontal = new List<Grid>();
+            if (grids.Count == 0) return null;
 
-            SolidCurveIntersectionOptions intersectionOptions = new SolidCurveIntersectionOptions();
+            Grid closestGrid = null;
+            double minDistance = double.MaxValue;
 
-            foreach (Solid solid in roomSolids)
+            foreach (Grid grid in grids)
             {
-                XYZ centroid = solid.ComputeCentroid();
+                Curve curve = grid.Curve;
+                if (curve == null) continue;
 
-                // Создаем трансформации для смещения кривых (как в Python скрипте)
-                Transform[] transformsVertical = new Transform[]
+                double distance = GetDistanceFromPointToCurve(point, curve);
+                if (distance < minDistance)
                 {
-                    Transform.CreateTranslation(new XYZ(0, 0, centroid.Z)),
-                    Transform.CreateTranslation(new XYZ(0, ACCURACY, 0)),
-                    Transform.CreateTranslation(new XYZ(0, -ACCURACY, 0))
-                };
-
-                Transform[] transformsHorizontal = new Transform[]
-                {
-                    Transform.CreateTranslation(new XYZ(0, 0, centroid.Z)),
-                    Transform.CreateTranslation(new XYZ(ACCURACY, 0, 0)),
-                    Transform.CreateTranslation(new XYZ(-ACCURACY, 0, 0))
-                };
-
-                // Проверяем вертикальные оси
-                foreach (Grid grid in verticalGrids)
-                {
-                    if (foundVertical.Contains(grid)) continue;
-
-                    Curve gridCurve = grid.Curve;
-                    if (gridCurve == null) continue;
-
-                    bool intersects = false;
-                    foreach (Transform transform in transformsHorizontal)
-                    {
-                        Curve transformedCurve = gridCurve.CreateTransformed(transform);
-
-                        // Проверяем расстояние до центроида
-                        if (transformedCurve.Distance(centroid) > MAX_DISTANCE)
-                            continue;
-
-                        // Проверяем пересечение с solid
-                        SolidCurveIntersection intersection = solid.IntersectWithCurve(
-                            transformedCurve, intersectionOptions);
-
-                        if (intersection != null && intersection.SegmentCount > 0)
-                        {
-                            intersects = true;
-                            break;
-                        }
-                    }
-
-                    if (intersects)
-                    {
-                        foundVertical.Add(grid);
-                    }
-                }
-
-                // Проверяем горизонтальные оси
-                foreach (Grid grid in horizontalGrids)
-                {
-                    if (foundHorizontal.Contains(grid)) continue;
-
-                    Curve gridCurve = grid.Curve;
-                    if (gridCurve == null) continue;
-
-                    bool intersects = false;
-                    foreach (Transform transform in transformsVertical)
-                    {
-                        Curve transformedCurve = gridCurve.CreateTransformed(transform);
-
-                        // Проверяем расстояние до центроида
-                        if (transformedCurve.Distance(centroid) > MAX_DISTANCE)
-                            continue;
-
-                        // Проверяем пересечение с solid
-                        SolidCurveIntersection intersection = solid.IntersectWithCurve(
-                            transformedCurve, intersectionOptions);
-
-                        if (intersection != null && intersection.SegmentCount > 0)
-                        {
-                            intersects = true;
-                            break;
-                        }
-                    }
-
-                    if (intersects)
-                    {
-                        foundHorizontal.Add(grid);
-                    }
+                    minDistance = distance;
+                    closestGrid = grid;
                 }
             }
 
-            // Удаляем дубликаты
-            foundVertical = foundVertical.Distinct().ToList();
-            foundHorizontal = foundHorizontal.Distinct().ToList();
+            return closestGrid;
+        }
 
-            // Сортируем результаты
-            XYZ startPoint = new XYZ(-80, -40, 0);
-            foundVertical.Sort((g1, g2) => SortGrids(g1, g2, startPoint));
-            foundHorizontal.Sort((g1, g2) => SortGrids(g1, g2, startPoint));
+        private double GetDistanceFromPointToCurve(XYZ point, Curve curve)
+        {
+            try
+            {
+                IntersectionResult result = curve.Project(point);
+                if (result != null)
+                {
+                    return point.DistanceTo(result.XYZPoint);
+                }
+            }
+            catch
+            {
+                // В случае ошибки возвращаем большое расстояние
+            }
 
-            return (foundVertical, foundHorizontal);
+            return double.MaxValue;
         }
 
         private string FormatAxesInfo(List<Grid> verticalAxes, List<Grid> horizontalAxes)
@@ -299,28 +297,24 @@ namespace BIMv2
             if (verticalAxes.Count == 0 && horizontalAxes.Count == 0)
                 return "Оси не найдены";
 
-            string verticalInfo = "Вертикальные: ";
-            string horizontalInfo = "Горизонтальные: ";
+            List<string> verticalNames = verticalAxes.Select(g => GetGridName(g)).Distinct().ToList();
+            List<string> horizontalNames = horizontalAxes.Select(g => GetGridName(g)).Distinct().ToList();
 
-            if (verticalAxes.Count > 0)
+            string result = "";
+
+            if (verticalNames.Count > 0)
             {
-                verticalInfo += $"{GetGridName(verticalAxes.First())}/{GetGridName(verticalAxes.Last())}";
-            }
-            else
-            {
-                verticalInfo += "не найдены";
+                result += $"Вертикальные: {string.Join(", ", verticalNames)}";
             }
 
-            if (horizontalAxes.Count > 0)
+            if (horizontalNames.Count > 0)
             {
-                horizontalInfo += $"{GetGridName(horizontalAxes.First())}/{GetGridName(horizontalAxes.Last())}";
-            }
-            else
-            {
-                horizontalInfo += "не найдены";
+                if (!string.IsNullOrEmpty(result))
+                    result += "; ";
+                result += $"Горизонтальные: {string.Join(", ", horizontalNames)}";
             }
 
-            return $"{verticalInfo}; {horizontalInfo}";
+            return result;
         }
 
         private string GetGridName(Grid grid)
