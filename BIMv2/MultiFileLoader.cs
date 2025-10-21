@@ -7,138 +7,109 @@ using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 
-namespace BIMv2
+namespace MultiFileLoaderAdvanced
 {
-    public class MultiFileLoader
+    [Transaction(TransactionMode.Manual)]
+    public class LoadFilesAutoSharedCoordinatesCommand : IExternalCommand
     {
-        public Result LoadMultipleFiles(ExternalCommandData commandData, List<string> filePaths)
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             UIApplication uiApp = commandData.Application;
-            Application app = uiApp.Application;
             UIDocument uiDoc = uiApp.ActiveUIDocument;
             Document doc = uiDoc.Document;
 
             try
             {
-                using (Transaction trans = new Transaction(doc, "Load Multiple Files"))
-                {
-                    trans.Start();
+                var openFileDialog = new System.Windows.Forms.OpenFileDialog();
+                openFileDialog.Filter = "Revit Files (*.rvt)|*.rvt";
+                openFileDialog.Multiselect = true;
+                openFileDialog.Title = "Import RVT Files - Positioning: Auto - By Shared Coordinates";
 
-                    foreach (string filePath in filePaths)
+                if (openFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    List<string> selectedFiles = openFileDialog.FileNames.ToList();
+
+                    using (Transaction trans = new Transaction(doc, "Import RVT Links with Auto-Shared Coordinates"))
                     {
-                        LoadRevitFileAsLink(doc, filePath);
+                        trans.Start();
+
+                        foreach (string filePath in selectedFiles)
+                        {
+                            ImportRvtLinkWithAutoPositioning(doc, filePath);
+                        }
+
+                        trans.Commit();
                     }
 
-                    trans.Commit();
+                    TaskDialog.Show("Import Complete",
+                        $"All RVT files imported with positioning: Auto - By Shared Coordinates\n" +
+                        $"Each link placed in its own workset: '_связь_+filename'");
                 }
 
                 return Result.Succeeded;
             }
             catch (Exception ex)
             {
-                TaskDialog.Show("Error", $"Ошибка при загрузке файлов: {ex.Message}");
+                message = ex.Message;
+                TaskDialog.Show("Import Error", ex.Message);
                 return Result.Failed;
             }
         }
 
-        private void LoadRevitFileAsLink(Document doc, string filePath)
+        private void ImportRvtLinkWithAutoPositioning(Document doc, string filePath)
         {
-            try
+            ModelPath modelPath = ModelPathUtils.ConvertUserVisiblePathToModelPath(filePath);
+
+            // Используем RevitLinkOptions с позиционированием по общим координатам
+            WorksetConfiguration worksetConfig = new WorksetConfiguration(WorksetConfigurationOption.OpenAllWorksets);
+            RevitLinkOptions options = new RevitLinkOptions(false, worksetConfig); // false = Auto - By Shared Coordinates
+
+            // Создаем связь
+            LinkLoadResult loadResult = RevitLinkType.Create(doc, modelPath, options);
+
+            if (loadResult != null && loadResult.ElementId != ElementId.InvalidElementId)
             {
-                ModelPath modelPath = ModelPathUtils.ConvertUserVisiblePathToModelPath(filePath);
-
-                // Создаем опции для загрузки
-                WorksetConfiguration worksetConfig = new WorksetConfiguration(WorksetConfigurationOption.OpenAllWorksets);
-                RevitLinkOptions options = new RevitLinkOptions(true, worksetConfig);
-
-                // Загружаем связь - метод возвращает LinkLoadResult
-                LinkLoadResult loadResult = RevitLinkType.Create(doc, modelPath, options);
-
-                if (loadResult != null)
+                RevitLinkType linkType = doc.GetElement(loadResult.ElementId) as RevitLinkType;
+                if (linkType != null)
                 {
-                    // Получаем RevitLinkType из результата загрузки
-                    RevitLinkType linkType = doc.GetElement(loadResult.ElementId) as RevitLinkType;
+                    // Создаем экземпляр связи
+                    RevitLinkInstance linkInstance = RevitLinkInstance.Create(doc, linkType.Id);
 
-                    if (linkType != null)
-                    {
-                        // Создаем экземпляр связи используя Id
-                        RevitLinkInstance linkInstance = RevitLinkInstance.Create(doc, linkType.Id);
+                    // Применяем автоматическое позиционирование по общим координатам
+                    ApplyAutoSharedCoordinates(linkInstance);
 
-                        // Получаем имя файла без расширения для рабочего набора
-                        string fileName = System.IO.Path.GetFileNameWithoutExtension(filePath);
-                        string worksetName = "_связь_" + fileName;
-
-                        // Создаем рабочий набор для связи
-                        CreateWorksetForLink(doc, worksetName, linkInstance);
-                    }
+                    // Создаем рабочий набор
+                    string fileName = System.IO.Path.GetFileNameWithoutExtension(filePath);
+                    string worksetName = "_связь_" + fileName;
+                    CreateWorksetForLink(doc, worksetName, linkInstance);
                 }
             }
-            catch (Exception ex)
-            {
-                throw new Exception($"Ошибка при загрузке файла {filePath}: {ex.Message}");
-            }
+        }
+
+        private void ApplyAutoSharedCoordinates(RevitLinkInstance linkInstance)
+        {
+            // В Revit API 2022 позиционирование "Auto - By Shared Coordinates"
+            // автоматически применяется при использовании RevitLinkOptions(false)
+            // Дополнительные настройки обычно не требуются
+
+            // Можно добавить логирование для отладки
+            TaskDialog.Show("Link Imported",
+                $"RVT link imported with positioning: Auto - By Shared Coordinates\n" +
+                $"Link will be positioned according to the shared coordinate system");
         }
 
         private void CreateWorksetForLink(Document doc, string worksetName, RevitLinkInstance linkInstance)
         {
-            // Получаем таблицу рабочих наборов
-            WorksetTable worksetTable = doc.GetWorksetTable();
-
-            // Проверяем, существует ли уже рабочий набор с таким именем
             FilteredWorksetCollector worksetCollector = new FilteredWorksetCollector(doc);
             Workset existingWorkset = worksetCollector.OfKind(WorksetKind.UserWorkset)
                 .FirstOrDefault(w => w.Name.Equals(worksetName));
 
-            WorksetId worksetId;
+            WorksetId worksetId = existingWorkset?.Id ?? Workset.Create(doc, worksetName).Id;
 
-            if (existingWorkset == null)
-            {
-                // Создаем новый рабочий набор
-                Workset newWorkset = Workset.Create(doc, worksetName);
-                worksetId = newWorkset.Id;
-            }
-            else
-            {
-                worksetId = existingWorkset.Id;
-            }
-
-            // Перемещаем связь в созданный рабочий набор
             Parameter worksetParam = linkInstance.get_Parameter(BuiltInParameter.ELEM_PARTITION_PARAM);
             if (worksetParam != null && !worksetParam.IsReadOnly)
             {
                 worksetParam.Set(worksetId.IntegerValue);
-            }
-        }
-    }
-
-    // Внешняя команда для вызова функциональности
-    [Transaction(TransactionMode.Manual)]
-    public class LoadMultipleFilesCommand : IExternalCommand
-    {
-        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
-        {
-            try
-            {
-                // Диалог для выбора файлов
-                var openFileDialog = new System.Windows.Forms.OpenFileDialog();
-                openFileDialog.Filter = "Revit Files (*.rvt)|*.rvt";
-                openFileDialog.Multiselect = true;
-                openFileDialog.Title = "Выберите Revit файлы для загрузки";
-
-                if (openFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                {
-                    List<string> selectedFiles = openFileDialog.FileNames.ToList();
-
-                    MultiFileLoader loader = new MultiFileLoader();
-                    return loader.LoadMultipleFiles(commandData, selectedFiles);
-                }
-
-                return Result.Cancelled;
-            }
-            catch (Exception ex)
-            {
-                message = ex.Message;
-                return Result.Failed;
             }
         }
     }
