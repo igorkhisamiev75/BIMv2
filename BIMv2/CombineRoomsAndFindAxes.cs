@@ -70,7 +70,7 @@ namespace BIMv2
                         var sortedVerticalAxes = SortAndLimitAxes(closestVerticalAxes, true); // true - вертикальные
                         var sortedHorizontalAxes = SortAndLimitAxes(closestHorizontalAxes, false); // false - горизонтальные
 
-                        // Форматируем результат
+                        // Форматируем результат с использованием LG_BS параметров
                         string axesInfo = FormatAxesInfo(sortedVerticalAxes, sortedHorizontalAxes);
 
                         // Записываем результат в параметр ADSK_Примечание для каждого помещения квартиры
@@ -336,8 +336,8 @@ namespace BIMv2
             if (verticalAxes.Count == 0 && horizontalAxes.Count == 0)
                 return "Оси не найдены";
 
-            List<string> verticalNames = verticalAxes.Select(g => GetGridName(g)).ToList();
-            List<string> horizontalNames = horizontalAxes.Select(g => GetGridName(g)).ToList();
+            List<string> verticalNames = verticalAxes.Select(g => GetGridDisplayName(g)).ToList();
+            List<string> horizontalNames = horizontalAxes.Select(g => GetGridDisplayName(g)).ToList();
 
             string result = "";
 
@@ -354,6 +354,56 @@ namespace BIMv2
             }
 
             return result;
+        }
+
+        private string GetGridDisplayName(Grid grid)
+        {
+            // Получаем значение параметра LG_BS_Ось индекс
+            string axisIndex = GetGridParameterValue(grid, "LG_BS_Ось индекс");
+
+            // Получаем значение параметра LG_BS_Имя оси
+            string axisName = GetGridParameterValue(grid, "LG_BS_Имя оси");
+
+            // Формируем строку в формате "индекс-имя"
+            if (!string.IsNullOrEmpty(axisIndex) && !string.IsNullOrEmpty(axisName))
+            {
+                return $"{axisIndex}-{axisName}";
+            }
+            else if (!string.IsNullOrEmpty(axisIndex))
+            {
+                return axisIndex;
+            }
+            else if (!string.IsNullOrEmpty(axisName))
+            {
+                return axisName;
+            }
+            else
+            {
+                // Если оба параметра пустые, используем стандартное имя
+                return GetGridName(grid);
+            }
+        }
+
+        private string GetGridParameterValue(Grid grid, string parameterName)
+        {
+            Parameter param = grid.LookupParameter(parameterName);
+            if (param != null && param.HasValue)
+            {
+                switch (param.StorageType)
+                {
+                    case StorageType.String:
+                        return param.AsString();
+                    case StorageType.Integer:
+                        return param.AsInteger().ToString();
+                    case StorageType.Double:
+                        return param.AsValueString();
+                    case StorageType.ElementId:
+                        return param.AsElementId().ToString();
+                    default:
+                        return null;
+                }
+            }
+            return null;
         }
 
         private string GetGridName(Grid grid)
