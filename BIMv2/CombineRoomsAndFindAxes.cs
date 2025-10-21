@@ -13,7 +13,7 @@ namespace BIMv2
     [Transaction(TransactionMode.Manual)]
     public class CombineRoomsAndFindAxes : IExternalCommand
     {
-        private const double OFFSET_DISTANCE = 0.2; // 300 мм в метрах
+        private const double OFFSET_DISTANCE = 0.3; // 300 мм в метрах
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -66,8 +66,12 @@ namespace BIMv2
                         var (closestVerticalAxes, closestHorizontalAxes) = FindClosestAxes(
                             expandedBoundingPoints, verticalGrids, horizontalGrids);
 
+                        // Ограничиваем количество осей до 2 и сортируем
+                        var sortedVerticalAxes = SortAndLimitAxes(closestVerticalAxes, true); // true - вертикальные
+                        var sortedHorizontalAxes = SortAndLimitAxes(closestHorizontalAxes, false); // false - горизонтальные
+
                         // Форматируем результат
-                        string axesInfo = FormatAxesInfo(closestVerticalAxes, closestHorizontalAxes);
+                        string axesInfo = FormatAxesInfo(sortedVerticalAxes, sortedHorizontalAxes);
 
                         // Записываем результат в параметр ADSK_Примечание для каждого помещения квартиры
                         foreach (Room room in rooms)
@@ -213,16 +217,14 @@ namespace BIMv2
 
         private bool IsVerticalGrid(XYZ direction)
         {
-            // Вертикальные оси: преимущественно по Y или под углом близким к вертикали
-            return Math.Abs(direction.Y) > Math.Abs(direction.X) ||
-                   (Math.Abs(direction.Y) > 0.1 && Math.Abs(direction.X) < 0.9);
+            // Вертикальные оси: преимущественно по Y
+            return Math.Abs(direction.Y) > Math.Abs(direction.X);
         }
 
         private bool IsHorizontalGrid(XYZ direction)
         {
-            // Горизонтальные оси: преимущественно по X или под углом близким к горизонтали
-            return Math.Abs(direction.X) > Math.Abs(direction.Y) ||
-                   (Math.Abs(direction.X) > 0.1 && Math.Abs(direction.Y) < 0.9);
+            // Горизонтальные оси: преимущественно по X
+            return Math.Abs(direction.X) > Math.Abs(direction.Y);
         }
 
         private (List<Grid> vertical, List<Grid> horizontal) FindClosestAxes(
@@ -292,13 +294,50 @@ namespace BIMv2
             return double.MaxValue;
         }
 
+        private List<Grid> SortAndLimitAxes(List<Grid> axes, bool isVertical)
+        {
+            if (axes.Count == 0) return axes;
+
+            // Сортируем оси по координатам
+            if (isVertical)
+            {
+                // Вертикальные оси: слева направо по X координате
+                axes.Sort((a, b) =>
+                {
+                    double aX = GetGridBasePoint(a).X;
+                    double bX = GetGridBasePoint(b).X;
+                    return aX.CompareTo(bX);
+                });
+            }
+            else
+            {
+                // Горизонтальные оси: снизу вверх по Y координате
+                axes.Sort((a, b) =>
+                {
+                    double aY = GetGridBasePoint(a).Y;
+                    double bY = GetGridBasePoint(b).Y;
+                    return aY.CompareTo(bY);
+                });
+            }
+
+            // Ограничиваем количество осей до 2
+            return axes.Take(2).ToList();
+        }
+
+        private XYZ GetGridBasePoint(Grid grid)
+        {
+            // Возвращаем начальную точку оси для сортировки
+            Curve curve = grid.Curve;
+            return curve?.GetEndPoint(0) ?? XYZ.Zero;
+        }
+
         private string FormatAxesInfo(List<Grid> verticalAxes, List<Grid> horizontalAxes)
         {
             if (verticalAxes.Count == 0 && horizontalAxes.Count == 0)
                 return "Оси не найдены";
 
-            List<string> verticalNames = verticalAxes.Select(g => GetGridName(g)).Distinct().ToList();
-            List<string> horizontalNames = horizontalAxes.Select(g => GetGridName(g)).Distinct().ToList();
+            List<string> verticalNames = verticalAxes.Select(g => GetGridName(g)).ToList();
+            List<string> horizontalNames = horizontalAxes.Select(g => GetGridName(g)).ToList();
 
             string result = "";
 
