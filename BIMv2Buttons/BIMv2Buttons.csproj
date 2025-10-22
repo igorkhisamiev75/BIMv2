@@ -578,5 +578,8 @@
   <ItemGroup>
     <Resource Include="Resources\icons8-microsoft-excel-16.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\icons8-l-32.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

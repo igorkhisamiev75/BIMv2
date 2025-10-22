@@ -749,6 +749,44 @@ namespace BIMv2Buttons
 
             #endregion
 
+            #region LEGENDA
+
+            String lg_tabNameB2 = "LEGENDA";    // создание вкладки
+            application.CreateRibbonTab(lg_tabNameB2);
+
+            string lgpanelNameRooms = "Работа с помещениями";
+           
+            string lgpanelNameInfo = "Info";
+
+            // Add a new ribbon panel
+            Autodesk.Revit.UI.RibbonPanel lgRibbonPanelArRoom = application.CreateRibbonPanel(lg_tabNameB2, lgpanelNameRooms); //подпись под кнопками
+            // Add a new ribbon panel
+            Autodesk.Revit.UI.RibbonPanel lgRibbonPanelInfo = application.CreateRibbonPanel(lg_tabNameB2, lgpanelNameInfo); //подпись под кнопками
+
+
+            // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData lgData1 = new PushButtonData("BIMv2.RoomExportCommand.cs", "Выгрузить квартиры"
+                + Environment.NewLine + "в Excel", thisAssemblyPath, "BIMv2.RoomExportCommand");
+
+            PushButton pbLG1 = lgRibbonPanelArRoom.AddItem(lgData1) as PushButton;
+            pbLG1.ToolTip = "Выгрузка в Excel";
+
+            BitmapImage pbLG1Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-l-32.png"));
+            pbLG1.LargeImage = pbLG1Image;
+
+
+            PushButtonData lgbHData2 = new PushButtonData("cmdHelpBIMBlog", "Написать" + Environment.NewLine + "разработчику", thisAssemblyPath, "BIMv2.HelpBIMBlog");
+
+            PushButton lgpbH2 = lgRibbonPanelInfo.AddItem(lgbHData2) as PushButton;
+            lgpbH2.ToolTip = "Подписываемся, ставим лайки, комментируем";
+
+            //BitmapImage pbHImage2 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/blog2bim.png"));
+            lgpbH2.LargeImage = pbHImage2;
+
+           
+
+            #endregion
+
             #region BIMv2
 
             //String tabName = "BIMv2";    // создание вкладки
