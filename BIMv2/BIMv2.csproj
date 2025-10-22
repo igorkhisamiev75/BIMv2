@@ -382,7 +382,7 @@
     <Compile Include="WriteNameRoomInFurniture.cs" />
     <Compile Include="WriteNameRoomInMechanicalEquipment.cs" />
     <Compile Include="WriteNameRoomInPlumbingFixtures.cs" />
-    <Compile Include="WriteTypeRooms.cs" />
+    <Compile Include="archive\WriteTypeRooms.cs" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="CheckRooms\CheckRoomsSelectLink.xaml">

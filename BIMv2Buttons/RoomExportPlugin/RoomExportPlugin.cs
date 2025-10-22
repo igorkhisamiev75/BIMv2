@@ -125,7 +125,7 @@ namespace BIMv2
                         ApartmentNumber = apartmentNumber,
                         LevelNumber = levelNumber,
                         MarketingSubtype = GetParameterValueAsString(room, "LG_Маркетинговый тип"),
-                        HorizontalAxis = GetParameterValueAsString(room, "LG_Номер этажа"),
+                        HorizontalAxis = GetParameterValueAsString(room, "ADSK_Примечание"),
                         VerticalAxis = GetParameterValueAsString(room, "LG_Номер этажа"),
                         RoomType = GetParameterValueAsString(room, "ADSK_Тип квартиры"),
                         RoomsType = GetParameterValueAsString(room, "LG_Тип квартиры"),
@@ -281,7 +281,10 @@ namespace BIMv2
                 // Форматирование заголовков
                 Range headerRange = worksheet.Range["A1", GetExcelColumnName(col - 1) + "1"];
                 headerRange.Font.Bold = true;
-                headerRange.Interior.Color = 12611584;
+                headerRange.Interior.Color = 15123099;
+
+                // Устанавливаем высоту первой строки
+                worksheet.Rows[1].RowHeight = 125; // Высота в пунктах
 
                 // Устанавливаем текстовый формат для столбца с условным номером помещения (столбец C)
                 Range apartmentNumberColumn = worksheet.Range["C:C"];
@@ -472,9 +475,10 @@ namespace BIMv2
                 // Имя без расширения
                 string modelName = System.IO.Path.GetFileNameWithoutExtension(fullPath);
 
-                // Сохраняем файл
+                // Сохраняем файл с временем выгрузки
+                string timestamp = DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
                 string savePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) +
-                                 $"\\Выгрузка_квартир для модели {modelName} .xlsx";
+                                 $"\\Выгрузка_квартир для модели {modelName}  дата выгрузки {timestamp}.xlsx";
                 workbook.SaveAs(savePath);
             }
             catch (Exception ex)

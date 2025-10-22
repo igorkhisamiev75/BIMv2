@@ -40,11 +40,12 @@ namespace BIMv2
                         .GroupBy(r => GetParameterValue(r, "ADSK_Номер квартиры"))
                         .Where(g => !string.IsNullOrEmpty(g.Key));
 
-                    // Получаем все оси в проекте
+                    // Получаем все оси в проекте и фильтруем исключенные
                     List<Grid> allGrids = new FilteredElementCollector(doc)
                         .OfCategory(BuiltInCategory.OST_Grids)
                         .WhereElementIsNotElementType()
                         .Cast<Grid>()
+                        .Where(g => !IsExcludedGrid(g, doc)) // Фильтруем исключенные оси
                         .ToList();
 
                     // Разделяем оси на вертикальные и горизонтальные
@@ -93,6 +94,51 @@ namespace BIMv2
                     return Result.Failed;
                 }
             }
+        }
+
+        private bool IsExcludedGrid(Grid grid, Document doc)
+        {
+            // Получаем имя типа оси
+            string gridTypeName = GetGridTypeName(grid, doc);
+
+            // Проверяем точное соответствие исключаемому названию типа
+            string excludedTypeName = "LG_Од. Круг двойной - с чертой";
+
+            if (!string.IsNullOrEmpty(gridTypeName) && gridTypeName.Equals(excludedTypeName, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private string GetGridTypeName(Grid grid, Document doc)
+        {
+            try
+            {
+                // Получаем ID типа оси
+                ElementId typeId = grid.GetTypeId();
+                if (typeId != null && typeId != ElementId.InvalidElementId)
+                {
+                    // Получаем элемент типа оси
+                    Element gridType = doc.GetElement(typeId);
+                    if (gridType != null)
+                    {
+                        // Получаем параметр Name типа оси
+                        Parameter nameParam = gridType.get_Parameter(BuiltInParameter.SYMBOL_NAME_PARAM);
+                        if (nameParam != null && nameParam.HasValue)
+                        {
+                            return nameParam.AsString();
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // В случае ошибки возвращаем null
+            }
+
+            return null;
         }
 
         private List<XYZ> GetExpandedBoundingPoints(List<Room> rooms)
@@ -343,14 +389,14 @@ namespace BIMv2
 
             if (verticalNames.Count > 0)
             {
-                result += $"Вертикальные: {string.Join(", ", verticalNames)}";
+                result += $" {string.Join(", ", verticalNames)}";
             }
 
             if (horizontalNames.Count > 0)
             {
                 if (!string.IsNullOrEmpty(result))
                     result += "; ";
-                result += $"Горизонтальные: {string.Join(", ", horizontalNames)}";
+                result += $" {string.Join(", ", horizontalNames)}";
             }
 
             return result;
