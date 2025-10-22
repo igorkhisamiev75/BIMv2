@@ -258,6 +258,7 @@
     </Compile>
     <Compile Include="ClearProjectBrowser\ClearProjectBrowser.cs" />
     <Compile Include="CollisionsWithWall\CollisionsWithWall.cs" />
+    <Compile Include="CombineRoomsAndFindAxes\CombineRoomsAndFindAxes.cs" />
     <Compile Include="ConvertGrids3Dto2D\ConvertGrids3Dto2D.cs" />
     <Compile Include="CountFinishCeiling\CountFinishCeiling.cs" />
     <Compile Include="CountFinishFloor\CountFinishFloor.cs" />

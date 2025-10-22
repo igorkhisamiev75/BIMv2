@@ -765,14 +765,28 @@ namespace BIMv2Buttons
 
 
             // create push button for CurveTotalLength  //namespace и класс
-            PushButtonData lgData1 = new PushButtonData("BIMv2.RoomExportCommand.cs", "Выгрузить квартиры"
-                + Environment.NewLine + "в Excel", thisAssemblyPath, "BIMv2.RoomExportCommand");
+            PushButtonData lgData1 = new PushButtonData("BIMv2.RoomExportCommand.cs", "Выгрузить квартиры в Excel"
+                , thisAssemblyPath, "BIMv2.RoomExportCommand");
 
             PushButton pbLG1 = lgRibbonPanelArRoom.AddItem(lgData1) as PushButton;
             pbLG1.ToolTip = "Выгрузка в Excel";
 
             BitmapImage pbLG1Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-l-32.png"));
+           // pbLG1.LargeImage = pbLG1Image;
             pbLG1.LargeImage = pbLG1Image;
+
+            //кнопка для нахоождения осей
+
+            // create push button for CurveTotalLength  //namespace и класс
+            PushButtonData lgData2 = new PushButtonData("BIMv2.CombineRoomsAndFindAxes.cs", "Поиск осей"
+                , thisAssemblyPath, "BIMv2.CombineRoomsAndFindAxes");
+
+            PushButton pbLG2 = lgRibbonPanelArRoom.AddItem(lgData2) as PushButton;
+            pbLG2.ToolTip = "Наити ограничивающие оси для квартиир";
+
+            BitmapImage pbLG2Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-l-32.png"));
+            // pbLG1.LargeImage = pbLG1Image;
+            pbLG2.LargeImage = pbLG2Image;
 
 
             PushButtonData lgbHData2 = new PushButtonData("cmdHelpBIMBlog", "Написать" + Environment.NewLine + "разработчику", thisAssemblyPath, "BIMv2.HelpBIMBlog");
