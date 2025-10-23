@@ -389,14 +389,14 @@ namespace BIMv2
 
             if (verticalNames.Count > 0)
             {
-                result += $"В: {string.Join(", ", verticalNames)}";
+                result += $" {string.Join("/ ", verticalNames)}";
             }
 
             if (horizontalNames.Count > 0)
             {
                 if (!string.IsNullOrEmpty(result))
-                    result += "; ";
-                result += $"Г: {string.Join(", ", horizontalNames)}";
+                    result += ";";
+                result += $" {string.Join("/ ", horizontalNames)}";
             }
 
             return result;
