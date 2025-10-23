@@ -367,9 +367,7 @@
     <Compile Include="PluginFinish2BIM\WallFinishing.cs" />
     <Compile Include="RoomExportPlugin.cs" />
     <Compile Include="RoomsByFloorFinishType.cs" />
-    <Compile Include="ScheduleToExcelExporter.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Include="ScheduleToExcelExporter.cs" />
     <Compile Include="SolarSystemFunProject.cs" />
     <Compile Include="SumAllLightingFixtureInRoom.cs" />
     <Compile Include="Test.cs" />

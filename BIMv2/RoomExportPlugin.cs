@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Windows.Forms;
 
 using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;
@@ -12,6 +13,7 @@ using Autodesk.Revit.UI;
 using Microsoft.Office.Interop.Excel;
 
 using Application = Microsoft.Office.Interop.Excel.Application;
+using Label = System.Windows.Forms.Label;
 using Parameter = Autodesk.Revit.DB.Parameter;
 
 namespace BIMv2
@@ -25,6 +27,8 @@ namespace BIMv2
             "Жилая комната", "Гардеробная", "Кухня", "Кухня-ниша", "Кухня-гостиная",
             "Санузел", "Прихожая", "Коридор", "Лоджия"
         };
+
+        private string _exportedFilePath;
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -40,13 +44,40 @@ namespace BIMv2
                     .WhereElementIsNotElementType()
                     .ToElements();
 
-                // Группируем помещения по квартирам и создаем объекты квартир
-                var apartments = CreateApartmentsFromRooms(rooms, doc);
+                // Создаем и показываем прогресс-бар
+                using (ProgressForm progressForm = new ProgressForm())
+                {
+                    progressForm.Show();
+                    System.Windows.Forms.Application.DoEvents();
 
-                // Экспортируем в Excel
-                ExportToExcel(apartments, doc);
+                    // Группируем помещения по квартирам и создаем объекты квартир
+                    progressForm.UpdateProgress("Обработка помещений...", 10);
+                    var apartments = CreateApartmentsFromRooms(rooms, doc, progressForm);
 
-                TaskDialog.Show("Успех", $"Экспорт {apartments.Count} квартир завершен успешно!");
+                    // Экспортируем в Excel
+                    progressForm.UpdateProgress("Экспорт в Excel...", 70);
+                    ExportToExcel(apartments, doc, progressForm);
+
+                    progressForm.UpdateProgress("Завершение...", 100);
+                    System.Threading.Thread.Sleep(500);
+                }
+
+                // Показываем диалог с вопросом об открытии файла
+                TaskDialog mainDialog = new TaskDialog("Экспорт завершен");
+                mainDialog.MainInstruction = $"Экспорт {GetApartmentCountFromRooms(rooms)} квартир завершен успешно!";
+                mainDialog.MainContent = $"Файл сохранен по пути:\n{_exportedFilePath}";
+                mainDialog.CommonButtons = TaskDialogCommonButtons.Yes | TaskDialogCommonButtons.No;
+                mainDialog.DefaultButton = TaskDialogResult.Yes;
+                mainDialog.MainIcon = TaskDialogIcon.TaskDialogIconInformation;
+
+                TaskDialogResult result = mainDialog.Show();
+
+                if (result == TaskDialogResult.Yes)
+                {
+                    // Открываем файл Excel
+                    System.Diagnostics.Process.Start(_exportedFilePath);
+                }
+
                 return Result.Succeeded;
             }
             catch (Exception ex)
@@ -55,6 +86,28 @@ namespace BIMv2
                 TaskDialog.Show("Ошибка", $"Ошибка при экспорте: {ex.Message}");
                 return Result.Failed;
             }
+        }
+
+        // Вспомогательный метод для получения количества квартир
+        private int GetApartmentCountFromRooms(ICollection<Element> rooms)
+        {
+            var apartmentNumbers = new HashSet<string>();
+            foreach (Element element in rooms)
+            {
+                Room room = element as Room;
+                if (room == null || room.Area == 0) continue;
+
+                string roomPurpose = GetParameterValueAsString(room, "Назначение");
+                if (roomPurpose != "Квартиры")
+                    continue;
+
+                string apartmentNumber = GetParameterValueAsString(room, "ADSK_Номер квартиры");
+                if (!string.IsNullOrEmpty(apartmentNumber))
+                {
+                    apartmentNumbers.Add(apartmentNumber);
+                }
+            }
+            return apartmentNumbers.Count;
         }
 
         // Функция для обрезки числовых значений из имени помещения
@@ -145,14 +198,21 @@ namespace BIMv2
             return int.MaxValue;
         }
 
-        private List<Apartment> CreateApartmentsFromRooms(ICollection<Element> rooms, Document doc)
+        private List<Apartment> CreateApartmentsFromRooms(ICollection<Element> rooms, Document doc, ProgressForm progressForm)
         {
             var apartmentDict = new Dictionary<string, Apartment>();
+            int totalRooms = rooms.Count;
+            int processedRooms = 0;
 
             foreach (Element element in rooms)
             {
                 Room room = element as Room;
                 if (room == null || room.Area == 0) continue;
+
+                // Обновляем прогресс
+                processedRooms++;
+                int progress = 10 + (int)((double)processedRooms / totalRooms * 50); // 10-60%
+                progressForm.UpdateProgress($"Обработка помещений ({processedRooms}/{totalRooms})...", progress);
 
                 // Проверяем назначение помещения - должно быть "Квартиры"
                 string roomPurpose = GetParameterValueAsString(room, "Назначение");
@@ -254,10 +314,11 @@ namespace BIMv2
             return apartmentDict.Values.ToList();
         }
 
-        private void ExportToExcel(List<Apartment> apartments, Document doc)
+        private void ExportToExcel(List<Apartment> apartments, Document doc, ProgressForm progressForm)
         {
             Application excelApp = new Application();
-            excelApp.Visible = true;
+            excelApp.Visible = false; // Скрываем Excel во время работы
+            excelApp.DisplayAlerts = false;
 
             Workbook workbook = excelApp.Workbooks.Add();
             Worksheet worksheet = workbook.ActiveSheet;
@@ -421,8 +482,16 @@ namespace BIMv2
                     .ToList();
 
                 int row = 2;
+                int totalApartments = sortedApartments.Count;
+                int processedApartments = 0;
+
                 foreach (var apartment in sortedApartments)
                 {
+                    // Обновляем прогресс для каждой квартиры
+                    processedApartments++;
+                    int progress = 70 + (int)((double)processedApartments / totalApartments * 25); // 70-95%
+                    progressForm.UpdateProgress($"Экспорт квартир ({processedApartments}/{totalApartments})...", progress);
+
                     col = 1;
 
                     // УБРАНЫ: Уровень, Наименование
@@ -559,9 +628,10 @@ namespace BIMv2
 
                 // Сохраняем файл с временем выгрузки
                 string timestamp = DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
-                string savePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) +
-                                 $"\\Выгрузка_квартир для модели {modelName}  дата выгрузки {timestamp}.xlsx";
-                workbook.SaveAs(savePath);
+                _exportedFilePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) +
+                                   $"\\Выгрузка_квартир для модели {modelName}  дата выгрузки {timestamp}.xlsx";
+
+                workbook.SaveAs(_exportedFilePath);
             }
             catch (Exception ex)
             {
@@ -827,6 +897,79 @@ namespace BIMv2
                 return param.AsDouble();
             }
             return 0.0;
+        }
+    }
+
+    // Класс формы прогресса
+    // Класс формы прогресса
+    public class ProgressForm : System.Windows.Forms.Form
+    {
+        private ProgressBar progressBar;
+        private Label label;
+        private Label titleLabel;
+
+        public ProgressForm()
+        {
+            InitializeComponent();
+        }
+
+        private void InitializeComponent()
+        {
+            this.Width = 900;
+            this.Height = 280;
+            this.FormBorderStyle = FormBorderStyle.FixedDialog;
+            this.StartPosition = FormStartPosition.CenterScreen;
+            this.Text = "Экспорт квартир для ФРС LEGENDA 1.0";
+            this.ControlBox = false;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
+            this.BackColor = System.Drawing.Color.White;
+            this.Padding = new Padding(120);
+
+            //// Заголовок
+            //titleLabel = new Label();
+            //titleLabel.Location = new System.Drawing.Point(20, 20);
+            //titleLabel.Width = 540;
+            //titleLabel.Height = 25;
+            //titleLabel.Text = "Экспорт квартир для ФРС LEGENDA 1.0";
+            //titleLabel.Font = new System.Drawing.Font("Arial", 10, System.Drawing.FontStyle.Bold);
+            //titleLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            //titleLabel.ForeColor = System.Drawing.Color.DarkBlue;
+
+            // Метка статуса
+            label = new Label();
+            label.Location = new System.Drawing.Point(20, 75);
+            label.Width = 840;
+            label.Height = 30;
+            label.Text = "Подготовка к экспорту...";
+            label.Font = new System.Drawing.Font("Arial", 9, System.Drawing.FontStyle.Regular);
+            label.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+
+            // Прогресс-бар
+            progressBar = new ProgressBar();
+            progressBar.Location = new System.Drawing.Point(60, 105);
+            progressBar.Width = 740;
+            progressBar.Height = 45;
+            progressBar.Style = ProgressBarStyle.Continuous;
+            progressBar.Minimum = 0;
+            progressBar.Maximum = 100;
+
+            this.Controls.Add(titleLabel);
+            this.Controls.Add(progressBar);
+            this.Controls.Add(label);
+        }
+
+        public void UpdateProgress(string message, int progress)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action<string, int>(UpdateProgress), message, progress);
+                return;
+            }
+
+            label.Text = message;
+            progressBar.Value = Math.Min(progress, 100);
+            System.Windows.Forms.Application.DoEvents();
         }
     }
 

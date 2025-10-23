@@ -313,9 +313,7 @@
     <Compile Include="DoorsInformationTransferFinishDoor\DoorsInformationTransferFinishDoor.cs" />
     <Compile Include="DoorsInformationTransfer\DoorsInformationTransfer.cs" />
     <Compile Include="DuplicateSheets\DuplicateSheets.cs" />
-    <Compile Include="ExportScheduleToExcel\ScheduleToExcelExporter.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Include="ExportScheduleToExcel\ScheduleToExcelExporter.cs" />
     <Compile Include="FindDoorsMirror\FindDoorsMirror.cs" />
     <Compile Include="FindDuctFiting\FindDuctFiting.cs" />
     <Compile Include="FindNameRoomForCeiling\FindNameRoomForCeiling.cs" />
