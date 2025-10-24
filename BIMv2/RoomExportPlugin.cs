@@ -343,7 +343,7 @@ namespace BIMv2
                 var priorityRoomNames = new List<string>
                 {
                     "Жилая комната", "Гардеробная", "Кухня", "Кухня-ниша", "Кухня-гостиная", "Коридор",
-                     "Прихожая", "Санузел", "Лоджия"
+                      "Санузел","Прихожая", "Лоджия"
                 };
 
                 // Собираем все уникальные имена помещений из всех квартир
@@ -625,6 +625,10 @@ namespace BIMv2
                 // Автоподбор ширины столбцов
                 worksheet.Columns.AutoFit();
 
+                // Закрепляем первую строку (заголовки)
+                worksheet.Application.ActiveWindow.SplitRow = 1;
+                worksheet.Application.ActiveWindow.FreezePanes = true;
+
                 // Добавляем границы
                 Range dataRange = worksheet.Range["A1", GetExcelColumnName(col - 1) + (row - 1).ToString()];
                 dataRange.Borders.LineStyle = XlLineStyle.xlContinuous;
@@ -720,7 +724,7 @@ namespace BIMv2
         {
             // Преобразуем имя помещения для заголовка столбца
             string baseName = roomName;
-            string suffix = number.HasValue ? $"_{number}" : "";
+            string suffix = number.HasValue ? $" {number}" : "";
 
             string lowerName = baseName.ToLower();
 
@@ -926,10 +930,10 @@ namespace BIMv2
         private void InitializeComponent()
         {
             this.Width = 900;
-            this.Height = 280;
+            this.Height = 300;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.StartPosition = FormStartPosition.CenterScreen;
-            this.Text = "Экспорт квартир для ФРС LEGENDA 1.0";
+            this.Text = "Экспорт квартир ФРС для СУП LEGENDA 1.0";
             this.ControlBox = false;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
@@ -954,8 +958,26 @@ namespace BIMv2
             progressBar.Minimum = 0;
             progressBar.Maximum = 100;
 
+            // Ссылка на сайт
+            LinkLabel linkLabel = new LinkLabel();
+            linkLabel.Location = new System.Drawing.Point(20, 165);
+            linkLabel.Width = 840;
+            linkLabel.Height = 25;
+            linkLabel.Text = "Сайт разработчика 2bim.ru";
+            linkLabel.Font = new System.Drawing.Font("Arial", 9, System.Drawing.FontStyle.Regular);
+            linkLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            linkLabel.LinkColor = System.Drawing.Color.Blue;
+            linkLabel.ActiveLinkColor = System.Drawing.Color.Red;
+            linkLabel.VisitedLinkColor = System.Drawing.Color.Purple;
+
+            // Обработчик клика по ссылке
+            linkLabel.LinkClicked += (sender, e) => {
+                System.Diagnostics.Process.Start("http://www.2bim.ru");
+            };
+
             this.Controls.Add(progressBar);
             this.Controls.Add(label);
+            this.Controls.Add(linkLabel); // Добавляем ссылку на форму
         }
 
         public void UpdateProgress(string message, int progress)
