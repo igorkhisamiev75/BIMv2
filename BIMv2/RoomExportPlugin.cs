@@ -465,13 +465,25 @@ namespace BIMv2
                 if (col > 7) worksheet.Range["H:H"].NumberFormat = "0.000";
                 // Высота потолка (столбец I)
                 if (col > 8) worksheet.Range["I:I"].NumberFormat = "0.00";
+
+                // Форматирование для всех столбцов с площадями помещений
+                int startRoomColumns = 11; // Столбцы с площадями помещений начинаются с 11-го
+                for (int i = startRoomColumns; i < startRoomColumns + columnHeaders.Count; i++)
+                {
+                    worksheet.Range[GetExcelColumnName(i) + ":" + GetExcelColumnName(i)].NumberFormat = "0.000";
+                }
+
                 // Площадь с коэффициентами
-                int coefficientColumn = columnHeaders.Count + 13; // 13 базовых столбцов до помещений (после удаления)
+                int coefficientColumn = startRoomColumns + columnHeaders.Count;
                 worksheet.Range[GetExcelColumnName(coefficientColumn) + ":" + GetExcelColumnName(coefficientColumn)].NumberFormat = "0.000";
+
                 // Площадь общ.
-                if (col > 3) worksheet.Range[GetExcelColumnName(col - 4) + ":" + GetExcelColumnName(col - 4)].NumberFormat = "0.000";
+                int totalAreaColumn = coefficientColumn + 1;
+                worksheet.Range[GetExcelColumnName(totalAreaColumn) + ":" + GetExcelColumnName(totalAreaColumn)].NumberFormat = "0.000";
+
                 // Площадь прив.
-                if (col > 3) worksheet.Range[GetExcelColumnName(col - 3) + ":" + GetExcelColumnName(col - 3)].NumberFormat = "0.000";
+                int reducedAreaColumn = totalAreaColumn + 1;
+                worksheet.Range[GetExcelColumnName(reducedAreaColumn) + ":" + GetExcelColumnName(reducedAreaColumn)].NumberFormat = "0.000";
 
                 // СОРТИРУЕМ КВАРТИРЫ по параметру LG_МаркаКвартирыФРС от меньшего к большему
                 var sortedApartments = apartments
@@ -524,7 +536,7 @@ namespace BIMv2
                     string marketingType = FormatMarketingType(apartment.MarketingType);
                     worksheet.Cells[row, col++] = marketingType;
 
-                    // Площадь жилая
+                    // Площадь жилая - гарантированно форматируем до тысячных
                     if (apartment.LivingArea > 0)
                     {
                         double livingArea = UnitUtils.ConvertFromInternalUnits(apartment.LivingArea, UnitTypeId.SquareMeters);
@@ -532,7 +544,7 @@ namespace BIMv2
                     }
                     else
                     {
-                        worksheet.Cells[row, col++] = "Нет данных";
+                        worksheet.Cells[row, col++] = "";
                     }
 
                     // Высота потолка
@@ -543,7 +555,7 @@ namespace BIMv2
                     }
                     else
                     {
-                        worksheet.Cells[row, col++] = "Нет данных";
+                        worksheet.Cells[row, col++] = "";
                     }
 
                     // Тип помещения
@@ -563,7 +575,9 @@ namespace BIMv2
                         var roomName = FindRoomNameForHeader(header, allRoomNames, roomNameGroups);
                         if (roomName != null && roomAreas.ContainsKey(roomName))
                         {
-                            worksheet.Cells[row, col] = Math.Round(roomAreas[roomName], 3);
+                            // Гарантированно форматируем до тысячных
+                            double area = Math.Round(roomAreas[roomName], 3);
+                            worksheet.Cells[row, col] = area;
                         }
                         else
                         {
@@ -571,8 +585,6 @@ namespace BIMv2
                         }
                         col++;
                     }
-
-                    // УБРАНЫ столбцы: Балкон, Лоджия, Терраса
 
                     // Площадь балкона лоджий, балконов, веранд, террас с коэффициентами
                     double areaWithCoefficients = CalculateAreaWithCoefficients(apartment);
@@ -587,7 +599,7 @@ namespace BIMv2
                     }
                     else
                     {
-                        worksheet.Cells[row, col++] = "Нет данных";
+                        worksheet.Cells[row, col++] = "";
                     }
 
                     // Площадь прив.
@@ -598,7 +610,7 @@ namespace BIMv2
                     }
                     else
                     {
-                        worksheet.Cells[row, col++] = "Нет данных";
+                        worksheet.Cells[row, col++] = "";
                     }
 
                     // Корпус
@@ -780,7 +792,7 @@ namespace BIMv2
                 }
             }
 
-            return totalAreaWithCoefficients;
+            return Math.Round(totalAreaWithCoefficients, 3);
         }
 
         private string FormatBalconyLoggiaText(Apartment apartment)
@@ -901,12 +913,10 @@ namespace BIMv2
     }
 
     // Класс формы прогресса
-    // Класс формы прогресса
     public class ProgressForm : System.Windows.Forms.Form
     {
         private ProgressBar progressBar;
         private Label label;
-        private Label titleLabel;
 
         public ProgressForm()
         {
@@ -926,16 +936,6 @@ namespace BIMv2
             this.BackColor = System.Drawing.Color.White;
             this.Padding = new Padding(120);
 
-            //// Заголовок
-            //titleLabel = new Label();
-            //titleLabel.Location = new System.Drawing.Point(20, 20);
-            //titleLabel.Width = 540;
-            //titleLabel.Height = 25;
-            //titleLabel.Text = "Экспорт квартир для ФРС LEGENDA 1.0";
-            //titleLabel.Font = new System.Drawing.Font("Arial", 10, System.Drawing.FontStyle.Bold);
-            //titleLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            //titleLabel.ForeColor = System.Drawing.Color.DarkBlue;
-
             // Метка статуса
             label = new Label();
             label.Location = new System.Drawing.Point(20, 75);
@@ -954,7 +954,6 @@ namespace BIMv2
             progressBar.Minimum = 0;
             progressBar.Maximum = 100;
 
-            this.Controls.Add(titleLabel);
             this.Controls.Add(progressBar);
             this.Controls.Add(label);
         }
