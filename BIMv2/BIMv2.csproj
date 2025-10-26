@@ -346,6 +346,7 @@
     <Compile Include="GroupWallsBeams.cs" />
     <Compile Include="HelpBIM.cs" />
     <Compile Include="JoinWalls.cs" />
+    <Compile Include="Level3DViewPlugin.cs" />
     <Compile Include="LG_RoomsInformation.cs" />
     <Compile Include="MakingHolesForDoorsLink.cs" />
     <Compile Include="MakingHolesForFacadeWindows.cs" />
@@ -353,7 +354,7 @@
     <Compile Include="MakingHolesForWindows.cs" />
     <Compile Include="MakingHolesForWindowsCheck.cs" />
     <Compile Include="MIrrorCheck.cs" />
-    <Compile Include="MultiFileLoader.cs" />
+    <Compile Include="LoadFilesAutoSharedCoordinatesCommand.cs" />
     <Compile Include="NormalIlluminationForLightFix.cs" />
     <Compile Include="PlaceElementsAboveDoors.cs" />
     <Compile Include="PluginFinish2BIM\CeilingFinish.cs" />

@@ -280,6 +280,7 @@
     </Compile>
     <Compile Include="CreateFromDWG\CreateFromDWG.cs" />
     <Compile Include="CreateFromDWG\CreateFromDWGPipe.cs" />
+    <Compile Include="CreateLevel3DViews\Level3DViewPlugin.cs" />
     <Compile Include="CreateLightingInRoom\CreateLightingInRoom.cs" />
     <Compile Include="CreateModelTextRoomNameInRoom\CreateModelTextRoomNameInRoom.cs" />
     <Compile Include="CreateModelText\CreateModelText.cs" />
@@ -345,6 +346,7 @@
     <Compile Include="LintelsOnTheFloor2\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="LoadFilesAutoSharedCoordinatesCommand\LoadFilesAutoSharedCoordinatesCommand.cs" />
     <Compile Include="RoomExportPlugin\RoomExportPlugin.cs" />
     <Compile Include="SumAllLightingFixtureInRoom\SumAllLightingFixtureInRoom.cs" />
     <Compile Include="MakingHolesForFacadeWindowsDoors\MakingHolesForFacadeWindowsDoors.cs" />
@@ -583,6 +585,9 @@
   <ItemGroup>
     <Resource Include="Resources\icons8-l-32 %281%29.png" />
     <Resource Include="Resources\icons8-microsoft-excel-32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\icons8-chain-16.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
