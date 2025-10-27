@@ -329,8 +329,10 @@ namespace BIMv2
             {
                 int col = 1;
 
-                // Базовые заголовки столбцов в нужном порядке (убраны Уровень, Наименование, Маркетинговый подтип)
+                // Базовые заголовки столбцов в нужном порядке
                 worksheet.Cells[1, col++] = "Условный номер помещения";
+                worksheet.Cells[1, col++] = "Маркетинговый подтип 2_1_0Э, 2_2_0";
+                worksheet.Cells[1, col++] = "Тип планировки 2_1, 2_2";
                 worksheet.Cells[1, col++] = "Горизонтальная ось";
                 worksheet.Cells[1, col++] = "Вертикальная ось";
                 worksheet.Cells[1, col++] = "Вид помещения студия, _1 сп, _2 сп";
@@ -339,30 +341,38 @@ namespace BIMv2
                 worksheet.Cells[1, col++] = "Маркетинговый тип 2_М, 2_L";
                 worksheet.Cells[1, col++] = "Площадь жилая";
                 worksheet.Cells[1, col++] = "Высота потолка";
+                worksheet.Cells[1, col++] = "Назначение помещения";
                 worksheet.Cells[1, col++] = "Тип помещения кв., комм., паркинг";
 
-                // СОЗДАЕМ СПИСОК ЗАГОЛОВКОВ С ПЛОЩАДЯМИ В НУЖНОМ ПОРЯДКЕ ПРИОРИТЕТА
-                var priorityRoomNames = new List<string>
-                {
-                    "Жилая комната", "Гардеробная", "Кухня", "Кухня-ниша", "Кухня-гостиная", "Коридор",
-                     "Прихожая", "Санузел", "Лоджия"
-                };
+                // СОЗДАЕМ ФИКСИРОВАННЫЙ СПИСОК ЗАГОЛОВКОВ С 5 СТОЛБЦАМИ ДЛЯ ЖИЛЫХ КОМНАТ
+                var fixedRoomHeaders = new List<string>();
 
-                // Собираем все уникальные имена помещений из всех квартир
-                var allRoomNames = apartments
+                // Всегда добавляем 5 столбцов для жилых комнат
+                for (int i = 1; i <= 5; i++)
+                {
+                    fixedRoomHeaders.Add($"Площадь жилой комнаты {i}");
+                }
+
+                // Собираем остальные уникальные имена помещений из всех квартир (кроме жилых комнат)
+                var otherRoomNames = apartments
                     .SelectMany(a => a.Rooms)
-                    .Where(r => _allowedRoomNames.Contains(r.CleanedName))
-                    .Select(r => r.FinalName) // Используем FinalName для уникальности
+                    .Where(r => _allowedRoomNames.Contains(r.CleanedName) && !r.CleanedName.Equals("Жилая комната", StringComparison.OrdinalIgnoreCase))
+                    .Select(r => r.FinalName)
                     .Distinct()
                     .ToList();
 
-                // Группируем помещения по базовым именам для нумерации, сохраняя порядок приоритета
-                var roomNameGroups = new List<IGrouping<string, string>>();
-
-                // Сначала добавляем помещения в порядке приоритета
-                foreach (var priorityName in priorityRoomNames)
+                // Группируем остальные помещения по базовым именам
+                var otherRoomGroups = new List<IGrouping<string, string>>();
+                var priorityOtherNames = new List<string>
                 {
-                    var roomsWithPriorityName = allRoomNames
+                    "Гардеробная", "Кухня", "Кухня-ниша", "Кухня-гостиная", "Коридор",
+                    "Прихожая", "Санузел", "Лоджия"
+                };
+
+                // Добавляем остальные помещения в порядке приоритета
+                foreach (var priorityName in priorityOtherNames)
+                {
+                    var roomsWithPriorityName = otherRoomNames
                         .Where(name =>
                         {
                             var baseName = Regex.Replace(name, @"_\d+$", "").Trim();
@@ -380,24 +390,24 @@ namespace BIMv2
 
                         if (group != null)
                         {
-                            roomNameGroups.Add(group);
+                            otherRoomGroups.Add(group);
                         }
                     }
                 }
 
-                // Затем добавляем остальные помещения (если есть)
-                var remainingNames = allRoomNames
+                // Добавляем остальные помещения (если есть)
+                var remainingOtherNames = otherRoomNames
                     .Where(name =>
                     {
                         var baseName = Regex.Replace(name, @"_\d+$", "").Trim();
-                        return !priorityRoomNames.Contains(baseName, StringComparer.OrdinalIgnoreCase);
+                        return !priorityOtherNames.Contains(baseName, StringComparer.OrdinalIgnoreCase);
                     })
                     .OrderBy(name => name);
 
-                foreach (var name in remainingNames)
+                foreach (var name in remainingOtherNames)
                 {
                     var baseName = Regex.Replace(name, @"_\d+$", "").Trim();
-                    var group = allRoomNames
+                    var group = otherRoomNames
                         .Where(n =>
                         {
                             var nBaseName = Regex.Replace(n, @"_\d+$", "").Trim();
@@ -406,40 +416,41 @@ namespace BIMv2
                         .GroupBy(n => baseName)
                         .FirstOrDefault();
 
-                    if (group != null && !roomNameGroups.Any(g => g.Key.Equals(baseName, StringComparison.OrdinalIgnoreCase)))
+                    if (group != null && !otherRoomGroups.Any(g => g.Key.Equals(baseName, StringComparison.OrdinalIgnoreCase)))
                     {
-                        roomNameGroups.Add(group);
+                        otherRoomGroups.Add(group);
                     }
                 }
 
-                // Создаем список заголовков с правильной нумерацией в порядке приоритета
-                var columnHeaders = new List<string>();
-                foreach (var group in roomNameGroups)
+                // Создаем список заголовков для остальных помещений
+                var otherColumnHeaders = new List<string>();
+                foreach (var group in otherRoomGroups)
                 {
                     if (group.Count() == 1)
                     {
-                        // Если помещение одно, без номера
-                        columnHeaders.Add(FormatRoomColumnName(group.Key, null));
+                        otherColumnHeaders.Add(FormatRoomColumnName(group.Key, null));
                     }
                     else
                     {
-                        // Если несколько помещений с одинаковым именем, нумеруем их
                         int counter = 1;
                         foreach (var roomName in group.OrderBy(x => x))
                         {
-                            columnHeaders.Add(FormatRoomColumnName(group.Key, counter));
+                            otherColumnHeaders.Add(FormatRoomColumnName(group.Key, counter));
                             counter++;
                         }
                     }
                 }
 
-                // Добавляем заголовки для ВСЕХ уникальных помещений с префиксом "Площадь" и правильной нумерацией
-                foreach (var header in columnHeaders)
+                // ОБЪЕДИНЯЕМ ФИКСИРОВАННЫЕ ЗАГОЛОВКИ ЖИЛЫХ КОМНАТ С ОСТАЛЬНЫМИ
+                var allColumnHeaders = new List<string>();
+                allColumnHeaders.AddRange(fixedRoomHeaders);
+                allColumnHeaders.AddRange(otherColumnHeaders);
+
+                // Добавляем заголовки для ВСЕХ помещений
+                foreach (var header in allColumnHeaders)
                 {
                     worksheet.Cells[1, col++] = header;
                 }
-
-                // УБРАНЫ столбцы: Балкон, Лоджия, Терраса
 
                 // Добавляем столбец с коэффициентами
                 worksheet.Cells[1, col++] = "Площадь балкона лоджий, балконов, веранд, террас с коэффициентами, кв.м.";
@@ -449,11 +460,17 @@ namespace BIMv2
                 worksheet.Cells[1, col++] = "Площадь прив.";
                 worksheet.Cells[1, col++] = "Корпус";
                 worksheet.Cells[1, col++] = "Секция";
+                worksheet.Cells[1, col++] = "Заморозка архитекторами";
 
-                // Форматирование заголовков
+                // Форматирование заголовков - БЕЗ ЖИРНОГО ШРИФТА
                 Range headerRange = worksheet.Range["A1", GetExcelColumnName(col - 1) + "1"];
-                headerRange.Font.Bold = true;
+                headerRange.Font.Bold = false; // Убираем жирный шрифт
                 headerRange.Interior.Color = 15123099;
+
+                // Выравнивание заголовков по центру и перенос текста
+                headerRange.HorizontalAlignment = XlHAlign.xlHAlignCenter;
+                headerRange.VerticalAlignment = XlVAlign.xlVAlignCenter;
+                headerRange.WrapText = true;
 
                 // Устанавливаем высоту первой строки
                 worksheet.Rows[1].RowHeight = 125; // Высота в пунктах
@@ -463,20 +480,20 @@ namespace BIMv2
                 apartmentNumberColumn.NumberFormat = "@";
 
                 // Устанавливаем числовые форматы для столбцов с площадями и высотой потолка
-                // Площадь жилая (столбец H)
-                if (col > 7) worksheet.Range["H:H"].NumberFormat = "0.000";
-                // Высота потолка (столбец I)
-                if (col > 8) worksheet.Range["I:I"].NumberFormat = "0.00";
+                // Площадь жилая (столбец J)
+                if (col > 9) worksheet.Range["J:J"].NumberFormat = "0.000";
+                // Высота потолка (столбец K)
+                if (col > 10) worksheet.Range["K:K"].NumberFormat = "0.00";
 
                 // Форматирование для всех столбцов с площадями помещений
-                int startRoomColumns = 11; // Столбцы с площадями помещений начинаются с 11-го
-                for (int i = startRoomColumns; i < startRoomColumns + columnHeaders.Count; i++)
+                int startRoomColumns = 14; // Столбцы с площадями помещений начинаются с 14-го
+                for (int i = startRoomColumns; i < startRoomColumns + allColumnHeaders.Count; i++)
                 {
                     worksheet.Range[GetExcelColumnName(i) + ":" + GetExcelColumnName(i)].NumberFormat = "0.000";
                 }
 
                 // Площадь с коэффициентами
-                int coefficientColumn = startRoomColumns + columnHeaders.Count;
+                int coefficientColumn = startRoomColumns + allColumnHeaders.Count;
                 worksheet.Range[GetExcelColumnName(coefficientColumn) + ":" + GetExcelColumnName(coefficientColumn)].NumberFormat = "0.000";
 
                 // Площадь общ.
@@ -508,8 +525,6 @@ namespace BIMv2
 
                     col = 1;
 
-                    // УБРАНЫ: Уровень, Наименование
-
                     // Условный номер помещения - используем параметр LG_МаркаКвартирыФРС с ведущими нулями
                     string conditionalNumber = !string.IsNullOrEmpty(apartment.FormattedApartmentMark) ?
                         apartment.FormattedApartmentMark :
@@ -517,6 +532,12 @@ namespace BIMv2
                             apartment.ApartmentMark :
                             FormatApartmentNumber(apartment.ApartmentNumber));
                     worksheet.Cells[row, col++] = conditionalNumber;
+
+                    // Маркетинговый подтип 2_1_0Э, 2_2_0 - пустой столбец
+                    worksheet.Cells[row, col++] = "";
+
+                    // Тип планировки 2_1, 2_2 - пустой столбец
+                    worksheet.Cells[row, col++] = "";
 
                     // Горизонтальная ось
                     worksheet.Cells[row, col++] = apartment.HorizontalAxis;
@@ -560,6 +581,9 @@ namespace BIMv2
                         worksheet.Cells[row, col++] = "";
                     }
 
+                    // Назначение помещения - пустой столбец
+                    worksheet.Cells[row, col++] = "";
+
                     // Тип помещения
                     worksheet.Cells[row, col++] = "Квартира";
 
@@ -572,16 +596,52 @@ namespace BIMv2
                         roomAreasWithCoefficient[room.FinalName] = areaToUse;
                     }
 
-                    // Заполняем площади для всех уникальных помещений в соответствии с порядком заголовков
-                    foreach (var header in columnHeaders)
+                    // ЗАПОЛНЯЕМ ПЛОЩАДИ ДЛЯ ВСЕХ СТОЛБЦОВ
+                    foreach (var header in allColumnHeaders)
                     {
-                        // Находим соответствующее имя помещения для этого заголовка
-                        var roomName = FindRoomNameForHeader(header, allRoomNames, roomNameGroups);
-                        if (roomName != null && roomAreasWithCoefficient.ContainsKey(roomName))
+                        double area = 0;
+                        bool areaFound = false;
+
+                        // Для столбцов жилых комнат
+                        if (header.StartsWith("Площадь жилой комнаты"))
                         {
-                            // Гарантированно форматируем до тысячных
-                            double area = Math.Round(roomAreasWithCoefficient[roomName], 3);
-                            worksheet.Cells[row, col] = area;
+                            // Извлекаем номер комнаты из заголовка
+                            Match match = Regex.Match(header, @"Площадь жилой комнаты\s*(\d+)");
+                            if (match.Success)
+                            {
+                                string roomNumber = match.Groups[1].Value;
+
+                                // Ищем соответствующие жилые комнаты в квартире
+                                var livingRooms = apartment.Rooms
+                                    .Where(r => r.CleanedName.Equals("Жилая комната", StringComparison.OrdinalIgnoreCase))
+                                    .OrderBy(r => r.FinalName)
+                                    .ToList();
+
+                                int roomIndex;
+                                if (int.TryParse(roomNumber, out roomIndex) && roomIndex <= livingRooms.Count)
+                                {
+                                    // Берем площадь комнаты по порядковому номеру
+                                    var livingRoom = livingRooms[roomIndex - 1];
+                                    area = roomAreasWithCoefficient.ContainsKey(livingRoom.FinalName) ?
+                                           roomAreasWithCoefficient[livingRoom.FinalName] : 0;
+                                    areaFound = true;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // Для остальных помещений используем старую логику
+                            var roomName = FindRoomNameForHeader(header, otherRoomNames, otherRoomGroups);
+                            if (roomName != null && roomAreasWithCoefficient.ContainsKey(roomName))
+                            {
+                                area = roomAreasWithCoefficient[roomName];
+                                areaFound = true;
+                            }
+                        }
+
+                        if (areaFound)
+                        {
+                            worksheet.Cells[row, col] = Math.Round(area, 3);
                         }
                         else
                         {
@@ -622,6 +682,15 @@ namespace BIMv2
 
                     // Секция
                     worksheet.Cells[row, col++] = apartment.Section;
+
+                    // Заморозка архитекторами - пустой столбец
+                    worksheet.Cells[row, col++] = "";
+
+                    // ПРИМЕНЯЕМ ФОРМАТИРОВАНИЕ К СТРОКЕ
+                    Range rowRange = worksheet.Range["A" + row, GetExcelColumnName(col - 1) + row];
+                    rowRange.HorizontalAlignment = XlHAlign.xlHAlignCenter;
+                    rowRange.VerticalAlignment = XlVAlign.xlVAlignCenter;
+                    rowRange.WrapText = true;
 
                     row++;
                 }
@@ -687,8 +756,8 @@ namespace BIMv2
             // Извлекаем базовое имя из заголовка
             string baseHeader = header.Replace("Площадь ", "").Trim();
 
-            // Удаляем номер из заголовка если есть
-            string baseName = Regex.Replace(baseHeader, @"_\d+$", "").Trim();
+            // Удаляем номер из заголовка если есть (теперь без нижнего подчеркивания)
+            string baseName = Regex.Replace(baseHeader, @"\s+\d+$", "").Trim();
 
             // Находим группу для этого базового имени
             var group = roomNameGroups.FirstOrDefault(g =>
@@ -696,10 +765,10 @@ namespace BIMv2
 
             if (group != null)
             {
-                // Если в заголовке есть номер
-                if (header.Contains("_"))
+                // Если в заголовке есть номер (теперь пробел вместо подчеркивания)
+                if (Regex.IsMatch(header, @"\s+\d+$"))
                 {
-                    Match match = Regex.Match(header, @"_(\d+)$");
+                    Match match = Regex.Match(header, @"\s+(\d+)$");
                     if (match.Success && int.TryParse(match.Groups[1].Value, out int headerNumber))
                     {
                         // Берем помещение с соответствующим номером из группы
@@ -724,11 +793,11 @@ namespace BIMv2
         {
             // Преобразуем имя помещения для заголовка столбца
             string baseName = roomName;
-            string suffix = number.HasValue ? $"_{number}" : "";
+            string suffix = number.HasValue ? $" {number}" : ""; // ПРОБЕЛ вместо нижнего подчеркивания
 
             string lowerName = baseName.ToLower();
 
-            // Определяем, нужно ли добавлять "ой" или "ой_"
+            // Определяем, нужно ли добавлять "ой" или "ой "
             if (lowerName.Contains("гардеробная"))
             {
                 return "Площадь гардеробной" + suffix;
