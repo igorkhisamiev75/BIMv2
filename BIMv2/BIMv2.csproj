@@ -265,6 +265,7 @@
     <Compile Include="CheckRooms\CheckRoomsSelectLink.xaml.cs">
       <DependentUpon>CheckRoomsSelectLink.xaml</DependentUpon>
     </Compile>
+    <Compile Include="CleanRevitFile.cs" />
     <Compile Include="ClearDependencies.cs" />
     <Compile Include="archive\ClearProjectBrowser.cs" />
     <Compile Include="ClearProjectBrowserViewsNotSheets.cs" />
