@@ -13,7 +13,7 @@ namespace BIMv2
     [Transaction(TransactionMode.Manual)]
     public class CombineRoomsAndFindAxes : IExternalCommand
     {
-        private const double OFFSET_DISTANCE = 0.3; // 300 мм в метрах
+        private const double OFFSET_DISTANCE = 0.150; // 300 мм в метрах
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -58,14 +58,14 @@ namespace BIMv2
                         string apartmentNumber = apartmentGroup.Key;
                         var rooms = apartmentGroup.ToList();
 
-                        // Получаем объединенный контур всех помещений квартиры с отступом 300 мм
-                        List<XYZ> expandedBoundingPoints = GetExpandedBoundingPoints(rooms);
+                        // Получаем только 2 крайние точки квартиры с отступом 300 мм
+                        List<XYZ> extremePoints = GetMinMaxPointsWithOffset(rooms);
 
-                        if (expandedBoundingPoints.Count == 0) continue;
+                        if (extremePoints.Count < 2) continue;
 
-                        // Находим ближайшие оси для угловых точек
-                        var (closestVerticalAxes, closestHorizontalAxes) = FindClosestAxes(
-                            expandedBoundingPoints, verticalGrids, horizontalGrids);
+                        // Находим ближайшие оси только для 2 крайних точек
+                        var (closestVerticalAxes, closestHorizontalAxes) = FindClosestAxesForTwoPoints(
+                            extremePoints, verticalGrids, horizontalGrids);
 
                         // Ограничиваем количество осей до 2 и сортируем
                         var sortedVerticalAxes = SortAndLimitAxes(closestVerticalAxes, true); // true - вертикальные
@@ -94,6 +94,101 @@ namespace BIMv2
                     return Result.Failed;
                 }
             }
+        }
+
+        private List<XYZ> GetMinMaxPointsWithOffset(List<Room> rooms)
+        {
+            List<XYZ> allPoints = new List<XYZ>();
+
+            foreach (Room room in rooms)
+            {
+                try
+                {
+                    // Получаем границы помещения
+                    SpatialElementBoundaryOptions options = new SpatialElementBoundaryOptions
+                    {
+                        SpatialElementBoundaryLocation = SpatialElementBoundaryLocation.Center
+                    };
+
+                    IList<IList<BoundarySegment>> boundaries = room.GetBoundarySegments(options);
+
+                    if (boundaries == null) continue;
+
+                    foreach (IList<BoundarySegment> boundary in boundaries)
+                    {
+                        foreach (BoundarySegment segment in boundary)
+                        {
+                            Curve curve = segment.GetCurve();
+                            if (curve != null && curve.Length > 0.001)
+                            {
+                                allPoints.Add(curve.GetEndPoint(0));
+                                allPoints.Add(curve.GetEndPoint(1));
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // Пропускаем помещения с ошибками границ
+                    continue;
+                }
+            }
+
+            if (allPoints.Count == 0) return allPoints;
+
+            // Находим минимальные и максимальные точки
+            double minX = allPoints[0].X, maxX = allPoints[0].X;
+            double minY = allPoints[0].Y, maxY = allPoints[0].Y;
+
+            foreach (XYZ point in allPoints)
+            {
+                minX = Math.Min(minX, point.X);
+                maxX = Math.Max(maxX, point.X);
+                minY = Math.Min(minY, point.Y);
+                maxY = Math.Max(maxY, point.Y);
+            }
+
+            // Применяем отступ 300 мм
+            minX -= OFFSET_DISTANCE;
+            maxX += OFFSET_DISTANCE;
+            minY -= OFFSET_DISTANCE;
+            maxY += OFFSET_DISTANCE;
+
+            // Возвращаем только 2 точки: минимум и максимум по XY
+            return new List<XYZ>
+            {
+                new XYZ(minX, minY, 0), // Минимум XY (левый нижний)
+                new XYZ(maxX, maxY, 0)  // Максимум XY (правый верхний)
+            };
+        }
+
+        private (List<Grid> vertical, List<Grid> horizontal) FindClosestAxesForTwoPoints(
+            List<XYZ> extremePoints, List<Grid> verticalGrids, List<Grid> horizontalGrids)
+        {
+            if (extremePoints.Count < 2)
+                return (new List<Grid>(), new List<Grid>());
+
+            XYZ minPoint = extremePoints[0]; // Минимум XY
+            XYZ maxPoint = extremePoints[1]; // Максимум XY
+
+            HashSet<Grid> closestVertical = new HashSet<Grid>();
+            HashSet<Grid> closestHorizontal = new HashSet<Grid>();
+
+            // Для точки минимума XY ищем ближайшие оси
+            Grid minVerticalGrid = FindClosestGridToPoint(minPoint, verticalGrids);
+            Grid minHorizontalGrid = FindClosestGridToPoint(minPoint, horizontalGrids);
+
+            // Для точки максимума XY ищем ближайшие оси
+            Grid maxVerticalGrid = FindClosestGridToPoint(maxPoint, verticalGrids);
+            Grid maxHorizontalGrid = FindClosestGridToPoint(maxPoint, horizontalGrids);
+
+            // Добавляем найденные оси
+            if (minVerticalGrid != null) closestVertical.Add(minVerticalGrid);
+            if (maxVerticalGrid != null) closestVertical.Add(maxVerticalGrid);
+            if (minHorizontalGrid != null) closestHorizontal.Add(minHorizontalGrid);
+            if (maxHorizontalGrid != null) closestHorizontal.Add(maxHorizontalGrid);
+
+            return (closestVertical.ToList(), closestHorizontal.ToList());
         }
 
         private bool IsExcludedGrid(Grid grid, Document doc)
@@ -141,93 +236,6 @@ namespace BIMv2
             return null;
         }
 
-        private List<XYZ> GetExpandedBoundingPoints(List<Room> rooms)
-        {
-            List<XYZ> allPoints = new List<XYZ>();
-
-            foreach (Room room in rooms)
-            {
-                try
-                {
-                    // Получаем границы помещения
-                    SpatialElementBoundaryOptions options = new SpatialElementBoundaryOptions
-                    {
-                        SpatialElementBoundaryLocation = SpatialElementBoundaryLocation.Center
-                    };
-
-                    IList<IList<BoundarySegment>> boundaries = room.GetBoundarySegments(options);
-
-                    if (boundaries == null) continue;
-
-                    foreach (IList<BoundarySegment> boundary in boundaries)
-                    {
-                        foreach (BoundarySegment segment in boundary)
-                        {
-                            Curve curve = segment.GetCurve();
-                            if (curve != null && curve.Length > 0.001)
-                            {
-                                allPoints.Add(curve.GetEndPoint(0));
-                                allPoints.Add(curve.GetEndPoint(1));
-                            }
-                        }
-                    }
-                }
-                catch
-                {
-                    // Пропускаем помещения с ошибками границ
-                    continue;
-                }
-            }
-
-            if (allPoints.Count == 0) return allPoints;
-
-            // Находим bounding box всех точек
-            BoundingBoxXYZ bbox = CalculateBoundingBox(allPoints);
-
-            // Расширяем bounding box на 300 мм
-            bbox.Min = new XYZ(bbox.Min.X - OFFSET_DISTANCE, bbox.Min.Y - OFFSET_DISTANCE, bbox.Min.Z);
-            bbox.Max = new XYZ(bbox.Max.X + OFFSET_DISTANCE, bbox.Max.Y + OFFSET_DISTANCE, bbox.Max.Z);
-
-            // Возвращаем угловые точки расширенного bounding box
-            return GetBoundingBoxCorners(bbox);
-        }
-
-        private BoundingBoxXYZ CalculateBoundingBox(List<XYZ> points)
-        {
-            if (points.Count == 0) return null;
-
-            double minX = points[0].X, minY = points[0].Y, minZ = points[0].Z;
-            double maxX = points[0].X, maxY = points[0].Y, maxZ = points[0].Z;
-
-            foreach (XYZ point in points)
-            {
-                minX = Math.Min(minX, point.X);
-                minY = Math.Min(minY, point.Y);
-                minZ = Math.Min(minZ, point.Z);
-                maxX = Math.Max(maxX, point.X);
-                maxY = Math.Max(maxY, point.Y);
-                maxZ = Math.Max(maxZ, point.Z);
-            }
-
-            BoundingBoxXYZ bbox = new BoundingBoxXYZ();
-            bbox.Min = new XYZ(minX, minY, minZ);
-            bbox.Max = new XYZ(maxX, maxY, maxZ);
-
-            return bbox;
-        }
-
-        private List<XYZ> GetBoundingBoxCorners(BoundingBoxXYZ bbox)
-        {
-            // Возвращаем 4 угловые точки в 2D плоскости (Z=0)
-            return new List<XYZ>
-            {
-                new XYZ(bbox.Min.X, bbox.Min.Y, 0), // Левый нижний
-                new XYZ(bbox.Max.X, bbox.Min.Y, 0), // Правый нижний
-                new XYZ(bbox.Max.X, bbox.Max.Y, 0), // Правый верхний
-                new XYZ(bbox.Min.X, bbox.Max.Y, 0)  // Левый верхний
-            };
-        }
-
         private (List<Grid> vertical, List<Grid> horizontal) ClassifyGrids(List<Grid> allGrids)
         {
             List<Grid> verticalGrids = new List<Grid>();
@@ -271,32 +279,6 @@ namespace BIMv2
         {
             // Горизонтальные оси: преимущественно по X
             return Math.Abs(direction.X) > Math.Abs(direction.Y);
-        }
-
-        private (List<Grid> vertical, List<Grid> horizontal) FindClosestAxes(
-            List<XYZ> boundingPoints, List<Grid> verticalGrids, List<Grid> horizontalGrids)
-        {
-            HashSet<Grid> closestVertical = new HashSet<Grid>();
-            HashSet<Grid> closestHorizontal = new HashSet<Grid>();
-
-            foreach (XYZ point in boundingPoints)
-            {
-                // Находим ближайшую вертикальную ось для текущей точки
-                Grid closestVerticalGrid = FindClosestGridToPoint(point, verticalGrids);
-                if (closestVerticalGrid != null)
-                {
-                    closestVertical.Add(closestVerticalGrid);
-                }
-
-                // Находим ближайшую горизонтальную ось для текущей точки
-                Grid closestHorizontalGrid = FindClosestGridToPoint(point, horizontalGrids);
-                if (closestHorizontalGrid != null)
-                {
-                    closestHorizontal.Add(closestHorizontalGrid);
-                }
-            }
-
-            return (closestVertical.ToList(), closestHorizontal.ToList());
         }
 
         private Grid FindClosestGridToPoint(XYZ point, List<Grid> grids)

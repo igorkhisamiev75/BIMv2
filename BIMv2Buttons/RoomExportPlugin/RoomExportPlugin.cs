@@ -284,7 +284,9 @@ namespace BIMv2
                 if (isAllowedRoom || isBalconyOrLoggia)
                 {
                     double roomArea = UnitUtils.ConvertFromInternalUnits(room.Area, UnitTypeId.SquareMeters);
-                    double roomAreaWithCoefficient = GetParameterValueAsDouble(room, "ADSK_Площадь помещения с коэффициентом");
+
+                    // ИСПОЛЬЗУЕМ AsValueString ДЛЯ ПАРАМЕТРА "ADSK_Площадь с коэффициентом"
+                    double roomAreaWithCoefficient = GetParameterValueAsDoubleFromString(room, "ADSK_Площадь с коэффициентом");
 
                     // Создаем уникальное имя помещения с номером, если есть дубликаты
                     string finalRoomName = cleanedRoomName;
@@ -561,11 +563,13 @@ namespace BIMv2
                     // Тип помещения
                     worksheet.Cells[row, col++] = "Квартира";
 
-                    // СОЗДАЕМ СЛОВАРЬ ПЛОЩАДЕЙ С ИСПОЛЬЗОВАНИЕМ FinalName КАК КЛЮЧА
-                    var roomAreas = new Dictionary<string, double>();
+                    // СОЗДАЕМ СЛОВАРЬ ПЛОЩАДЕЙ С КОЭФФИЦИЕНТАМИ С ИСПОЛЬЗОВАНИЕМ FinalName КАК КЛЮЧА
+                    var roomAreasWithCoefficient = new Dictionary<string, double>();
                     foreach (var room in apartment.Rooms.Where(r => _allowedRoomNames.Contains(r.CleanedName)))
                     {
-                        roomAreas[room.FinalName] = room.Area;
+                        // ИСПОЛЬЗУЕМ ПЛОЩАДЬ С КОЭФФИЦИЕНТОМ вместо обычной площади
+                        double areaToUse = room.AreaWithCoefficient > 0 ? room.AreaWithCoefficient : room.Area;
+                        roomAreasWithCoefficient[room.FinalName] = areaToUse;
                     }
 
                     // Заполняем площади для всех уникальных помещений в соответствии с порядком заголовков
@@ -573,10 +577,10 @@ namespace BIMv2
                     {
                         // Находим соответствующее имя помещения для этого заголовка
                         var roomName = FindRoomNameForHeader(header, allRoomNames, roomNameGroups);
-                        if (roomName != null && roomAreas.ContainsKey(roomName))
+                        if (roomName != null && roomAreasWithCoefficient.ContainsKey(roomName))
                         {
                             // Гарантированно форматируем до тысячных
-                            double area = Math.Round(roomAreas[roomName], 3);
+                            double area = Math.Round(roomAreasWithCoefficient[roomName], 3);
                             worksheet.Cells[row, col] = area;
                         }
                         else
@@ -779,7 +783,7 @@ namespace BIMv2
                     room.CleanedName.IndexOf("веранда", StringComparison.OrdinalIgnoreCase) >= 0 ||
                     room.CleanedName.IndexOf("терраса", StringComparison.OrdinalIgnoreCase) >= 0)
                 {
-                    // Используем площадь с коэффициентом из параметра ADSK_Площадь помещения с коэффициентом
+                    // Используем площадь с коэффициентом из параметра ADSK_Площадь с коэффициентом
                     if (room.AreaWithCoefficient > 0)
                     {
                         totalAreaWithCoefficients += room.AreaWithCoefficient;
@@ -907,6 +911,33 @@ namespace BIMv2
             if (param != null && param.HasValue && param.StorageType == StorageType.Double)
             {
                 return param.AsDouble();
+            }
+            return 0.0;
+        }
+
+        // НОВЫЙ МЕТОД: Получение значения double из параметра через AsValueString
+        private double GetParameterValueAsDoubleFromString(Element element, string parameterName)
+        {
+            Parameter param = element.LookupParameter(parameterName);
+            if (param != null && param.HasValue)
+            {
+                // Пытаемся получить значение как строку
+                string stringValue = param.AsValueString();
+                if (!string.IsNullOrEmpty(stringValue))
+                {
+                    // Заменяем запятые на точки для корректного парсинга
+                    string normalizedValue = stringValue.Replace(",", ".");
+                    if (double.TryParse(normalizedValue, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double result))
+                    {
+                        return result;
+                    }
+                }
+
+                // Если не удалось получить как строку, пробуем как double
+                if (param.StorageType == StorageType.Double)
+                {
+                    return param.AsDouble();
+                }
             }
             return 0.0;
         }
