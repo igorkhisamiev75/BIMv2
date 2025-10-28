@@ -598,7 +598,7 @@ namespace BIMv2Buttons
 
 
             string worksetsButtonName2 = "Групповая загрузка файлов";
-            string links3dButtonName2 = "Кнопка на перспективу2";
+            string links3dButtonName2 = "Групповое переименование LSR параметров";
             string collisionsButtonName2 = "Кнопка на перспективу3";
 
 
@@ -617,12 +617,12 @@ namespace BIMv2Buttons
                 },
                 new PushButtonData(
                     links3dButtonName2,
-                    "3D связей2",
+                    "Групповое переименование",
                    thisAssemblyPath,
-                    "BIMv2.CreateViewByLinkedFiles")
+                    "BIMv2.BulkRenameParametersCommand")
                 {
                     Image = binImage, // 16x16 icon
-                    ToolTip = "Создать 3D виды для связанных файлов"
+                    ToolTip = "Групповое переименование LSR параметров"
                 },
                 new PushButtonData(
                     collisionsButtonName2,

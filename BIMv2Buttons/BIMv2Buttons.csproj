@@ -252,6 +252,7 @@
   <ItemGroup>
     <Compile Include="App.cs" />
     <Compile Include="BIMStandart\BIMStandart.cs" />
+    <Compile Include="BulkRenameParametersCommand\BulkRenameParametersCommand.cs" />
     <Compile Include="CheckRooms\CheckRooms.cs" />
     <Compile Include="CheckRooms\CheckRoomsSelectLink.xaml.cs">
       <DependentUpon>CheckRoomsSelectLink.xaml</DependentUpon>

@@ -261,6 +261,7 @@
     <Compile Include="BeamsFinish.cs" />
     <Compile Include="archive\BIMStandart.cs" />
     <Compile Include="archive\ChangeTypeParametersByExcel.cs" />
+    <Compile Include="BulkRenameParametersCommand.cs" />
     <Compile Include="CheckRooms\CheckRooms.cs" />
     <Compile Include="CheckRooms\CheckRoomsSelectLink.xaml.cs">
       <DependentUpon>CheckRoomsSelectLink.xaml</DependentUpon>
@@ -367,6 +368,7 @@
     <Compile Include="PluginFinish2BIM\Test\WallFinishAlliance.cs" />
     <Compile Include="PluginFinish2BIM\Test\WallFinishComposition.cs" />
     <Compile Include="PluginFinish2BIM\WallFinishing.cs" />
+    <Compile Include="RenameParameterCommand.cs" />
     <Compile Include="RoomExportPlugin.cs" />
     <Compile Include="RoomsByFloorFinishType.cs" />
     <Compile Include="ScheduleToExcelExporter.cs" />
