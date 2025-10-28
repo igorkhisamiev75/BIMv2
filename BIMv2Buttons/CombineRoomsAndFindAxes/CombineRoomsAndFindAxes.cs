@@ -45,7 +45,7 @@ namespace BIMv2
                         .OfCategory(BuiltInCategory.OST_Grids)
                         .WhereElementIsNotElementType()
                         .Cast<Grid>()
-                        .Where(g => !IsExcludedGrid(g, doc)) // Фильтруем исключенные оси
+                        .Where(g => !IsExcludedGrid(g, doc))
                         .ToList();
 
                     // Разделяем оси на вертикальные и горизонтальные
@@ -58,21 +58,36 @@ namespace BIMv2
                         string apartmentNumber = apartmentGroup.Key;
                         var rooms = apartmentGroup.ToList();
 
-                        // Получаем только 2 крайние точки квартиры с отступом 300 мм
-                        List<XYZ> extremePoints = GetMinMaxPointsWithOffset(rooms);
+                        // Для каждой квартиры собираем все найденные оси из всех помещений
+                        List<Grid> allVerticalAxesForApartment = new List<Grid>();
+                        List<Grid> allHorizontalAxesForApartment = new List<Grid>();
 
-                        if (extremePoints.Count < 2) continue;
+                        foreach (Room room in rooms)
+                        {
+                            // Получаем крайние точки для текущего помещения с отступом
+                            List<XYZ> roomExtremePoints = GetMinMaxPointsWithOffset(new List<Room> { room });
 
-                        // Находим ближайшие оси только для 2 крайних точек
-                        var (closestVerticalAxes, closestHorizontalAxes) = FindClosestAxesForTwoPoints(
-                            extremePoints, verticalGrids, horizontalGrids);
+                            if (roomExtremePoints.Count < 2) continue;
 
-                        // Ограничиваем количество осей до 2 и сортируем
-                        var sortedVerticalAxes = SortAndLimitAxes(closestVerticalAxes, true); // true - вертикальные
-                        var sortedHorizontalAxes = SortAndLimitAxes(closestHorizontalAxes, false); // false - горизонтальные
+                            // Находим ближайшие оси для этого помещения
+                            var (roomVerticalAxes, roomHorizontalAxes) = FindClosestAxesForTwoPoints(
+                                roomExtremePoints, verticalGrids, horizontalGrids);
 
-                        // Форматируем результат с использованием LG_BS параметров
-                        string axesInfo = FormatAxesInfo(sortedVerticalAxes, sortedHorizontalAxes);
+                            // Добавляем найденные оси в общую коллекцию для квартиры
+                            allVerticalAxesForApartment.AddRange(roomVerticalAxes);
+                            allHorizontalAxesForApartment.AddRange(roomHorizontalAxes);
+                        }
+
+                        // Убираем дубликаты осей
+                        allVerticalAxesForApartment = allVerticalAxesForApartment.Distinct().ToList();
+                        allHorizontalAxesForApartment = allHorizontalAxesForApartment.Distinct().ToList();
+
+                        // Находим крайние оси для всей квартиры
+                        var extremeVerticalAxes = GetExtremeAxes(allVerticalAxesForApartment, true); // true - вертикальные
+                        var extremeHorizontalAxes = GetExtremeAxes(allHorizontalAxesForApartment, false); // false - горизонтальные
+
+                        // Форматируем результат
+                        string axesInfo = FormatAxesInfo(extremeVerticalAxes, extremeHorizontalAxes);
 
                         // Записываем результат в параметр ADSK_Примечание для каждого помещения квартиры
                         foreach (Room room in rooms)
@@ -84,7 +99,7 @@ namespace BIMv2
                     }
 
                     trans.Commit();
-                    TaskDialog.Show("Успех", $"Обработка завершена! Обработано квартир: {processedCount}");
+                    TaskDialog.Show("Успех", $"Обработка завершена!!! Обработано квартир: {processedCount}");
                     return Result.Succeeded;
                 }
                 catch (Exception ex)
@@ -93,6 +108,63 @@ namespace BIMv2
                     TaskDialog.Show("Ошибка", $"Произошла ошибка: {ex.Message}\n\n{ex.StackTrace}");
                     return Result.Failed;
                 }
+            }
+        }
+
+        private List<Grid> GetExtremeAxes(List<Grid> axes, bool isVertical)
+        {
+            if (axes.Count == 0) return new List<Grid>();
+            if (axes.Count == 1) return axes;
+
+            // Для вертикальных осей ищем минимальную и максимальную по X координате
+            if (isVertical)
+            {
+                Grid minAxis = axes[0];
+                Grid maxAxis = axes[0];
+                double minX = GetGridBasePoint(axes[0]).X;
+                double maxX = minX;
+
+                foreach (Grid axis in axes)
+                {
+                    double currentX = GetGridBasePoint(axis).X;
+                    if (currentX < minX)
+                    {
+                        minX = currentX;
+                        minAxis = axis;
+                    }
+                    if (currentX > maxX)
+                    {
+                        maxX = currentX;
+                        maxAxis = axis;
+                    }
+                }
+
+                return new List<Grid> { minAxis, maxAxis };
+            }
+            // Для горизонтальных осей ищем минимальную и максимальную по Y координате
+            else
+            {
+                Grid minAxis = axes[0];
+                Grid maxAxis = axes[0];
+                double minY = GetGridBasePoint(axes[0]).Y;
+                double maxY = minY;
+
+                foreach (Grid axis in axes)
+                {
+                    double currentY = GetGridBasePoint(axis).Y;
+                    if (currentY < minY)
+                    {
+                        minY = currentY;
+                        minAxis = axis;
+                    }
+                    if (currentY > maxY)
+                    {
+                        maxY = currentY;
+                        maxAxis = axis;
+                    }
+                }
+
+                return new List<Grid> { minAxis, maxAxis };
             }
         }
 
@@ -322,36 +394,6 @@ namespace BIMv2
             return double.MaxValue;
         }
 
-        private List<Grid> SortAndLimitAxes(List<Grid> axes, bool isVertical)
-        {
-            if (axes.Count == 0) return axes;
-
-            // Сортируем оси по координатам
-            if (isVertical)
-            {
-                // Вертикальные оси: слева направо по X координате
-                axes.Sort((a, b) =>
-                {
-                    double aX = GetGridBasePoint(a).X;
-                    double bX = GetGridBasePoint(b).X;
-                    return aX.CompareTo(bX);
-                });
-            }
-            else
-            {
-                // Горизонтальные оси: снизу вверх по Y координате
-                axes.Sort((a, b) =>
-                {
-                    double aY = GetGridBasePoint(a).Y;
-                    double bY = GetGridBasePoint(b).Y;
-                    return aY.CompareTo(bY);
-                });
-            }
-
-            // Ограничиваем количество осей до 2
-            return axes.Take(2).ToList();
-        }
-
         private XYZ GetGridBasePoint(Grid grid)
         {
             // Возвращаем начальную точку оси для сортировки
@@ -364,8 +406,12 @@ namespace BIMv2
             if (verticalAxes.Count == 0 && horizontalAxes.Count == 0)
                 return "Оси не найдены";
 
-            List<string> verticalNames = verticalAxes.Select(g => GetGridDisplayName(g)).ToList();
-            List<string> horizontalNames = horizontalAxes.Select(g => GetGridDisplayName(g)).ToList();
+            // Сортируем оси для правильного отображения
+            var sortedVertical = verticalAxes.OrderBy(g => GetGridBasePoint(g).X).ToList();
+            var sortedHorizontal = horizontalAxes.OrderBy(g => GetGridBasePoint(g).Y).ToList();
+
+            List<string> verticalNames = sortedVertical.Select(g => GetGridDisplayName(g)).ToList();
+            List<string> horizontalNames = sortedHorizontal.Select(g => GetGridDisplayName(g)).ToList();
 
             string result = "";
 
