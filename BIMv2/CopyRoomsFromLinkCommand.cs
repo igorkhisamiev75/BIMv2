@@ -8,7 +8,7 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
 
-namespace RoomCopyPlugin
+namespace BIMv2
 {
     [Transaction(TransactionMode.Manual)]
     public class CopyRoomsFromLinkCommand : IExternalCommand
@@ -103,28 +103,36 @@ namespace RoomCopyPlugin
             {
                 trans.Start();
 
-                // Получаем первый уровень в текущей модели для создания помещений
-                Level targetLevel = GetFirstLevel(targetDoc);
-                if (targetLevel == null)
-                {
-                    TaskDialog.Show("Ошибка", "В текущей модели нет уровней.");
-                    trans.RollBack();
-                    return;
-                }
-
-                // Получаем все помещения из связанной модели
-                var roomCollector = new FilteredElementCollector(linkDoc);
-                var sourceRooms = roomCollector.OfClass(typeof(Room))
+                // Получаем все пространственные элементы из связанной модели и фильтруем помещения
+                var spatialCollector = new FilteredElementCollector(linkDoc);
+                var sourceRooms = spatialCollector.OfClass(typeof(SpatialElement))
+                    .Cast<SpatialElement>()
+                    .Where(se => se is Room) // Фильтруем только помещения
                     .Cast<Room>()
                     .Where(r => r.Area > 0 && r.Level != null) // Только помещения с площадью и уровнем
                     .ToList();
 
+                // Создаем словарь для сопоставления уровней из связанной модели с уровнями в текущей модели
+                Dictionary<ElementId, Level> levelMapping = CreateLevelMapping(linkDoc, targetDoc);
+
                 int copiedCount = 0;
+                int skippedDueToLevel = 0;
 
                 foreach (var sourceRoom in sourceRooms)
                 {
                     try
                     {
+                        // Получаем уровень помещения из связанной модели
+                        Level sourceLevel = sourceRoom.Level;
+                        if (sourceLevel == null) continue;
+
+                        // Находим соответствующий уровень в текущей модели
+                        if (!levelMapping.TryGetValue(sourceLevel.Id, out Level targetLevel))
+                        {
+                            skippedDueToLevel++;
+                            continue;
+                        }
+
                         // Получаем расположение помещения из связанной модели
                         Location roomLocation = sourceRoom.Location;
                         if (roomLocation == null) continue;
@@ -135,7 +143,7 @@ namespace RoomCopyPlugin
                         // Преобразуем точку в координаты текущей модели
                         XYZ transformedPoint = linkTransform.OfPoint(roomPoint);
 
-                        // Создаем новое помещение на целевом уровне
+                        // Создаем новое помещение на соответствующем уровне
                         Room newRoom = targetDoc.Create.NewRoom(targetLevel,
                             new UV(transformedPoint.X, transformedPoint.Y));
 
@@ -162,9 +170,53 @@ namespace RoomCopyPlugin
 
                 trans.Commit();
 
-                TaskDialog.Show("Результат",
-                    $"Скопировано помещений: {copiedCount} из {sourceRooms.Count}");
+                string resultMessage = $"Скопировано помещений: {copiedCount} из {sourceRooms.Count}";
+                if (skippedDueToLevel > 0)
+                {
+                    resultMessage += $"\nПропущено из-за отсутствия уровня: {skippedDueToLevel}";
+                }
+
+                TaskDialog.Show("Результат", resultMessage);
             }
+        }
+
+        private Dictionary<ElementId, Level> CreateLevelMapping(Document sourceDoc, Document targetDoc)
+        {
+            var levelMapping = new Dictionary<ElementId, Level>();
+
+            // Получаем все уровни из связанной модели
+            var sourceLevels = new FilteredElementCollector(sourceDoc)
+                .OfClass(typeof(Level))
+                .Cast<Level>()
+                .ToList();
+
+            // Получаем все уровни из текущей модели
+            var targetLevels = new FilteredElementCollector(targetDoc)
+                .OfClass(typeof(Level))
+                .Cast<Level>()
+                .ToList();
+
+            // Сопоставляем уровни по имени и высоте
+            foreach (var sourceLevel in sourceLevels)
+            {
+                // Ищем уровень с таким же именем
+                var matchingLevel = targetLevels.FirstOrDefault(tl =>
+                    tl.Name.Equals(sourceLevel.Name, StringComparison.OrdinalIgnoreCase));
+
+                // Если не нашли по имени, ищем по высоте (с допуском)
+                if (matchingLevel == null)
+                {
+                    matchingLevel = targetLevels.FirstOrDefault(tl =>
+                        Math.Abs(tl.Elevation - sourceLevel.Elevation) < 0.01);
+                }
+
+                if (matchingLevel != null)
+                {
+                    levelMapping.Add(sourceLevel.Id, matchingLevel);
+                }
+            }
+
+            return levelMapping;
         }
 
         private Level GetFirstLevel(Document doc)
@@ -225,43 +277,6 @@ namespace RoomCopyPlugin
                     // Игнорируем ошибки установки параметров
                 }
             }
-        }
-    }
-
-    // Класс приложения для регистрации в Revit
-    public class Application : IExternalApplication
-    {
-        public Result OnStartup(UIControlledApplication app)
-        {
-            try
-            {
-                // Создаем панель инструментов
-                RibbonPanel panel = app.CreateRibbonPanel("Копирование помещений");
-
-                // Создаем кнопку
-                PushButtonData buttonData = new PushButtonData(
-                    "CopyRooms",
-                    "Копировать\nпомещения",
-                    System.Reflection.Assembly.GetExecutingAssembly().Location,
-                    "RoomCopyPlugin.CopyRoomsFromLinkCommand");
-
-                buttonData.ToolTip = "Копирование помещений из связанной модели";
-                buttonData.LongDescription = "Копирует помещения из выбранной связанной модели в текущую модель";
-
-                PushButton button = panel.AddItem(buttonData) as PushButton;
-
-                return Result.Succeeded;
-            }
-            catch (Exception ex)
-            {
-                TaskDialog.Show("Ошибка инициализации", ex.Message);
-                return Result.Failed;
-            }
-        }
-
-        public Result OnShutdown(UIControlledApplication app)
-        {
-            return Result.Succeeded;
         }
     }
 }
