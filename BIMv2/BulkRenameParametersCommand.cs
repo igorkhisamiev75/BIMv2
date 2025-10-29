@@ -1,20 +1,21 @@
 ﻿using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
+
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows.Forms;
-using System.Collections.Generic;
 
-using Form = System.Windows.Forms.Form;
 using ComboBox = System.Windows.Forms.ComboBox;
-using TextBox = System.Windows.Forms.TextBox;
+using Form = System.Windows.Forms.Form;
 using Panel = System.Windows.Forms.Panel;
+using TextBox = System.Windows.Forms.TextBox;
 
 namespace BIMv2
 {
     [Transaction(TransactionMode.Manual)]
-
     public class BulkRenameParametersCommand : IExternalCommand
     {
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
@@ -194,7 +195,7 @@ namespace BIMv2
 
             foreach (DefinitionGroup group in sharedParamFile.Groups)
             {
-                foreach (Definition definition in group.Definitions)
+                foreach (ExternalDefinition definition in group.Definitions)
                 {
                     if (definition.Name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
                     {
@@ -226,7 +227,7 @@ namespace BIMv2
             // Подтверждение
             DialogResult confirm = MessageBox.Show(
                 $"Вы уверены, что хотите переименовать {lstParameters.SelectedItems.Count} параметров?\n\n" +
-                "Старые параметры останутся в проекте. Будет созданы новые параметры с переносом значений.",
+                "Это создаст новые параметры с новыми именами и удалит старые.",
                 "Подтверждение переименования",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Question);
@@ -257,7 +258,7 @@ namespace BIMv2
                         {
                             string newName = paramInfo.OldName.Replace("LSR_", "LG-B2_");
 
-                            if (RenameSingleParameter(paramInfo.Definition as ExternalDefinition, newName, paramInfo.Group))
+                            if (RenameSharedParameter(paramInfo.Definition as ExternalDefinition, newName, paramInfo.Group))
                             {
                                 successCount++;
                             }
@@ -313,23 +314,12 @@ namespace BIMv2
             }
         }
 
-        private bool RenameSingleParameter(ExternalDefinition oldDefinition, string newParameterName, DefinitionGroup group)
+        private bool RenameSharedParameter(ExternalDefinition oldDefinition, string newName, DefinitionGroup group)
         {
             try
             {
                 // Проверяем, не существует ли уже параметр с новым именем
-                if (IsParameterNameExists(newParameterName))
-                {
-                    return false;
-                }
-
-                // Создаем новый параметр в той же группе
-                ExternalDefinitionCreationOptions options = new ExternalDefinitionCreationOptions(newParameterName, oldDefinition.ParameterType);
-                options.UserModifiable = oldDefinition.UserModifiable;
-
-                ExternalDefinition newDefinition = group.Definitions.Create(options) as ExternalDefinition;
-
-                if (newDefinition == null)
+                if (IsParameterNameExists(newName))
                 {
                     return false;
                 }
@@ -338,87 +328,55 @@ namespace BIMv2
                 BindingMap bindingMap = _document.ParameterBindings;
                 ElementBinding oldBinding = bindingMap.get_Item(oldDefinition) as ElementBinding;
 
-                if (oldBinding != null)
+                if (oldBinding == null)
                 {
-                    // Привязываем новый параметр к тем же категориям
-                    CategorySet categories = oldBinding.Categories;
-                    Autodesk.Revit.DB.Binding newBinding = null;
-
-                    if (oldBinding is InstanceBinding)
-                    {
-                        newBinding = _document.Application.Create.NewInstanceBinding(categories);
-                    }
-                    else if (oldBinding is TypeBinding)
-                    {
-                        newBinding = _document.Application.Create.NewTypeBinding(categories);
-                    }
-
-                    if (newBinding != null)
-                    {
-                        bindingMap.Insert(newDefinition, newBinding, oldDefinition.GetGroupTypeId());
-                    }
+                    return false;
                 }
 
-                // Переносим значения параметров
-                TransferParameterValues(oldDefinition, newDefinition);
+                // Создаем новый параметр с новым именем
+                ExternalDefinitionCreationOptions options = new ExternalDefinitionCreationOptions(newName, oldDefinition.ParameterType);
+                options.UserModifiable = oldDefinition.UserModifiable;
+                // Копируем GUID для сохранения идентичности параметра
+                options.GUID = oldDefinition.GUID;
+
+                ExternalDefinition newDefinition = group.Definitions.Create(options) as ExternalDefinition;
+
+                if (newDefinition == null)
+                {
+                    return false;
+                }
+
+                // Привязываем новый параметр к тем же категориям
+                CategorySet categories = oldBinding.Categories;
+                Autodesk.Revit.DB.Binding newBinding = null;
+
+                if (oldBinding is InstanceBinding)
+                {
+                    newBinding = _document.Application.Create.NewInstanceBinding(categories);
+                }
+                else if (oldBinding is TypeBinding)
+                {
+                    newBinding = _document.Application.Create.NewTypeBinding(categories);
+                }
+
+                if (newBinding != null)
+                {
+                    // Удаляем старую привязку
+                    bindingMap.Remove(oldDefinition);
+
+                    // Добавляем новую привязку
+                    bindingMap.Insert(newDefinition, newBinding, oldDefinition.GetGroupTypeId());
+                }
+
+                // Удаляем старый параметр из файла общих параметров
+                // В Revit API нет прямого метода удаления, но создание нового с тем же GUID и новым именем эффективно "переименовывает" его
 
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                Debug.WriteLine($"Ошибка переименования параметра: {ex.Message}");
                 return false;
-            }
-        }
-
-        private void TransferParameterValues(ExternalDefinition oldDefinition, ExternalDefinition newDefinition)
-        {
-            try
-            {
-                // Получаем все элементы в проекте
-                FilteredElementCollector collector = new FilteredElementCollector(_document);
-                var allElements = collector.WhereElementIsNotElementType().ToElements();
-
-                foreach (Element element in allElements)
-                {
-                    Parameter oldParam = element.get_Parameter(oldDefinition.GUID);
-                    if (oldParam != null && oldParam.HasValue && !oldParam.IsReadOnly)
-                    {
-                        Parameter newParam = element.get_Parameter(newDefinition.GUID);
-                        if (newParam != null && !newParam.IsReadOnly)
-                        {
-                            try
-                            {
-                                switch (oldParam.StorageType)
-                                {
-                                    case StorageType.Double:
-                                        if (newParam.StorageType == StorageType.Double)
-                                            newParam.Set(oldParam.AsDouble());
-                                        break;
-                                    case StorageType.ElementId:
-                                        if (newParam.StorageType == StorageType.ElementId)
-                                            newParam.Set(oldParam.AsElementId());
-                                        break;
-                                    case StorageType.Integer:
-                                        if (newParam.StorageType == StorageType.Integer)
-                                            newParam.Set(oldParam.AsInteger());
-                                        break;
-                                    case StorageType.String:
-                                        if (newParam.StorageType == StorageType.String)
-                                            newParam.Set(oldParam.AsString());
-                                        break;
-                                }
-                            }
-                            catch
-                            {
-                                // Игнорируем ошибки для отдельных элементов
-                            }
-                        }
-                    }
-                }
-            }
-            catch
-            {
-                // Игнорируем ошибки переноса значений
             }
         }
 
@@ -445,7 +403,7 @@ namespace BIMv2
     public class ParameterInfo
     {
         public string OldName { get; set; }
-        public Definition Definition { get; set; }
+        public ExternalDefinition Definition { get; set; }
         public DefinitionGroup Group { get; set; }
     }
 }
