@@ -256,9 +256,9 @@
     </When>
   </Choose>
   <ItemGroup>
-    <Compile Include="AdjustDimensionLeaders.cs" />
+    <Compile Include="archive\AdjustDimensionLeaders.cs" />
     <Compile Include="BatchNWDExporter.cs" />
-    <Compile Include="BeamsFinish.cs" />
+    <Compile Include="archive\BeamsFinish.cs" />
     <Compile Include="archive\BIMStandart.cs" />
     <Compile Include="archive\ChangeTypeParametersByExcel.cs" />
     <Compile Include="BulkRenameParametersCommand.cs" />
@@ -270,7 +270,7 @@
     <Compile Include="ClearDependencies.cs" />
     <Compile Include="archive\ClearProjectBrowser.cs" />
     <Compile Include="ClearProjectBrowserViewsNotSheets.cs" />
-    <Compile Include="CollisionsWithWall.cs" />
+    <Compile Include="archive\CollisionsWithWall.cs" />
     <Compile Include="CombineRoomsAndFindAxes.cs" />
     <Compile Include="ConvertGrids3Dto2D.cs" />
     <Compile Include="archive\CopyRoomsFromLink.cs" />
