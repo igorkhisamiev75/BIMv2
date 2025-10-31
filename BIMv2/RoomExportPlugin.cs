@@ -1168,10 +1168,10 @@ namespace BIMv2
         private void InitializeComponent()
         {
             this.Width = 900;
-            this.Height = 280;
+            this.Height = 320;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.StartPosition = FormStartPosition.CenterScreen;
-            this.Text = "Экспорт квартир для ФРС LEGENDA 1.0";
+            this.Text = "Экспорт квартир по шаблону СУП для ФРС LEGENDA v.2.0";
             this.ControlBox = false;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
@@ -1196,6 +1196,42 @@ namespace BIMv2
             progressBar.Minimum = 0;
             progressBar.Maximum = 100;
 
+            // Ссылка на сайт
+            LinkLabel linkLabel = new LinkLabel();
+            linkLabel.Text = "2bim.ru";
+            linkLabel.Location = new System.Drawing.Point(380, 165);
+            linkLabel.Width = 240;
+            linkLabel.Height = 50;
+            linkLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            linkLabel.Font = new System.Drawing.Font("Calibri", 11, System.Drawing.FontStyle.Regular);
+            linkLabel.LinkColor = System.Drawing.Color.Blue;
+            linkLabel.ActiveLinkColor = System.Drawing.Color.Red;
+            linkLabel.VisitedLinkColor = System.Drawing.Color.Purple;
+
+            // Обработчик клика по ссылке
+            linkLabel.LinkClicked += (sender, e) =>
+            {
+                try
+                {
+                    System.Diagnostics.Process.Start("https://2bim.ru");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Ошибка при открытии ссылки: {ex.Message}");
+                }
+            };
+
+            // Дополнительная метка "Разработчик:"
+            Label developerLabel = new Label();
+            developerLabel.Text = "Разработчик:";
+            developerLabel.Location = new System.Drawing.Point(180, 165);
+            developerLabel.Width = 250;
+            developerLabel.Height = 50;
+            developerLabel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            developerLabel.Font = new System.Drawing.Font("Calibri", 10, System.Drawing.FontStyle.Regular);
+
+            this.Controls.Add(developerLabel);
+            this.Controls.Add(linkLabel);
             this.Controls.Add(progressBar);
             this.Controls.Add(label);
         }

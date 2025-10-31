@@ -319,7 +319,7 @@ namespace BIMv2
         private void ExportToExcel(List<Apartment> apartments, Document doc, ProgressForm progressForm)
         {
             Application excelApp = new Application();
-            excelApp.Visible = false; // Скрываем Excel во время работы
+            excelApp.Visible = false;
             excelApp.DisplayAlerts = false;
 
             Workbook workbook = excelApp.Workbooks.Add();
@@ -329,361 +329,113 @@ namespace BIMv2
             {
                 int col = 1;
 
-                // Базовые заголовки столбцов в нужном порядке
-                worksheet.Cells[1, col++] = "Условный номер помещения";
-                worksheet.Cells[1, col++] = "Маркетинговый подтип 2_1_0Э, 2_2_0";
-                worksheet.Cells[1, col++] = "Тип планировки 2_1, 2_2";
-                worksheet.Cells[1, col++] = "Горизонтальная ось";
-                worksheet.Cells[1, col++] = "Вертикальная ось";
-                worksheet.Cells[1, col++] = "Вид помещения студия, _1 сп, _2 сп";
-                worksheet.Cells[1, col++] = "Балкон/лоджия/терраса";
-                worksheet.Cells[1, col++] = "Комнат пиб _студия_1 ккв _2 ккв _3 ккв";
-                worksheet.Cells[1, col++] = "Маркетинговый тип 2_М, 2_L";
-                worksheet.Cells[1, col++] = "Площадь жилая";
-                worksheet.Cells[1, col++] = "Высота потолка";
-                worksheet.Cells[1, col++] = "Назначение помещения";
-                worksheet.Cells[1, col++] = "Тип помещения кв., комм., паркинг";
+                // ЖЕСТКО ЗАДАЕМ ВСЕ ЗАГОЛОВКИ В НУЖНОМ ПОРЯДКЕ
+                var allHeaders = new List<string>
+        {
+            "Условный номер помещения",
+            "Маркетинговый подтип 2_1_0Э, 2_2_0",
+            "Тип планировки 2_1, 2_2",
+            "Горизонтальная ось",
+            "Вертикальная ось",
+            "Вид помещения студия, _1 сп, _2 сп",
+            "Балкон/лоджия/терраса",
+            "Комнат пиб _студия_1 ккв _2 ккв _3 ккв",
+            "Маркетинговый тип 2_М, 2_L",
+            "Площадь жилая",
+            "Высота потолка",
+            "Назначение помещения",
+            "Тип помещения кв., комм., паркинг",
+            "Площадь комнаты 1",
+            "Площадь комнаты 2",
+            "Площадь комнаты 3",
+            "Площадь комнаты 4",
+            "Площадь комнаты 5",
+            "мастер-спальня",
+            "Площадь гардеробной 1",
+            "Площадь гардеробной 2",
+            "Площадь гардеробной 3",
+            "Площадь гардеробной 4",
+            "Площадь гардеробной 5",
+            "Площадь гостиной 1",
+            "Площадь кухни",
+            "Площадь кухни-ниши",
+            "Площадь кухни-гостиной",
+            "Площадь коридора 1",
+            "Площадь коридора 2",
+            "Площадь коридора 3",
+            "Площадь коридора 4",
+            "Площадь коридора 5",
+            "Площадь коридора 6",
+            "Площадь коридора 7",
+            "Площадь коридора 8",
+            "Площадь коридора 9",
+            "Площадь душевой",
+            "Площадь душевой 1",
+            "Площадь душевой 2",
+            "Площадь ванной 1",
+            "Площадь кладовой 1",
+            "Площадь кладовой 2",
+            "Площадь кладовой 3",
+            "Площадь кладовой 4",
+            "Площадь кладовой 5",
+            "Площадь кладовой 6",
+            "Площадь кладовой 7",
+            "Площадь кладовой 8",
+            "Площадь кладовой 9",
+            "Площадь санузла 1",
+            "Площадь санузла 2",
+            "Площадь санузла 3",
+            "Площадь санузла 4",
+            "Площадь санузла 5",
+            "Площадь санузла 6",
+            "Площадь санузла 7",
+            "Площадь санузла 8",
+            "Площадь санузла 9",
+            "Площадь санузла 10",
+            "Площадь санузла 11",
+            "Площадь постирочной",
+            "Площадь балкона 1",
+            "Площадь балкона 2",
+            "Площадь балкона 3",
+            "Площадь балкона 4",
+            "Площадь балкона 5",
+            "Площадь балкона 6",
+            "Площадь балкона 7",
+            "Площадь балкона 8",
+            "Площадь балкона 9",
+            "Площадь прихожей",
+            "Площадь террасы 1",
+            "Площадь террасы 2",
+            "Площадь террасы 3",
+            "Площадь террасы 4",
+            "Площадь террасы 5",
+            "Площадь лоджии",
+            "Площадь лоджии 2",
+            "Площадь лоджии 3",
+            "Площадь балкона лоджий, балконов, веранд, террас с коэффициентами, кв.м.",
+            "Площадь общ.",
+            "Площадь прив.",
+            "Корпус",
+            "Секция",
+            "Заморозка архитекторами"
+        };
 
-                // СОЗДАЕМ ФИКСИРОВАННЫЙ СПИСОК ЗАГОЛОВКОВ
-                var fixedRoomHeaders = new List<string>();
-
-                // Всегда добавляем 5 столбцов для жилых комнат (ПЕРЕИМЕНОВАНЫ)
-                for (int i = 1; i <= 5; i++)
-                {
-                    fixedRoomHeaders.Add($"Площадь комнаты {i}");
-                }
-
-                // ДОБАВЛЯЕМ ПУСТОЙ СТОЛБЕЦ "мастер-спальня" после жилых комнат
-                fixedRoomHeaders.Add("мастер-спальня");
-
-                // ДОБАВЛЯЕМ 5 СТОЛБЦОВ ДЛЯ ГАРДЕРОБНЫХ
-                for (int i = 1; i <= 5; i++)
-                {
-                    fixedRoomHeaders.Add($"Площадь гардеробной {i}");
-                }
-
-                // ДОБАВЛЯЕМ ПУСТОЙ СТОЛБЕЦ "Площадь гостиной 1" после гардеробных
-                fixedRoomHeaders.Add("Площадь гостиной 1");
-
-                // Собираем остальные уникальные имена помещений из всех квартир (кроме жилых комнат, гардеробных, коридоров, душевых, ванных, кладовых, санузлов, постирочной, балконов, террас и лоджий)
-                var otherRoomNames = apartments
-                    .SelectMany(a => a.Rooms)
-                    .Where(r => _allowedRoomNames.Contains(r.CleanedName) &&
-                           !r.CleanedName.Equals("Жилая комната", StringComparison.OrdinalIgnoreCase) &&
-                           !r.CleanedName.Equals("Гардеробная", StringComparison.OrdinalIgnoreCase) &&
-                           !r.CleanedName.Equals("Коридор", StringComparison.OrdinalIgnoreCase) &&
-                           !r.CleanedName.Equals("Душевая", StringComparison.OrdinalIgnoreCase) &&
-                           !r.CleanedName.Equals("Ванная", StringComparison.OrdinalIgnoreCase) &&
-                           !r.CleanedName.Equals("Кладовая", StringComparison.OrdinalIgnoreCase) &&
-                           !r.CleanedName.Equals("Санузел", StringComparison.OrdinalIgnoreCase) &&
-                           !r.CleanedName.Equals("Постирочная", StringComparison.OrdinalIgnoreCase) &&
-                           !r.CleanedName.Equals("Терраса", StringComparison.OrdinalIgnoreCase) &&
-                           !r.CleanedName.Equals("Лоджия", StringComparison.OrdinalIgnoreCase) &&
-                           r.CleanedName.IndexOf("балкон", StringComparison.OrdinalIgnoreCase) < 0)
-                    .Select(r => r.FinalName)
-                    .Distinct()
-                    .ToList();
-
-                // Группируем остальные помещения по базовым именам
-                var otherRoomGroups = new List<IGrouping<string, string>>();
-                var priorityOtherNames = new List<string>
-                {
-                    "Кухня", "Кухня-ниша", "Кухня-гостиная", "Прихожая"
-                };
-
-                // Добавляем остальные помещения в порядке приоритета
-                foreach (var priorityName in priorityOtherNames)
-                {
-                    var roomsWithPriorityName = otherRoomNames
-                        .Where(name =>
-                        {
-                            var baseName = Regex.Replace(name, @"_\d+$", "").Trim();
-                            return baseName.Equals(priorityName, StringComparison.OrdinalIgnoreCase);
-                        })
-                        .ToList();
-
-                    if (roomsWithPriorityName.Any())
-                    {
-                        var group = roomsWithPriorityName.GroupBy(name =>
-                        {
-                            var baseName = Regex.Replace(name, @"_\d+$", "").Trim();
-                            return baseName;
-                        }).FirstOrDefault();
-
-                        if (group != null)
-                        {
-                            otherRoomGroups.Add(group);
-                        }
-                    }
-                }
-
-                // Добавляем остальные помещения (если есть)
-                var remainingOtherNames = otherRoomNames
-                    .Where(name =>
-                    {
-                        var baseName = Regex.Replace(name, @"_\d+$", "").Trim();
-                        return !priorityOtherNames.Contains(baseName, StringComparer.OrdinalIgnoreCase);
-                    })
-                    .OrderBy(name => name);
-
-                foreach (var name in remainingOtherNames)
-                {
-                    var baseName = Regex.Replace(name, @"_\d+$", "").Trim();
-                    var group = otherRoomNames
-                        .Where(n =>
-                        {
-                            var nBaseName = Regex.Replace(n, @"_\d+$", "").Trim();
-                            return nBaseName.Equals(baseName, StringComparison.OrdinalIgnoreCase);
-                        })
-                        .GroupBy(n => baseName)
-                        .FirstOrDefault();
-
-                    if (group != null && !otherRoomGroups.Any(g => g.Key.Equals(baseName, StringComparison.OrdinalIgnoreCase)))
-                    {
-                        otherRoomGroups.Add(group);
-                    }
-                }
-
-                // Создаем список заголовков для остальных помещений
-                var otherColumnHeaders = new List<string>();
-                foreach (var group in otherRoomGroups)
-                {
-                    if (group.Count() == 1)
-                    {
-                        otherColumnHeaders.Add(FormatRoomColumnName(group.Key, null));
-                    }
-                    else
-                    {
-                        int counter = 1;
-                        foreach (var roomName in group.OrderBy(x => x))
-                        {
-                            otherColumnHeaders.Add(FormatRoomColumnName(group.Key, counter));
-                            counter++;
-                        }
-                    }
-                }
-
-                // ДОБАВЛЯЕМ 9 СТОЛБЦОВ ДЛЯ КОРИДОРОВ ПОСЛЕ КУХНИ-ГОСТИНОЙ
-                var corridorHeaders = new List<string>();
-                for (int i = 1; i <= 9; i++)
-                {
-                    corridorHeaders.Add($"Площадь коридора {i}");
-                }
-
-                // ВСТАВЛЯЕМ СТОЛБЦЫ КОРИДОРОВ ПОСЛЕ КУХНИ-ГОСТИНОЙ
-                int insertIndex = otherColumnHeaders.FindIndex(header =>
-                    header.StartsWith("Площадь кухни-гостиной", StringComparison.OrdinalIgnoreCase));
-
-                if (insertIndex >= 0)
-                {
-                    otherColumnHeaders.InsertRange(insertIndex + 1, corridorHeaders);
-                }
-                else
-                {
-                    // Если кухни-гостиной нет, добавляем коридоры в начало
-                    otherColumnHeaders.InsertRange(0, corridorHeaders);
-                }
-
-                // ДОБАВЛЯЕМ СТОЛБЦЫ ДЛЯ ДУШЕВЫХ ПОСЛЕ КОРИДОРОВ
-                var showerHeaders = new List<string>
-                {
-                    "Площадь душевой",
-                    "Площадь душевой 1",
-                    "Площадь душевой 2"
-                };
-
-                // ВСТАВЛЯЕМ СТОЛБЦЫ ДУШЕВЫХ ПОСЛЕ КОРИДОРОВ
-                int corridorEndIndex = otherColumnHeaders.FindIndex(header =>
-                    header.StartsWith("Площадь коридора 9", StringComparison.OrdinalIgnoreCase));
-
-                if (corridorEndIndex >= 0)
-                {
-                    otherColumnHeaders.InsertRange(corridorEndIndex + 1, showerHeaders);
-                }
-                else
-                {
-                    // Если коридоров нет, добавляем душевые в конец
-                    otherColumnHeaders.AddRange(showerHeaders);
-                }
-
-                // ДОБАВЛЯЕМ СТОЛБЦЫ ДЛЯ ВАННОЙ И КЛАДОВЫХ ПОСЛЕ ДУШЕВЫХ
-                var bathroomAndStorageHeaders = new List<string>
-                {
-                    "Площадь ванной 1"
-                };
-
-                // ДОБАВЛЯЕМ 9 СТОЛБЦОВ ДЛЯ КЛАДОВЫХ
-                for (int i = 1; i <= 9; i++)
-                {
-                    bathroomAndStorageHeaders.Add($"Площадь кладовой {i}");
-                }
-
-                // ВСТАВЛЯЕМ СТОЛБЦЫ ВАННОЙ И КЛАДОВЫХ ПОСЛЕ ДУШЕВЫХ
-                int showerEndIndex = otherColumnHeaders.FindIndex(header =>
-                    header.StartsWith("Площадь душевой 2", StringComparison.OrdinalIgnoreCase));
-
-                if (showerEndIndex >= 0)
-                {
-                    otherColumnHeaders.InsertRange(showerEndIndex + 1, bathroomAndStorageHeaders);
-                }
-                else
-                {
-                    // Если душевых нет, добавляем ванную и кладовые в конец
-                    otherColumnHeaders.AddRange(bathroomAndStorageHeaders);
-                }
-
-                // ДОБАВЛЯЕМ 11 СТОЛБЦОВ ДЛЯ САНУЗЛОВ ПОСЛЕ КЛАДОВЫХ
-                var bathroomHeaders = new List<string>();
-                for (int i = 1; i <= 11; i++)
-                {
-                    bathroomHeaders.Add($"Площадь санузла {i}");
-                }
-
-                // ВСТАВЛЯЕМ СТОЛБЦЫ САНУЗЛОВ ПОСЛЕ КЛАДОВЫХ
-                int storageEndIndex = otherColumnHeaders.FindIndex(header =>
-                    header.StartsWith("Площадь кладовой 9", StringComparison.OrdinalIgnoreCase));
-
-                if (storageEndIndex >= 0)
-                {
-                    otherColumnHeaders.InsertRange(storageEndIndex + 1, bathroomHeaders);
-                }
-                else
-                {
-                    // Если кладовых нет, добавляем санузлы в конец
-                    otherColumnHeaders.AddRange(bathroomHeaders);
-                }
-
-                // ДОБАВЛЯЕМ СТОЛБЕЦ ДЛЯ ПОСТИРОЧНОЙ ПОСЛЕ САНУЗЛОВ - ВСЕГДА ДОБАВЛЯЕМ ЭТОТ СТОЛБЕЦ
-                var laundryHeader = new List<string> { "Площадь постирочной" };
-
-                // ВСТАВЛЯЕМ СТОЛБЕЦ ПОСТИРОЧНОЙ ПОСЛЕ САНУЗЛОВ
-                int bathroomEndIndex = otherColumnHeaders.FindIndex(header =>
-                    header.StartsWith("Площадь санузла 11", StringComparison.OrdinalIgnoreCase));
-
-                if (bathroomEndIndex >= 0)
-                {
-                    otherColumnHeaders.InsertRange(bathroomEndIndex + 1, laundryHeader);
-                }
-                else
-                {
-                    // Если санузлов нет, все равно добавляем постирочную в конец
-                    otherColumnHeaders.AddRange(laundryHeader);
-                }
-
-                // ДОБАВЛЯЕМ 9 СТОЛБЦОВ ДЛЯ БАЛКОНОВ ПОСЛЕ ПОСТИРОЧНОЙ
-                var balconyHeaders = new List<string>();
-                for (int i = 1; i <= 9; i++)
-                {
-                    balconyHeaders.Add($"Площадь балкона {i}");
-                }
-
-                // ВСТАВЛЯЕМ СТОЛБЦЫ БАЛКОНОВ ПОСЛЕ ПОСТИРОЧНОЙ
-                int laundryIndex = otherColumnHeaders.FindIndex(header =>
-                    header.StartsWith("Площадь постирочной", StringComparison.OrdinalIgnoreCase));
-
-                if (laundryIndex >= 0)
-                {
-                    otherColumnHeaders.InsertRange(laundryIndex + 1, balconyHeaders);
-                }
-                else
-                {
-                    // Если постирочной нет, добавляем балконы в конец
-                    otherColumnHeaders.AddRange(balconyHeaders);
-                }
-
-                // ДОБАВЛЯЕМ СТОЛБЕЦ "Площадь прихожей" ПОСЛЕ БАЛКОНОВ
-                var entranceHeader = new List<string> { "Площадь прихожей" };
-
-                // ВСТАВЛЯЕМ СТОЛБЕЦ ПРИХОЖЕЙ ПОСЛЕ БАЛКОНОВ
-                int balconyEndIndex = otherColumnHeaders.FindIndex(header =>
-                    header.StartsWith("Площадь балкона 9", StringComparison.OrdinalIgnoreCase));
-
-                if (balconyEndIndex >= 0)
-                {
-                    otherColumnHeaders.InsertRange(balconyEndIndex + 1, entranceHeader);
-                }
-                else
-                {
-                    // Если балконов нет, добавляем прихожую в конец
-                    otherColumnHeaders.AddRange(entranceHeader);
-                }
-
-                // ДОБАВЛЯЕМ 5 СТОЛБЦОВ ДЛЯ ТЕРРАС ПОСЛЕ ПРИХОЖЕЙ
-                var terraceHeaders = new List<string>();
-                for (int i = 1; i <= 5; i++)
-                {
-                    terraceHeaders.Add($"Площадь террасы {i}");
-                }
-
-                // ВСТАВЛЯЕМ СТОЛБЦЫ ТЕРРАС ПОСЛЕ ПРИХОЖЕЙ
-                int entranceIndex = otherColumnHeaders.FindIndex(header =>
-                    header.StartsWith("Площадь прихожей", StringComparison.OrdinalIgnoreCase));
-
-                if (entranceIndex >= 0)
-                {
-                    otherColumnHeaders.InsertRange(entranceIndex + 1, terraceHeaders);
-                }
-                else
-                {
-                    // Если прихожей нет, добавляем террасы в конец
-                    otherColumnHeaders.AddRange(terraceHeaders);
-                }
-
-                // ДОБАВЛЯЕМ 3 СТОЛБЦА ДЛЯ ЛОДЖИЙ ПОСЛЕ ТЕРРАС
-                var loggiaHeaders = new List<string>
-{
-    "Площадь лоджии",
-    "Площадь лоджии 2",
-    "Площадь лоджии 3"
-};
-
-                // ВСТАВЛЯЕМ СТОЛБЦЫ ЛОДЖИЙ ПОСЛЕ ТЕРРАС
-                int terraceEndIndex = otherColumnHeaders.FindIndex(header =>
-                    header.StartsWith("Площадь террасы 5", StringComparison.OrdinalIgnoreCase));
-
-                if (terraceEndIndex >= 0)
-                {
-                    otherColumnHeaders.InsertRange(terraceEndIndex + 1, loggiaHeaders);
-                }
-                else
-                {
-                    // Если террас нет, добавляем лоджии в конец
-                    otherColumnHeaders.AddRange(loggiaHeaders);
-                }
-
-                // ОБЪЕДИНЯЕМ ФИКСИРОВАННЫЕ ЗАГОЛОВКИ С ОСТАЛЬНЫМИ
-                var allColumnHeaders = new List<string>();
-                allColumnHeaders.AddRange(fixedRoomHeaders);
-                allColumnHeaders.AddRange(otherColumnHeaders);
-
-                // Добавляем заголовки для ВСЕХ помещений
-                foreach (var header in allColumnHeaders)
+                // Добавляем все заголовки
+                foreach (var header in allHeaders)
                 {
                     worksheet.Cells[1, col++] = header;
                 }
 
-                // Добавляем столбец с коэффициентами
-                worksheet.Cells[1, col++] = "Площадь балкона лоджий, балконов, веранд, террас с коэффициентами, кв.м.";
-
-                // Добавляем столбцы в конце как требуется
-                worksheet.Cells[1, col++] = "Площадь общ.";
-                worksheet.Cells[1, col++] = "Площадь прив.";
-                worksheet.Cells[1, col++] = "Корпус";
-                worksheet.Cells[1, col++] = "Секция";
-                worksheet.Cells[1, col++] = "Заморозка архитекторами";
-
-                // Форматирование заголовков - УБРАН ЖИРНЫЙ ШРИФТ И ЗАЛИВКА
+                // Форматирование заголовков
                 Range headerRange = worksheet.Range["A1", GetExcelColumnName(col - 1) + "1"];
-                headerRange.Font.Bold = false; // Убираем жирный шрифт
-                headerRange.Interior.Color = System.Drawing.Color.White; // Убираем заливку (белый цвет)
-
-                // Выравнивание заголовков по центру и перенос текста
+                headerRange.Font.Bold = false;
+                headerRange.Interior.Color = System.Drawing.Color.White;
                 headerRange.HorizontalAlignment = XlHAlign.xlHAlignCenter;
                 headerRange.VerticalAlignment = XlVAlign.xlVAlignCenter;
                 headerRange.WrapText = true;
 
                 // Устанавливаем высоту первой строки
-                worksheet.Rows[1].RowHeight = 125; // Высота в пунктах
+                worksheet.Rows[1].RowHeight = 125;
 
                 // ДОБАВЛЯЕМ ЦВЕТОВОЕ ОФОРМЛЕНИЕ ЗАГОЛОВКОВ
                 ApplyHeaderFormatting(worksheet, col);
@@ -696,53 +448,125 @@ namespace BIMv2
                 Range apartmentNumberColumn = worksheet.Range["A:A"];
                 apartmentNumberColumn.NumberFormat = "@";
 
+                // Корпус (столбец 84) - CF в Excel
+                worksheet.Range["CF:CF"].NumberFormat = "@";
+
+                // Секция (столбец 85) - CG в Excel
+                worksheet.Range["CG:CG"].NumberFormat = "@";
+
                 // Устанавливаем числовые форматы для столбцов с площадями и высотой потолка
                 // Площадь жилая (столбец J)
-                if (col > 9) worksheet.Range["J:J"].NumberFormat = "0.000";
+                worksheet.Range["J:J"].NumberFormat = "0.000";
                 // Высота потолка (столбец K)
-                if (col > 10) worksheet.Range["K:K"].NumberFormat = "0.00";
+                worksheet.Range["K:K"].NumberFormat = "0.00";
 
-                // Форматирование для всех столбцов с площадями помещений
-                int startRoomColumns = 14; // Столбцы с площадями помещений начинаются с 14-го
-                for (int i = startRoomColumns; i < startRoomColumns + allColumnHeaders.Count; i++)
+                // Форматирование для всех столбцов с площадями помещений (столбцы 14-83)
+                for (int i = 14; i <= 83; i++)
                 {
                     worksheet.Range[GetExcelColumnName(i) + ":" + GetExcelColumnName(i)].NumberFormat = "0.000";
                 }
 
-                // Площадь с коэффициентами
-                int coefficientColumn = startRoomColumns + allColumnHeaders.Count;
-                worksheet.Range[GetExcelColumnName(coefficientColumn) + ":" + GetExcelColumnName(coefficientColumn)].NumberFormat = "0.000";
+                // Площадь с коэффициентами (столбец 84)
+                worksheet.Range[GetExcelColumnName(84) + ":" + GetExcelColumnName(84)].NumberFormat = "0.000";
 
-                // Площадь общ.
-                int totalAreaColumn = coefficientColumn + 1;
-                worksheet.Range[GetExcelColumnName(totalAreaColumn) + ":" + GetExcelColumnName(totalAreaColumn)].NumberFormat = "0.000";
+                // Площадь общ. (столбец 85)
+                worksheet.Range[GetExcelColumnName(85) + ":" + GetExcelColumnName(85)].NumberFormat = "0.000";
 
-                // Площадь прив.
-                int reducedAreaColumn = totalAreaColumn + 1;
-                worksheet.Range[GetExcelColumnName(reducedAreaColumn) + ":" + GetExcelColumnName(reducedAreaColumn)].NumberFormat = "0.000";
+                // Площадь прив. (столбец 86)
+                worksheet.Range[GetExcelColumnName(86) + ":" + GetExcelColumnName(86)].NumberFormat = "0.000";
 
-                // СОРТИРУЕМ КВАРТИРЫ по параметру LG_МаркаКвартирыФРС от меньшего к большему
+                // СОРТИРУЕМ КВАРТИРЫ
                 var sortedApartments = apartments
-                    .OrderBy(a => a.ApartmentMarkSortValue) // Сначала по числовому значению марки
-                    .ThenBy(a => a.ApartmentMark) // Затем по строковому значению марки
-                    .ThenBy(a => a.LevelNumber) // Затем по уровню
-                    .ThenBy(a => a.ApartmentNumber) // Затем по номеру квартиры
+                    .OrderBy(a => a.ApartmentMarkSortValue)
+                    .ThenBy(a => a.ApartmentMark)
+                    .ThenBy(a => a.LevelNumber)
+                    .ThenBy(a => a.ApartmentNumber)
                     .ToList();
 
                 int row = 2;
                 int totalApartments = sortedApartments.Count;
                 int processedApartments = 0;
 
+                // СОЗДАЕМ СЛОВАРЬ ДЛЯ СООТВЕТСТВИЯ ЗАГОЛОВКОВ И ТИПОВ ПОМЕЩЕНИЙ
+                var headerToRoomType = new Dictionary<string, string>
+        {
+            {"Площадь комнаты 1", "Жилая комната"},
+            {"Площадь комнаты 2", "Жилая комната"},
+            {"Площадь комнаты 3", "Жилая комната"},
+            {"Площадь комнаты 4", "Жилая комната"},
+            {"Площадь комнаты 5", "Жилая комната"},
+            {"Площадь гардеробной 1", "Гардеробная"},
+            {"Площадь гардеробной 2", "Гардеробная"},
+            {"Площадь гардеробной 3", "Гардеробная"},
+            {"Площадь гардеробной 4", "Гардеробная"},
+            {"Площадь гардеробной 5", "Гардеробная"},
+            {"Площадь гостиной 1", "Гостинная"},
+            {"Площадь кухни", "Кухня"},
+            {"Площадь кухни-ниши", "Кухня-ниша"},
+            {"Площадь кухни-гостиной", "Кухня-гостиная"},
+            {"Площадь коридора 1", "Коридор"},
+            {"Площадь коридора 2", "Коридор"},
+            {"Площадь коридора 3", "Коридор"},
+            {"Площадь коридора 4", "Коридор"},
+            {"Площадь коридора 5", "Коридор"},
+            {"Площадь коридора 6", "Коридор"},
+            {"Площадь коридора 7", "Коридор"},
+            {"Площадь коридора 8", "Коридор"},
+            {"Площадь коридора 9", "Коридор"},
+            {"Площадь душевой", "Душевая"},
+            {"Площадь душевой 1", "Душевая"},
+            {"Площадь душевой 2", "Душевая"},
+            {"Площадь ванной 1", "Ванная"},
+            {"Площадь кладовой 1", "Кладовая"},
+            {"Площадь кладовой 2", "Кладовая"},
+            {"Площадь кладовой 3", "Кладовая"},
+            {"Площадь кладовой 4", "Кладовая"},
+            {"Площадь кладовой 5", "Кладовая"},
+            {"Площадь кладовой 6", "Кладовая"},
+            {"Площадь кладовой 7", "Кладовая"},
+            {"Площадь кладовой 8", "Кладовая"},
+            {"Площадь кладовой 9", "Кладовая"},
+            {"Площадь санузла 1", "Санузел"},
+            {"Площадь санузла 2", "Санузел"},
+            {"Площадь санузла 3", "Санузел"},
+            {"Площадь санузла 4", "Санузел"},
+            {"Площадь санузла 5", "Санузел"},
+            {"Площадь санузла 6", "Санузел"},
+            {"Площадь санузла 7", "Санузел"},
+            {"Площадь санузла 8", "Санузел"},
+            {"Площадь санузла 9", "Санузел"},
+            {"Площадь санузла 10", "Санузел"},
+            {"Площадь санузла 11", "Санузел"},
+            {"Площадь постирочной", "Постирочная"},
+            {"Площадь балкона 1", "Балкон"},
+            {"Площадь балкона 2", "Балкон"},
+            {"Площадь балкона 3", "Балкон"},
+            {"Площадь балкона 4", "Балкон"},
+            {"Площадь балкона 5", "Балкон"},
+            {"Площадь балкона 6", "Балкон"},
+            {"Площадь балкона 7", "Балкон"},
+            {"Площадь балкона 8", "Балкон"},
+            {"Площадь балкона 9", "Балкон"},
+            {"Площадь прихожей", "Прихожая"},
+            {"Площадь террасы 1", "Терраса"},
+            {"Площадь террасы 2", "Терраса"},
+            {"Площадь террасы 3", "Терраса"},
+            {"Площадь террасы 4", "Терраса"},
+            {"Площадь террасы 5", "Терраса"},
+            {"Площадь лоджии", "Лоджия"},
+            {"Площадь лоджии 2", "Лоджия"},
+            {"Площадь лоджии 3", "Лоджия"}
+        };
+
                 foreach (var apartment in sortedApartments)
                 {
-                    // Обновляем прогресс для каждой квартиры
                     processedApartments++;
-                    int progress = 70 + (int)((double)processedApartments / totalApartments * 25); // 70-95%
+                    int progress = 70 + (int)((double)processedApartments / totalApartments * 25);
                     progressForm.UpdateProgress($"Экспорт квартир ({processedApartments}/{totalApartments})...", progress);
 
                     col = 1;
 
-                    // Условный номер помещения - используем параметр LG_МаркаКвартирыФРС с ведущими нулями
+                    // Условный номер помещения
                     string conditionalNumber = !string.IsNullOrEmpty(apartment.FormattedApartmentMark) ?
                         apartment.FormattedApartmentMark :
                         (!string.IsNullOrEmpty(apartment.ApartmentMark) ?
@@ -750,10 +574,10 @@ namespace BIMv2
                             FormatApartmentNumber(apartment.ApartmentNumber));
                     worksheet.Cells[row, col++] = conditionalNumber;
 
-                    // Маркетинговый подтип 2_1_0Э, 2_2_0 - пустой столбец
+                    // Маркетинговый подтип 2_1_0Э, 2_2_0 - пустой
                     worksheet.Cells[row, col++] = "";
 
-                    // Тип планировки 2_1, 2_2 - пустой столбец
+                    // Тип планировки 2_1, 2_2 - пустой
                     worksheet.Cells[row, col++] = "";
 
                     // Горизонтальная ось
@@ -769,14 +593,14 @@ namespace BIMv2
                     string balconyLoggiaText = FormatBalconyLoggiaText(apartment);
                     worksheet.Cells[row, col++] = balconyLoggiaText;
 
-                    // Комнат пиб                
+                    // Комнат пиб
                     worksheet.Cells[row, col++] = FormatRoomType2(apartment.RoomType);
 
-                    // Маркетинговый тип - заменяем "S-" на "Suite"
+                    // Маркетинговый тип
                     string marketingType = FormatMarketingType(apartment.MarketingType);
                     worksheet.Cells[row, col++] = marketingType;
 
-                    // Площадь жилая - гарантированно форматируем до тысячных
+                    // Площадь жилая
                     if (apartment.LivingArea > 0)
                     {
                         double livingArea = UnitUtils.ConvertFromInternalUnits(apartment.LivingArea, UnitTypeId.SquareMeters);
@@ -798,355 +622,53 @@ namespace BIMv2
                         worksheet.Cells[row, col++] = "";
                     }
 
-                    // Назначение помещения - пустой столбец
+                    // Назначение помещения - пустой
                     worksheet.Cells[row, col++] = "";
 
                     // Тип помещения
                     worksheet.Cells[row, col++] = "Квартира";
 
-                    // СОЗДАЕМ СЛОВАРЬ ПЛОЩАДЕЙ С КОЭФФИЦИЕНТАМИ С ИСПОЛЬЗОВАНИЕМ FinalName КАК КЛЮЧА
-                    var roomAreasWithCoefficient = new Dictionary<string, double>();
+                    // СОЗДАЕМ СЛОВАРЬ ПЛОЩАДЕЙ ПО ТИПАМ ПОМЕЩЕНИЙ
+                    var roomAreasByType = new Dictionary<string, List<double>>();
                     foreach (var room in apartment.Rooms.Where(r => _allowedRoomNames.Contains(r.CleanedName)))
                     {
-                        // ИСПОЛЬЗУЕМ ПЛОЩАДЬ С КОЭФФИЦИЕНТОМ вместо обычной площади
+                        string roomType = room.CleanedName;
                         double areaToUse = room.AreaWithCoefficient > 0 ? room.AreaWithCoefficient : room.Area;
-                        roomAreasWithCoefficient[room.FinalName] = areaToUse;
+
+                        if (!roomAreasByType.ContainsKey(roomType))
+                            roomAreasByType[roomType] = new List<double>();
+
+                        roomAreasByType[roomType].Add(areaToUse);
                     }
 
-                    // ЗАПОЛНЯЕМ ПЛОЩАДИ ДЛЯ ВСЕХ СТОЛБЦОВ
-                    foreach (var header in allColumnHeaders)
+                    // ЗАПОЛНЯЕМ ПЛОЩАДИ ДЛЯ ВСЕХ ФИКСИРОВАННЫХ СТОЛБЦОВ (14-83)
+                    for (int i = 14; i <= 83; i++)
                     {
+                        string header = allHeaders[i - 1]; // allHeaders индексируется с 0
                         double area = 0;
                         bool areaFound = false;
 
-                        // Для столбцов жилых комнат (ПЕРЕИМЕНОВАНЫ)
-                        if (header.StartsWith("Площадь комнаты"))
+                        if (headerToRoomType.ContainsKey(header))
                         {
-                            // Извлекаем номер комнаты из заголовка
-                            Match match = Regex.Match(header, @"Площадь комнаты\s*(\d+)");
-                            if (match.Success)
+                            string roomType = headerToRoomType[header];
+                            if (roomAreasByType.ContainsKey(roomType))
                             {
-                                string roomNumber = match.Groups[1].Value;
+                                // Определяем индекс комнаты по номеру в заголовке
+                                int roomIndex = GetRoomIndexFromHeader(header);
+                                var areas = roomAreasByType[roomType];
 
-                                // Ищем соответствующие жилые комнаты в квартире
-                                var livingRooms = apartment.Rooms
-                                    .Where(r => r.CleanedName.Equals("Жилая комната", StringComparison.OrdinalIgnoreCase))
-                                    .OrderBy(r => r.FinalName)
-                                    .ToList();
-
-                                int roomIndex;
-                                if (int.TryParse(roomNumber, out roomIndex) && roomIndex <= livingRooms.Count)
+                                if (roomIndex < areas.Count)
                                 {
-                                    // Берем площадь комнаты по порядковому номеру
-                                    var livingRoom = livingRooms[roomIndex - 1];
-                                    area = roomAreasWithCoefficient.ContainsKey(livingRoom.FinalName) ?
-                                           roomAreasWithCoefficient[livingRoom.FinalName] : 0;
+                                    area = areas[roomIndex];
                                     areaFound = true;
                                 }
                             }
                         }
-                        // Для столбцов гардеробных
-                        else if (header.StartsWith("Площадь гардеробной"))
+
+                        if (header == "мастер-спальня" || header == "Площадь гостиной 1")
                         {
-                            // Извлекаем номер гардеробной из заголовка
-                            Match match = Regex.Match(header, @"Площадь гардеробной\s*(\d+)");
-                            if (match.Success)
-                            {
-                                string wardrobeNumber = match.Groups[1].Value;
-
-                                // Ищем соответствующие гардеробные в квартире
-                                var wardrobes = apartment.Rooms
-                                    .Where(r => r.CleanedName.Equals("Гардеробная", StringComparison.OrdinalIgnoreCase))
-                                    .OrderBy(r => r.FinalName)
-                                    .ToList();
-
-                                int wardrobeIndex;
-                                if (int.TryParse(wardrobeNumber, out wardrobeIndex) && wardrobeIndex <= wardrobes.Count)
-                                {
-                                    // Берем площадь гардеробной по порядковому номеру
-                                    var wardrobe = wardrobes[wardrobeIndex - 1];
-                                    area = roomAreasWithCoefficient.ContainsKey(wardrobe.FinalName) ?
-                                           roomAreasWithCoefficient[wardrobe.FinalName] : 0;
-                                    areaFound = true;
-                                }
-                            }
-                        }
-                        // Для столбцов коридоров
-                        else if (header.StartsWith("Площадь коридора"))
-                        {
-                            // Извлекаем номер коридора из заголовка
-                            Match match = Regex.Match(header, @"Площадь коридора\s*(\d+)");
-                            if (match.Success)
-                            {
-                                string corridorNumber = match.Groups[1].Value;
-
-                                // Ищем соответствующие коридоры в квартире
-                                var corridors = apartment.Rooms
-                                    .Where(r => r.CleanedName.Equals("Коридор", StringComparison.OrdinalIgnoreCase))
-                                    .OrderBy(r => r.FinalName)
-                                    .ToList();
-
-                                int corridorIndex;
-                                if (int.TryParse(corridorNumber, out corridorIndex) && corridorIndex <= corridors.Count)
-                                {
-                                    // Берем площадь коридора по порядковому номеру
-                                    var corridor = corridors[corridorIndex - 1];
-                                    area = roomAreasWithCoefficient.ContainsKey(corridor.FinalName) ?
-                                           roomAreasWithCoefficient[corridor.FinalName] : 0;
-                                    areaFound = true;
-                                }
-                            }
-                        }
-                        // Для столбцов душевых
-                        else if (header.StartsWith("Площадь душевой"))
-                        {
-                            // Извлекаем номер душевой из заголовка
-                            Match match = Regex.Match(header, @"Площадь душевой\s*(\d*)$");
-                            string showerNumber = match.Success ? match.Groups[1].Value : "";
-
-                            // Ищем соответствующие душевые в квартире
-                            var showers = apartment.Rooms
-                                .Where(r => r.CleanedName.Equals("Душевая", StringComparison.OrdinalIgnoreCase))
-                                .OrderBy(r => r.FinalName)
-                                .ToList();
-
-                            if (string.IsNullOrEmpty(showerNumber))
-                            {
-                                // Для столбца "Площадь душевой" (без номера) берем первую душевую
-                                if (showers.Count > 0)
-                                {
-                                    var shower = showers[0];
-                                    area = roomAreasWithCoefficient.ContainsKey(shower.FinalName) ?
-                                           roomAreasWithCoefficient[shower.FinalName] : 0;
-                                    areaFound = true;
-                                }
-                            }
-                            else if (int.TryParse(showerNumber, out int showerIndex))
-                            {
-                                // Для столбцов "Площадь душевой 1", "Площадь душевой 2"
-                                if (showerIndex <= showers.Count)
-                                {
-                                    var shower = showers[showerIndex - 1];
-                                    area = roomAreasWithCoefficient.ContainsKey(shower.FinalName) ?
-                                           roomAreasWithCoefficient[shower.FinalName] : 0;
-                                    areaFound = true;
-                                }
-                            }
-                        }
-                        // Для столбцов ванной
-                        else if (header.StartsWith("Площадь ванной"))
-                        {
-                            // Извлекаем номер ванной из заголовка
-                            Match match = Regex.Match(header, @"Площадь ванной\s*(\d+)");
-                            if (match.Success)
-                            {
-                                string bathroomNumber = match.Groups[1].Value;
-
-                                // Ищем соответствующие ванные в квартире
-                                var bathrooms = apartment.Rooms
-                                    .Where(r => r.CleanedName.Equals("Ванная", StringComparison.OrdinalIgnoreCase))
-                                    .OrderBy(r => r.FinalName)
-                                    .ToList();
-
-                                int bathroomIndex;
-                                if (int.TryParse(bathroomNumber, out bathroomIndex) && bathroomIndex <= bathrooms.Count)
-                                {
-                                    // Берем площадь ванной по порядковому номеру
-                                    var bathroom = bathrooms[bathroomIndex - 1];
-                                    area = roomAreasWithCoefficient.ContainsKey(bathroom.FinalName) ?
-                                           roomAreasWithCoefficient[bathroom.FinalName] : 0;
-                                    areaFound = true;
-                                }
-                            }
-                        }
-                        // Для столбцов кладовых
-                        else if (header.StartsWith("Площадь кладовой"))
-                        {
-                            // Извлекаем номер кладовой из заголовка
-                            Match match = Regex.Match(header, @"Площадь кладовой\s*(\d+)");
-                            if (match.Success)
-                            {
-                                string storageNumber = match.Groups[1].Value;
-
-                                // Ищем соответствующие кладовые в квартире
-                                var storages = apartment.Rooms
-                                    .Where(r => r.CleanedName.Equals("Кладовая", StringComparison.OrdinalIgnoreCase))
-                                    .OrderBy(r => r.FinalName)
-                                    .ToList();
-
-                                int storageIndex;
-                                if (int.TryParse(storageNumber, out storageIndex) && storageIndex <= storages.Count)
-                                {
-                                    // Берем площадь кладовой по порядковому номеру
-                                    var storage = storages[storageIndex - 1];
-                                    area = roomAreasWithCoefficient.ContainsKey(storage.FinalName) ?
-                                           roomAreasWithCoefficient[storage.FinalName] : 0;
-                                    areaFound = true;
-                                }
-                            }
-                        }
-                        // Для столбцов санузлов
-                        else if (header.StartsWith("Площадь санузла"))
-                        {
-                            // Извлекаем номер санузла из заголовка
-                            Match match = Regex.Match(header, @"Площадь санузла\s*(\d+)");
-                            if (match.Success)
-                            {
-                                string bathroomNumber = match.Groups[1].Value;
-
-                                // Ищем соответствующие санузлы в квартире
-                                var bathrooms = apartment.Rooms
-                                    .Where(r => r.CleanedName.Equals("Санузел", StringComparison.OrdinalIgnoreCase))
-                                    .OrderBy(r => r.FinalName)
-                                    .ToList();
-
-                                int bathroomIndex;
-                                if (int.TryParse(bathroomNumber, out bathroomIndex) && bathroomIndex <= bathrooms.Count)
-                                {
-                                    // Берем площадь санузла по порядковому номеру
-                                    var bathroom = bathrooms[bathroomIndex - 1];
-                                    area = roomAreasWithCoefficient.ContainsKey(bathroom.FinalName) ?
-                                           roomAreasWithCoefficient[bathroom.FinalName] : 0;
-                                    areaFound = true;
-                                }
-                            }
-                        }
-                        // Для столбца прихожей
-                        else if (header.StartsWith("Площадь прихожей"))
-                        {
-                            // Ищем прихожую в квартире
-                            var entrance = apartment.Rooms
-                                .FirstOrDefault(r => r.CleanedName.Equals("Прихожая", StringComparison.OrdinalIgnoreCase));
-
-                            if (entrance != null)
-                            {
-                                area = roomAreasWithCoefficient.ContainsKey(entrance.FinalName) ?
-                                       roomAreasWithCoefficient[entrance.FinalName] : 0;
-                                areaFound = true;
-                            }
-                        }
-
-                        // Для столбца постирочной
-                        else if (header.StartsWith("Площадь постирочной"))
-                        {
-                            // Ищем постирочную в квартире
-                            var laundry = apartment.Rooms
-                                .FirstOrDefault(r => r.CleanedName.Equals("Постирочная", StringComparison.OrdinalIgnoreCase));
-
-                            if (laundry != null)
-                            {
-                                area = roomAreasWithCoefficient.ContainsKey(laundry.FinalName) ?
-                                       roomAreasWithCoefficient[laundry.FinalName] : 0;
-                                areaFound = true;
-                            }
-                        }
-                        // Для столбцов балконов
-                        else if (header.StartsWith("Площадь балкона"))
-                        {
-                            // Извлекаем номер балкона из заголовка
-                            Match match = Regex.Match(header, @"Площадь балкона\s*(\d+)");
-                            if (match.Success)
-                            {
-                                string balconyNumber = match.Groups[1].Value;
-
-                                // Ищем соответствующие балконы в квартире
-                                var balconies = apartment.Rooms
-                                    .Where(r => r.CleanedName.IndexOf("балкон", StringComparison.OrdinalIgnoreCase) >= 0)
-                                    .OrderBy(r => r.FinalName)
-                                    .ToList();
-
-                                int balconyIndex;
-                                if (int.TryParse(balconyNumber, out balconyIndex) && balconyIndex <= balconies.Count)
-                                {
-                                    // Берем площадь балкона по порядковому номеру
-                                    var balcony = balconies[balconyIndex - 1];
-                                    area = roomAreasWithCoefficient.ContainsKey(balcony.FinalName) ?
-                                           roomAreasWithCoefficient[balcony.FinalName] : 0;
-                                    areaFound = true;
-                                }
-                            }
-                        }
-                        // Для столбцов террас
-                        else if (header.StartsWith("Площадь террасы"))
-                        {
-                            // Извлекаем номер террасы из заголовка
-                            Match match = Regex.Match(header, @"Площадь террасы\s*(\d+)");
-                            if (match.Success)
-                            {
-                                string terraceNumber = match.Groups[1].Value;
-
-                                // Ищем соответствующие террасы в квартире
-                                var terraces = apartment.Rooms
-                                    .Where(r => r.CleanedName.Equals("Терраса", StringComparison.OrdinalIgnoreCase))
-                                    .OrderBy(r => r.FinalName)
-                                    .ToList();
-
-                                int terraceIndex;
-                                if (int.TryParse(terraceNumber, out terraceIndex) && terraceIndex <= terraces.Count)
-                                {
-                                    // Берем площадь террасы по порядковому номеру
-                                    var terrace = terraces[terraceIndex - 1];
-                                    area = roomAreasWithCoefficient.ContainsKey(terrace.FinalName) ?
-                                           roomAreasWithCoefficient[terrace.FinalName] : 0;
-                                    areaFound = true;
-                                }
-                            }
-                        }
-                        // Для столбцов лоджий
-                        else if (header.StartsWith("Площадь лоджии"))
-                        {
-                            // Извлекаем номер лоджии из заголовка
-                            Match match = Regex.Match(header, @"Площадь лоджии\s*(\d*)$");
-                            string loggiaNumber = match.Success ? match.Groups[1].Value : "";
-
-                            // Ищем соответствующие лоджии в квартире
-                            var loggias = apartment.Rooms
-                                .Where(r => r.CleanedName.Equals("Лоджия", StringComparison.OrdinalIgnoreCase))
-                                .OrderBy(r => r.FinalName)
-                                .ToList();
-
-                            if (string.IsNullOrEmpty(loggiaNumber))
-                            {
-                                // Для столбца "Площадь лоджии" (без номера) берем первую лоджию
-                                if (loggias.Count > 0)
-                                {
-                                    var loggia = loggias[0];
-                                    area = roomAreasWithCoefficient.ContainsKey(loggia.FinalName) ?
-                                           roomAreasWithCoefficient[loggia.FinalName] : 0;
-                                    areaFound = true;
-                                }
-                            }
-                            else if (int.TryParse(loggiaNumber, out int loggiaIndex))
-                            {
-                                // Для столбцов "Площадь лоджии 2", "Площадь лоджии 3"
-                                if (loggiaIndex <= loggias.Count)
-                                {
-                                    var loggia = loggias[loggiaIndex - 1];
-                                    area = roomAreasWithCoefficient.ContainsKey(loggia.FinalName) ?
-                                           roomAreasWithCoefficient[loggia.FinalName] : 0;
-                                    areaFound = true;
-                                }
-                            }
-                        }
-                        // Для пустого столбца "мастер-спальня" - всегда оставляем пустым
-                        else if (header.Equals("мастер-спальня"))
-                        {
-                            areaFound = false; // Оставляем пустым
-                        }
-                        // Для пустого столбца "Площадь гостиной 1" - всегда оставляем пустым
-                        else if (header.Equals("Площадь гостиной 1"))
-                        {
-                            areaFound = false; // Оставляем пустым
-                        }
-                        else
-                        {
-                            // Для остальных помещений используем старую логику
-                            var roomName = FindRoomNameForHeader(header, otherRoomNames, otherRoomGroups);
-                            if (roomName != null && roomAreasWithCoefficient.ContainsKey(roomName))
-                            {
-                                area = roomAreasWithCoefficient[roomName];
-                                areaFound = true;
-                            }
+                            // Эти столбцы всегда остаются пустыми
+                            areaFound = false;
                         }
 
                         if (areaFound)
@@ -1157,46 +679,59 @@ namespace BIMv2
                         {
                             worksheet.Cells[row, col] = "";
                         }
-                        col++;
+                        col++; // УВЕЛИЧИВАЕМ СЧЕТЧИК СТОЛБЦОВ
                     }
 
-                    // Площадь балкона лоджий, балконов, веранд, террас с коэффициентами
-                    double areaWithCoefficients = CalculateAreaWithCoefficients(apartment);
-                    worksheet.Cells[row, col++] = Math.Round(areaWithCoefficients, 3);
+                    // Теперь col должен быть равен 84 (после заполнения столбцов 14-83)
 
-                    // Столбцы в конце
-                    // Площадь общ.
+                    // Принудительно устанавливаем правильный столбец
+                    //col = 84;
+
+                    // Площадь балкона лоджий, балконов, веранд, террас с коэффициентами (столбец 81)
+                    double areaWithCoefficients = CalculateAreaWithCoefficients(apartment);
+                    worksheet.Cells[row, 81] = Math.Round(areaWithCoefficients, 3);
+
+                    // Площадь общ. (столбец 82)
                     if (apartment.TotalArea > 0)
                     {
                         double totalArea = UnitUtils.ConvertFromInternalUnits(apartment.TotalArea, UnitTypeId.SquareMeters);
-                        worksheet.Cells[row, col++] = Math.Round(totalArea, 3);
+                        worksheet.Cells[row, 82] = Math.Round(totalArea, 3);
                     }
                     else
                     {
-                        worksheet.Cells[row, col++] = "";
+                        worksheet.Cells[row, 82] = "";
                     }
 
-                    // Площадь прив.
+                    // Площадь прив. (столбец 83)
                     if (apartment.ReducedArea > 0)
                     {
                         double reducedArea = UnitUtils.ConvertFromInternalUnits(apartment.ReducedArea, UnitTypeId.SquareMeters);
-                        worksheet.Cells[row, col++] = Math.Round(reducedArea, 3);
+                        worksheet.Cells[row, 83] = Math.Round(reducedArea, 3);
                     }
                     else
                     {
-                        worksheet.Cells[row, col++] = "";
+                        worksheet.Cells[row, 83] = "";
                     }
 
-                    // Корпус
-                    worksheet.Cells[row, col++] = apartment.BuildingNumber;
+                    // Корпус (столбец 84) - преобразуем в текст
+                    string buildingNumber = apartment.BuildingNumber ?? "";
+                    worksheet.Cells[row, 84] = buildingNumber;
+                    // Устанавливаем текстовый формат для ячейки
+                    worksheet.Cells[row, 84].NumberFormat = "@";
 
-                    // Секция
-                    worksheet.Cells[row, col++] = apartment.Section;
+                    // Секция (столбец 85) - преобразуем в текст  
+                    string section = apartment.Section ?? "";
+                    worksheet.Cells[row, 85] = section;
+                    // Устанавливаем текстовый формат для ячейки
+                    worksheet.Cells[row, 85].NumberFormat = "@";
 
-                    // Заморозка архитекторами - пустой столбец
-                    worksheet.Cells[row, col++] = "";
+                    // Заморозка архитекторами (столбец 86)
+                    worksheet.Cells[row, 86] = "";
 
-                    // ПРИМЕНЯЕМ ФОРМАТИРОВАНИЕ К СТРОКЕ
+                    // Обновляем счетчик для форматирования
+                    //col = 90; // следующий после последнего столбца
+
+                    // Форматирование строки
                     Range rowRange = worksheet.Range["A" + row, GetExcelColumnName(col - 1) + row];
                     rowRange.HorizontalAlignment = XlHAlign.xlHAlignCenter;
                     rowRange.VerticalAlignment = XlVAlign.xlVAlignCenter;
@@ -1208,24 +743,23 @@ namespace BIMv2
                 // Автоподбор ширины столбцов
                 worksheet.Columns.AutoFit();
 
-                // УСТАНАВЛИВАЕМ ШИРИНУ СТОЛБЦОВ С ДАННЫМИ В 20 ПУНКТОВ
-                Range dataColumns = worksheet.Range["A:" + GetExcelColumnName(col - 1)];
+                // Устанавливаем ширину столбцов
+                Range dataColumns = worksheet.Range["A:" + GetExcelColumnName(86)];
                 dataColumns.ColumnWidth = 20;
 
                 // Добавляем границы
-                Range dataRange = worksheet.Range["A1", GetExcelColumnName(col - 1) + (row - 1).ToString()];
+                Range dataRange = worksheet.Range["A1", GetExcelColumnName(86) + (row - 1).ToString()];
                 dataRange.Borders.LineStyle = XlLineStyle.xlContinuous;
 
-                // Полное имя файла с путем
+                // Выравниваем все данные по центру и по середине
+                Range allDataRange = worksheet.Range["A2", GetExcelColumnName(86) + (row - 1).ToString()];
+                allDataRange.HorizontalAlignment = XlHAlign.xlHAlignCenter;
+                allDataRange.VerticalAlignment = XlVAlign.xlVAlignCenter;
+                allDataRange.WrapText = true;
+
+                // Сохраняем файл
                 string fullPath = doc.PathName;
-
-                // Только имя файла
-                string fileName = System.IO.Path.GetFileName(fullPath);
-
-                // Имя без расширения
                 string modelName = System.IO.Path.GetFileNameWithoutExtension(fullPath);
-
-                // Сохраняем файл с временем выгрузки
                 string timestamp = DateTime.Now.ToString("yyyy-MM-dd-HH-mm-ss");
                 _exportedFilePath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) +
                                    $"\\Выгрузка_квартир для модели {modelName}  дата выгрузки {timestamp}.xlsx";
@@ -1238,7 +772,6 @@ namespace BIMv2
             }
             finally
             {
-                // Освобождаем ресурсы
                 workbook.Close(true);
                 excelApp.Quit();
                 System.Runtime.InteropServices.Marshal.ReleaseComObject(worksheet);
@@ -1247,65 +780,63 @@ namespace BIMv2
             }
         }
 
+        // Вспомогательный метод для получения индекса комнаты из заголовка
+        private int GetRoomIndexFromHeader(string header)
+        {
+            Match match = Regex.Match(header, @"\d+");
+            if (match.Success && int.TryParse(match.Value, out int index))
+            {
+                return index - 1; // преобразуем в 0-based индекс
+            }
+            return 0;
+        }
+
         // НОВЫЙ МЕТОД: Применение цветового оформления заголовков
         private void ApplyHeaderFormatting(Worksheet worksheet, int totalColumns)
         {
             try
             {
-                // Светло-голубой цвет
+                // Цвета остаются теми же...
                 System.Drawing.Color lightBlue = System.Drawing.Color.FromArgb(218, 238, 243);
-
-                // Светло-оранжевый акцент 2
                 System.Drawing.Color lightOrange = System.Drawing.Color.FromArgb(255, 242, 204);
-
-                // Светло-зеленый
                 System.Drawing.Color lightGreen = System.Drawing.Color.FromArgb(226, 239, 218);
-
-                // Светло-золотой
                 System.Drawing.Color lightGold = System.Drawing.Color.FromArgb(255, 255, 204);
-
-                // Светло-серый
                 System.Drawing.Color lightGray = System.Drawing.Color.FromArgb(242, 242, 242);
-
-                // Светло-сизый
                 System.Drawing.Color lightPlum = System.Drawing.Color.FromArgb(242, 226, 242);
-
-                // Желтый
                 System.Drawing.Color yellow = System.Drawing.Color.FromArgb(255, 255, 153);
 
                 // Столбцы 2,3,6,8,9, 29-37, 73-77 - светло-голубой
                 ApplyColorToColumns(worksheet, new List<int> { 2, 3, 6, 8, 9 }, lightBlue);
-                ApplyColorToColumnRange(worksheet, 29, 37, lightBlue);
-                ApplyColorToColumnRange(worksheet, 73, 77, lightBlue);
+                ApplyColorToColumnRange(worksheet, 29, 37, lightBlue);   // Коридоры
+                ApplyColorToColumnRange(worksheet, 73, 77, lightBlue);   // Террасы
 
                 // Столбцы 10, 38-40, 81-83 - светло-оранжевый
                 ApplyColorToColumns(worksheet, new List<int> { 10 }, lightOrange);
-                ApplyColorToColumnRange(worksheet, 38, 40, lightOrange);
-                ApplyColorToColumnRange(worksheet, 81, 83, lightOrange);
+                ApplyColorToColumnRange(worksheet, 38, 40, lightOrange); // Душевые
+                ApplyColorToColumnRange(worksheet, 81, 83, lightOrange); // Лоджии
 
                 // Столбцы 12, 14-18, 42-50, 78-80 - светло-зеленый
                 ApplyColorToColumns(worksheet, new List<int> { 12 }, lightGreen);
-                ApplyColorToColumnRange(worksheet, 14, 18, lightGreen);
-                ApplyColorToColumnRange(worksheet, 42, 50, lightGreen);
-                ApplyColorToColumnRange(worksheet, 78, 80, lightGreen);
+                ApplyColorToColumnRange(worksheet, 14, 18, lightGreen);  // Комнаты
+                ApplyColorToColumnRange(worksheet, 42, 50, lightGreen);  // Кладовые
+                ApplyColorToColumnRange(worksheet, 78, 80, lightGreen);  // Прихожая
 
                 // Столбцы 20-24, 51-61 - светло-золотой
-                ApplyColorToColumnRange(worksheet, 20, 24, lightGold);
-                ApplyColorToColumnRange(worksheet, 51, 61, lightGold);
+                ApplyColorToColumnRange(worksheet, 20, 24, lightGold);   // Гардеробные
+                ApplyColorToColumnRange(worksheet, 51, 61, lightGold);   // Санузлы
 
                 // Столбцы 26-28 - светло-серый
-                ApplyColorToColumnRange(worksheet, 26, 28, lightGray);
+                ApplyColorToColumnRange(worksheet, 26, 28, lightGray);   // Кухни
 
                 // Столбцы 63-71 - светло-сизый
-                ApplyColorToColumnRange(worksheet, 63, 71, lightPlum);
+                ApplyColorToColumnRange(worksheet, 63, 71, lightPlum);   // Балконы
 
                 // Столбцы 84-86 - желтый
-                ApplyColorToColumnRange(worksheet, 84, 86, yellow);
+                ApplyColorToColumnRange(worksheet, 84, 86, yellow);      // Итоговые площади
 
             }
             catch (Exception ex)
             {
-                // В случае ошибки просто продолжаем без цветового оформления
                 System.Diagnostics.Debug.WriteLine($"Ошибка при применении цветового оформления: {ex.Message}");
             }
         }
@@ -1637,10 +1168,10 @@ namespace BIMv2
         private void InitializeComponent()
         {
             this.Width = 900;
-            this.Height = 280;
+            this.Height = 320;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.StartPosition = FormStartPosition.CenterScreen;
-            this.Text = "Экспорт квартир для ФРС LEGENDA 1.0";
+            this.Text = "Экспорт квартир по шаблону СУП для ФРС LEGENDA v.2.0";
             this.ControlBox = false;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
@@ -1665,6 +1196,42 @@ namespace BIMv2
             progressBar.Minimum = 0;
             progressBar.Maximum = 100;
 
+            // Ссылка на сайт
+            LinkLabel linkLabel = new LinkLabel();
+            linkLabel.Text = "2bim.ru";
+            linkLabel.Location = new System.Drawing.Point(380, 165);
+            linkLabel.Width = 240;
+            linkLabel.Height = 50;
+            linkLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            linkLabel.Font = new System.Drawing.Font("Calibri", 11, System.Drawing.FontStyle.Regular);
+            linkLabel.LinkColor = System.Drawing.Color.Blue;
+            linkLabel.ActiveLinkColor = System.Drawing.Color.Red;
+            linkLabel.VisitedLinkColor = System.Drawing.Color.Purple;
+
+            // Обработчик клика по ссылке
+            linkLabel.LinkClicked += (sender, e) =>
+            {
+                try
+                {
+                    System.Diagnostics.Process.Start("https://2bim.ru");
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Ошибка при открытии ссылки: {ex.Message}");
+                }
+            };
+
+            // Дополнительная метка "Разработчик:"
+            Label developerLabel = new Label();
+            developerLabel.Text = "Разработчик:";
+            developerLabel.Location = new System.Drawing.Point(180, 165);
+            developerLabel.Width = 250;
+            developerLabel.Height = 50;
+            developerLabel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            developerLabel.Font = new System.Drawing.Font("Calibri", 10, System.Drawing.FontStyle.Regular);
+
+            this.Controls.Add(developerLabel);
+            this.Controls.Add(linkLabel);
             this.Controls.Add(progressBar);
             this.Controls.Add(label);
         }
