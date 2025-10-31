@@ -499,7 +499,7 @@ namespace BIMv2Buttons
                 + Environment.NewLine + "разверток", thisAssemblyPath, "CreateRoomUnfolds");
 
             PushButton pb1R = ribbonPanelAnnotation.AddItem(b1DataR) as PushButton;
-            b1DataR.ToolTip = "Создать разрезы в помещеини и разместить их на новом листе";
+            b1DataR.ToolTip = "Создать разрезы в помещении и разместить их на новом листе";
 
             BitmapImage pb1ImageR = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-r-32.png"));
             pb1R.LargeImage = pb1ImageR;
@@ -870,54 +870,54 @@ namespace BIMv2Buttons
             #region LEGENDA
 
 
-            String lg_tabNameB2 = "LEGENDA";    // создание вкладки
-            application.CreateRibbonTab(lg_tabNameB2);
+           // String lg_tabNameB2 = "LEGENDA";    // создание вкладки
+           // application.CreateRibbonTab(lg_tabNameB2);
 
-            string lgpanelNameRooms = "Работа с помещениями";
+           // string lgpanelNameRooms = "Работа с помещениями";
            
-            string lgpanelNameInfo = "Info";
+           // string lgpanelNameInfo = "Info";
 
-            // Add a new ribbon panel
-            Autodesk.Revit.UI.RibbonPanel lgRibbonPanelArRoom = application.CreateRibbonPanel(lg_tabNameB2, lgpanelNameRooms); //подпись под кнопками
-            // Add a new ribbon panel
-            Autodesk.Revit.UI.RibbonPanel lgRibbonPanelInfo = application.CreateRibbonPanel(lg_tabNameB2, lgpanelNameInfo); //подпись под кнопками
+           // // Add a new ribbon panel
+           // Autodesk.Revit.UI.RibbonPanel lgRibbonPanelArRoom = application.CreateRibbonPanel(lg_tabNameB2, lgpanelNameRooms); //подпись под кнопками
+           // // Add a new ribbon panel
+           // Autodesk.Revit.UI.RibbonPanel lgRibbonPanelInfo = application.CreateRibbonPanel(lg_tabNameB2, lgpanelNameInfo); //подпись под кнопками
 
 
-            // create push button for CurveTotalLength  //namespace и класс
-            PushButtonData lgData1 = new PushButtonData("BIMv2.RoomExportCommand.cs", "Квартиры" + Environment.NewLine + "в EXCEL"
-                , thisAssemblyPath, "BIMv2.RoomExportCommand");
+           // // create push button for CurveTotalLength  //namespace и класс
+           // PushButtonData lgData1 = new PushButtonData("BIMv2.RoomExportCommand.cs", "Квартиры" + Environment.NewLine + "в EXCEL"
+           //     , thisAssemblyPath, "BIMv2.RoomExportCommand");
 
-            PushButton pbLG1 = lgRibbonPanelArRoom.AddItem(lgData1) as PushButton;
-            pbLG1.ToolTip = "Выгрузка квартир в Excel";
+           // PushButton pbLG1 = lgRibbonPanelArRoom.AddItem(lgData1) as PushButton;
+           // pbLG1.ToolTip = "Выгрузка квартир в Excel";
 
-            BitmapImage pbLG1Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-microsoft-excel-32.png"));
+           // BitmapImage pbLG1Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-microsoft-excel-32.png"));
+           //// pbLG1.LargeImage = pbLG1Image;
            // pbLG1.LargeImage = pbLG1Image;
-            pbLG1.LargeImage = pbLG1Image;
 
-            //попробуем создать еще одну кнопку
-            lgRibbonPanelArRoom.AddSeparator(); //разделитель между кнопками
+           // //попробуем создать еще одну кнопку
+           // lgRibbonPanelArRoom.AddSeparator(); //разделитель между кнопками
 
-            //кнопка для нахоождения осей
+           // //кнопка для нахоождения осей
 
-            // create push button for CurveTotalLength  //namespace и класс
-            PushButtonData lgData2 = new PushButtonData("BIMv2.CombineRoomsAndFindAxes.cs", "Поиск осей" + Environment.NewLine + "квартир"
-                , thisAssemblyPath, "BIMv2.CombineRoomsAndFindAxes");
+           // // create push button for CurveTotalLength  //namespace и класс
+           // PushButtonData lgData2 = new PushButtonData("BIMv2.CombineRoomsAndFindAxes.cs", "Поиск осей" + Environment.NewLine + "квартир"
+           //     , thisAssemblyPath, "BIMv2.CombineRoomsAndFindAxes");
 
-            PushButton pbLG2 = lgRibbonPanelArRoom.AddItem(lgData2) as PushButton;
-            pbLG2.ToolTip = "Наити ограничивающие оси для квартиир и записать в ADSK_Примечание";
+           // PushButton pbLG2 = lgRibbonPanelArRoom.AddItem(lgData2) as PushButton;
+           // pbLG2.ToolTip = "Наити ограничивающие оси для квартиир и записать в ADSK_Примечание";
 
-            BitmapImage pbLG2Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-l-32 (1).png"));
-            // pbLG1.LargeImage = pbLG1Image;
-            pbLG2.LargeImage = pbLG2Image;
+           // BitmapImage pbLG2Image = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/icons8-l-32 (1).png"));
+           // // pbLG1.LargeImage = pbLG1Image;
+           // pbLG2.LargeImage = pbLG2Image;
 
 
-            PushButtonData lgbHData2 = new PushButtonData("cmdHelpBIMBlog", "Написать" + Environment.NewLine + "разработчику", thisAssemblyPath, "BIMv2.HelpBIMBlog");
+           // PushButtonData lgbHData2 = new PushButtonData("cmdHelpBIMBlog", "Написать" + Environment.NewLine + "разработчику", thisAssemblyPath, "BIMv2.HelpBIMBlog");
 
-            PushButton lgpbH2 = lgRibbonPanelInfo.AddItem(lgbHData2) as PushButton;
-            lgpbH2.ToolTip = "Подписываемся, ставим лайки, комментируем";
+           // PushButton lgpbH2 = lgRibbonPanelInfo.AddItem(lgbHData2) as PushButton;
+           // lgpbH2.ToolTip = "Подписываемся, ставим лайки, комментируем";
 
-            //BitmapImage pbHImage2 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/blog2bim.png"));
-            lgpbH2.LargeImage = pbHImage2;
+           // //BitmapImage pbHImage2 = new BitmapImage(new Uri("pack://application:,,,/BIMv2Buttons;component/Resources/blog2bim.png"));
+           // lgpbH2.LargeImage = pbHImage2;
 
            
 
