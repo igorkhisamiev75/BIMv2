@@ -633,7 +633,14 @@ namespace BIMv2
                     foreach (var room in apartment.Rooms.Where(r => _allowedRoomNames.Contains(r.CleanedName)))
                     {
                         string roomType = room.CleanedName;
-                        double areaToUse = room.AreaWithCoefficient > 0 ? room.AreaWithCoefficient : room.Area;
+
+                        // ДЛЯ БАЛКОНОВ, ТЕРРАС И ЛОДЖИЙ ИСПОЛЬЗУЕМ ОБЫЧНУЮ ПЛОЩАДЬ
+                        bool isBalconyType = roomType.IndexOf("балкон", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                           roomType.IndexOf("терраса", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                           roomType.IndexOf("лоджия", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                                           roomType.IndexOf("веранда", StringComparison.OrdinalIgnoreCase) >= 0;
+
+                        double areaToUse = isBalconyType ? room.Area : (room.AreaWithCoefficient > 0 ? room.AreaWithCoefficient : room.Area);
 
                         if (!roomAreasByType.ContainsKey(roomType))
                             roomAreasByType[roomType] = new List<double>();
@@ -641,8 +648,8 @@ namespace BIMv2
                         roomAreasByType[roomType].Add(areaToUse);
                     }
 
-                    // ЗАПОЛНЯЕМ ПЛОЩАДИ ДЛЯ ВСЕХ ФИКСИРОВАННЫХ СТОЛБЦОВ (14-83)
-                    for (int i = 14; i <= 83; i++)
+                    // ЗАПОЛНЯЕМ ПЛОЩАДИ ДЛЯ ВСЕХ ФИКСИРОВАННЫХ СТОЛБЦОВ (14-80)
+                    for (int i = 14; i <= 80; i++)
                     {
                         string header = allHeaders[i - 1]; // allHeaders индексируется с 0
                         double area = 0;
@@ -665,6 +672,24 @@ namespace BIMv2
                             }
                         }
 
+                        // ОСОБАЯ ОБРАБОТКА ДЛЯ ЛОДЖИЙ
+                        if (header.StartsWith("Площадь лоджии")
+                            || header.StartsWith("Площадь балкона")
+                            || header.StartsWith("Площадь террасы"))
+                        {
+                            if (areaFound)
+                            {
+                                string formattedArea = FormatLoggiaAreaString(area);
+                                worksheet.Cells[row, col] = formattedArea;
+                            }
+                            else
+                            {
+                                worksheet.Cells[row, col] = "";
+                            }
+                            col++; // УВЕЛИЧИВАЕМ СЧЕТЧИК СТОЛБЦОВ
+                            continue; // Переходим к следующей итерации
+                        }
+
                         if (header == "мастер-спальня" || header == "Площадь гостиной 1")
                         {
                             // Эти столбцы всегда остаются пустыми
@@ -682,14 +707,18 @@ namespace BIMv2
                         col++; // УВЕЛИЧИВАЕМ СЧЕТЧИК СТОЛБЦОВ
                     }
 
-                    // Теперь col должен быть равен 84 (после заполнения столбцов 14-83)
 
-                    // Принудительно устанавливаем правильный столбец
-                    //col = 84;
 
                     // Площадь балкона лоджий, балконов, веранд, террас с коэффициентами (столбец 81)
                     double areaWithCoefficients = CalculateAreaWithCoefficients(apartment);
-                    worksheet.Cells[row, 81] = Math.Round(areaWithCoefficients, 3);
+                    if (areaWithCoefficients > 0)
+                    {
+                        worksheet.Cells[row, 81] = Math.Round(areaWithCoefficients, 3);
+                    }
+                    else
+                    {
+                        worksheet.Cells[row, 81] = ""; // Оставляем пустым при нулевом значении
+                    }
 
                     // Площадь общ. (столбец 82)
                     if (apartment.TotalArea > 0)
@@ -778,6 +807,18 @@ namespace BIMv2
                 System.Runtime.InteropServices.Marshal.ReleaseComObject(workbook);
                 System.Runtime.InteropServices.Marshal.ReleaseComObject(excelApp);
             }
+        }
+
+        // метод для округления площади лоджий
+        private string FormatLoggiaAreaString(double area)
+        {
+            if (area <= 0)
+                return "";
+
+            // Округляем в большую сторону до 0,00 сотых
+            double roundedArea = Math.Ceiling(area * 100) / 100;
+            // Форматируем как строку с двумя знаками после запятой (даже если нули)
+            return roundedArea.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
         }
 
         // Вспомогательный метод для получения индекса комнаты из заголовка
@@ -986,6 +1027,7 @@ namespace BIMv2
         private double CalculateAreaWithCoefficients(Apartment apartment)
         {
             double totalAreaWithCoefficients = 0;
+            bool hasValidArea = false; // Добавляем объявление переменной
 
             foreach (var room in apartment.Rooms)
             {
@@ -998,16 +1040,17 @@ namespace BIMv2
                     if (room.AreaWithCoefficient > 0)
                     {
                         totalAreaWithCoefficients += room.AreaWithCoefficient;
+                        hasValidArea = true;
                     }
                     else
                     {
-                        // Если параметр не заполнен, используем обычную площадь
-                        totalAreaWithCoefficients += room.Area;
+
                     }
                 }
             }
 
-            return Math.Round(totalAreaWithCoefficients, 3);
+            // Возвращаем 0 если нет валидных площадей, чтобы ячейка оставалась пустой
+            return hasValidArea ? Math.Round(totalAreaWithCoefficients, 3) : 0;
         }
 
         private string FormatBalconyLoggiaText(Apartment apartment)
@@ -1171,7 +1214,7 @@ namespace BIMv2
             this.Height = 320;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.StartPosition = FormStartPosition.CenterScreen;
-            this.Text = "Экспорт квартир по шаблону СУП для ФРС LEGENDA v.2.0";
+            this.Text = "Экспорт квартир по шаблону СУП для ФРС LEGENDA v.2.2";
             this.ControlBox = false;
             this.MaximizeBox = false;
             this.MinimizeBox = false;

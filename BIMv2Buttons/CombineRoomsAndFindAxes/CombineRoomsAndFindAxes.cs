@@ -13,7 +13,7 @@ namespace BIMv2
     [Transaction(TransactionMode.Manual)]
     public class CombineRoomsAndFindAxes : IExternalCommand
     {
-        private const double OFFSET_DISTANCE = 0.150; // 300 мм в метрах
+        private const double OFFSET_DISTANCE = 0.90; // 300 мм в метрах
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
