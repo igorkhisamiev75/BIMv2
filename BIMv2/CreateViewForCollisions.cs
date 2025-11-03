@@ -222,6 +222,7 @@ namespace BIMv2
 
                 // Устанавливаем цвет линий
                 ogs.SetProjectionLineColor(color);
+                ogs.SetCutLineColor(color); // Цвет линий в разрезе
 
                 // Устанавливаем цвет и паттерн заливки для поверхностей
                 ogs.SetSurfaceForegroundPatternColor(color);
@@ -230,12 +231,12 @@ namespace BIMv2
                     ogs.SetSurfaceForegroundPatternId(solidFillPatternId);
                 }
 
-                //// Также настраиваем заливку для проекционных видов
-                //ogs.SetProjectionFillColor(color);
-                //if (solidFillPatternId != ElementId.InvalidElementId)
-                //{
-                //    ogs.SetProjectionFillPatternId(solidFillPatternId);
-                //}
+                // Устанавливаем цвет и паттерн заливки для разреза
+                ogs.SetCutForegroundPatternColor(color);
+                if (solidFillPatternId != ElementId.InvalidElementId)
+                {
+                    ogs.SetCutForegroundPatternId(solidFillPatternId);
+                }
 
                 // Применяем переопределение
                 view.SetElementOverrides(elementId, ogs);
