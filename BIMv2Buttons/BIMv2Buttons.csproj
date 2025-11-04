@@ -298,6 +298,7 @@
     <Compile Include="CreateRoomUnfolds\CreateRoomUnfolds.cs" />
     <Compile Include="CreateViewByLinkedFiles\CreateViewByLinkedFiles.cs" />
     <Compile Include="CreateViewForCollisions\CreateViewForCollisions.cs" />
+    <Compile Include="CreateViewForCollisions\ProgressForm2.cs" />
     <Compile Include="CreateWS\CreateWorksets.cs" />
     <Compile Include="CreateWS\ViewWPF.xaml.cs">
       <DependentUpon>ViewWPF.xaml</DependentUpon>
