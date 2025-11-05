@@ -26,9 +26,10 @@ namespace BIMv2
             _doc = commandData.Application.ActiveUIDocument.Document;
             Stopwatch timer = Stopwatch.StartNew();
 
+            ProgressForm2 progressForm = null;
+
             try
             {
-                // Тип для 3D вида
                 ViewFamilyType viewFamilyType = new FilteredElementCollector(_doc)
                     .OfClass(typeof(ViewFamilyType))
                     .Cast<ViewFamilyType>()
@@ -44,18 +45,29 @@ namespace BIMv2
                 if (ofd.ShowDialog() != DialogResult.OK)
                     return Result.Cancelled;
 
-                // Загружаем XML заранее (вне транзакции)
                 XmlDocument xml = new XmlDocument();
                 xml.Load(ofd.FileName);
                 var clashResults = xml.SelectNodes("//clashresult");
 
-                // Предзагружаем элементы один раз
+                if (clashResults == null || clashResults.Count == 0)
+                {
+                    TaskDialog.Show("Информация", "В отчёте не найдено коллизий.");
+                    return Result.Cancelled;
+                }
+
                 var allElements = new FilteredElementCollector(_doc)
                     .WhereElementIsNotElementType()
                     .ToElements()
                     .ToList();
 
+                progressForm = new ProgressForm2();
+                progressForm.Show();
+                progressForm.ProgressBar.Maximum = clashResults.Count;
+                progressForm.StatusLabel.Text = "Начало обработки...";
+                Application.DoEvents();
+
                 int viewCount = 0;
+                int processed = 0;
                 StringBuilder log = new StringBuilder();
 
                 using (Transaction t = new Transaction(_doc, "Создание видов коллизий"))
@@ -64,9 +76,22 @@ namespace BIMv2
 
                     foreach (XmlNode clash in clashResults)
                     {
+                        processed++;
+
+                        // Проверка отмены
+                        if (progressForm.CancelRequested)
+                        {
+                            progressForm.StatusLabel.Text = "Отмена пользователем...";
+                            Application.DoEvents();
+                            break;
+                        }
+
+                        progressForm.StatusLabel.Text = $"Обработка {processed} из {clashResults.Count}";
+                        progressForm.ProgressBar.Value = processed;
+                        Application.DoEvents();
+
                         string name = clash.Attributes["name"]?.Value ?? "Без_имени";
 
-                        // Читаем ID из отчета
                         List<int> geomIds = clash.SelectNodes(".//objectattribute[name='ID объекта']/value")
                             .Cast<XmlNode>()
                             .Select(x => int.TryParse(x.InnerText.Trim(), out int id) ? id : -1)
@@ -100,9 +125,7 @@ namespace BIMv2
 
                         BoundingBoxXYZ sectionBox = CreatePreciseSectionBox(collidingElements);
                         if (sectionBox != null)
-                        {
                             view.SetSectionBox(sectionBox);
-                        }
 
                         ApplyOverridesOnlyColliding(view, collidingElements.Select(e => e.Id).ToList(), solidFillPatternId);
                         viewCount++;
@@ -112,18 +135,23 @@ namespace BIMv2
                 }
 
                 timer.Stop();
+                progressForm.Close();
+
                 TaskDialog.Show("Результат", $"Создано {viewCount} 3D видов\nВремя: {timer.Elapsed:mm\\:ss}");
                 Debug.WriteLine(log.ToString());
                 return Result.Succeeded;
             }
             catch (Exception ex)
             {
+                if (progressForm != null)
+                    progressForm.Close();
+
                 TaskDialog.Show("Ошибка", ex.Message);
                 return Result.Failed;
             }
         }
 
-        #region ⚡ Оптимизированная проверка коллизий
+        #region ⚡ Проверка коллизий
 
         private List<Element> VerifyActualCollision(List<Element> elements, string clashName)
         {
@@ -154,7 +182,6 @@ namespace BIMv2
                         Element elem2 = elements[j];
                         BoundingBoxXYZ bbox2 = GetCachedBoundingBox(elem2);
 
-                        // ⚡ Быстрая проверка: пересекаются ли bounding boxes
                         if (bbox2 == null || !DoBoundingBoxesIntersect(bbox1, bbox2))
                             continue;
 
@@ -162,7 +189,6 @@ namespace BIMv2
                         if (solids2.Count == 0)
                             continue;
 
-                        // ✅ Проверяем точное пересечение Solid
                         if (CheckSolidsIntersectionFast(solids1, solids2))
                         {
                             if (!trulyColliding.Contains(elem1))
@@ -199,7 +225,6 @@ namespace BIMv2
 
                     BoundingBoxXYZ bb2 = s2.GetBoundingBox();
 
-                    // Быстрая проверка по BoundingBox
                     if (!DoBoundingBoxesIntersect(bb1, bb2))
                         continue;
 
@@ -210,10 +235,7 @@ namespace BIMv2
                         if (intersection != null && intersection.Volume > 0.0001)
                             return true;
                     }
-                    catch
-                    {
-                        // Игнорируем ошибки Revit Boolean Engine
-                    }
+                    catch { }
                 }
             }
             return false;
@@ -266,7 +288,7 @@ namespace BIMv2
 
         #endregion
 
-        #region 🧱 Geometry и SectionBox (упрощённая версия)
+        #region 🧱 Geometry
 
         private List<Solid> GetSolidsFromGeometry(GeometryElement geometry)
         {
@@ -313,7 +335,7 @@ namespace BIMv2
 
         #endregion
 
-        #region 🎨 View настройки и подсветка
+        #region 🎨 View настройки
 
         private void ConfigureView(View3D view)
         {
