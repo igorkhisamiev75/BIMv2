@@ -275,12 +275,12 @@
     <Compile Include="ConvertGrids3Dto2D.cs" />
     <Compile Include="archive\CopyRoomsFromLink.cs" />
     <Compile Include="CopyRoomsFromLinkCommand.cs" />
-    <Compile Include="CountFinishWall.cs" />
+    <Compile Include="archive\CountFinishWall.cs" />
     <Compile Include="Create3DViewFromSpace.cs" />
     <Compile Include="CreateAnyElementsInRooms.cs" />
     <Compile Include="CreateCeiling.cs" />
     <Compile Include="CreateClashElements.cs" />
-    <Compile Include="CreateDoorsForFinish.cs" />
+    <Compile Include="archive\CreateDoorsForFinish.cs" />
     <Compile Include="CreateFinishWallinRooms.cs" />
     <Compile Include="CreateFinishWallinSelectedRoom.cs" />
     <Compile Include="CreateFloorFromRoom.cs" />
@@ -296,6 +296,7 @@
     <Compile Include="CreateNumberRoomForFloors.cs" />
     <Compile Include="CreateNumberRoomForWall.cs" />
     <Compile Include="archive\CreateOpeningsInWallForStructuralFraming.cs" />
+    <Compile Include="CreateOpeningsForMEP.cs" />
     <Compile Include="CreatePipeSectionView.cs" />
     <Compile Include="CreateRailingInRooms.cs" />
     <Compile Include="CreateRailingsInAllRooms.cs" />
@@ -331,7 +332,7 @@
     <Compile Include="FindNameRoomForLighting.cs" />
     <Compile Include="FindNameRoomForWall.cs" />
     <Compile Include="FindRoomsForWallsBeams.cs" />
-    <Compile Include="FinishingOnTheStairs.cs" />
+    <Compile Include="archive\FinishingOnTheStairs.cs" />
     <Compile Include="FlatProcessor.cs" />
     <Compile Include="GetPerimeterForFloorWithoutDoor.cs" />
     <Compile Include="GetRoomForElementsFinishing.cs" />
