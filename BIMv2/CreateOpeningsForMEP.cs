@@ -297,7 +297,6 @@ namespace BIMv2
             return null;
         }
 
-        // Остальные методы остаются без изменений...
         private IList<Element> GetAllMEPElements(Document doc)
         {
             var elements = new List<Element>();
@@ -366,9 +365,6 @@ namespace BIMv2
             {
                 try
                 {
-                    var mepBoundingBox = mepElement.get_BoundingBox(null);
-                    if (mepBoundingBox == null) continue;
-
                     var intersectingWalls = new List<Element>();
 
                     foreach (var wall in walls)
@@ -421,21 +417,73 @@ namespace BIMv2
                 {
                     var wall = intersectingWalls[i];
 
-                    double parameter = (double)(i + 1) / (intersectingWalls.Count + 1);
-                    var intersectionPoint = mepCurve.Evaluate(parameter, true);
+                    // Находим точку пересечения и нормаль стены (в координатах связанного файла)
+                    var intersectionData = FindExactIntersectionPointWithNormal(mepElement, wall as Wall, linkInstance, mepCurve);
+                    XYZ intersectionPointInLink = intersectionData.Item1;
+                    XYZ wallNormalInLink = intersectionData.Item2;
 
-                    var transformedPoint = transform.OfPoint(intersectionPoint);
+                    if (intersectionPointInLink == null)
+                    {
+                        // Если не нашли точное пересечение, используем параметрическую точку (в координатах основного документа)
+                        double parameter = (double)(i + 1) / (intersectingWalls.Count + 1);
+                        var intersectionPoint = mepCurve.Evaluate(parameter, true);
+                        var wallNormal = GetWallNormal(wall, linkInstance);
+                        // Вернём точку в координатах связанного файла (поскольку ниже мы ожидаем точку в link coords)
+                        // Но проще — оставить null и далее использовать трансформ ниже как раньше
+                        intersectionPointInLink = null;
+                        wallNormalInLink = wallNormal;
+                    }
+
+                    // Преобразуем точку и нормаль из координат связанного документа в координаты основного (host)
+                    XYZ intersectionPointTransformed = intersectionPointInLink != null
+                        ? transform.OfPoint(intersectionPointInLink)
+                        : transform.OfPoint(mepCurve.Evaluate(Math.Max(0.0, Math.Min(1.0, 0.5)), true)); // запасной: середина кривой
+
+                    XYZ wallNormalTransformed = wallNormalInLink != null
+                        ? transform.OfVector(wallNormalInLink)
+                        : transform.OfVector(GetWallNormal(wall, linkInstance));
+
+                    // Корректируем высоту (Z координату)
+                    var correctedPoint = CorrectPointForHost(intersectionPointTransformed, wall, linkInstance);
 
                     var (width, height) = GetOpeningDimensions(mepElement);
                     var wallThickness = GetWallThickness(wall);
 
-                    // Создаем семейство
+                    // === Новое: смещение внутрь стены на половину толщины (по XY) ===
+                    // используем wallNormalTransformed (в системе координат основного документа)
+                    XYZ offsetVector = XYZ.Zero;
+                    try
+                    {
+                        if (wallNormalTransformed != null && !wallNormalTransformed.IsZeroLength())
+                        {
+                            // смещаем внутрь => противоположно нормали
+                            XYZ normalXY = new XYZ(wallNormalTransformed.X, wallNormalTransformed.Y, 0);
+                            if (normalXY.IsZeroLength())
+                            {
+                                // запасной вариант: если нормаль неожиданно вертикальна
+                                normalXY = new XYZ(1, 0, 0);
+                            }
+                            normalXY = normalXY.Normalize();
+                            offsetVector = normalXY.Negate() * (wallThickness / 2.0);
+                        }
+                    }
+                    catch
+                    {
+                        offsetVector = XYZ.Zero;
+                    }
+
+                    var adjustedInsertionPoint = correctedPoint + offsetVector;
+
+                    // Создаем семейство в скорректированной точке
                     FamilyInstance openingInstance = _doc.Create.NewFamilyInstance(
-                        transformedPoint, openingSymbol, level,
+                        adjustedInsertionPoint, openingSymbol, level,
                         Autodesk.Revit.DB.Structure.StructuralType.NonStructural);
 
                     if (openingInstance != null)
                     {
+                        // Ориентируем семейство согласно нормали стены
+                        OrientOpeningToWallNormal(openingInstance, wallNormalTransformed, adjustedInsertionPoint);
+
                         SetOpeningParameters(openingInstance, width, height, wallThickness, mepElement, wall);
                         _openingCounter++;
                     }
@@ -446,6 +494,362 @@ namespace BIMv2
                     continue;
                 }
             }
+        }
+
+        /// <summary>
+        /// Новая реализация: находит точку пересечения оси MEP-элемента (mepCurve, в координатах host)
+        /// и плоскости стены (в координатах linked doc). Возвращает точку и нормаль в координатах linked doc.
+        /// </summary>
+        private (XYZ, XYZ) FindExactIntersectionPointWithNormal(Element mepElement, Wall wall, RevitLinkInstance linkInstance, Curve mepCurveHost)
+        {
+            try
+            {
+                if (wall == null || linkInstance == null || mepCurveHost == null)
+                    return (null, null);
+
+                // Трансформ из linked -> host
+                Transform linkToHost = linkInstance.GetTotalTransform();
+
+                // Инвертированный трансформ: host -> linked
+                Transform hostToLink = linkToHost.Inverse;
+
+                // Трансформируем кривую оси MEP в координаты связанного документа
+                Curve mepCurveInLink = mepCurveHost.CreateTransformed(hostToLink);
+
+                // Получаем кривую стены (в координатах связанного документа)
+                var wallLocation = wall.Location as LocationCurve;
+                if (wallLocation == null)
+                    return (null, null);
+
+                Curve wallCurve = wallLocation.Curve;
+
+                // Нормаль стены в координатах связанного документа
+                XYZ wallNormalInLink = GetWallNormal(wall, linkInstance);
+                if (wallNormalInLink == null || wallNormalInLink.IsZeroLength())
+                {
+                    // запасной вариант: вектор из первого сегмента кривой
+                    var bbox = wall.get_BoundingBox(null);
+                    wallNormalInLink = XYZ.BasisX;
+                }
+
+                // Определяем плоскость стены: используем точку на кривой (середина)
+                XYZ wallOrigin = wallCurve.IsBound ? wallCurve.Evaluate(0.5, true) : wallCurve.GetEndPoint(0);
+                // Make sure normal is normalized
+                XYZ normal = wallNormalInLink.Normalize();
+                // Plane origin and normal define plane in linked coordinates
+                // Теперь пытаемся найти пересечение кривой mepCurveInLink и этой плоскости
+
+                // Если MEP кривая — линия, можно решить аналитически
+                if (mepCurveInLink is Line mepLine)
+                {
+                    XYZ p0 = mepLine.GetEndPoint(0);
+                    XYZ p1 = mepLine.GetEndPoint(1);
+                    XYZ dir = p1 - p0;
+                    double denom = normal.DotProduct(dir);
+
+                    if (Math.Abs(denom) > 1e-9)
+                    {
+                        double numer = normal.DotProduct(wallOrigin - p0);
+                        double t = numer / denom;
+                        // Если t в [0,1] — пересечение внутри отрезка, иначе точка вне отрезка
+                        XYZ intersection = p0 + dir * t;
+                        return (intersection, normal);
+                    }
+                    else
+                    {
+                        // Линия параллельна плоскости — возвращаем проекцию середины линии на плоскость
+                        XYZ mid = (p0 + p1) * 0.5;
+                        // Проекция точки на плоскость: proj = pt - n*(n·(pt - origin))
+                        double d = normal.DotProduct(mid - wallOrigin);
+                        XYZ proj = mid - normal * d;
+                        return (proj, normal);
+                    }
+                }
+                else
+                {
+                    // Если кривая не линия (arc/bez), аппроксимируем отрезком между её концами
+                    XYZ s = mepCurveInLink.GetEndPoint(0);
+                    XYZ e = mepCurveInLink.GetEndPoint(1);
+                    XYZ dir = e - s;
+                    double denom = normal.DotProduct(dir);
+
+                    if (Math.Abs(denom) > 1e-9)
+                    {
+                        double numer = normal.DotProduct(wallOrigin - s);
+                        double t = numer / denom;
+                        XYZ intersection = s + dir * t;
+                        return (intersection, normal);
+                    }
+                    else
+                    {
+                        XYZ mid = (s + e) * 0.5;
+                        double d = normal.DotProduct(mid - wallOrigin);
+                        XYZ proj = mid - normal * d;
+                        return (proj, normal);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[FindExactIntersectionPointWithNormal] Ошибка: {ex.Message}");
+                return (null, null);
+            }
+        }
+
+        private XYZ GetWallNormal(Element wall, RevitLinkInstance linkInstance)
+        {
+            try
+            {
+                var wallElement = wall as Wall;
+                if (wallElement != null)
+                {
+                    // Получаем кривую стены
+                    var locationCurve = wallElement.Location as LocationCurve;
+                    if (locationCurve != null)
+                    {
+                        var curve = locationCurve.Curve;
+
+                        // Для прямой стены вычисляем нормаль
+                        if (curve is Line line)
+                        {
+                            var direction = line.Direction;
+                            // Нормаль - перпендикуляр к направлению стены в горизонтальной плоскости
+                            var normal = new XYZ(-direction.Y, direction.X, 0).Normalize();
+                            return normal;
+                        }
+                    }
+
+                    // Альтернативный способ - через BoundingBox
+                    var bbox = wallElement.get_BoundingBox(null);
+                    if (bbox != null)
+                    {
+                        // Предполагаем, что стена вертикальная, нормаль направлена в сторону большей длины
+                        var width = bbox.Max.X - bbox.Min.X;
+                        var depth = bbox.Max.Y - bbox.Min.Y;
+
+                        if (width > depth)
+                            return XYZ.BasisY; // Стена ориентирована по X, нормаль по Y
+                        else
+                            return XYZ.BasisX; // Стена ориентирована по Y, нормаль по X
+                    }
+                }
+            }
+            catch
+            {
+                // В случае ошибки возвращаем нормаль по умолчанию
+            }
+
+            return XYZ.BasisX; // Нормаль по умолчанию
+        }
+
+        // === Патч: обновлённые методы ориентации и вычисления угла ===
+
+        private void OrientOpeningToWallNormal(FamilyInstance opening, XYZ wallNormal, XYZ insertionPoint)
+        {
+            try
+            {
+                if (opening == null || wallNormal == null)
+                    return;
+
+                // Обновим документ, чтобы трансформ семейства был актуален
+                _doc.Regenerate();
+
+                var location = opening.Location as LocationPoint;
+                if (location == null) return;
+
+                // Получаем текущее "лицо" семейства и целевое направление (проекция нормали на XY)
+                var currentFacing = GetFamilyFacingDirection(opening);
+                var targetFacing = new XYZ(wallNormal.X, wallNormal.Y, 0);
+
+                if (targetFacing.IsZeroLength())
+                {
+                    // На случай неожиданных данных
+                    targetFacing = new XYZ(1, 0, 0);
+                }
+                targetFacing = targetFacing.Normalize();
+
+                double rotationAngle = ComputeRotationAngle(currentFacing, targetFacing);
+
+                // Диагностика — лог и TaskDialog (оставлено по запросу)
+                string debugMsg =
+                    $"Отверстие #{_openingCounter}\n" +
+                    $"currentFacing = ({currentFacing.X:F3}, {currentFacing.Y:F3}, {currentFacing.Z:F3})\n" +
+                    $"targetFacing  = ({targetFacing.X:F3}, {targetFacing.Y:F3}, {targetFacing.Z:F3})\n" +
+                    $"rotationAngle = {rotationAngle * 180.0 / Math.PI:F2}°";
+
+                Debug.WriteLine($"[OrientOpeningToWallNormal] {debugMsg}");
+                TaskDialog.Show("Orient Debug", debugMsg);
+
+                // Поворачиваем, если угол значим
+                if (Math.Abs(rotationAngle) > 0.001) // ~0.057°
+                {
+                    Line rotationAxis = Line.CreateBound(insertionPoint, insertionPoint + XYZ.BasisZ);
+                    ElementTransformUtils.RotateElement(_doc, opening.Id, rotationAxis, rotationAngle);
+                    _doc.Regenerate();
+                    Debug.WriteLine($"[OrientOpeningToWallNormal] Отверстие #{_openingCounter} повернуто на {rotationAngle * 180.0 / Math.PI:F2}°");
+                }
+                else
+                {
+                    Debug.WriteLine($"[OrientOpeningToWallNormal] Отверстие #{_openingCounter}: поворот не требуется (angle≈0)");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Ошибка при ориентации отверстия: {ex.Message}");
+            }
+        }
+
+        private XYZ GetFamilyFacingDirection(FamilyInstance familyInstance)
+        {
+            try
+            {
+                if (familyInstance != null)
+                {
+                    // Попытка 1: FacingOrientation (для размещённых семейств)
+                    try
+                    {
+                        var facing = familyInstance.FacingOrientation;
+                        if (facing != null && !facing.IsZeroLength())
+                            return facing.Normalize();
+                    }
+                    catch { }
+
+                    // Попытка 2: HandOrientation
+                    try
+                    {
+                        var hand = familyInstance.HandOrientation;
+                        if (hand != null && !hand.IsZeroLength())
+                            return hand.Normalize();
+                    }
+                    catch { }
+
+                    // Попытка 3: BasisX из Transform
+                    try
+                    {
+                        var transform = familyInstance.GetTransform();
+                        if (transform != null)
+                        {
+                            var basisX = transform.BasisX;
+                            if (basisX != null && !basisX.IsZeroLength())
+                                return basisX.Normalize();
+                        }
+                    }
+                    catch { }
+                }
+            }
+            catch
+            {
+                // fallback ниже
+            }
+
+            return XYZ.BasisX; // Значение по умолчанию
+        }
+
+        private double ComputeRotationAngle(XYZ currentDirection, XYZ targetDirection)
+        {
+            try
+            {
+                if (currentDirection == null || targetDirection == null)
+                    return 0;
+
+                // Проекция направлений на горизонтальную плоскость
+                var currentHorizontal = new XYZ(currentDirection.X, currentDirection.Y, 0);
+                var targetHorizontal = new XYZ(targetDirection.X, targetDirection.Y, 0);
+
+                if (currentHorizontal.IsZeroLength() || targetHorizontal.IsZeroLength())
+                    return 0;
+
+                currentHorizontal = currentHorizontal.Normalize();
+                targetHorizontal = targetHorizontal.Normalize();
+
+                // Скалярое произведение и векторное — далее atan2 для знака угла
+                double dot = currentHorizontal.DotProduct(targetHorizontal);
+                dot = Math.Max(-1.0, Math.Min(1.0, dot)); // clamp для безопасности
+
+                var cross = currentHorizontal.CrossProduct(targetHorizontal);
+                double angle = Math.Atan2(cross.Z, dot); // signed angle [-PI, PI]
+
+                return angle;
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+
+        // === конец патча ===
+
+        private XYZ CorrectPointForHost(XYZ point, Element linkedWall, RevitLinkInstance linkInstance)
+        {
+            try
+            {
+                // Пытаемся найти соответствующую стену в основном документе
+                var mainWall = FindCorrespondingWallInMainDocument(linkedWall, linkInstance);
+                if (mainWall != null)
+                {
+                    // Получаем BoundingBox стены в основном документе
+                    var wallBbox = mainWall.get_BoundingBox(null);
+                    if (wallBbox != null)
+                    {
+                        // Корректируем Z координату на середину высоты стены
+                        double wallMidZ = (wallBbox.Min.Z + wallBbox.Max.Z) / 2;
+                        return new XYZ(point.X, point.Y, wallMidZ);
+                    }
+                }
+
+                // Если не нашли стену, используем оригинальную точку с корректировкой Z
+                return new XYZ(point.X, point.Y, point.Z);
+            }
+            catch
+            {
+                return point;
+            }
+        }
+
+        private Wall FindCorrespondingWallInMainDocument(Element linkedWall, RevitLinkInstance linkInstance)
+        {
+            try
+            {
+                // Получаем положение стены в связанном файле
+                var linkedLocation = linkedWall.Location as LocationCurve;
+                if (linkedLocation == null) return null;
+
+                var linkedCurve = linkedLocation.Curve;
+                var transform = linkInstance.GetTotalTransform();
+                var transformedStart = transform.OfPoint(linkedCurve.GetEndPoint(0));
+                var transformedEnd = transform.OfPoint(linkedCurve.GetEndPoint(1));
+
+                // Ищем стены в основном документе с похожим положением
+                var allWalls = new FilteredElementCollector(_doc)
+                    .OfCategory(BuiltInCategory.OST_Walls)
+                    .WhereElementIsNotElementType()
+                    .Cast<Wall>();
+
+                foreach (var wall in allWalls)
+                {
+                    var wallLocation = wall.Location as LocationCurve;
+                    if (wallLocation == null) continue;
+
+                    var wallCurve = wallLocation.Curve;
+                    var wallStart = wallCurve.GetEndPoint(0);
+                    var wallEnd = wallCurve.GetEndPoint(1);
+
+                    // Проверяем близость начальной и конечной точек
+                    double startDistance = wallStart.DistanceTo(transformedStart);
+                    double endDistance = wallEnd.DistanceTo(transformedEnd);
+
+                    if (startDistance < 0.1 && endDistance < 0.1) // 10 см допуск
+                    {
+                        return wall;
+                    }
+                }
+            }
+            catch
+            {
+                // В случае ошибки возвращаем null
+            }
+
+            return null;
         }
 
         private bool CheckIntersection(Element mepElement, Element wall, RevitLinkInstance linkInstance)
