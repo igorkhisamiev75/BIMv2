@@ -18,12 +18,15 @@ namespace BIMv2
     public class CreateViewForCollisions : IExternalCommand
     {
         private Document _doc;
+        private UIDocument _uiDoc;
         private readonly Dictionary<int, List<Solid>> elementSolidsCache = new Dictionary<int, List<Solid>>();
         private readonly Dictionary<int, BoundingBoxXYZ> elementBboxCache = new Dictionary<int, BoundingBoxXYZ>();
+        private List<View3D> _createdViews = new List<View3D>();
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            _doc = commandData.Application.ActiveUIDocument.Document;
+            _uiDoc = commandData.Application.ActiveUIDocument;
+            _doc = _uiDoc.Document;
             Stopwatch timer = Stopwatch.StartNew();
 
             ProgressForm2 progressForm = null;
@@ -47,7 +50,10 @@ namespace BIMv2
 
                 XmlDocument xml = new XmlDocument();
                 xml.Load(ofd.FileName);
+
                 var clashResults = xml.SelectNodes("//clashresult");
+                if (clashResults == null || clashResults.Count == 0)
+                    clashResults = xml.SelectNodes("//batchtest//clashresult");
 
                 if (clashResults == null || clashResults.Count == 0)
                 {
@@ -55,6 +61,7 @@ namespace BIMv2
                     return Result.Cancelled;
                 }
 
+                // Получаем все элементы проекта для поиска
                 var allElements = new FilteredElementCollector(_doc)
                     .WhereElementIsNotElementType()
                     .ToElements()
@@ -70,6 +77,9 @@ namespace BIMv2
                 int processed = 0;
                 StringBuilder log = new StringBuilder();
 
+                // Создаем словарь для кэширования поиска элементов
+                Dictionary<int, Element> elementCache = new Dictionary<int, Element>();
+
                 using (Transaction t = new Transaction(_doc, "Создание видов коллизий"))
                 {
                     t.Start();
@@ -78,7 +88,6 @@ namespace BIMv2
                     {
                         processed++;
 
-                        // Проверка отмены
                         if (progressForm.CancelRequested)
                         {
                             progressForm.StatusLabel.Text = "Отмена пользователем...";
@@ -92,43 +101,74 @@ namespace BIMv2
 
                         string name = clash.Attributes["name"]?.Value ?? "Без_имени";
 
-                        List<int> geomIds = clash.SelectNodes(".//objectattribute[name='ID объекта']/value")
-                            .Cast<XmlNode>()
-                            .Select(x => int.TryParse(x.InnerText.Trim(), out int id) ? id : -1)
-                            .Where(id => id > 0)
-                            .Distinct()
-                            .ToList();
+                        // Получаем ID элементов из отчета
+                        List<int> elementIds = GetElementIdsFromClashNode(clash);
 
-                        if (geomIds.Count == 0)
+                        log.AppendLine($"🔍 {name}: Найдено ID в отчете: [{string.Join(",", elementIds)}]");
+
+                        if (elementIds.Count == 0)
+                        {
+                            log.AppendLine($"⚠️ {name}: не найдено ID элементов");
                             continue;
+                        }
 
-                        List<Element> realElements = FindElementsByGeometryIds(geomIds, allElements);
+                        // Ищем элементы по ID (прямое соответствие и через параметры)
+                        List<Element> realElements = FindElementsByIds(elementIds, allElements);
+
+                        log.AppendLine($"🔍 {name}: Найдено элементов в Revit: {realElements.Count} - [{string.Join(",", realElements.Select(e => e.Id.IntegerValue))}]");
+
+                        // СОЗДАЕМ ВИД ДАЖЕ ЕСЛИ НАЙДЕН ТОЛЬКО ОДИН ЭЛЕМЕНТ!
                         if (realElements.Count == 0)
                         {
-                            log.AppendLine($"⚠️ {name}: не найдено элементов для ID [{string.Join(",", geomIds)}]");
+                            log.AppendLine($"⚠️ {name}: не найдено элементов для ID [{string.Join(",", elementIds)}]");
                             continue;
                         }
 
-                        List<Element> collidingElements = VerifyActualCollision(realElements, name);
-                        if (collidingElements.Count < 2)
+                        // Если найден только один элемент - создаем вид для него
+                        List<Element> elementsForView = realElements;
+                        string collisionStatus = "полная_коллизия";
+
+                        if (realElements.Count == 1)
                         {
-                            log.AppendLine($"⚠️ {name}: элементы не сталкиваются");
-                            continue;
+                            collisionStatus = "частичная_найден_1_элемент";
+                            log.AppendLine($"ℹ️ {name}: найден только 1 элемент, создаем вид с пометкой");
+                        }
+                        else
+                        {
+                            // Если найдено несколько элементов, проверяем реальную коллизию
+                            elementsForView = VerifyActualCollision(realElements, name);
+                            if (elementsForView.Count < 2)
+                            {
+                                collisionStatus = "элементы_не_сталкиваются";
+                                log.AppendLine($"⚠️ {name}: элементы не сталкиваются, но создаем вид");
+                                // Все равно используем все найденные элементы для вида
+                                elementsForView = realElements;
+                            }
                         }
 
-                        string categoriesInfo = GetCategoriesInfo(collidingElements);
+                        string categoriesInfo = GetCategoriesInfo(elementsForView);
 
                         View3D view = View3D.CreateIsometric(_doc, viewFamilyType.Id);
-                        string idsString = string.Join("_", collidingElements.Select(e => e.Id.IntegerValue));
-                        view.Name = $"{name}_{categoriesInfo}_IDs_{idsString}";
+                        string idsString = string.Join("_", elementsForView.Select(e => e.Id.IntegerValue));
+
+                        // Добавляем статус коллизии в имя вида
+                        string viewName = $"{name}_{collisionStatus}_{categoriesInfo}_IDs_{idsString}";
+                        if (viewName.Length > 200)
+                            viewName = viewName.Substring(0, 200);
+
+                        view.Name = viewName;
                         ConfigureView(view);
 
-                        BoundingBoxXYZ sectionBox = CreatePreciseSectionBox(collidingElements);
+                        BoundingBoxXYZ sectionBox = CreatePreciseSectionBox(elementsForView);
                         if (sectionBox != null)
                             view.SetSectionBox(sectionBox);
 
-                        ApplyOverridesOnlyColliding(view, collidingElements.Select(e => e.Id).ToList(), solidFillPatternId);
+                        ApplyOverridesOnlyColliding(view, elementsForView.Select(e => e.Id).ToList(), solidFillPatternId);
+
+                        _createdViews.Add(view);
                         viewCount++;
+
+                        log.AppendLine($"✅ {name}: создан вид для элементов [{string.Join(",", elementsForView.Select(e => e.Id.IntegerValue))}]");
                     }
 
                     t.Commit();
@@ -137,8 +177,28 @@ namespace BIMv2
                 timer.Stop();
                 progressForm.Close();
 
-                TaskDialog.Show("Результат", $"Создано {viewCount} 3D видов\nВремя: {timer.Elapsed:mm\\:ss}");
-                Debug.WriteLine(log.ToString());
+                string resultMessage = $"Создано {viewCount} 3D видов\nВремя: {timer.Elapsed:mm\\:ss}";
+
+                if (viewCount > 0)
+                {
+                    DialogResult openViewResult = MessageBox.Show(
+                        $"{resultMessage}\n\nХотите открыть один из созданных видов?",
+                        "Создание видов завершено",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question);
+
+                    if (openViewResult == DialogResult.Yes)
+                    {
+                        OpenCreatedView();
+                    }
+                }
+                else
+                {
+                    // Показываем детальный лог если виды не созданы
+                    string detailedLog = resultMessage + "\n\nДетали обработки:\n" + log.ToString();
+                    TaskDialog.Show("Результат", detailedLog);
+                }
+
                 return Result.Succeeded;
             }
             catch (Exception ex)
@@ -146,10 +206,223 @@ namespace BIMv2
                 if (progressForm != null)
                     progressForm.Close();
 
-                TaskDialog.Show("Ошибка", ex.Message);
+                TaskDialog.Show("Ошибка", ex.Message + "\n" + ex.StackTrace);
                 return Result.Failed;
             }
         }
+
+        #region 🔍 Получение ID элементов из отчета
+
+        private List<int> GetElementIdsFromClashNode(XmlNode clashNode)
+        {
+            List<int> elementIds = new List<int>();
+
+            try
+            {
+                // Ищем все objectattribute с именем "ID объекта"
+                var idNodes = clashNode.SelectNodes(".//objectattribute[name='ID объекта']/value");
+
+                if (idNodes != null && idNodes.Count > 0)
+                {
+                    foreach (XmlNode idNode in idNodes)
+                    {
+                        string idText = idNode.InnerText.Trim();
+                        if (int.TryParse(idText, out int id) && id > 0)
+                        {
+                            elementIds.Add(id);
+                        }
+                    }
+                }
+
+                // Альтернативный поиск на случай другого формата
+                if (elementIds.Count == 0)
+                {
+                    var clashObjects = clashNode.SelectNodes(".//clashobject");
+                    if (clashObjects != null)
+                    {
+                        foreach (XmlNode clashObject in clashObjects)
+                        {
+                            var valueNodes = clashObject.SelectNodes(".//value");
+                            foreach (XmlNode valueNode in valueNodes)
+                            {
+                                string valueText = valueNode.InnerText.Trim();
+                                if (int.TryParse(valueText, out int id) && id > 0)
+                                {
+                                    elementIds.Add(id);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"❌ Ошибка при извлечении ID из clashNode: {ex.Message}");
+            }
+
+            return elementIds.Distinct().Where(id => id > 0).ToList();
+        }
+
+        #endregion
+
+        #region 🔍 Поиск элементов по ID
+
+        private List<Element> FindElementsByIds(List<int> elementIds, List<Element> allElements)
+        {
+            List<Element> found = new List<Element>();
+
+            // Сначала ищем прямые совпадения по ID элемента
+            foreach (int searchId in elementIds)
+            {
+                Element element = FindElementById(searchId, allElements);
+                if (element != null && !found.Any(e => e.Id.IntegerValue == element.Id.IntegerValue))
+                {
+                    found.Add(element);
+                }
+            }
+
+            return found;
+        }
+
+        private Element FindElementById(int searchId, List<Element> allElements)
+        {
+            try
+            {
+                // Пробуем найти элемент с таким ID (прямое соответствие)
+                ElementId elementId = new ElementId(searchId);
+                Element element = _doc.GetElement(elementId);
+                if (element != null)
+                    return element;
+
+                // Ищем в параметрах элементов
+                foreach (Element el in allElements)
+                {
+                    try
+                    {
+                        // Проверяем параметры на наличие ID
+                        foreach (Parameter param in el.Parameters)
+                        {
+                            if (param != null && param.HasValue)
+                            {
+                                if (param.StorageType == StorageType.Integer && param.AsInteger() == searchId)
+                                {
+                                    return el;
+                                }
+                                else if (param.StorageType == StorageType.String)
+                                {
+                                    string paramValue = param.AsString();
+                                    if (int.TryParse(paramValue, out int paramId) && paramId == searchId)
+                                    {
+                                        return el;
+                                    }
+                                }
+                                else if (param.StorageType == StorageType.ElementId)
+                                {
+                                    ElementId paramElementId = param.AsElementId();
+                                    if (paramElementId != null && paramElementId.IntegerValue == searchId)
+                                    {
+                                        return el;
+                                    }
+                                }
+                            }
+                        }
+
+                        // Проверяем ID типа элемента
+                        if (el.GetTypeId() != ElementId.InvalidElementId && el.GetTypeId().IntegerValue == searchId)
+                        {
+                            return el;
+                        }
+
+                        // Проверяем другие идентификаторы
+                        if (el.Id.IntegerValue == searchId ||
+                            el.Name.Contains(searchId.ToString()) ||
+                            el.UniqueId.Contains(searchId.ToString()))
+                        {
+                            return el;
+                        }
+                    }
+                    catch { }
+                }
+            }
+            catch { }
+
+            return null;
+        }
+
+        #endregion
+
+        #region 🚀 Открытие созданного вида
+
+        private void OpenCreatedView()
+        {
+            try
+            {
+                if (_createdViews == null || _createdViews.Count == 0)
+                {
+                    TaskDialog.Show("Информация", "Нет созданных видов для открытия.");
+                    return;
+                }
+
+                if (_createdViews.Count == 1)
+                {
+                    _uiDoc.ActiveView = _createdViews[0];
+                    TaskDialog.Show("Успех", $"Открыт вид: {_createdViews[0].Name}");
+                    return;
+                }
+
+                using (System.Windows.Forms.Form selectionForm = new System.Windows.Forms.Form())
+                {
+                    selectionForm.Text = "Выберите вид для открытия";
+                    selectionForm.Size = new System.Drawing.Size(400, 300);
+                    selectionForm.StartPosition = FormStartPosition.CenterScreen;
+                    selectionForm.FormBorderStyle = FormBorderStyle.FixedDialog;
+                    selectionForm.MaximizeBox = false;
+                    selectionForm.MinimizeBox = false;
+
+                    ListBox listBox = new ListBox();
+                    listBox.Dock = DockStyle.Fill;
+                    listBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
+
+                    foreach (View3D view in _createdViews)
+                    {
+                        listBox.Items.Add(view.Name);
+                    }
+                    listBox.SelectedIndex = 0;
+
+                    Button okButton = new Button();
+                    okButton.Text = "Открыть";
+                    okButton.DialogResult = DialogResult.OK;
+                    okButton.Dock = DockStyle.Bottom;
+                    okButton.Height = 30;
+
+                    Button cancelButton = new Button();
+                    cancelButton.Text = "Отмена";
+                    cancelButton.DialogResult = DialogResult.Cancel;
+                    cancelButton.Dock = DockStyle.Bottom;
+                    cancelButton.Height = 30;
+
+                    selectionForm.Controls.Add(listBox);
+                    selectionForm.Controls.Add(okButton);
+                    selectionForm.Controls.Add(cancelButton);
+
+                    selectionForm.AcceptButton = okButton;
+                    selectionForm.CancelButton = cancelButton;
+
+                    if (selectionForm.ShowDialog() == DialogResult.OK && listBox.SelectedIndex >= 0)
+                    {
+                        View3D selectedView = _createdViews[listBox.SelectedIndex];
+                        _uiDoc.ActiveView = selectedView;
+                        TaskDialog.Show("Успех", $"Открыт вид: {selectedView.Name}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TaskDialog.Show("Ошибка", $"Не удалось открыть вид: {ex.Message}");
+            }
+        }
+
+        #endregion
 
         #region ⚡ Проверка коллизий
 
@@ -378,36 +651,6 @@ namespace BIMv2
         #endregion
 
         #region 🔎 Вспомогательные функции
-
-        private List<Element> FindElementsByGeometryIds(List<int> geomIds, List<Element> allElements)
-        {
-            List<Element> found = new List<Element>();
-
-            foreach (Element el in allElements)
-            {
-                try
-                {
-                    Options opt = new Options { IncludeNonVisibleObjects = true, ComputeReferences = false };
-                    GeometryElement geomElem = el.get_Geometry(opt);
-                    if (geomElem == null) continue;
-
-                    foreach (GeometryObject geomObj in geomElem)
-                    {
-                        if (geomObj is GeometryInstance gi && gi.Symbol != null)
-                        {
-                            if (geomIds.Contains(gi.Symbol.Id.IntegerValue))
-                            {
-                                found.Add(el);
-                                break;
-                            }
-                        }
-                    }
-                }
-                catch { }
-            }
-
-            return found.Distinct(new ElementIdComparer()).ToList();
-        }
 
         private ElementId GetSolidFillPatternId()
         {

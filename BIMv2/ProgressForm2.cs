@@ -39,7 +39,7 @@ namespace BIMv2
             this.buttonCancel.Click += (s, e) => { CancelRequested = true; };
 
             // ProgressForm
-            this.ClientSize = new System.Drawing.Size(680, 295);
+            this.ClientSize = new System.Drawing.Size(380, 195);
             this.Controls.Add(this.progressBar);
             this.Controls.Add(this.labelStatus);
             this.Controls.Add(this.buttonCancel);
