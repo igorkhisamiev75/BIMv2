@@ -271,6 +271,7 @@
     <Compile Include="archive\ClearProjectBrowser.cs" />
     <Compile Include="ClearProjectBrowserViewsNotSheets.cs" />
     <Compile Include="archive\CollisionsWithWall.cs" />
+    <Compile Include="CollectGenericModelsCommand.cs" />
     <Compile Include="CombineRoomsAndFindAxes.cs" />
     <Compile Include="ConvertGrids3Dto2D.cs" />
     <Compile Include="archive\CopyRoomsFromLink.cs" />
