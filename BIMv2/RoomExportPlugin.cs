@@ -744,13 +744,14 @@ namespace BIMv2
 
                     // Корпус (столбец 84) - преобразуем в текст
                     string buildingNumber = apartment.BuildingNumber ?? "";
-                    worksheet.Cells[row, 84] = buildingNumber;
+                    worksheet.Cells[row, 84] = "Корпус " + buildingNumber;
+
                     // Устанавливаем текстовый формат для ячейки
                     worksheet.Cells[row, 84].NumberFormat = "@";
 
                     // Секция (столбец 85) - преобразуем в текст  
                     string section = apartment.Section ?? "";
-                    worksheet.Cells[row, 85] = section;
+                    worksheet.Cells[row, 85] = "Секция " + section;
                     // Устанавливаем текстовый формат для ячейки
                     worksheet.Cells[row, 85].NumberFormat = "@";
 
@@ -926,10 +927,10 @@ namespace BIMv2
             string formatted = marketingType.Replace("S-", "Suite").Trim();
 
             // Дополнительные замены для стандартизации
-            formatted = formatted.Replace("Suite S", "Suite S")
-                                .Replace("Suite M", "Suite M")
-                                .Replace("Suite L", "Suite L")
-                                .Replace("Suite XL", "Suite XL");
+            formatted = formatted.Replace("Suite S", "S")
+                                .Replace("Suite M", "M")
+                                .Replace("Suite L", "L")
+                                .Replace("Suite XL", "XL");
 
             return formatted;
         }
@@ -1079,7 +1080,7 @@ namespace BIMv2
                 parts.Add($"{verandaCount} веранда");
 
             if (parts.Count == 0)
-                return "без балк/лодж/терр.";
+                return "без балк/лодж/терр";
 
             return string.Join(", ", parts);
         }

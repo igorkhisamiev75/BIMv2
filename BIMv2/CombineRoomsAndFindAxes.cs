@@ -99,7 +99,7 @@ namespace BIMv2
                     }
 
                     trans.Commit();
-                    TaskDialog.Show("Успех", $"1Обработка завершена!!! Обработано квартир: {processedCount}");
+                    TaskDialog.Show("Успех", $"Завершено!!! Для квартир: {processedCount}");
                     return Result.Succeeded;
                 }
                 catch (Exception ex)

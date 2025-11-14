@@ -13,7 +13,7 @@ namespace BIMv2
     [Transaction(TransactionMode.Manual)]
     public class CombineRoomsAndFindAxes : IExternalCommand
     {
-        private const double OFFSET_DISTANCE = 0.90; // 300 мм в метрах
+        private const double OFFSET_DISTANCE = 0.001; // 300 мм в метрах
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
@@ -99,7 +99,7 @@ namespace BIMv2
                     }
 
                     trans.Commit();
-                    TaskDialog.Show("Успех", $"Обработка завершена!!! Обработано квартир: {processedCount}");
+                    TaskDialog.Show("Успех", $"Завершено!!! Для квартир: {processedCount}");
                     return Result.Succeeded;
                 }
                 catch (Exception ex)

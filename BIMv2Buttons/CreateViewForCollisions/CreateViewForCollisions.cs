@@ -8,6 +8,7 @@ using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
 using System.Windows.Forms;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
 #endregion
 
@@ -19,16 +20,17 @@ namespace BIMv2
     {
         private Document _doc;
         private UIDocument _uiDoc;
-        private readonly Dictionary<int, List<Solid>> elementSolidsCache = new Dictionary<int, List<Solid>>();
-        private readonly Dictionary<int, BoundingBoxXYZ> elementBboxCache = new Dictionary<int, BoundingBoxXYZ>();
         private List<View3D> _createdViews = new List<View3D>();
+        private List<ElementId> _allElementsToColor = new List<ElementId>();
+
+        private Dictionary<int, int> _genericModelSymbolMap = new Dictionary<int, int>();
+        private Dictionary<int, List<FamilyInstance>> _symbolToInstancesMap = new Dictionary<int, List<FamilyInstance>>();
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             _uiDoc = commandData.Application.ActiveUIDocument;
             _doc = _uiDoc.Document;
             Stopwatch timer = Stopwatch.StartNew();
-
             ProgressForm2 progressForm = null;
 
             try
@@ -50,10 +52,7 @@ namespace BIMv2
 
                 XmlDocument xml = new XmlDocument();
                 xml.Load(ofd.FileName);
-
                 var clashResults = xml.SelectNodes("//clashresult");
-                if (clashResults == null || clashResults.Count == 0)
-                    clashResults = xml.SelectNodes("//batchtest//clashresult");
 
                 if (clashResults == null || clashResults.Count == 0)
                 {
@@ -61,24 +60,17 @@ namespace BIMv2
                     return Result.Cancelled;
                 }
 
-                // Получаем все элементы проекта для поиска
-                var allElements = new FilteredElementCollector(_doc)
-                    .WhereElementIsNotElementType()
-                    .ToElements()
-                    .ToList();
-
                 progressForm = new ProgressForm2();
                 progressForm.Show();
-                progressForm.ProgressBar.Maximum = clashResults.Count;
-                progressForm.StatusLabel.Text = "Начало обработки...";
+                progressForm.ProgressBar.Maximum = clashResults.Count + 1;
+                progressForm.StatusLabel.Text = "Построение базы элементов...";
                 Application.DoEvents();
+
+                BuildNewElementDatabase(progressForm);
+                progressForm.ProgressBar.Value = 1;
 
                 int viewCount = 0;
                 int processed = 0;
-                StringBuilder log = new StringBuilder();
-
-                // Создаем словарь для кэширования поиска элементов
-                Dictionary<int, Element> elementCache = new Dictionary<int, Element>();
 
                 using (Transaction t = new Transaction(_doc, "Создание видов коллизий"))
                 {
@@ -87,599 +79,471 @@ namespace BIMv2
                     foreach (XmlNode clash in clashResults)
                     {
                         processed++;
-
-                        if (progressForm.CancelRequested)
-                        {
-                            progressForm.StatusLabel.Text = "Отмена пользователем...";
-                            Application.DoEvents();
-                            break;
-                        }
-
-                        progressForm.StatusLabel.Text = $"Обработка {processed} из {clashResults.Count}";
-                        progressForm.ProgressBar.Value = processed;
+                        progressForm.StatusLabel.Text = $"Обработка коллизий {processed} из {clashResults.Count}";
+                        progressForm.ProgressBar.Value = processed + 1;
                         Application.DoEvents();
 
-                        string name = clash.Attributes["name"]?.Value ?? "Без_имени";
+                        if (progressForm.CancelRequested)
+                            break;
 
-                        // Получаем ID элементов из отчета
-                        List<int> elementIds = GetElementIdsFromClashNode(clash);
+                        string name = clash.Attributes["name"]?.Value ?? $"Коллизия_{processed}";
 
-                        log.AppendLine($"🔍 {name}: Найдено ID в отчете: [{string.Join(",", elementIds)}]");
-
-                        if (elementIds.Count == 0)
-                        {
-                            log.AppendLine($"⚠️ {name}: не найдено ID элементов");
+                        List<int> allIds = GetAllIdsFromClashNode(clash);
+                        if (allIds.Count == 0)
                             continue;
-                        }
 
-                        // Ищем элементы по ID (прямое соответствие и через параметры)
-                        List<Element> realElements = FindElementsByIds(elementIds, allElements);
+                        _allElementsToColor.Clear();
+                        List<Element> foundElements = new List<Element>();
 
-                        log.AppendLine($"🔍 {name}: Найдено элементов в Revit: {realElements.Count} - [{string.Join(",", realElements.Select(e => e.Id.IntegerValue))}]");
-
-                        // СОЗДАЕМ ВИД ДАЖЕ ЕСЛИ НАЙДЕН ТОЛЬКО ОДИН ЭЛЕМЕНТ!
-                        if (realElements.Count == 0)
+                        foreach (int id in allIds)
                         {
-                            log.AppendLine($"⚠️ {name}: не найдено элементов для ID [{string.Join(",", elementIds)}]");
-                            continue;
-                        }
+                            bool elementFound = false;
 
-                        // Если найден только один элемент - создаем вид для него
-                        List<Element> elementsForView = realElements;
-                        string collisionStatus = "полная_коллизия";
-
-                        if (realElements.Count == 1)
-                        {
-                            collisionStatus = "частичная_найден_1_элемент";
-                            log.AppendLine($"ℹ️ {name}: найден только 1 элемент, создаем вид с пометкой");
-                        }
-                        else
-                        {
-                            // Если найдено несколько элементов, проверяем реальную коллизию
-                            elementsForView = VerifyActualCollision(realElements, name);
-                            if (elementsForView.Count < 2)
+                            Element directElement = _doc.GetElement(new ElementId(id));
+                            if (directElement != null)
                             {
-                                collisionStatus = "элементы_не_сталкиваются";
-                                log.AppendLine($"⚠️ {name}: элементы не сталкиваются, но создаем вид");
-                                // Все равно используем все найденные элементы для вида
-                                elementsForView = realElements;
+                                ProcessDirectElement(directElement, foundElements, id);
+                                elementFound = true;
+                            }
+
+                            if (elementFound) continue;
+
+                            if (_genericModelSymbolMap.ContainsValue(id))
+                            {
+                                var matchingElements = _genericModelSymbolMap.Where(x => x.Value == id).ToList();
+                                foreach (var match in matchingElements)
+                                {
+                                    Element element = _doc.GetElement(new ElementId(match.Key));
+                                    if (element != null && !foundElements.Any(e => e.Id == element.Id))
+                                    {
+                                        foundElements.Add(element);
+                                        _allElementsToColor.Add(element.Id);
+                                    }
+                                }
+                                elementFound = true;
+                            }
+
+                            if (elementFound) continue;
+
+                            if (_symbolToInstancesMap.ContainsKey(id))
+                            {
+                                var instances = _symbolToInstancesMap[id];
+                                foreach (var instance in instances)
+                                {
+                                    if (!foundElements.Any(e => e.Id == instance.Id))
+                                        foundElements.Add(instance);
+                                    if (!_allElementsToColor.Contains(instance.Id))
+                                        _allElementsToColor.Add(instance.Id);
+                                }
+                                elementFound = true;
                             }
                         }
 
-                        string categoriesInfo = GetCategoriesInfo(elementsForView);
-
-                        View3D view = View3D.CreateIsometric(_doc, viewFamilyType.Id);
-                        string idsString = string.Join("_", elementsForView.Select(e => e.Id.IntegerValue));
-
-                        // Добавляем статус коллизии в имя вида
-                        string viewName = $"{name}_{collisionStatus}_{categoriesInfo}_IDs_{idsString}";
-                        if (viewName.Length > 200)
-                            viewName = viewName.Substring(0, 200);
-
-                        view.Name = viewName;
-                        ConfigureView(view);
-
-                        BoundingBoxXYZ sectionBox = CreatePreciseSectionBox(elementsForView);
-                        if (sectionBox != null)
-                            view.SetSectionBox(sectionBox);
-
-                        ApplyOverridesOnlyColliding(view, elementsForView.Select(e => e.Id).ToList(), solidFillPatternId);
-
-                        _createdViews.Add(view);
-                        viewCount++;
-
-                        log.AppendLine($"✅ {name}: создан вид для элементов [{string.Join(",", elementsForView.Select(e => e.Id.IntegerValue))}]");
+                        if (foundElements.Count > 0)
+                        {
+                            if (CreateCollisionView(name, foundElements, viewFamilyType, solidFillPatternId))
+                            {
+                                viewCount++;
+                            }
+                        }
                     }
 
                     t.Commit();
                 }
 
                 timer.Stop();
-                progressForm.Close();
+                progressForm?.Close();
 
-                string resultMessage = $"Создано {viewCount} 3D видов\nВремя: {timer.Elapsed:mm\\:ss}";
-
-                if (viewCount > 0)
-                {
-                    DialogResult openViewResult = MessageBox.Show(
-                        $"{resultMessage}\n\nХотите открыть один из созданных видов?",
-                        "Создание видов завершено",
-                        MessageBoxButtons.YesNo,
-                        MessageBoxIcon.Question);
-
-                    if (openViewResult == DialogResult.Yes)
-                    {
-                        OpenCreatedView();
-                    }
-                }
-                else
-                {
-                    // Показываем детальный лог если виды не созданы
-                    string detailedLog = resultMessage + "\n\nДетали обработки:\n" + log.ToString();
-                    TaskDialog.Show("Результат", detailedLog);
-                }
+                TaskDialog.Show("Результат",
+                    $"Создано {viewCount} 3D видов.\nВремя: {timer.Elapsed:mm\\:ss}");
 
                 return Result.Succeeded;
             }
             catch (Exception ex)
             {
-                if (progressForm != null)
-                    progressForm.Close();
-
-                TaskDialog.Show("Ошибка", ex.Message + "\n" + ex.StackTrace);
+                progressForm?.Close();
+                TaskDialog.Show("Ошибка", ex.Message);
                 return Result.Failed;
             }
         }
 
-        #region 🔍 Получение ID элементов из отчета
-
-        private List<int> GetElementIdsFromClashNode(XmlNode clashNode)
+        private void BuildNewElementDatabase(ProgressForm2 progressForm)
         {
-            List<int> elementIds = new List<int>();
+            _genericModelSymbolMap.Clear();
+            _symbolToInstancesMap.Clear();
 
-            try
+            var genericModels = new FilteredElementCollector(_doc)
+                .OfCategory(BuiltInCategory.OST_GenericModel)
+                .WhereElementIsNotElementType()
+                .ToList();
+
+            int processed = 0;
+
+            foreach (Element element in genericModels)
             {
-                // Ищем все objectattribute с именем "ID объекта"
-                var idNodes = clashNode.SelectNodes(".//objectattribute[name='ID объекта']/value");
-
-                if (idNodes != null && idNodes.Count > 0)
+                processed++;
+                if (processed % 50 == 0)
                 {
-                    foreach (XmlNode idNode in idNodes)
+                    progressForm.StatusLabel.Text = $"Анализ обобщенных моделей: {processed} из {genericModels.Count}";
+                    Application.DoEvents();
+                }
+
+                try
+                {
+                    int? symbolId = GetCorrectSymbolIdFromGeometry(element);
+
+                    if (symbolId.HasValue)
                     {
-                        string idText = idNode.InnerText.Trim();
-                        if (int.TryParse(idText, out int id) && id > 0)
+                        _genericModelSymbolMap[element.Id.IntegerValue] = symbolId.Value;
+
+                        if (element is FamilyInstance instance)
                         {
-                            elementIds.Add(id);
+                            AddToSymbolMap(symbolId.Value, instance);
                         }
                     }
                 }
-
-                // Альтернативный поиск на случай другого формата
-                if (elementIds.Count == 0)
+                catch
                 {
-                    var clashObjects = clashNode.SelectNodes(".//clashobject");
-                    if (clashObjects != null)
-                    {
-                        foreach (XmlNode clashObject in clashObjects)
-                        {
-                            var valueNodes = clashObject.SelectNodes(".//value");
-                            foreach (XmlNode valueNode in valueNodes)
-                            {
-                                string valueText = valueNode.InnerText.Trim();
-                                if (int.TryParse(valueText, out int id) && id > 0)
-                                {
-                                    elementIds.Add(id);
-                                }
-                            }
-                        }
-                    }
+                    // Ignore errors
                 }
             }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"❌ Ошибка при извлечении ID из clashNode: {ex.Message}");
-            }
-
-            return elementIds.Distinct().Where(id => id > 0).ToList();
         }
 
-        #endregion
-
-        #region 🔍 Поиск элементов по ID
-
-        private List<Element> FindElementsByIds(List<int> elementIds, List<Element> allElements)
-        {
-            List<Element> found = new List<Element>();
-
-            // Сначала ищем прямые совпадения по ID элемента
-            foreach (int searchId in elementIds)
-            {
-                Element element = FindElementById(searchId, allElements);
-                if (element != null && !found.Any(e => e.Id.IntegerValue == element.Id.IntegerValue))
-                {
-                    found.Add(element);
-                }
-            }
-
-            return found;
-        }
-
-        private Element FindElementById(int searchId, List<Element> allElements)
+        private int? GetCorrectSymbolIdFromGeometry(Element element)
         {
             try
             {
-                // Пробуем найти элемент с таким ID (прямое соответствие)
-                ElementId elementId = new ElementId(searchId);
-                Element element = _doc.GetElement(elementId);
-                if (element != null)
-                    return element;
+                Options options = new Options
+                {
+                    ComputeReferences = true,
+                    DetailLevel = ViewDetailLevel.Medium,
+                    IncludeNonVisibleObjects = true
+                };
 
-                // Ищем в параметрах элементов
-                foreach (Element el in allElements)
+                GeometryElement geometry = element.get_Geometry(options);
+                if (geometry == null)
+                    return null;
+
+                var geometryInstances = GetAllGeometryInstances(geometry);
+
+                foreach (var geometryInstance in geometryInstances)
                 {
                     try
                     {
-                        // Проверяем параметры на наличие ID
-                        foreach (Parameter param in el.Parameters)
-                        {
-                            if (param != null && param.HasValue)
-                            {
-                                if (param.StorageType == StorageType.Integer && param.AsInteger() == searchId)
-                                {
-                                    return el;
-                                }
-                                else if (param.StorageType == StorageType.String)
-                                {
-                                    string paramValue = param.AsString();
-                                    if (int.TryParse(paramValue, out int paramId) && paramId == searchId)
-                                    {
-                                        return el;
-                                    }
-                                }
-                                else if (param.StorageType == StorageType.ElementId)
-                                {
-                                    ElementId paramElementId = param.AsElementId();
-                                    if (paramElementId != null && paramElementId.IntegerValue == searchId)
-                                    {
-                                        return el;
-                                    }
-                                }
-                            }
-                        }
-
-                        // Проверяем ID типа элемента
-                        if (el.GetTypeId() != ElementId.InvalidElementId && el.GetTypeId().IntegerValue == searchId)
-                        {
-                            return el;
-                        }
-
-                        // Проверяем другие идентификаторы
-                        if (el.Id.IntegerValue == searchId ||
-                            el.Name.Contains(searchId.ToString()) ||
-                            el.UniqueId.Contains(searchId.ToString()))
-                        {
-                            return el;
-                        }
-                    }
-                    catch { }
-                }
-            }
-            catch { }
-
-            return null;
-        }
-
-        #endregion
-
-        #region 🚀 Открытие созданного вида
-
-        private void OpenCreatedView()
-        {
-            try
-            {
-                if (_createdViews == null || _createdViews.Count == 0)
-                {
-                    TaskDialog.Show("Информация", "Нет созданных видов для открытия.");
-                    return;
-                }
-
-                if (_createdViews.Count == 1)
-                {
-                    _uiDoc.ActiveView = _createdViews[0];
-                    TaskDialog.Show("Успех", $"Открыт вид: {_createdViews[0].Name}");
-                    return;
-                }
-
-                using (System.Windows.Forms.Form selectionForm = new System.Windows.Forms.Form())
-                {
-                    selectionForm.Text = "Выберите вид для открытия";
-                    selectionForm.Size = new System.Drawing.Size(400, 300);
-                    selectionForm.StartPosition = FormStartPosition.CenterScreen;
-                    selectionForm.FormBorderStyle = FormBorderStyle.FixedDialog;
-                    selectionForm.MaximizeBox = false;
-                    selectionForm.MinimizeBox = false;
-
-                    ListBox listBox = new ListBox();
-                    listBox.Dock = DockStyle.Fill;
-                    listBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
-
-                    foreach (View3D view in _createdViews)
-                    {
-                        listBox.Items.Add(view.Name);
-                    }
-                    listBox.SelectedIndex = 0;
-
-                    Button okButton = new Button();
-                    okButton.Text = "Открыть";
-                    okButton.DialogResult = DialogResult.OK;
-                    okButton.Dock = DockStyle.Bottom;
-                    okButton.Height = 30;
-
-                    Button cancelButton = new Button();
-                    cancelButton.Text = "Отмена";
-                    cancelButton.DialogResult = DialogResult.Cancel;
-                    cancelButton.Dock = DockStyle.Bottom;
-                    cancelButton.Height = 30;
-
-                    selectionForm.Controls.Add(listBox);
-                    selectionForm.Controls.Add(okButton);
-                    selectionForm.Controls.Add(cancelButton);
-
-                    selectionForm.AcceptButton = okButton;
-                    selectionForm.CancelButton = cancelButton;
-
-                    if (selectionForm.ShowDialog() == DialogResult.OK && listBox.SelectedIndex >= 0)
-                    {
-                        View3D selectedView = _createdViews[listBox.SelectedIndex];
-                        _uiDoc.ActiveView = selectedView;
-                        TaskDialog.Show("Успех", $"Открыт вид: {selectedView.Name}");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                TaskDialog.Show("Ошибка", $"Не удалось открыть вид: {ex.Message}");
-            }
-        }
-
-        #endregion
-
-        #region ⚡ Проверка коллизий
-
-        private List<Element> VerifyActualCollision(List<Element> elements, string clashName)
-        {
-            if (elements.Count < 2)
-                return elements;
-
-            List<Element> trulyColliding = new List<Element>();
-            Options geomOptions = new Options
-            {
-                ComputeReferences = false,
-                DetailLevel = ViewDetailLevel.Coarse,
-                IncludeNonVisibleObjects = false
-            };
-
-            try
-            {
-                for (int i = 0; i < elements.Count; i++)
-                {
-                    Element elem1 = elements[i];
-                    List<Solid> solids1 = GetCachedSolids(elem1, geomOptions);
-                    BoundingBoxXYZ bbox1 = GetCachedBoundingBox(elem1);
-
-                    if (solids1.Count == 0 || bbox1 == null)
-                        continue;
-
-                    for (int j = i + 1; j < elements.Count; j++)
-                    {
-                        Element elem2 = elements[j];
-                        BoundingBoxXYZ bbox2 = GetCachedBoundingBox(elem2);
-
-                        if (bbox2 == null || !DoBoundingBoxesIntersect(bbox1, bbox2))
+                        GeometryElement symbolGeometry = geometryInstance.GetSymbolGeometry();
+                        if (symbolGeometry == null)
                             continue;
 
-                        List<Solid> solids2 = GetCachedSolids(elem2, geomOptions);
-                        if (solids2.Count == 0)
-                            continue;
-
-                        if (CheckSolidsIntersectionFast(solids1, solids2))
+                        FamilySymbol matchingSymbol = FindExactMatchingFamilySymbol(symbolGeometry);
+                        if (matchingSymbol != null)
                         {
-                            if (!trulyColliding.Contains(elem1))
-                                trulyColliding.Add(elem1);
-                            if (!trulyColliding.Contains(elem2))
-                                trulyColliding.Add(elem2);
+                            return matchingSymbol.Id.IntegerValue;
                         }
                     }
-                }
-
-                Debug.WriteLine($"🔍 {clashName}: из {elements.Count} элементов действительно сталкиваются {trulyColliding.Count}");
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"❌ Ошибка проверки коллизии {clashName}: {ex.Message}");
-                return elements;
-            }
-
-            return trulyColliding;
-        }
-
-        private bool CheckSolidsIntersectionFast(List<Solid> solids1, List<Solid> solids2)
-        {
-            foreach (Solid s1 in solids1)
-            {
-                if (s1 == null || s1.Volume < 0.001)
-                    continue;
-
-                BoundingBoxXYZ bb1 = s1.GetBoundingBox();
-                foreach (Solid s2 in solids2)
-                {
-                    if (s2 == null || s2.Volume < 0.001)
-                        continue;
-
-                    BoundingBoxXYZ bb2 = s2.GetBoundingBox();
-
-                    if (!DoBoundingBoxesIntersect(bb1, bb2))
-                        continue;
-
-                    try
+                    catch
                     {
-                        Solid intersection = BooleanOperationsUtils.ExecuteBooleanOperation(
-                            s1, s2, BooleanOperationsType.Intersect);
-                        if (intersection != null && intersection.Volume > 0.0001)
-                            return true;
+                        // Ignore errors
                     }
-                    catch { }
                 }
+
+                return null;
             }
-            return false;
-        }
-
-        private List<Solid> GetCachedSolids(Element element, Options options)
-        {
-            int id = element.Id.IntegerValue;
-            if (elementSolidsCache.TryGetValue(id, out List<Solid> cached))
-                return cached;
-
-            List<Solid> solids = new List<Solid>();
-            try
+            catch
             {
-                GeometryElement geom = element.get_Geometry(options);
-                if (geom != null)
-                    solids.AddRange(GetSolidsFromGeometry(geom));
+                return null;
             }
-            catch { }
-
-            elementSolidsCache[id] = solids;
-            return solids;
         }
 
-        private BoundingBoxXYZ GetCachedBoundingBox(Element element)
+        private List<GeometryInstance> GetAllGeometryInstances(GeometryElement geometry)
         {
-            int id = element.Id.IntegerValue;
-            if (elementBboxCache.TryGetValue(id, out BoundingBoxXYZ cached))
-                return cached;
+            var geometryInstances = new List<GeometryInstance>();
 
-            BoundingBoxXYZ bbox = null;
-            try
-            {
-                bbox = element.get_BoundingBox(null);
-                if (bbox == null)
-                    bbox = element.get_BoundingBox(_doc.ActiveView);
-            }
-            catch { }
+            if (geometry == null) return geometryInstances;
 
-            elementBboxCache[id] = bbox;
-            return bbox;
-        }
-
-        private bool DoBoundingBoxesIntersect(BoundingBoxXYZ bb1, BoundingBoxXYZ bb2)
-        {
-            return bb1.Min.X <= bb2.Max.X && bb1.Max.X >= bb2.Min.X &&
-                   bb1.Min.Y <= bb2.Max.Y && bb1.Max.Y >= bb2.Min.Y &&
-                   bb1.Min.Z <= bb2.Max.Z && bb1.Max.Z >= bb2.Min.Z;
-        }
-
-        #endregion
-
-        #region 🧱 Geometry
-
-        private List<Solid> GetSolidsFromGeometry(GeometryElement geometry)
-        {
-            List<Solid> solids = new List<Solid>();
             foreach (GeometryObject geomObj in geometry)
             {
-                if (geomObj is Solid solid && solid.Volume > 0.001)
-                    solids.Add(solid);
-                else if (geomObj is GeometryInstance gi)
+                if (geomObj is GeometryInstance geometryInstance)
                 {
-                    GeometryElement instGeom = gi.GetInstanceGeometry();
-                    if (instGeom != null)
-                        solids.AddRange(GetSolidsFromGeometry(instGeom));
+                    geometryInstances.Add(geometryInstance);
+
+                    try
+                    {
+                        GeometryElement instanceGeometry = geometryInstance.GetInstanceGeometry();
+                        if (instanceGeometry != null)
+                        {
+                            geometryInstances.AddRange(GetAllGeometryInstances(instanceGeometry));
+                        }
+                    }
+                    catch
+                    {
+                        // Ignore errors
+                    }
                 }
             }
-            return solids;
+
+            return geometryInstances;
         }
 
-        private BoundingBoxXYZ CreatePreciseSectionBox(List<Element> elements)
+        private FamilySymbol FindExactMatchingFamilySymbol(GeometryElement targetGeometry)
         {
-            double minX = double.MaxValue, minY = double.MaxValue, minZ = double.MaxValue;
-            double maxX = double.MinValue, maxY = double.MinValue, maxZ = double.MinValue;
-
-            foreach (Element element in elements)
+            try
             {
-                BoundingBoxXYZ bbox = GetCachedBoundingBox(element);
-                if (bbox == null) continue;
+                var allSymbols = new FilteredElementCollector(_doc)
+                    .OfClass(typeof(FamilySymbol))
+                    .Cast<FamilySymbol>()
+                    .ToList();
 
-                minX = Math.Min(minX, bbox.Min.X);
-                minY = Math.Min(minY, bbox.Min.Y);
-                minZ = Math.Min(minZ, bbox.Min.Z);
-                maxX = Math.Max(maxX, bbox.Max.X);
-                maxY = Math.Max(maxY, bbox.Max.Y);
-                maxZ = Math.Max(maxZ, bbox.Max.Z);
+                BoundingBoxXYZ targetBBox = targetGeometry.GetBoundingBox();
+                if (targetBBox == null)
+                    return null;
+
+                double targetVolume = GetBoundingBoxVolume(targetBBox);
+
+                foreach (var symbol in allSymbols)
+                {
+                    try
+                    {
+                        Options options = new Options
+                        {
+                            ComputeReferences = true,
+                            DetailLevel = ViewDetailLevel.Medium,
+                            IncludeNonVisibleObjects = true
+                        };
+
+                        GeometryElement symbolGeometry = symbol.get_Geometry(options);
+                        if (symbolGeometry == null) continue;
+
+                        BoundingBoxXYZ symbolBBox = symbolGeometry.GetBoundingBox();
+                        if (symbolBBox == null) continue;
+
+                        double symbolVolume = GetBoundingBoxVolume(symbolBBox);
+
+                        if (AreGeometryElementsIdentical(targetGeometry, symbolGeometry))
+                        {
+                            return symbol;
+                        }
+
+                        double volumeDifference = Math.Abs(targetVolume - symbolVolume) / Math.Max(targetVolume, symbolVolume);
+                        if (volumeDifference < 0.1)
+                        {
+                            return symbol;
+                        }
+                    }
+                    catch
+                    {
+                        // Ignore errors
+                    }
+                }
+
+                return null;
             }
+            catch
+            {
+                return null;
+            }
+        }
 
-            double padding = Math.Max(Math.Max(maxX - minX, Math.Max(maxY - minY, maxZ - minZ)) * 0.2, 1.0);
+        private bool AreGeometryElementsIdentical(GeometryElement geom1, GeometryElement geom2)
+        {
+            try
+            {
+                BoundingBoxXYZ bbox1 = geom1.GetBoundingBox();
+                BoundingBoxXYZ bbox2 = geom2.GetBoundingBox();
+
+                if (bbox1 == null || bbox2 == null) return false;
+
+                double tolerance = 0.001;
+                if (Math.Abs(bbox1.Min.X - bbox2.Min.X) > tolerance) return false;
+                if (Math.Abs(bbox1.Min.Y - bbox2.Min.Y) > tolerance) return false;
+                if (Math.Abs(bbox1.Min.Z - bbox2.Min.Z) > tolerance) return false;
+                if (Math.Abs(bbox1.Max.X - bbox2.Max.X) > tolerance) return false;
+                if (Math.Abs(bbox1.Max.Y - bbox2.Max.Y) > tolerance) return false;
+                if (Math.Abs(bbox1.Max.Z - bbox2.Max.Z) > tolerance) return false;
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private double GetBoundingBoxVolume(BoundingBoxXYZ bbox)
+        {
+            return (bbox.Max.X - bbox.Min.X) * (bbox.Max.Y - bbox.Min.Y) * (bbox.Max.Z - bbox.Min.Z);
+        }
+
+        private void AddToSymbolMap(int symbolId, FamilyInstance instance)
+        {
+            if (!_symbolToInstancesMap.ContainsKey(symbolId))
+                _symbolToInstancesMap[symbolId] = new List<FamilyInstance>();
+
+            if (!_symbolToInstancesMap[symbolId].Any(inst => inst.Id == instance.Id))
+                _symbolToInstancesMap[symbolId].Add(instance);
+        }
+
+        private void ProcessDirectElement(Element directElement, List<Element> foundElements, int id)
+        {
+            if (directElement is FamilySymbol foundSymbol)
+            {
+                var instances = GetInstancesOfFamilySymbol(foundSymbol);
+                if (instances.Count > 0)
+                {
+                    foreach (var inst in instances)
+                    {
+                        if (!foundElements.Any(e => e.Id == inst.Id))
+                            foundElements.Add(inst);
+                        if (!_allElementsToColor.Contains(inst.Id))
+                            _allElementsToColor.Add(inst.Id);
+                    }
+                }
+            }
+            else
+            {
+                if (!foundElements.Any(e => e.Id == directElement.Id))
+                    foundElements.Add(directElement);
+                if (!_allElementsToColor.Contains(directElement.Id))
+                    _allElementsToColor.Add(directElement.Id);
+            }
+        }
+
+        private List<Element> GetInstancesOfFamilySymbol(FamilySymbol familySymbol)
+        {
+            try
+            {
+                return new FilteredElementCollector(_doc)
+                    .OfClass(typeof(FamilyInstance))
+                    .WhereElementIsNotElementType()
+                    .Cast<FamilyInstance>()
+                    .Where(fi => fi.Symbol.Id == familySymbol.Id)
+                    .Cast<Element>()
+                    .ToList();
+            }
+            catch
+            {
+                return new List<Element>();
+            }
+        }
+
+        private List<int> GetAllIdsFromClashNode(XmlNode clashNode)
+        {
+            List<int> ids = new List<int>();
+            var valueNodes = clashNode.SelectNodes(".//value");
+            if (valueNodes != null)
+            {
+                foreach (XmlNode valueNode in valueNodes)
+                {
+                    string valueText = valueNode.InnerText.Trim();
+                    if (int.TryParse(valueText, out int id) && id > 0)
+                        ids.Add(id);
+                }
+            }
+            return ids;
+        }
+
+        private bool CreateCollisionView(string clashName, List<Element> elements,
+            ViewFamilyType viewFamilyType, ElementId solidFillPatternId)
+        {
+            try
+            {
+                View3D view = View3D.CreateIsometric(_doc, viewFamilyType.Id);
+
+                string categories = string.Join("_", elements
+                    .Where(e => e.Category != null)
+                    .Select(e => e.Category.Name)
+                    .Distinct()
+                    .Take(2));
+
+                string ids = string.Join("_", elements.Select(e => e.Id.IntegerValue).Take(3));
+                string viewName = $"{clashName.Substring(0, Math.Min(50, clashName.Length))}_{categories}_{ids}";
+                if (viewName.Length > 200)
+                    viewName = viewName.Substring(0, 200);
+
+                view.Name = viewName;
+                view.DisplayStyle = DisplayStyle.Shading;
+                view.DetailLevel = ViewDetailLevel.Fine;
+                view.Discipline = ViewDiscipline.Coordination;
+
+                BoundingBoxXYZ sectionBox = CreateSectionBoxFromElements(elements);
+                if (sectionBox != null)
+                    view.SetSectionBox(sectionBox);
+
+                ApplyColorOverrides(view, _allElementsToColor, solidFillPatternId);
+
+                _createdViews.Add(view);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private BoundingBoxXYZ CreateSectionBoxFromElements(List<Element> elements)
+        {
+            List<BoundingBoxXYZ> boxes = new List<BoundingBoxXYZ>();
+            foreach (var el in elements)
+            {
+                var bb = el.get_BoundingBox(null);
+                if (bb != null)
+                    boxes.Add(bb);
+            }
+            if (boxes.Count == 0) return null;
+
+            double minX = boxes.Min(b => b.Min.X);
+            double minY = boxes.Min(b => b.Min.Y);
+            double minZ = boxes.Min(b => b.Min.Z);
+            double maxX = boxes.Max(b => b.Max.X);
+            double maxY = boxes.Max(b => b.Max.Y);
+            double maxZ = boxes.Max(b => b.Max.Z);
+
+            double offset = Math.Max((maxX - minX) * 0.2, 1.0);
             return new BoundingBoxXYZ
             {
-                Min = new XYZ(minX - padding, minY - padding, minZ - padding),
-                Max = new XYZ(maxX + padding, maxY + padding, maxZ + padding)
+                Min = new XYZ(minX - offset, minY - offset, minZ - offset),
+                Max = new XYZ(maxX + offset, maxY + offset, maxZ + offset)
             };
         }
 
-        #endregion
-
-        #region 🎨 View настройки
-
-        private void ConfigureView(View3D view)
+        private void ApplyColorOverrides(View3D view, List<ElementId> elementIds, ElementId solidFillPatternId)
         {
-            view.Discipline = ViewDiscipline.Coordination;
-            view.DetailLevel = ViewDetailLevel.Fine;
-        }
-
-        private void ApplyOverridesOnlyColliding(View3D view, List<ElementId> collidingIds, ElementId solidFillPatternId)
-        {
-            if (collidingIds.Count == 0) return;
-
             Color[] colors = {
-                new Color(255,165,0),
-                new Color(0,100,255),
-                new Color(50,205,50),
-                new Color(255,255,0),
-                new Color(255,0,255),
-                new Color(0,255,255)
+                new Color(255, 0, 0),
+                new Color(0, 255, 0),
+                new Color(0, 0, 255),
+                new Color(255, 165, 0)
             };
+            int index = 0;
 
-            for (int i = 0; i < collidingIds.Count; i++)
+            foreach (var id in elementIds)
             {
-                ElementId id = collidingIds[i];
-                Element el = _doc.GetElement(id);
-                if (el == null) continue;
-
-                Color color = colors[i % colors.Length];
+                Color c = colors[index % colors.Length];
                 OverrideGraphicSettings ogs = new OverrideGraphicSettings()
-                    .SetProjectionLineColor(color)
-                    .SetSurfaceForegroundPatternColor(color)
+                    .SetProjectionLineColor(c)
+                    .SetProjectionLineWeight(5)
+                    .SetSurfaceForegroundPatternId(solidFillPatternId)
+                    .SetSurfaceForegroundPatternColor(c)
                     .SetSurfaceTransparency(0);
 
-                if (solidFillPatternId != ElementId.InvalidElementId)
-                    ogs.SetSurfaceForegroundPatternId(solidFillPatternId);
-
-                view.SetElementOverrides(id, ogs);
+                try
+                {
+                    view.SetElementOverrides(id, ogs);
+                }
+                catch
+                {
+                    // Ignore errors
+                }
+                index++;
             }
         }
-
-        #endregion
-
-        #region 🔎 Вспомогательные функции
 
         private ElementId GetSolidFillPatternId()
         {
-            foreach (FillPatternElement fpe in new FilteredElementCollector(_doc).OfClass(typeof(FillPatternElement)))
-                if (fpe.GetFillPattern().IsSolidFill)
-                    return fpe.Id;
-            return ElementId.InvalidElementId;
+            return new FilteredElementCollector(_doc)
+                .OfClass(typeof(FillPatternElement))
+                .Cast<FillPatternElement>()
+                .FirstOrDefault(f => f.GetFillPattern().IsSolidFill)?.Id
+                ?? ElementId.InvalidElementId;
         }
-
-        private string GetCategoriesInfo(List<Element> elements)
-        {
-            var categories = elements.Where(e => e?.Category != null)
-                .Select(e => e.Category.Name)
-                .Distinct()
-                .OrderBy(n => n)
-                .ToList();
-
-            if (categories.Count == 0) return "Unknown";
-            if (categories.Count == 1) return categories[0];
-            if (categories.Count == 2) return $"{categories[0]}_vs_{categories[1]}";
-            return string.Join("_", categories.Take(3)) + "_etc";
-        }
-
-        private class ElementIdComparer : IEqualityComparer<Element>
-        {
-            public bool Equals(Element x, Element y) => x.Id.IntegerValue == y.Id.IntegerValue;
-            public int GetHashCode(Element obj) => obj.Id.IntegerValue.GetHashCode();
-        }
-
-        #endregion
     }
 }

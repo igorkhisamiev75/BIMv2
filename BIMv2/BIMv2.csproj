@@ -352,7 +352,6 @@
     <Compile Include="HelpBIM.cs" />
     <Compile Include="JoinWalls.cs" />
     <Compile Include="Level3DViewPlugin.cs" />
-    <Compile Include="LG_RoomsInformation.cs" />
     <Compile Include="MakingHolesForDoorsLink.cs" />
     <Compile Include="MakingHolesForFacadeWindows.cs" />
     <Compile Include="MakingHolesForFacadeWindowsDoors.cs" />
