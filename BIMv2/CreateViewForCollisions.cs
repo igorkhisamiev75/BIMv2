@@ -28,6 +28,13 @@ namespace BIMv2
         // База данных: ElementId -> FamilySymbolId (для быстрого поиска)
         private Dictionary<int, int> _elementToSymbolMap = new Dictionary<int, int>();
 
+        // Настройки цветов и прозрачности
+        private Color _collision1Color = Color.Orange;
+        private Color _collision2Color = Color.Red;
+        private int _transparency = 80;
+
+        private List<Element> _elementsToHighlight = new List<Element>();
+
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             _uiDoc = commandData.Application.ActiveUIDocument;
@@ -35,77 +42,81 @@ namespace BIMv2
 
             try
             {
-                ViewFamilyType viewFamilyType = new FilteredElementCollector(_doc)
-                    .OfClass(typeof(ViewFamilyType))
-                    .Cast<ViewFamilyType>()
-                    .First(v => v.ViewFamily == ViewFamily.ThreeDimensional);
-
-                ElementId solidFillPatternId = GetSolidFillPatternId();
-
-                // 1. Открываем отчет с коллизиями
-                OpenFileDialog ofd = new OpenFileDialog
+                // Показываем форму настроек
+                using (var settingsForm = new CollisionSettingsForm())
                 {
-                    Title = "Выберите XML отчет Navisworks",
-                    Filter = "XML files|*.xml"
-                };
-                if (ofd.ShowDialog() != DialogResult.OK)
-                    return Result.Cancelled;
+                    if (settingsForm.ShowDialog() != DialogResult.OK || !settingsForm.DialogResultOK)
+                        return Result.Cancelled;
 
-                XmlDocument xml = new XmlDocument();
-                xml.Load(ofd.FileName);
-                var clashResults = xml.SelectNodes("//clashresult");
+                    // Получаем настройки из формы
+                    _collision1Color = settingsForm.Collision1Color;
+                    _collision2Color = settingsForm.Collision2Color;
+                    _transparency = settingsForm.Transparency;
 
-                if (clashResults == null || clashResults.Count == 0)
-                {
-                    TaskDialog.Show("Информация", "В отчёте не найдено коллизий.");
-                    return Result.Cancelled;
-                }
+                    ViewFamilyType viewFamilyType = new FilteredElementCollector(_doc)
+                        .OfClass(typeof(ViewFamilyType))
+                        .Cast<ViewFamilyType>()
+                        .First(v => v.ViewFamily == ViewFamily.ThreeDimensional);
 
-                // 2. Создаем базу данных обобщенных моделей, дверей, окон, импостов витража, панелей витража и соединительных деталей
-                BuildExtendedElementsDatabase();
+                    ElementId solidFillPatternId = GetSolidFillPatternId();
 
-                int viewCount = 0;
+                    // Загружаем отчет
+                    XmlDocument xml = new XmlDocument();
+                    xml.Load(settingsForm.ReportFilePath);
+                    var clashResults = xml.SelectNodes("//clashresult");
 
-                using (Transaction t = new Transaction(_doc, "Создание видов коллизий"))
-                {
-                    t.Start();
-
-                    // 3. Проверяем каждый конфликт из отчета
-                    foreach (XmlNode clash in clashResults)
+                    if (clashResults == null || clashResults.Count == 0)
                     {
-                        string name = clash.Attributes["name"]?.Value ?? "Без_имени";
-                        List<int> reportIds = GetAllIdsFromClashNode(clash);
-
-                        if (reportIds.Count == 0)
-                            continue;
-
-                        Debug.WriteLine($"\n=== ОБРАБОТКА КОЛЛИЗИИ: {name} ===");
-                        Debug.WriteLine($"ID в отчете: [{string.Join(", ", reportIds)}]");
-
-                        // Ищем элементы для этой коллизии
-                        List<Element> collisionElements = FindElementsForCollision(reportIds);
-
-                        if (collisionElements.Count > 0)
-                        {
-                            Debug.WriteLine($"Найдено элементов: {collisionElements.Count}");
-
-                            if (CreateCollisionView(name, collisionElements, reportIds, viewFamilyType, solidFillPatternId))
-                            {
-                                viewCount++;
-                            }
-                        }
-                        else
-                        {
-                            Debug.WriteLine($"Элементы не найдены");
-                        }
+                        TaskDialog.Show("Информация", "В отчёте не найдено коллизий.");
+                        return Result.Cancelled;
                     }
 
-                    t.Commit();
+                    // 2. Создаем базу данных обобщенных моделей, дверей, окон, импостов витража, панелей витража и соединительных деталей
+                    BuildExtendedElementsDatabase();
+
+                    int viewCount = 0;
+
+                    using (Transaction t = new Transaction(_doc, "Создание видов коллизий"))
+                    {
+                        t.Start();
+
+                        // 3. Проверяем каждый конфликт из отчета
+                        foreach (XmlNode clash in clashResults)
+                        {
+                            string name = clash.Attributes["name"]?.Value ?? "Без_имени";
+                            List<int> reportIds = GetAllIdsFromClashNode(clash);
+
+                            if (reportIds.Count == 0)
+                                continue;
+
+                            Debug.WriteLine($"\n=== ОБРАБОТКА КОЛЛИЗИИ: {name} ===");
+                            Debug.WriteLine($"ID в отчете: [{string.Join(", ", reportIds)}]");
+
+                            // Ищем элементы для этой коллизии
+                            List<Element> collisionElements = FindElementsForCollision(reportIds);
+
+                            if (collisionElements.Count > 0)
+                            {
+                                Debug.WriteLine($"Найдено элементов: {collisionElements.Count}");
+
+                                if (CreateCollisionView(name, collisionElements, reportIds, viewFamilyType, solidFillPatternId))
+                                {
+                                    viewCount++;
+                                }
+                            }
+                            else
+                            {
+                                Debug.WriteLine($"Элементы не найдены");
+                            }
+                        }
+
+                        t.Commit();
+                    }
+
+                    TaskDialog.Show("Результат", $"Создано {viewCount} 3D видов для коллизий");
+
+                    return Result.Succeeded;
                 }
-
-                TaskDialog.Show("Результат", $"Создано {viewCount} 3D видов для коллизий");
-
-                return Result.Succeeded;
             }
             catch (Exception ex)
             {
@@ -412,8 +423,6 @@ namespace BIMv2
             return collisionElements;
         }
 
-        private List<Element> _elementsToHighlight = new List<Element>();
-
         /// <summary>
         /// Создание 3D вида для коллизии
         /// </summary>
@@ -466,21 +475,21 @@ namespace BIMv2
         /// </summary>
         private void ApplyColorOverrides(View3D view, List<Element> elements, ElementId solidFillPatternId)
         {
-            // Настройки для элементов из отчета (оранжевая заливка)
-            OverrideGraphicSettings highlightOgs = new OverrideGraphicSettings()
-                .SetProjectionLineColor(new Color(255, 165, 0)) // Оранжевый контур
+            // Настройки для элементов из отчета (цвет коллизии 1)
+            OverrideGraphicSettings highlightOgs1 = new OverrideGraphicSettings()
+                .SetProjectionLineColor(new Color(_collision1Color.R, _collision1Color.G, _collision1Color.B))
                 .SetProjectionLineWeight(5)
                 .SetSurfaceForegroundPatternId(solidFillPatternId)
-                .SetSurfaceForegroundPatternColor(new Color(255, 165, 0)) // Оранжевая заливка
+                .SetSurfaceForegroundPatternColor(new Color(_collision1Color.R, _collision1Color.G, _collision1Color.B))
                 .SetSurfaceTransparency(0); // Непрозрачно
 
-            // Настройки для остальных элементов (прозрачность 20%)
+            // Настройки для остальных элементов (прозрачность)
             OverrideGraphicSettings transparentOgs = new OverrideGraphicSettings()
                 .SetProjectionLineColor(new Color(128, 128, 128)) // Серый контур
                 .SetProjectionLineWeight(1)
                 .SetSurfaceForegroundPatternId(solidFillPatternId)
                 .SetSurfaceForegroundPatternColor(new Color(200, 200, 200)) // Светло-серая заливка
-                .SetSurfaceTransparency(80); // 80% прозрачность = 20% видимости
+                .SetSurfaceTransparency((byte)_transparency); // Настраиваемая прозрачность
 
             // Получаем все элементы в секционной коробке
             var allElementsInView = new FilteredElementCollector(_doc, view.Id)
@@ -492,12 +501,12 @@ namespace BIMv2
             {
                 try
                 {
-                    // Если элемент из отчета - оранжевая заливка
+                    // Если элемент из отчета - цвет коллизии 1
                     if (_elementsToHighlight.Any(e => e.Id == element.Id))
                     {
-                        view.SetElementOverrides(element.Id, highlightOgs);
+                        view.SetElementOverrides(element.Id, highlightOgs1);
                     }
-                    // Остальные элементы - прозрачность 20%
+                    // Остальные элементы - прозрачность
                     else
                     {
                         view.SetElementOverrides(element.Id, transparentOgs);
@@ -509,7 +518,7 @@ namespace BIMv2
                 }
             }
 
-            Debug.WriteLine($"Раскрашено элементов: {_elementsToHighlight.Count} оранжевых, {allElementsInView.Count - _elementsToHighlight.Count} прозрачных");
+            Debug.WriteLine($"Раскрашено элементов: {_elementsToHighlight.Count} цветных, {allElementsInView.Count - _elementsToHighlight.Count} прозрачных");
         }
 
         private BoundingBoxXYZ CreateSectionBoxFromElements(List<Element> elements)
