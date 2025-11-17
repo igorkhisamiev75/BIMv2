@@ -61,8 +61,8 @@ namespace BIMv2
                     return Result.Cancelled;
                 }
 
-                // 2. Создаем базу данных обобщенных моделей
-                BuildGenericModelsDatabase();
+                // 2. Создаем базу данных обобщенных моделей, дверей, окон, импостов витража, панелей витража и соединительных деталей
+                BuildExtendedElementsDatabase();
 
                 int viewCount = 0;
 
@@ -115,22 +115,94 @@ namespace BIMv2
         }
 
         /// <summary>
-        /// 2. Создаем базу данных обобщенных моделей
+        /// 2. Создаем базу данных обобщенных моделей, дверей, окон, импостов витража, панелей витража и соединительных деталей
         /// </summary>
-        private void BuildGenericModelsDatabase()
+        private void BuildExtendedElementsDatabase()
         {
             _symbolToElementsMap.Clear();
             _elementToSymbolMap.Clear();
 
+            // Собираем обобщенные модели
             var genericModels = new FilteredElementCollector(_doc)
                 .OfCategory(BuiltInCategory.OST_GenericModel)
                 .WhereElementIsNotElementType()
                 .ToList();
 
+            // Собираем двери
+            var doors = new FilteredElementCollector(_doc)
+                .OfCategory(BuiltInCategory.OST_Doors)
+                .WhereElementIsNotElementType()
+                .ToList();
+
+            // Собираем окна
+            var windows = new FilteredElementCollector(_doc)
+                .OfCategory(BuiltInCategory.OST_Windows)
+                .WhereElementIsNotElementType()
+                .ToList();
+
+            // Собираем импосты витража (стоечные профили витражей)
+            var curtainWallMullions = new FilteredElementCollector(_doc)
+                .OfCategory(BuiltInCategory.OST_CurtainWallMullions)
+                .WhereElementIsNotElementType()
+                .ToList();
+
+            // Собираем панели витража
+            var curtainPanels = new FilteredElementCollector(_doc)
+                .OfCategory(BuiltInCategory.OST_CurtainWallPanels)
+                .WhereElementIsNotElementType()
+                .ToList();
+
+            // Собираем соединительные детали воздуховодов
+            var ductFittings = new FilteredElementCollector(_doc)
+                .OfCategory(BuiltInCategory.OST_DuctFitting)
+                .WhereElementIsNotElementType()
+                .ToList();
+
+            // Собираем соединительные детали труб
+            var pipeFittings = new FilteredElementCollector(_doc)
+                .OfCategory(BuiltInCategory.OST_PipeFitting)
+                .WhereElementIsNotElementType()
+                .ToList();
+
             Debug.WriteLine($"=== ПОСТРОЕНИЕ БАЗЫ ДАННЫХ ===");
             Debug.WriteLine($"Найдено обобщенных моделей: {genericModels.Count}");
+            Debug.WriteLine($"Найдено дверей: {doors.Count}");
+            Debug.WriteLine($"Найдено окон: {windows.Count}");
+            Debug.WriteLine($"Найдено импостов витража: {curtainWallMullions.Count}");
+            Debug.WriteLine($"Найдено панелей витража: {curtainPanels.Count}");
+            Debug.WriteLine($"Найдено соединительных деталей воздуховодов: {ductFittings.Count}");
+            Debug.WriteLine($"Найдено соединительных деталей труб: {pipeFittings.Count}");
 
-            foreach (Element element in genericModels)
+            // Обрабатываем обобщенные модели
+            ProcessElementsCollection(genericModels, "Обобщенная модель");
+
+            // Обрабатываем двери
+            ProcessElementsCollection(doors, "Дверь");
+
+            // Обрабатываем окна
+            ProcessElementsCollection(windows, "Окно");
+
+            // Обрабатываем импосты витража
+            ProcessElementsCollection(curtainWallMullions, "Импост витража");
+
+            // Обрабатываем панели витража
+            ProcessElementsCollection(curtainPanels, "Панель витража");
+
+            // Обрабатываем соединительные детали воздуховодов
+            ProcessElementsCollection(ductFittings, "Соединительная деталь воздуховода");
+
+            // Обрабатываем соединительные детали труб
+            ProcessElementsCollection(pipeFittings, "Соединительная деталь трубы");
+
+            Debug.WriteLine($"База построена: {_symbolToElementsMap.Count} FamilySymbolId, {_elementToSymbolMap.Count} элементов");
+        }
+
+        /// <summary>
+        /// Обрабатывает коллекцию элементов и добавляет их в базу данных
+        /// </summary>
+        private void ProcessElementsCollection(List<Element> elements, string elementType)
+        {
+            foreach (Element element in elements)
             {
                 try
                 {
@@ -148,20 +220,18 @@ namespace BIMv2
 
                         _symbolToElementsMap[familySymbolId.Value].Add(element);
 
-                        Debug.WriteLine($"Элемент {element.Id} -> FamilySymbolId {familySymbolId.Value}");
+                        Debug.WriteLine($"{elementType} {element.Id} -> FamilySymbolId {familySymbolId.Value}");
                     }
                     else
                     {
-                        Debug.WriteLine($"Элемент {element.Id}: FamilySymbolId не найден");
+                        Debug.WriteLine($"{elementType} {element.Id}: FamilySymbolId не найден");
                     }
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"Ошибка элемента {element.Id}: {ex.Message}");
+                    Debug.WriteLine($"Ошибка {elementType.ToLower()} {element.Id}: {ex.Message}");
                 }
             }
-
-            Debug.WriteLine($"База построена: {_symbolToElementsMap.Count} FamilySymbolId, {_elementToSymbolMap.Count} элементов");
         }
 
         /// <summary>
