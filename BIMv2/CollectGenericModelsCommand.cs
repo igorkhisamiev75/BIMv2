@@ -1,376 +1,502 @@
-﻿//using System;
-//using System.Collections.Generic;
-//using System.Text;
-//using System.Windows;
-//using System.Windows.Controls;
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Windows;
+using System.Windows.Controls;
 
-//using Autodesk.Revit.Attributes;
-//using Autodesk.Revit.DB;
-//using Autodesk.Revit.UI;
+using Autodesk.Revit.Attributes;
+using Autodesk.Revit.DB;
+using Autodesk.Revit.UI;
 
-//namespace BIMv2
-//{
-//    [Transaction(TransactionMode.Manual)]
-//    [Regeneration(RegenerationOption.Manual)]
-//    public class CollectGenericModelsCommand : IExternalCommand
-//    {
-//        private Document _doc;
+namespace BIMv2
+{
+    [Transaction(TransactionMode.Manual)]
+    [Regeneration(RegenerationOption.Manual)]
+    public class CollectGenericModelsCommand : IExternalCommand
+    {
+        private Document _doc;
 
-//        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
-//        {
-//            UIApplication uiApp = commandData.Application;
-//            UIDocument uiDoc = uiApp.ActiveUIDocument;
-//            _doc = uiDoc.Document;
+        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+        {
+            UIApplication uiApp = commandData.Application;
+            UIDocument uiDoc = uiApp.ActiveUIDocument;
+            _doc = uiDoc.Document;
 
-//            try
-//            {
-//                FilteredElementCollector collector = new FilteredElementCollector(_doc);
-//                ICollection<Element> genericModels = collector.OfCategory(BuiltInCategory.OST_GenericModel).WhereElementIsNotElementType().ToElements();
+            try
+            {
+                // Используем более эффективный сборщик
+                FilteredElementCollector collector = new FilteredElementCollector(_doc)
+                    .OfCategory(BuiltInCategory.OST_GenericModel)
+                    .WhereElementIsNotElementType();
 
-//                StringBuilder sb = new StringBuilder();
+                IList<Element> genericModels = collector.ToElements();
 
-//                sb.AppendLine($"НАЙДЕНО ОБОБЩЕННЫХ МОДЕЛЕЙ: {genericModels.Count}");
-//                sb.AppendLine("=" + new string('=', 80));
+                StringBuilder sb = new StringBuilder();
 
-//                int counter = 1;
-//                foreach (Element genericModel in genericModels)
-//                {
-//                    sb.AppendLine($"\n--- ОБОБЩЕННАЯ МОДЕЛЬ #{counter++} ---");
-//                    CollectElementInfo(genericModel, sb);
-//                    sb.AppendLine(new string('-', 50));
-//                }
+                sb.AppendLine($"НАЙДЕНО ОБОБЩЕННЫХ МОДЕЛЕЙ: {genericModels.Count}");
+                sb.AppendLine($"Дата сбора: {DateTime.Now:dd.MM.yyyy HH:mm:ss}");
+                sb.AppendLine("=" + new string('=', 100));
 
-//                ShowInfoWindow(sb.ToString());
+                int counter = 1;
+                foreach (Element genericModel in genericModels)
+                {
+                    sb.AppendLine($"\n--- ОБОБЩЕННАЯ МОДЕЛЬ #{counter++} ---");
+                    CollectElementInfo(genericModel, sb);
+                    sb.AppendLine(new string('-', 80));
+                }
 
-//                return Result.Succeeded;
-//            }
-//            catch (Exception ex)
-//            {
-//                message = $"Ошибка: {ex.Message}";
-//                return Result.Failed;
-//            }
-//        }
+                ShowInfoWindow(sb.ToString());
 
-//        private void CollectElementInfo(Element element, StringBuilder sb)
-//        {
-//            // Базовая информация об элементе
-//            sb.AppendLine($"ID: {element.Id.IntegerValue}");
-//            sb.AppendLine($"Имя: {element.Name}");
-//            sb.AppendLine($"Категория: {element.Category?.Name ?? "Н/Д"}");
+                return Result.Succeeded;
+            }
+            catch (Exception ex)
+            {
+                message = $"Ошибка: {ex.Message}\n{ex.StackTrace}";
+                TaskDialog.Show("Ошибка", message);
+                return Result.Failed;
+            }
+        }
 
-//            // Параметры Element
-//            sb.AppendLine($"\nПАРАМЕТРЫ ELEMENT:");
-//            foreach (Parameter param in element.Parameters)
-//            {
-//                try
-//                {
-//                    if (param.Definition != null)
-//                    {
-//                        string paramName = param.Definition.Name;
-//                        string paramValue = GetParameterValue(param);
-//                        string storageType = param.StorageType.ToString();
+        private void CollectElementInfo(Element element, StringBuilder sb)
+        {
+            try
+            {
+                // БАЗОВАЯ ИНФОРМАЦИЯ
+                sb.AppendLine($"ID: {element.Id.IntegerValue}");
+                sb.AppendLine($"Уникальный ID: {element.UniqueId}");
+                sb.AppendLine($"Имя: {element.Name ?? "Н/Д"}");
+                sb.AppendLine($"Категория: {element.Category?.Name ?? "Н/Д"}");
 
-//                        sb.AppendLine($"  {paramName}: {paramValue} ({storageType})");
-//                    }
-//                }
-//                catch (Exception ex)
-//                {
-//                    sb.AppendLine($"  Ошибка чтения параметра: {ex.Message}");
-//                }
-//            }
+                Element level = _doc.GetElement(element.LevelId);
+                sb.AppendLine($"Уровень: {level?.Name ?? "Н/Д"}");
 
-//            // Детальная информация о геометрии с разными Options
-//            CollectGeometryInfoWithVariants(element, sb);
-//        }
+                // ГЕОМЕТРИЯ - только GeometryInstance
+                CollectGeometryInfo(element, sb);
 
-//        private void CollectGeometryInfoWithVariants(Element element, StringBuilder sb)
-//        {
-//            sb.AppendLine($"\nГЕОМЕТРИЯ С РАЗНЫМИ НАСТРОЙКАМИ:");
+            }
+            catch (Exception ex)
+            {
+                sb.AppendLine($"Ошибка при сборе информации об элементе: {ex.Message}");
+            }
+        }
 
-//            // Вариант 1: Fine detail level
-//            Options optionsFine = new Options();
-//            optionsFine.DetailLevel = ViewDetailLevel.Fine;
-//            optionsFine.ComputeReferences = true;
-//            GeometryElement geometryFine = element.get_Geometry(optionsFine);
-//            sb.AppendLine($"\n*** ViewDetailLevel.Fine ***");
-//            AnalyzeGeometryElement(geometryFine, "  ", sb);
+        private void CollectGeometryInfo(Element element, StringBuilder sb)
+        {
+            try
+            {
+                sb.AppendLine($"\nГЕОМЕТРИЯ:");
 
-//            // Вариант 2: Medium detail level
-//            Options optionsMedium = new Options();
-//            optionsMedium.DetailLevel = ViewDetailLevel.Medium;
-//            optionsMedium.ComputeReferences = true;
-//            GeometryElement geometryMedium = element.get_Geometry(optionsMedium);
-//            sb.AppendLine($"\n*** ViewDetailLevel.Medium ***");
-//            AnalyzeGeometryElement(geometryMedium, "  ", sb);
+                Options options = new Options
+                {
+                    DetailLevel = ViewDetailLevel.Fine,
+                    ComputeReferences = true
+                };
 
-//            // Вариант 3: Coarse detail level
-//            Options optionsCoarse = new Options();
-//            optionsCoarse.DetailLevel = ViewDetailLevel.Coarse;
-//            optionsCoarse.ComputeReferences = true;
-//            GeometryElement geometryCoarse = element.get_Geometry(optionsCoarse);
-//            sb.AppendLine($"\n*** ViewDetailLevel.Coarse ***");
-//            AnalyzeGeometryElement(geometryCoarse, "  ", sb);
+                GeometryElement geometry = element.get_Geometry(options);
 
-//            // Вариант 4: Без вычисления ссылок
-//            Options optionsNoRefs = new Options();
-//            optionsNoRefs.DetailLevel = ViewDetailLevel.Fine;
-//            optionsNoRefs.ComputeReferences = false;
-//            GeometryElement geometryNoRefs = element.get_Geometry(optionsNoRefs);
-//            sb.AppendLine($"\n*** Fine без ComputeReferences ***");
-//            AnalyzeGeometryElement(geometryNoRefs, "  ", sb);
-//        }
+                if (geometry == null)
+                {
+                    sb.AppendLine("  Геометрия: null");
+                    return;
+                }
 
-//        private void AnalyzeGeometryElement(GeometryElement geometry, string indent, StringBuilder sb)
-//        {
-//            if (geometry == null)
-//            {
-//                sb.AppendLine($"{indent}Геометрия: null");
-//                return;
-//            }
+                int instanceCount = 0;
 
-//            int totalObjects = 0;
-//            int instanceCount = 0;
-//            int solidCount = 0;
-//            int meshCount = 0;
-//            int curveCount = 0;
-//            int otherCount = 0;
+                foreach (GeometryObject obj in geometry)
+                {
+                    if (obj is GeometryInstance geometryInstance)
+                    {
+                        instanceCount++;
+                        sb.AppendLine($"\n  GeometryInstance #{instanceCount}:");
+                        AnalyzeGeometryInstance(geometryInstance, "    ", sb);
+                    }
+                }
 
-//            foreach (GeometryObject obj in geometry)
-//            {
-//                totalObjects++;
+                if (instanceCount == 0)
+                {
+                    sb.AppendLine("  GeometryInstance не найдены");
+                }
+                else
+                {
+                    sb.AppendLine($"\n  ВСЕГО GeometryInstance: {instanceCount}");
+                }
+            }
+            catch (Exception ex)
+            {
+                sb.AppendLine($"  Ошибка анализа геометрии: {ex.Message}");
+            }
+        }
 
-//                if (obj is GeometryInstance geometryInstance)
-//                {
-//                    instanceCount++;
-//                    sb.AppendLine($"{indent}GeometryInstance #{instanceCount}:");
-//                    AnalyzeGeometryInstance(geometryInstance, indent + "  ", sb);
-//                }
-//                else if (obj is Solid solid)
-//                {
-//                    solidCount++;
-//                    sb.AppendLine($"{indent}Solid #{solidCount}:");
-//                    sb.AppendLine($"{indent}  Объем: {(solid.Volume > 0 ? solid.Volume.ToString("F6") : "0")}");
-//                    sb.AppendLine($"{indent}  Площадь: {solid.SurfaceArea:F6}");
-//                    sb.AppendLine($"{indent}  Граней: {solid.Faces.Size}");
-//                    sb.AppendLine($"{indent}  Ребёр: {solid.Edges.Size}");
-//                }
-//                else if (obj is Mesh mesh)
-//                {
-//                    meshCount++;
-//                    sb.AppendLine($"{indent}Mesh #{meshCount}:");
-//                    sb.AppendLine($"{indent}  Треугольников: {mesh.NumTriangles}");
-//                    sb.AppendLine($"{indent}  Вершин: {mesh.Vertices.Count}");
-//                }
-//                else if (obj is Curve curve)
-//                {
-//                    curveCount++;
-//                    sb.AppendLine($"{indent}Curve #{curveCount}:");
-//                    sb.AppendLine($"{indent}  Длина: {curve.Length:F6}");
-//                    sb.AppendLine($"{indent}  Тип: {curve.GetType().Name}");
-//                }
-//                else if (obj is Point point)
-//                {
-//                    otherCount++;
-//                    sb.AppendLine($"{indent}Point #{otherCount}: {point.Coordinate}");
-//                }
-//                else if (obj is PolyLine polyLine)
-//                {
-//                    otherCount++;
-//                    sb.AppendLine($"{indent}PolyLine #{otherCount}:");
-//                    sb.AppendLine($"{indent}  Количество точек: {polyLine.Coordinates.Count}");
-//                }
-//                else
-//                {
-//                    otherCount++;
-//                    sb.AppendLine($"{indent}{obj.GetType().Name} #{otherCount}");
-//                }
-//            }
+        private void AnalyzeGeometryInstance(GeometryInstance geometryInstance, string indent, StringBuilder sb)
+        {
+            try
+            {
+                // Основные свойства GeometryInstance
+                sb.AppendLine($"{indent}СВОЙСТВА GEOMETRYINSTANCE:");
 
-//            sb.AppendLine($"{indent}ВСЕГО ОБЪЕКТОВ: {totalObjects}");
-//            sb.AppendLine($"{indent}  - GeometryInstance: {instanceCount}");
-//            sb.AppendLine($"{indent}  - Solids: {solidCount}");
-//            sb.AppendLine($"{indent}  - Meshes: {meshCount}");
-//            sb.AppendLine($"{indent}  - Curves: {curveCount}");
-//            sb.AppendLine($"{indent}  - Other: {otherCount}");
-//        }
+                // Получаем GeometryElement через GetSymbolGeometry()
+                GeometryElement symbolGeometry = geometryInstance.GetSymbolGeometry();
+                if (symbolGeometry != null)
+                {
+                    sb.AppendLine($"{indent}  SymbolGeometry найдена:");
 
-//        private void AnalyzeGeometryInstance(GeometryInstance geometryInstance, string indent, StringBuilder sb)
-//        {
-//            sb.AppendLine($"{indent}Transform: {geometryInstance.Transform}");
-//            sb.AppendLine($"{indent}IsSymbolGeometry: {geometryInstance.IsSymbolGeometry}");
+                    // Пытаемся получить информацию о Symbol из GeometryElement
+                    AnalyzeSymbolFromGeometry(symbolGeometry, indent + "    ", sb);
+                }
 
-//            // SymbolGeometry
-//            GeometryElement symbolGeometry = geometryInstance.GetSymbolGeometry();
-//            if (symbolGeometry != null)
-//            {
-//                sb.AppendLine($"{indent}SymbolGeometry объектов: {GetGeometryCount(symbolGeometry)}");
+                // Пытаемся получить Symbol через другие методы
+                ElementId symbolId = TryGetSymbolByReflection(geometryInstance, indent + "  ", sb);
 
-//                // Детальный анализ SymbolGeometry
-//                int symbolSolids = 0;
-//                int symbolMeshes = 0;
-//                int symbolCurves = 0;
-//                int symbolInstances = 0;
+                // Если нашли SymbolId, получаем полную информацию о Symbol
+                if (symbolId != null && symbolId != ElementId.InvalidElementId)
+                {
+                    ShowSymbolInfo(symbolId, indent + "  ", sb);
+                }
 
-//                foreach (GeometryObject symbolObj in symbolGeometry)
-//                {
-//                    if (symbolObj is Solid solid && solid.Volume > 0)
-//                    {
-//                        symbolSolids++;
-//                    }
-//                    else if (symbolObj is Mesh)
-//                    {
-//                        symbolMeshes++;
-//                    }
-//                    else if (symbolObj is Curve)
-//                    {
-//                        symbolCurves++;
-//                    }
-//                    else if (symbolObj is GeometryInstance)
-//                    {
-//                        symbolInstances++;
-//                    }
-//                }
+                // Transform информация
+                Transform transform = geometryInstance.Transform;
+                sb.AppendLine($"{indent}  Transform:");
+                sb.AppendLine($"{indent}    Origin: {transform.Origin}");
+                sb.AppendLine($"{indent}    BasisX: {transform.BasisX}");
+                sb.AppendLine($"{indent}    BasisY: {transform.BasisY}");
+                sb.AppendLine($"{indent}    BasisZ: {transform.BasisZ}");
 
-//                sb.AppendLine($"{indent}SymbolGeometry состав:");
-//                sb.AppendLine($"{indent}  Solids: {symbolSolids}, Meshes: {symbolMeshes}");
-//                sb.AppendLine($"{indent}  Curves: {symbolCurves}, Instances: {symbolInstances}");
-//            }
+                // Анализ содержимого GeometryInstance
+                AnalyzeGeometryInstanceContent(geometryInstance, indent + "  ", sb);
 
-//            // Transformed Geometry
-//            GeometryElement transformedGeometry = geometryInstance.GetSymbolGeometry(geometryInstance.Transform);
-//            if (transformedGeometry != null)
-//            {
-//                sb.AppendLine($"{indent}Transformed Geometry объектов: {GetGeometryCount(transformedGeometry)}");
-//            }
+            }
+            catch (Exception ex)
+            {
+                sb.AppendLine($"{indent}Ошибка анализа GeometryInstance: {ex.Message}");
+            }
+        }
 
-//            // Получаем информацию о Symbol через родительский элемент
-//            GetSymbolInfoFromInstance(geometryInstance, indent, sb);
-//        }
+        private ElementId TryGetSymbolByReflection(GeometryInstance geometryInstance, string indent, StringBuilder sb)
+        {
+            ElementId foundSymbolId = null;
 
-//        private void GetSymbolInfoFromInstance(GeometryInstance geometryInstance, string indent, StringBuilder sb)
-//        {
-//            try
-//            {
-//                // Получаем GeometryObject из GeometryInstance для получения дополнительной информации
-//                sb.AppendLine($"{indent}*** ИНФОРМАЦИЯ О SYMBOL ***");
+            try
+            {
+                sb.AppendLine($"{indent}Поиск Symbol через Reflection:");
 
-//                // Анализируем геометрию символа более детально
-//                GeometryElement symbolGeom = geometryInstance.SymbolGeometry;
-//                if (symbolGeom != null)
-//                {
-//                    // Ищем вложенные элементы, которые могут содержать информацию о Symbol
-//                    foreach (GeometryObject geomObj in symbolGeom)
-//                    {
-//                        if (geomObj is GeometryInstance nestedInstance)
-//                        {
-//                            sb.AppendLine($"{indent}Вложенный GeometryInstance:");
-//                            sb.AppendLine($"{indent}  Transform: {nestedInstance.Transform}");
-//                            sb.AppendLine($"{indent}  IsSymbolGeometry: {nestedInstance.IsSymbolGeometry}");
+                // Пытаемся получить доступ к внутренним свойствам через Reflection
+                Type geometryInstanceType = geometryInstance.GetType();
 
-//                            GeometryElement nestedSymbolGeom = nestedInstance.GetSymbolGeometry();
-//                            if (nestedSymbolGeom != null)
-//                            {
-//                                sb.AppendLine($"{indent}  Вложенных объектов: {GetGeometryCount(nestedSymbolGeom)}");
-//                            }
-//                        }
-//                    }
-//                }
+                // Пробуем различные возможные имена свойств для Symbol
+                string[] possiblePropertyNames = { "Symbol", "FamilySymbol", "SymbolId", "SymbolElement", "GetSymbolId" };
 
-//                // Информация о трансформации
-//                Transform transform = geometryInstance.Transform;
-//                sb.AppendLine($"{indent}Transform Matrix:");
-//                sb.AppendLine($"{indent}  Origin: {transform.Origin}");
-//                sb.AppendLine($"{indent}  BasisX: {transform.BasisX}");
-//                sb.AppendLine($"{indent}  BasisY: {transform.BasisY}");
-//                sb.AppendLine($"{indent}  BasisZ: {transform.BasisZ}");
-//                sb.AppendLine($"{indent}  Determinant: {transform.Determinant}");
+                foreach (string propName in possiblePropertyNames)
+                {
+                    try
+                    {
+                        var property = geometryInstanceType.GetProperty(propName);
+                        if (property != null)
+                        {
+                            object value = property.GetValue(geometryInstance);
+                            if (value != null)
+                            {
+                                sb.AppendLine($"{indent}  Найден параметр '{propName}': {value}");
 
-//            }
-//            catch (Exception ex)
-//            {
-//                sb.AppendLine($"{indent}Ошибка анализа Symbol: {ex.Message}");
-//            }
-//        }
+                                // Если это ElementId, сохраняем его
+                                if (value is ElementId elementId && elementId != ElementId.InvalidElementId)
+                                {
+                                    foundSymbolId = elementId;
+                                    sb.AppendLine($"{indent}    ID Symbol: {elementId.IntegerValue}");
 
-//        private string GetParameterValue(Parameter param)
-//        {
-//            if (!param.HasValue) return "Нет значения";
+                                    Element symbolElement = _doc.GetElement(elementId);
+                                    if (symbolElement != null)
+                                    {
+                                        sb.AppendLine($"{indent}    Элемент Symbol: {symbolElement.Name} (ID: {symbolElement.Id.IntegerValue})");
+                                        sb.AppendLine($"{indent}    Тип Symbol: {symbolElement.GetType().Name}");
+                                    }
+                                }
+                                else if (value is Element symbolElement)
+                                {
+                                    foundSymbolId = symbolElement.Id;
+                                    sb.AppendLine($"{indent}    ID Symbol: {symbolElement.Id.IntegerValue}");
+                                    sb.AppendLine($"{indent}    Элемент Symbol: {symbolElement.Name} (ID: {symbolElement.Id.IntegerValue})");
+                                    sb.AppendLine($"{indent}    Тип Symbol: {symbolElement.GetType().Name}");
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        sb.AppendLine($"{indent}  Ошибка доступа к '{propName}': {ex.Message}");
+                    }
+                }
 
-//            try
-//            {
-//                switch (param.StorageType)
-//                {
-//                    case StorageType.Double:
-//                        return param.AsDouble().ToString("F6");
-//                    case StorageType.ElementId:
-//                        ElementId id = param.AsElementId();
-//                        if (id == ElementId.InvalidElementId)
-//                            return "Invalid";
+                // Пробуем методы
+                string[] possibleMethodNames = { "GetSymbol", "GetSymbolId", "GetFamilySymbol" };
+                foreach (string methodName in possibleMethodNames)
+                {
+                    try
+                    {
+                        var method = geometryInstanceType.GetMethod(methodName);
+                        if (method != null && method.GetParameters().Length == 0)
+                        {
+                            object result = method.Invoke(geometryInstance, null);
+                            if (result != null)
+                            {
+                                sb.AppendLine($"{indent}  Метод '{methodName}' вернул: {result}");
 
-//                        Element elem = _doc.GetElement(id);
-//                        return elem != null ? $"{elem.Name} (ID: {id.IntegerValue})" : id.IntegerValue.ToString();
-//                    case StorageType.Integer:
-//                        return param.AsInteger().ToString();
-//                    case StorageType.String:
-//                        return param.AsString() ?? "null";
-//                    case StorageType.None:
-//                        return "None";
-//                    default:
-//                        return "Unknown";
-//                }
-//            }
-//            catch
-//            {
-//                return "Ошибка чтения";
-//            }
-//        }
+                                // Если это ElementId, сохраняем его
+                                if (result is ElementId elementId && elementId != ElementId.InvalidElementId)
+                                {
+                                    foundSymbolId = elementId;
+                                    sb.AppendLine($"{indent}    ID Symbol: {elementId.IntegerValue}");
+                                }
+                                else if (result is Element symbolElement)
+                                {
+                                    foundSymbolId = symbolElement.Id;
+                                    sb.AppendLine($"{indent}    ID Symbol: {symbolElement.Id.IntegerValue}");
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Игнорируем ошибки методов
+                    }
+                }
 
-//        private int GetGeometryCount(GeometryElement geometry)
-//        {
-//            if (geometry == null) return 0;
+                if (foundSymbolId == null)
+                {
+                    sb.AppendLine($"{indent}  Symbol не найден через Reflection");
+                }
 
-//            int count = 0;
-//            foreach (GeometryObject obj in geometry)
-//            {
-//                count++;
-//                if (obj is GeometryInstance instance)
-//                {
-//                    GeometryElement symbolGeometry = instance.GetSymbolGeometry();
-//                    if (symbolGeometry != null)
-//                    {
-//                        foreach (GeometryObject symbolObj in symbolGeometry)
-//                        {
-//                            count++;
-//                        }
-//                    }
-//                }
-//            }
-//            return count;
-//        }
+            }
+            catch (Exception ex)
+            {
+                sb.AppendLine($"{indent}Ошибка Reflection: {ex.Message}");
+            }
 
-//        private void ShowInfoWindow(string info)
-//        {
-//            Window window = new Window
-//            {
-//                Title = "Информация об обобщенных моделях - ПАРАМЕТРЫ И ГЕОМЕТРИЯ",
-//                Width = 1200,
-//                Height = 800,
-//                WindowStartupLocation = WindowStartupLocation.CenterScreen
-//            };
+            return foundSymbolId;
+        }
 
-//            System.Windows.Controls.TextBox textBox = new System.Windows.Controls.TextBox
-//            {
-//                Text = info,
-//                FontFamily = new System.Windows.Media.FontFamily("Consolas"),
-//                FontSize = 8,
-//                HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
-//                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-//                IsReadOnly = true,
-//                TextWrapping = TextWrapping.NoWrap
-//            };
+        private void ShowSymbolInfo(ElementId symbolId, string indent, StringBuilder sb)
+        {
+            try
+            {
+                if (symbolId == null || symbolId == ElementId.InvalidElementId)
+                    return;
 
-//            window.Content = textBox;
-//            window.Show();
-//        }
-//    }
-//}
+                Element symbolElement = _doc.GetElement(symbolId);
+                if (symbolElement == null)
+                    return;
+
+                sb.AppendLine($"{indent}ПОЛНАЯ ИНФОРМАЦИЯ О SYMBOL:");
+                sb.AppendLine($"{indent}  ID Symbol: {symbolId.IntegerValue}");
+                sb.AppendLine($"{indent}  Уникальный ID: {symbolElement.UniqueId}");
+                sb.AppendLine($"{indent}  Имя: {symbolElement.Name ?? "Н/Д"}");
+                sb.AppendLine($"{indent}  Категория: {symbolElement.Category?.Name ?? "Н/Д"}");
+                sb.AppendLine($"{indent}  Тип: {symbolElement.GetType().Name}");
+
+                // Если это FamilySymbol, показываем дополнительную информацию
+                if (symbolElement is FamilySymbol familySymbol)
+                {
+                    sb.AppendLine($"{indent}  Имя семейства: {familySymbol.FamilyName}");
+                    //sb.AppendLine($"{indent}  Является редактируемым: {familySymbol.IsEditable}");
+
+                    // Параметры FamilySymbol
+                    sb.AppendLine($"{indent}  Параметры FamilySymbol:");
+                    foreach (Parameter param in familySymbol.Parameters)
+                    {
+                        try
+                        {
+                            if (param?.Definition != null)
+                            {
+                                string paramName = param.Definition.Name;
+                                string paramValue = GetParameterValue(param);
+                                sb.AppendLine($"{indent}    {paramName}: {paramValue}");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            sb.AppendLine($"{indent}    Ошибка чтения параметра: {ex.Message}");
+                        }
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                sb.AppendLine($"{indent}Ошибка получения информации о Symbol: {ex.Message}");
+            }
+        }
+
+        private void AnalyzeSymbolFromGeometry(GeometryElement symbolGeometry, string indent, StringBuilder sb)
+        {
+            try
+            {
+                sb.AppendLine($"{indent}Информация о Symbol через GeometryElement:");
+
+                // Анализируем содержимое GeometryElement для поиска информации о Symbol
+                int solidCount = 0;
+                int meshCount = 0;
+                int curveCount = 0;
+                int totalObjects = 0;
+
+                foreach (GeometryObject obj in symbolGeometry)
+                {
+                    totalObjects++;
+
+                    if (obj is Solid solid)
+                    {
+                        solidCount++;
+                        if (solid.Volume > 0.0001)
+                        {
+                            sb.AppendLine($"{indent}  Solid #{solidCount}: Объем={solid.Volume:F6}, Площадь={solid.SurfaceArea:F6}");
+                        }
+                    }
+                    else if (obj is Mesh mesh)
+                    {
+                        meshCount++;
+                        sb.AppendLine($"{indent}  Mesh #{meshCount}: Треугольников={mesh.NumTriangles}, Вершин={mesh.Vertices.Count}");
+                    }
+                    else if (obj is Curve curve)
+                    {
+                        curveCount++;
+                        sb.AppendLine($"{indent}  Curve #{curveCount}: Длина={curve.Length:F6}, Тип={curve.GetType().Name}");
+                    }
+                }
+
+                sb.AppendLine($"{indent}Всего объектов в SymbolGeometry: {totalObjects}");
+                sb.AppendLine($"{indent}  - Solids: {solidCount}");
+                sb.AppendLine($"{indent}  - Meshes: {meshCount}");
+                sb.AppendLine($"{indent}  - Curves: {curveCount}");
+            }
+            catch (Exception ex)
+            {
+                sb.AppendLine($"{indent}Ошибка анализа Symbol из Geometry: {ex.Message}");
+            }
+        }
+
+        private void AnalyzeGeometryInstanceContent(GeometryInstance geometryInstance, string indent, StringBuilder sb)
+        {
+            try
+            {
+                sb.AppendLine($"{indent}Содержимое GeometryInstance:");
+
+                // Получаем GeometryElement для анализа
+                GeometryElement geometryElement = geometryInstance.GetSymbolGeometry();
+                if (geometryElement == null)
+                {
+                    geometryElement = geometryInstance.GetInstanceGeometry();
+                }
+
+                if (geometryElement != null)
+                {
+                    int totalObjects = 0;
+                    Dictionary<string, int> typeCounts = new Dictionary<string, int>();
+
+                    foreach (GeometryObject obj in geometryElement)
+                    {
+                        totalObjects++;
+                        string typeName = obj.GetType().Name;
+
+                        if (!typeCounts.ContainsKey(typeName))
+                            typeCounts[typeName] = 0;
+                        typeCounts[typeName]++;
+                    }
+
+                    sb.AppendLine($"{indent}  Всего геометрических объектов: {totalObjects}");
+                    foreach (var kvp in typeCounts)
+                    {
+                        sb.AppendLine($"{indent}    - {kvp.Key}: {kvp.Value}");
+                    }
+                }
+                else
+                {
+                    sb.AppendLine($"{indent}  GeometryElement не доступен");
+                }
+            }
+            catch (Exception ex)
+            {
+                sb.AppendLine($"{indent}Ошибка анализа содержимого: {ex.Message}");
+            }
+        }
+
+        private string GetParameterValue(Parameter param)
+        {
+            if (param == null || !param.HasValue)
+                return "Нет значения";
+
+            try
+            {
+                switch (param.StorageType)
+                {
+                    case StorageType.Double:
+                        double dVal = param.AsDouble();
+                        return dVal.ToString("F6");
+
+                    case StorageType.ElementId:
+                        ElementId id = param.AsElementId();
+                        if (id == ElementId.InvalidElementId)
+                            return "Invalid";
+
+                        Element elem = _doc.GetElement(id);
+                        return elem != null ? $"{elem.Name} (ID:{id.IntegerValue})" : id.IntegerValue.ToString();
+
+                    case StorageType.Integer:
+                        return param.AsInteger().ToString();
+
+                    case StorageType.String:
+                        return $"\"{param.AsString() ?? "null"}\"";
+
+                    case StorageType.None:
+                        return "None";
+
+                    default:
+                        return "Unknown";
+                }
+            }
+            catch
+            {
+                return "Ошибка чтения";
+            }
+        }
+
+        private void ShowInfoWindow(string info)
+        {
+            try
+            {
+                // Создаем окно WPF
+                var window = new System.Windows.Window
+                {
+                    Title = $"Информация об обобщенных моделях - GeometryInstance Symbol",
+                    Width = 1300,
+                    Height = 900,
+                    WindowStartupLocation = System.Windows.WindowStartupLocation.CenterScreen,
+                    WindowState = System.Windows.WindowState.Maximized
+                };
+
+                // Создаем TextBox с явным указанием пространства имен WPF
+                var textBox = new System.Windows.Controls.TextBox
+                {
+                    Text = info,
+                    FontFamily = new System.Windows.Media.FontFamily("Consolas, Courier New"),
+                    FontSize = 14,
+                    HorizontalScrollBarVisibility = System.Windows.Controls.ScrollBarVisibility.Auto,
+                    VerticalScrollBarVisibility = System.Windows.Controls.ScrollBarVisibility.Auto,
+                    IsReadOnly = true,
+                    TextWrapping = System.Windows.TextWrapping.NoWrap
+                };
+
+                // Добавляем контекстное меню для копирования
+                var contextMenu = new System.Windows.Controls.ContextMenu();
+                var copyItem = new System.Windows.Controls.MenuItem { Header = "Копировать" };
+                copyItem.Click += (s, e) => System.Windows.Clipboard.SetText(textBox.SelectedText.Length > 0 ? textBox.SelectedText : textBox.Text);
+                contextMenu.Items.Add(copyItem);
+                textBox.ContextMenu = contextMenu;
+
+                window.Content = textBox;
+                window.Show();
+            }
+            catch (Exception ex)
+            {
+                TaskDialog.Show("Ошибка окна", $"Не удалось создать окно: {ex.Message}");
+            }
+        }
+    }
+}
