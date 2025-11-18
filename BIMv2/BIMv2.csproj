@@ -272,9 +272,7 @@
     <Compile Include="ClearProjectBrowserViewsNotSheets.cs" />
     <Compile Include="archive\CollisionsWithWall.cs" />
     <Compile Include="CollectGenericModelsCommand.cs" />
-    <Compile Include="CollisionSettingsForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Include="CollisionSettingsForm.cs" />
     <Compile Include="CombineRoomsAndFindAxes.cs" />
     <Compile Include="ConvertGrids3Dto2D.cs" />
     <Compile Include="archive\CopyRoomsFromLink.cs" />
@@ -370,9 +368,7 @@
     <Compile Include="PluginFinish2BIM\FindRoomForElementsFinish.cs" />
     <Compile Include="PluginFinish2BIM\FloorFinish.cs" />
     <Compile Include="PowerFactorElectrical.cs" />
-    <Compile Include="ProgressForm2.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Include="ProgressForm2.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PluginFinish2BIM\Test\WallFinishAlliance.cs" />
     <Compile Include="PluginFinish2BIM\Test\WallFinishComposition.cs" />
