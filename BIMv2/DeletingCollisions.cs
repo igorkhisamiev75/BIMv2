@@ -1,99 +1,99 @@
-﻿#region Namespace
-using System;
-using System.Collections.Generic;
-using System.Xml;
-using System.Linq;
+﻿//#region Namespace
+//using System;
+//using System.Collections.Generic;
+//using System.Xml;
+//using System.Linq;
 
-using Autodesk.Revit.Attributes;
-using Autodesk.Revit.DB;
-using Autodesk.Revit.UI;
-using Autodesk.Revit.UI.Selection;
-using System.Xml.Linq;
+//using Autodesk.Revit.Attributes;
+//using Autodesk.Revit.DB;
+//using Autodesk.Revit.UI;
+//using Autodesk.Revit.UI.Selection;
+//using System.Xml.Linq;
 
-#endregion
+//#endregion
 
-namespace BIMv2
-{
-    [Transaction(TransactionMode.Manual)]
-    [Regeneration(RegenerationOption.Manual)]
-    public class DeletingCollisions : IExternalCommand
+//namespace BIMv2
+//{
+//    [Transaction(TransactionMode.Manual)]
+//    [Regeneration(RegenerationOption.Manual)]
+//    public class DeletingCollisions : IExternalCommand
 
-    {
-        private Document _doc;
-        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+//    {
+//        private Document _doc;
+//        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
 
-        {
+//        {
 
-            var uiApp = commandData.Application;
-            var uiDoc = uiApp.ActiveUIDocument;
+//            var uiApp = commandData.Application;
+//            var uiDoc = uiApp.ActiveUIDocument;
 
-            _doc = uiDoc.Document;
+//            _doc = uiDoc.Document;
 
-            Document doc = commandData.Application.ActiveUIDocument.Document;
-            List<int> ints = new List<int>();
+//            Document doc = commandData.Application.ActiveUIDocument.Document;
+//            List<int> ints = new List<int>();
 
-            string pathToFile = @"C:\Users\comp44\Desktop\V FS.xml";
+//            string pathToFile = @"C:\Users\comp44\Desktop\V FS.xml";
 
             
 
-            using (var t = new Transaction(doc))
-            {
+//            using (var t = new Transaction(doc))
+//            {
 
-                t.Start("Del collisions");
+//                t.Start("Del collisions");
 
-                //XDocument xdoc = XDocument.Load(@"C:\Users\i.khisamiev\Downloads\V FS.xml");
+//                //XDocument xdoc = XDocument.Load(@"C:\Users\i.khisamiev\Downloads\V FS.xml");
 
-                XmlDocument xmldoc = new XmlDocument();
-                xmldoc.Load(@"C:\Users\i.khisamiev\Downloads\V ES.xml");
+//                XmlDocument xmldoc = new XmlDocument();
+//                xmldoc.Load(@"C:\Users\i.khisamiev\Downloads\V ES.xml");
 
-                //XmlNode node = xmldoc.DocumentElement.SelectSingleNode("/name/value");
+//                //XmlNode node = xmldoc.DocumentElement.SelectSingleNode("/name/value");
 
-                string[] sometheng = xmldoc.InnerText.Split(' '); //объекта7579247ID
+//                string[] sometheng = xmldoc.InnerText.Split(' '); //объекта7579247ID
 
-                for (int i = 1; i < sometheng.Length; i++)
-                {
-                    string stroka = sometheng[i];
-                    stroka = stroka.Substring(7);
-                    stroka = stroka.Substring(0, stroka.Length - 2);
+//                for (int i = 1; i < sometheng.Length; i++)
+//                {
+//                    string stroka = sometheng[i];
+//                    stroka = stroka.Substring(7);
+//                    stroka = stroka.Substring(0, stroka.Length - 2);
 
-                    try
-                    {
-                        int x = Convert.ToInt32(stroka);
-                        ints.Add(x);
-                    }
+//                    try
+//                    {
+//                        int x = Convert.ToInt32(stroka);
+//                        ints.Add(x);
+//                    }
 
-                    catch { }
+//                    catch { }
                     
-                }
+//                }
 
-                var clearList = ints.Distinct();
+//                var clearList = ints.Distinct();
 
-                foreach (int x in clearList)
-                {
-                    try
-                    {
-                        ElementId elementId = new ElementId(x);
+//                foreach (int x in clearList)
+//                {
+//                    try
+//                    {
+//                        ElementId elementId = new ElementId(x);
 
-                        _doc.Delete(elementId);
-                        _doc.Regenerate();
-                    }
+//                        _doc.Delete(elementId);
+//                        _doc.Regenerate();
+//                    }
 
-                    catch {
-                        continue;
-                    }   
-                }
+//                    catch {
+//                        continue;
+//                    }   
+//                }
 
-                TaskDialog.Show("Почищено", "Почишено");
+//                TaskDialog.Show("Почищено", "Почишено");
 
-                t.Commit();
+//                t.Commit();
                 
-                return Result.Succeeded;
+//                return Result.Succeeded;
 
 
-            }
+//            }
 
-        }
+//        }
 
 
-    }
-}
+//    }
+//}

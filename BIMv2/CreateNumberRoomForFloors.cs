@@ -1,345 +1,345 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Autodesk.Revit.Attributes;
-using Autodesk.Revit.DB;
-using Autodesk.Revit.DB.Architecture;
-using Autodesk.Revit.UI;
+﻿//using System.Collections.Generic;
+//using System.Linq;
+//using Autodesk.Revit.Attributes;
+//using Autodesk.Revit.DB;
+//using Autodesk.Revit.DB.Architecture;
+//using Autodesk.Revit.UI;
 
 
-namespace BIMv2
-{
-    [Transaction(TransactionMode.Manual)]
-    [Regeneration(RegenerationOption.Manual)]
-    public class CreateNumberRoomForFloors : IExternalCommand
-    {
-        public List<Element> projectRooms = new List<Element>();
-        public List<Element> AllRooms = new List<Element>();
-        public List<Floor> AllF = new List<Floor>();
+//namespace BIMv2
+//{
+//    [Transaction(TransactionMode.Manual)]
+//    [Regeneration(RegenerationOption.Manual)]
+//    public class CreateNumberRoomForFloors : IExternalCommand
+//    {
+//        public List<Element> projectRooms = new List<Element>();
+//        public List<Element> AllRooms = new List<Element>();
+//        public List<Floor> AllF = new List<Floor>();
         
-        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
-        {
-            Document doc = commandData.Application.ActiveUIDocument.Document;
+//        public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
+//        {
+//            Document doc = commandData.Application.ActiveUIDocument.Document;
 
-            using (var t = new Transaction(doc))
-            {
-                t.Start("WriteNumberRoomInFloorsComment");
+//            using (var t = new Transaction(doc))
+//            {
+//                t.Start("WriteNumberRoomInFloorsComment");
 
-                WriteNumberRoomInFloorsComment(doc);
-                var allFloors = GetAllFloorElements(doc);
+//                WriteNumberRoomInFloorsComment(doc);
+//                var allFloors = GetAllFloorElements(doc);
                 
-                //TaskDialog.Show("Сделано", "Прописано коментарии в "+$"{allFloors.Count.ToString()}");
-                doc.Regenerate();
+//                //TaskDialog.Show("Сделано", "Прописано коментарии в "+$"{allFloors.Count.ToString()}");
+//                doc.Regenerate();
 
-                t.Commit();
+//                t.Commit();
 
-                //t.Start("Stage 2");
+//                //t.Start("Stage 2");
 
-                //WriteAllRoom(doc);
-                TaskDialog.Show("Сделано", "Номера помещений прописаны");
+//                //WriteAllRoom(doc);
+//                TaskDialog.Show("Сделано", "Номера помещений прописаны");
 
-                //t.Commit();
+//                //t.Commit();
 
-            }
-            return Result.Succeeded;
+//            }
+//            return Result.Succeeded;
             
-        }
+//        }
 
-        public void WriteAllRoom(Document doc)
-        {
-            var allFloors = GetAllFloorElements(doc);
+//        public void WriteAllRoom(Document doc)
+//        {
+//            var allFloors = GetAllFloorElements(doc);
 
-            foreach (var VARIABLE in allFloors)
-            {
-                AllF.Add((Floor)VARIABLE);
+//            foreach (var VARIABLE in allFloors)
+//            {
+//                AllF.Add((Floor)VARIABLE);
 
-            }
+//            }
             
-            //группировка по типу пола
-            var groups = AllF.GroupBy(p => p.Name);
+//            //группировка по типу пола
+//            var groups = AllF.GroupBy(p => p.Name);
 
-            //пробегаемся по сгруппированным значениям
+//            //пробегаемся по сгруппированным значениям
 
-            foreach (IGrouping<string, Element> element in groups)
-            {
-                IList<string> numroomList = new List<string>();
-                numroomList.Clear();
+//            foreach (IGrouping<string, Element> element in groups)
+//            {
+//                IList<string> numroomList = new List<string>();
+//                numroomList.Clear();
 
-                //создаем массив с номерами помещений
-                foreach (var t in element)
-                {
-                    var otd = t.LookupParameter("Номер помещения (отделка)").AsString();
-                    string[] subs = otd.Split(' ');
-                    numroomList.Add(subs[0]);
-                }
+//                //создаем массив с номерами помещений
+//                foreach (var t in element)
+//                {
+//                    var otd = t.LookupParameter("Номер помещения (отделка)").AsString();
+//                    string[] subs = otd.Split(' ');
+//                    numroomList.Add(subs[0]);
+//                }
 
-                //clean list
-                List<string> newList = new List<string>(numroomList.Distinct());
+//                //clean list
+//                List<string> newList = new List<string>(numroomList.Distinct());
 
-                newList.Sort();
+//                newList.Sort();
 
-                string numbersAllRoomString = string.Join(", ", newList.ToArray());
+//                string numbersAllRoomString = string.Join(", ", newList.ToArray());
 
-                numroomList.Clear();
+//                numroomList.Clear();
 
-                //и записываем это массив в каждый номер этого массива
+//                //и записываем это массив в каждый номер этого массива
 
-                foreach (var t in element)
-                {
+//                foreach (var t in element)
+//                {
 
-                    t.LookupParameter("Комментарии").Set(numbersAllRoomString);
-                }
+//                    t.LookupParameter("Комментарии").Set(numbersAllRoomString);
+//                }
 
-            }
+//            }
 
-        }
+//        }
 
-        public void WriteNumberRoomInFloorsComment(Document doc)
-        {
-            var allFloors = GetAllFloorElements(doc);
+//        public void WriteNumberRoomInFloorsComment(Document doc)
+//        {
+//            var allFloors = GetAllFloorElements(doc);
            
-            foreach (var element in allFloors)
-            {
-                Room myRoom;
-                string nameRoom = "";
+//            foreach (var element in allFloors)
+//            {
+//                Room myRoom;
+//                string nameRoom = "";
 
-                XYZ gXyz = new XYZ(0,0,0);
-                XYZ zOfset = new XYZ(0, 0, 2);
+//                XYZ gXyz = new XYZ(0,0,0);
+//                XYZ zOfset = new XYZ(0, 0, 2);
 
-                XYZ pointLine = new XYZ(0, 0, 0);
+//                XYZ pointLine = new XYZ(0, 0, 0);
 
-                Floor floor = (Floor)element;
+//                Floor floor = (Floor)element;
 
-                ElementId eid = floor.Id;
+//                ElementId eid = floor.Id;
 
-                Options opts = new Options();
+//                Options opts = new Options();
 
-                List<List<XYZ>> polygons = new List<List<XYZ>>();
-                List<XYZ> findList = new List<XYZ>();
+//                List<List<XYZ>> polygons = new List<List<XYZ>>();
+//                List<XYZ> findList = new List<XYZ>();
 
-                GeometryElement geo = floor.get_Geometry(opts);
+//                GeometryElement geo = floor.get_Geometry(opts);
 
-                foreach (GeometryObject obj in geo) // 2013
-                {
-                    Solid solid = obj as Solid;
-                    if (solid != null)
-                    {
-                        PlanarFace lowest = null;
-                        FaceArray faces = solid.Faces; //faces
+//                foreach (GeometryObject obj in geo) // 2013
+//                {
+//                    Solid solid = obj as Solid;
+//                    if (solid != null)
+//                    {
+//                        PlanarFace lowest = null;
+//                        FaceArray faces = solid.Faces; //faces
 
-                        EdgeArray edgeArray = solid.Edges; //edges
+//                        EdgeArray edgeArray = solid.Edges; //edges
 
-                        foreach (Edge elEdgeArray in edgeArray)
-                        {
-                            pointLine = elEdgeArray.Tessellate()[0];
+//                        foreach (Edge elEdgeArray in edgeArray)
+//                        {
+//                            pointLine = elEdgeArray.Tessellate()[0];
 
-                           findList.Add(pointLine);
+//                           findList.Add(pointLine);
 
-                            //if (g != null)
-                            //{
-                            //    pointLine = g.Tessellate()[0];
-                            //    break;
-                            //}
+//                            //if (g != null)
+//                            //{
+//                            //    pointLine = g.Tessellate()[0];
+//                            //    break;
+//                            //}
 
 
 
-                        }
+//                        }
                         
-                        //foreach (Face f in faces)
-                        //{
+//                        //foreach (Face f in faces)
+//                        //{
                             
-                        //    PlanarFace pf = f as PlanarFace;
+//                        //    PlanarFace pf = f as PlanarFace;
 
-                        //    RuledFace rf=f as RuledFace;
+//                        //    RuledFace rf=f as RuledFace;
 
-                        //    CylindricalFace cf=f as CylindricalFace;
+//                        //    CylindricalFace cf=f as CylindricalFace;
 
-                        //    if (pf != null)
-                        //    {
+//                        //    if (pf != null)
+//                        //    {
 
-                        //        gXyz = pf.Origin;
+//                        //        gXyz = pf.Origin;
 
-                        //        if (pf.FaceNormal.X == 0 && pf.FaceNormal.Y == 0 && pf.FaceNormal.Z > 0)
-                        //        {
+//                        //        if (pf.FaceNormal.X == 0 && pf.FaceNormal.Y == 0 && pf.FaceNormal.Z > 0)
+//                        //        {
                                     
-                        //            break;
-                        //        }
-                        //    }
+//                        //            break;
+//                        //        }
+//                        //    }
 
-                        //    if (rf != null)
-                        //    {
-                        //        XYZ rfXYZ=rf.get_Point(0);
+//                        //    if (rf != null)
+//                        //    {
+//                        //        XYZ rfXYZ=rf.get_Point(0);
 
-                        //        gXyz = rfXYZ;
-                        //        break;
+//                        //        gXyz = rfXYZ;
+//                        //        break;
                                 
-                        //    }
+//                        //    }
                             
-                        //}
+//                        //}
 
-                    }
-                }
+//                    }
+//                }
 
-                //List<GeometryElement> geometryElements = new List<GeometryElement>(); 
+//                //List<GeometryElement> geometryElements = new List<GeometryElement>(); 
 
-                //geometryElements.Add(geo);
+//                //geometryElements.Add(geo);
 
-                //CurveArray profile = new CurveArray();
+//                //CurveArray profile = new CurveArray();
 
-                //foreach (var geometryle in geometryElements)
-                //{
-                //    foreach (var obj in geometryle)
-                //    {
+//                //foreach (var geometryle in geometryElements)
+//                //{
+//                //    foreach (var obj in geometryle)
+//                //    {
 
-                //            profile.Append(obj as Curve);
+//                //            profile.Append(obj as Curve);
 
-                //    }
-                //}
+//                //    }
+//                //}
 
-                foreach (XYZ pointForFind in findList) //пройтись по всем точкам
-                {
-                    XYZ newSearchPoint = pointForFind + zOfset;
+//                foreach (XYZ pointForFind in findList) //пройтись по всем точкам
+//                {
+//                    XYZ newSearchPoint = pointForFind + zOfset;
 
-                    myRoom = FindRoom(doc, newSearchPoint);
+//                    myRoom = FindRoom(doc, newSearchPoint);
 
-                    if (myRoom != null)
-                    {
-                        nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
-                                   myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+//                    if (myRoom != null)
+//                    {
+//                        nameRoom = myRoom.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
+//                                   myRoom.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
 
-                        element.LookupParameter("Комментарии").Set(nameRoom);
-                        break;
+//                        element.LookupParameter("Комментарии").Set(nameRoom);
+//                        break;
 
-                    }
+//                    }
 
-                    else
-                    {
-                        var linkedInstances = FindLinkedInstances(doc); //get all linked files
+//                    else
+//                    {
+//                        var linkedInstances = FindLinkedInstances(doc); //get all linked files
 
-                        foreach (var linkInstance in linkedInstances)
-                        {
-                            var transform = linkInstance.GetTotalTransform().Inverse;
-                            var targetPoint = transform.OfPoint(newSearchPoint);
-                            var linkDocument = linkInstance.GetLinkDocument();
+//                        foreach (var linkInstance in linkedInstances)
+//                        {
+//                            var transform = linkInstance.GetTotalTransform().Inverse;
+//                            var targetPoint = transform.OfPoint(newSearchPoint);
+//                            var linkDocument = linkInstance.GetLinkDocument();
 
-                            var room = FindRoom(linkDocument, targetPoint);
-                            if (room != null)
-                            {
-                                nameRoom = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
-                                           room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
-                                element.LookupParameter("Комментарии").Set(nameRoom);
-                                break;
-                            }
+//                            var room = FindRoom(linkDocument, targetPoint);
+//                            if (room != null)
+//                            {
+//                                nameRoom = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString() + " " +
+//                                           room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
+//                                element.LookupParameter("Комментарии").Set(nameRoom);
+//                                break;
+//                            }
 
-                            else
-                            {
-                                break;
-                                nameRoom = "";
-                                element.LookupParameter("Комментарии").Set(nameRoom);
-                            }
-                        }
-                    }
+//                            else
+//                            {
+//                                break;
+//                                nameRoom = "";
+//                                element.LookupParameter("Комментарии").Set(nameRoom);
+//                            }
+//                        }
+//                    }
 
-                }
-
-                
+//                }
 
                 
 
-            }
-        }
+                
+
+//            }
+//        }
         
 
 
-        private Room FindRoom(Document doc, XYZ newSearchPoint)
-        {
-            if (doc != null)
-            {
-                return doc
-                    .Phases
-                    .Cast<Phase>()
-                    .Select(x => doc.GetRoomAtPoint(newSearchPoint, x))
-                    .FirstOrDefault(x => x != null);
-            }
+//        private Room FindRoom(Document doc, XYZ newSearchPoint)
+//        {
+//            if (doc != null)
+//            {
+//                return doc
+//                    .Phases
+//                    .Cast<Phase>()
+//                    .Select(x => doc.GetRoomAtPoint(newSearchPoint, x))
+//                    .FirstOrDefault(x => x != null);
+//            }
 
-            return null;
-        }
+//            return null;
+//        }
         
-        public IEnumerable<RevitLinkInstance> FindLinkedInstances(Document doc)
-        {
-            var collector = new FilteredElementCollector(doc);
-            return collector
-                .OfClass(typeof(RevitLinkInstance))
-                .Cast<RevitLinkInstance>()
-                .ToList();
-        }
+//        public IEnumerable<RevitLinkInstance> FindLinkedInstances(Document doc)
+//        {
+//            var collector = new FilteredElementCollector(doc);
+//            return collector
+//                .OfClass(typeof(RevitLinkInstance))
+//                .Cast<RevitLinkInstance>()
+//                .ToList();
+//        }
 
-        public List<Element> GetAllRoomsLinked(Document document)
-        {
-            FilteredElementCollector roomCollect = new FilteredElementCollector(document);
-            roomCollect.OfCategory(BuiltInCategory.OST_Rooms);
-            Room room = null;
+//        public List<Element> GetAllRoomsLinked(Document document)
+//        {
+//            FilteredElementCollector roomCollect = new FilteredElementCollector(document);
+//            roomCollect.OfCategory(BuiltInCategory.OST_Rooms);
+//            Room room = null;
 
-            projectRooms = new List<Element>();
+//            projectRooms = new List<Element>();
 
-            foreach (Element elem in roomCollect)
-            {
-                room = elem as Room;
-                if (room != null)
-                {
-                    projectRooms.Add(room);
-                }
-            }
+//            foreach (Element elem in roomCollect)
+//            {
+//                room = elem as Room;
+//                if (room != null)
+//                {
+//                    projectRooms.Add(room);
+//                }
+//            }
 
-            return projectRooms;
-        }
+//            return projectRooms;
+//        }
 
-        public IList<Element>  GetAllFloorElements(Document document)
-        {
-            // List all Floor's
-            var floor_collector = new FilteredElementCollector(document)
-                .OfCategory(BuiltInCategory.OST_Floors)
-                .WhereElementIsNotElementType();
-            IList<Element> allFloors = floor_collector.ToElements();
-            return allFloors;
-        }
+//        public IList<Element>  GetAllFloorElements(Document document)
+//        {
+//            // List all Floor's
+//            var floor_collector = new FilteredElementCollector(document)
+//                .OfCategory(BuiltInCategory.OST_Floors)
+//                .WhereElementIsNotElementType();
+//            IList<Element> allFloors = floor_collector.ToElements();
+//            return allFloors;
+//        }
 
-        public List<Element> GetAllRoom(Document doc)
-        {
-            //список линкованных файлов
-            IEnumerable<RevitLinkInstance> linkedInstances = FindLinkedInstances(doc);
+//        public List<Element> GetAllRoom(Document doc)
+//        {
+//            //список линкованных файлов
+//            IEnumerable<RevitLinkInstance> linkedInstances = FindLinkedInstances(doc);
 
-            if (linkedInstances != null)
-            {
+//            if (linkedInstances != null)
+//            {
 
-                foreach (var linkInstance in linkedInstances)
-                {
-                    Document linkDocument = linkInstance.GetLinkDocument();
-                    var transform = linkInstance.GetTotalTransform();
+//                foreach (var linkInstance in linkedInstances)
+//                {
+//                    Document linkDocument = linkInstance.GetLinkDocument();
+//                    var transform = linkInstance.GetTotalTransform();
 
-                    List<Element> roomsLink = GetAllRoomsLinked(linkDocument);
+//                    List<Element> roomsLink = GetAllRoomsLinked(linkDocument);
 
-                    //сделать проверку на подгруженность файла линк
+//                    //сделать проверку на подгруженность файла линк
 
-                    if (roomsLink != null)
-                    {
-                        foreach (var room in roomsLink) //may be not element, but room come back
-                        {
-                            var areaRoom = room.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble();
+//                    if (roomsLink != null)
+//                    {
+//                        foreach (var room in roomsLink) //may be not element, but room come back
+//                        {
+//                            var areaRoom = room.get_Parameter(BuiltInParameter.ROOM_AREA).AsDouble();
 
-                            if (areaRoom > 0)
-                            {
-                                AllRooms.Add(room);
-                            }
+//                            if (areaRoom > 0)
+//                            {
+//                                AllRooms.Add(room);
+//                            }
 
-                        }
+//                        }
 
-                    }
+//                    }
 
-                }
-            }
+//                }
+//            }
 
-            return AllRooms;
-        }
+//            return AllRooms;
+//        }
 
-    }
-}
+//    }
+//}
