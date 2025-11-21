@@ -175,7 +175,7 @@ namespace BIMv2Buttons
 
             string buttonNameAR1 = "Перемычкер";
             string buttonNameAR2 = "ВыгрузкаВExcel";
-            string buttonNameAR3 = "Копирование помещений из АР в свою модель";
+            string buttonNameAR3 = "Удалить неразмещенные Зоны";
 
 
             // Create three small stacked buttons (16x16 icons)
@@ -202,12 +202,12 @@ namespace BIMv2Buttons
                 },
                 new PushButtonData(
                     buttonNameAR3,
-                    "Копирование помещений из АР в свою модель",
+                    "Удалить неразмещенные Зоны",
                     thisAssemblyPath,
-                    "BIMv2.CopyRoomsFromLinkCommand")
+                    "BIMv2.DelUnplacedAreas")
                 {
                     Image = SImageAR3, // 16x16 icon
-                    ToolTip = "Копирование помещений из АР в свою модель"
+                    ToolTip = "Удалить неразмещенные Зоны"
                 }
             );
 

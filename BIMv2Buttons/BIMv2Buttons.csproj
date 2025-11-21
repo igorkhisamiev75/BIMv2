@@ -307,6 +307,7 @@
     <Compile Include="DelFilters\ViewWPF.xaml.cs">
       <DependentUpon>ViewWPF.xaml</DependentUpon>
     </Compile>
+    <Compile Include="DelUnplacedArea\DelUnplacedArea.cs" />
     <Compile Include="DelUnplacedRoom\DelUnplacedRoom.cs" />
     <Compile Include="DelUnUesdFilters\DeletedUnFilter.cs" />
     <Compile Include="DelUnUesdFilters\ViewWPF.xaml.cs">
