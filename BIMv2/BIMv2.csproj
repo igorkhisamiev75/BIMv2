@@ -317,6 +317,7 @@
     <Compile Include="CreateWorksets.cs" />
     <Compile Include="DeletedFilter.cs" />
     <Compile Include="DeletingCollisions.cs" />
+    <Compile Include="DelUnplacedArea.cs" />
     <Compile Include="DelUnplacedRoom.cs" />
     <Compile Include="DoorsInformationTransfer.cs" />
     <Compile Include="DoorsInformationTransferBim.cs" />
