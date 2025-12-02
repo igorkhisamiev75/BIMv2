@@ -319,6 +319,7 @@
     <Compile Include="DeletingCollisions.cs" />
     <Compile Include="DelUnplacedArea.cs" />
     <Compile Include="DelUnplacedRoom.cs" />
+    <Compile Include="DisconnectWallsOptimized.cs" />
     <Compile Include="DoorsInformationTransfer.cs" />
     <Compile Include="DoorsInformationTransferBim.cs" />
     <Compile Include="DoorsInformationTransferColorFurniture.cs" />
