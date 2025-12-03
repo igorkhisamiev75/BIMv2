@@ -10,12 +10,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 
+using static RevitAddIn2BIMRU.Commands.AN.MarkElementsByGrid;
+
 #endregion
 
 namespace RevitAddIn2BIMRU.Commands.AN
 {
     [Transaction(TransactionMode.Manual)]
-    public class MarkElementsWPF : IExternalCommand
+    public class MarkElementsByGrid : IExternalCommand
     {
         private Document _doc;
         private UIDocument _uiDoc;
@@ -30,7 +32,7 @@ namespace RevitAddIn2BIMRU.Commands.AN
             {
                 // Выбор элементов
                 TaskDialog.Show("Выбор элементов",
-                    "Выберите элементы для маркировки. После выбора нажмите Finish на панели или ESC для отмены.");
+                    "Выберите элементы для маркировки по сетке X-Y");
 
                 IList<Reference> references;
                 try
@@ -47,10 +49,15 @@ namespace RevitAddIn2BIMRU.Commands.AN
                 if (references == null || references.Count == 0)
                     return Result.Cancelled;
 
-                List<Element> selectedElements = references
-                    .Select(r => _doc.GetElement(r))
-                    .Where(e => e != null && HasPositionParameter(e))
-                    .ToList();
+                List<Element> selectedElements = new List<Element>();
+                foreach (Reference reference in references)
+                {
+                    Element element = _doc.GetElement(reference);
+                    if (element != null && HasPositionParameter(element))
+                    {
+                        selectedElements.Add(element);
+                    }
+                }
 
                 if (selectedElements.Count == 0)
                 {
@@ -60,51 +67,23 @@ namespace RevitAddIn2BIMRU.Commands.AN
                 }
 
                 // Показываем WPF окно
-                var dialog = new MarkingWindow(selectedElements.Count);
+                var dialog = new GridMarkingWindow(selectedElements.Count);
                 if (dialog.ShowDialog() != true)
                     return Result.Cancelled;
 
-                // Сортируем элементы
-                List<Element> sortedElements = SortElements(
-                    selectedElements,
-                    dialog.SelectedDirection,
-                    dialog.SelectedOrder);
-
-                // Применяем маркировку
+                // Маркируем по сетке
                 using (Transaction tx = new Transaction(_doc))
                 {
-                    tx.Start("Маркировка элементов");
+                    tx.Start("Маркировка элементов по сетке");
 
-                    for (int i = 0; i < sortedElements.Count; i++)
-                    {
-                        Element element = sortedElements[i];
-                        Parameter param = element.LookupParameter(POSITION_PARAMETER_NAME);
-
-                        if (param != null && !param.IsReadOnly)
-                        {
-                            string markValue = (dialog.StartNumber + i).ToString();
-
-                            if (param.StorageType == StorageType.String)
-                            {
-                                param.Set(markValue);
-                            }
-                            else if (param.StorageType == StorageType.Integer)
-                            {
-                                if (int.TryParse(markValue, out int intValue))
-                                {
-                                    param.Set(intValue);
-                                }
-                            }
-                        }
-                    }
+                    int markedCount = MarkByGrid(selectedElements, dialog.Settings);
 
                     tx.Commit();
-                }
 
-                TaskDialog.Show("Готово",
-                    $"Успешно промаркировано {sortedElements.Count} элементов\n" +
-                    $"Начальный номер: {dialog.StartNumber}\n" +
-                    $"Направление: {GetDirectionDescription(dialog.SelectedDirection, dialog.SelectedOrder)}");
+                    TaskDialog.Show("Готово",
+                        $"Успешно промаркировано {markedCount} элементов\n" +
+                        $"Порядок: {GetOrderDescription(dialog.Settings)}");
+                }
 
                 return Result.Succeeded;
             }
@@ -122,148 +101,152 @@ namespace RevitAddIn2BIMRU.Commands.AN
             return param != null && !param.IsReadOnly;
         }
 
-        private List<Element> SortElements(List<Element> elements, SortDirection direction, SortOrder order)
+        /// <summary>
+        /// Маркировка элементов по сетке X-Y
+        /// </summary>
+        private int MarkByGrid(List<Element> elements, GridMarkingSettings settings)
         {
-            Func<Element, double> keySelector = direction == SortDirection.ByX
-                ? e => GetElementCenter(e).X
-                : e => GetElementCenter(e).Y;
+            int markedCount = 0;
 
-            return order == SortOrder.Ascending
-                ? elements.OrderBy(keySelector).ToList()
-                : elements.OrderByDescending(keySelector).ToList();
+            // Группируем элементы по строкам (Y-координата)
+            var groupedByRow = elements
+                .Select(e => new
+                {
+                    Element = e,
+                    Center = GetElementCenter(e)
+                })
+                .GroupBy(item => GetRowKey(item.Center.Y, settings.RowTolerance))
+                .OrderBy(group => settings.YDirection == SortDirection.Ascending
+                    ? group.Average(x => x.Center.Y)
+                    : -group.Average(x => x.Center.Y))
+                .ToList();
+
+            // Нумеруем строки
+            int currentNumber = settings.StartNumber;
+
+            foreach (var rowGroup in groupedByRow)
+            {
+                // Сортируем элементы в строке по X
+                var sortedInRow = settings.XDirection == SortDirection.Ascending
+                    ? rowGroup.OrderBy(x => x.Center.X).ToList()
+                    : rowGroup.OrderByDescending(x => x.Center.X).ToList();
+
+                // Маркируем элементы в строке
+                foreach (var item in sortedInRow)
+                {
+                    if (SetPositionParameter(item.Element, currentNumber))
+                    {
+                        markedCount++;
+                        currentNumber++;
+                    }
+                }
+
+                // Если включен режим "только по X", продолжаем нумерацию
+                if (!settings.MarkByRows)
+                {
+                    continue;
+                }
+
+                // Если нужно сбрасывать нумерацию для каждой строки
+                if (settings.ResetNumberingPerRow)
+                {
+                    currentNumber = settings.StartNumber;
+                }
+            }
+
+            return markedCount;
+        }
+
+        /// <summary>
+        /// Определяет ключ группы для строки на основе Y-координаты
+        /// </summary>
+        private double GetRowKey(double y, double tolerance)
+        {
+            if (tolerance <= 0)
+                return Math.Round(y, 3);
+
+            // Округляем до ближайшего кратного tolerance
+            return Math.Round(y / tolerance) * tolerance;
         }
 
         private XYZ GetElementCenter(Element element)
         {
             BoundingBoxXYZ bb = element.get_BoundingBox(null);
-            return bb != null ? (bb.Min + bb.Max) * 0.5 : XYZ.Zero;
+            if (bb != null)
+            {
+                return (bb.Min + bb.Max) * 0.5;
+            }
+
+            if (element.Location is LocationPoint locationPoint)
+            {
+                return locationPoint.Point;
+            }
+
+            return XYZ.Zero;
         }
 
-        private string GetDirectionDescription(SortDirection direction, SortOrder order)
+        private bool SetPositionParameter(Element element, int number)
         {
-            if (direction == SortDirection.ByX)
+            Parameter param = element.LookupParameter(POSITION_PARAMETER_NAME);
+            if (param == null || param.IsReadOnly)
+                return false;
+
+            try
             {
-                return order == SortOrder.Ascending ? "Слева направо (по оси X)" : "Справа налево (по оси X)";
+                string value = number.ToString();
+
+                if (param.StorageType == StorageType.String)
+                {
+                    param.Set(value);
+                    return true;
+                }
+                else if (param.StorageType == StorageType.Integer)
+                {
+                    param.Set(number);
+                    return true;
+                }
+                else if (param.StorageType == StorageType.Double)
+                {
+                    param.Set((double)number);
+                    return true;
+                }
+            }
+            catch
+            {
+                // Игнорируем ошибки
+            }
+
+            return false;
+        }
+
+        private string GetOrderDescription(GridMarkingSettings settings)
+        {
+            string xOrder = settings.XDirection == SortDirection.Ascending ? "слева направо" : "справа налево";
+            string yOrder = settings.YDirection == SortDirection.Ascending ? "снизу вверх" : "сверху вниз";
+
+            if (settings.MarkByRows)
+            {
+                return $"По строкам ({yOrder}), в строке {xOrder}";
             }
             else
             {
-                return order == SortOrder.Ascending ? "Снизу вверх (по оси Y)" : "Сверху вниз (по оси Y)";
+                return $"Непрерывно {xOrder} и {yOrder}";
             }
         }
 
-        public enum SortDirection { ByX, ByY }
-        public enum SortOrder { Ascending, Descending }
+        public enum SortDirection { Ascending, Descending }
     }
 
-    // WPF Window XAML (MarkingWindow.xaml)
-    /*
-    <Window x:Class="RevitAddIn2BIMRU.Commands.AN.MarkingWindow"
-            xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-            Title="Маркировка элементов" 
-            Height="300" Width="400"
-            WindowStartupLocation="CenterScreen"
-            ResizeMode="NoResize">
-        <Grid Margin="10">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            
-            <TextBlock Grid.Row="0" Text="Настройки маркировки" FontSize="16" FontWeight="Bold" Margin="0,0,0,10"/>
-            
-            <StackPanel Grid.Row="1" Margin="0,0,0,10">
-                <TextBlock Text="Начинаем маркировать с:" Margin="0,0,0,5"/>
-                <TextBox x:Name="txtStartNumber" Text="1" Width="100" HorizontalAlignment="Left"/>
-            </StackPanel>
-            
-            <StackPanel Grid.Row="2" Margin="0,0,0,10">
-                <TextBlock Text="Направление маркировки:" Margin="0,0,0,5"/>
-                <RadioButton x:Name="rbXLeftToRight" Content="По оси X (слева направо)" Margin="5,2" IsChecked="True"/>
-                <RadioButton x:Name="rbYBottomToTop" Content="По оси Y (снизу вверх)" Margin="5,2"/>
-                <RadioButton x:Name="rbXRightToLeft" Content="По оси X (справа налево)" Margin="5,2"/>
-                <RadioButton x:Name="rbYTopToBottom" Content="По оси Y (сверху вниз)" Margin="5,2"/>
-            </StackPanel>
-            
-            <TextBlock Grid.Row="3" Text="{Binding ElementCountText}" Margin="0,0,0,10"/>
-            
-            <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button x:Name="btnOk" Content="ОК" Width="80" Height="25" Margin="0,0,10,0" Click="BtnOk_Click"/>
-                <Button x:Name="btnCancel" Content="Отмена" Width="80" Height="25" Click="BtnCancel_Click"/>
-            </StackPanel>
-        </Grid>
-    </Window>
-    */
-
-    // WPF Window Code-behind (MarkingWindow.xaml.cs)
-    /*
-    public partial class MarkingWindow : Window
+    /// <summary>
+    /// Настройки маркировки по сетке
+    /// </summary>
+    public class GridMarkingSettings
     {
-        public int StartNumber { get; private set; }
-        public MarkElementsWPF.SortDirection SelectedDirection { get; private set; }
-        public MarkElementsWPF.SortOrder SelectedOrder { get; private set; }
-        
-        public MarkingWindow(int elementCount)
-        {
-            InitializeComponent();
-            DataContext = this;
-            
-            // Устанавливаем текст с количеством элементов
-            ElementCountText = $"Выбрано элементов для маркировки: {elementCount}";
-            
-            StartNumber = 1;
-            SelectedDirection = MarkElementsWPF.SortDirection.ByX;
-            SelectedOrder = MarkElementsWPF.SortOrder.Ascending;
-        }
-        
-        public string ElementCountText { get; set; }
-        
-        private void BtnOk_Click(object sender, RoutedEventArgs e)
-        {
-            if (!int.TryParse(txtStartNumber.Text, out int startNumber) || startNumber < 1)
-            {
-                MessageBox.Show("Введите корректное начальное число (больше 0)", "Ошибка", 
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-            
-            StartNumber = startNumber;
-            
-            // Определяем направление и порядок
-            if (rbXLeftToRight.IsChecked == true)
-            {
-                SelectedDirection = MarkElementsWPF.SortDirection.ByX;
-                SelectedOrder = MarkElementsWPF.SortOrder.Ascending;
-            }
-            else if (rbYBottomToTop.IsChecked == true)
-            {
-                SelectedDirection = MarkElementsWPF.SortDirection.ByY;
-                SelectedOrder = MarkElementsWPF.SortOrder.Ascending;
-            }
-            else if (rbXRightToLeft.IsChecked == true)
-            {
-                SelectedDirection = MarkElementsWPF.SortDirection.ByX;
-                SelectedOrder = MarkElementsWPF.SortOrder.Descending;
-            }
-            else if (rbYTopToBottom.IsChecked == true)
-            {
-                SelectedDirection = MarkElementsWPF.SortDirection.ByY;
-                SelectedOrder = MarkElementsWPF.SortOrder.Descending;
-            }
-            
-            DialogResult = true;
-            Close();
-        }
-        
-        private void BtnCancel_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
-            Close();
-        }
+        public int StartNumber { get; set; } = 1;
+        public SortDirection XDirection { get; set; } = SortDirection.Ascending;
+        public SortDirection YDirection { get; set; } = SortDirection.Ascending;
+        public bool MarkByRows { get; set; } = true;
+        public bool ResetNumberingPerRow { get; set; } = false;
+        public double RowTolerance { get; set; } = 0.1; // метров
     }
-    */
 }

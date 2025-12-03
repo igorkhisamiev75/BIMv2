@@ -343,6 +343,9 @@
     <Compile Include="GetPerimeterForFloorWithoutDoor.cs" />
     <Compile Include="GetRoomForElementsFinishing.cs" />
     <Compile Include="GetRoomNameForSelectElement.cs" />
+    <Compile Include="GridMarkingWindow.xaml.cs">
+      <DependentUpon>GridMarkingWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="GroupByMarkEqupmentFurnitureAndWriteToComment.cs" />
     <Compile Include="GroupingLighting.cs" />
     <Compile Include="archive\GroupTypeCeilingAndWriteToComment.cs" />
@@ -398,6 +401,10 @@
   </ItemGroup>
   <ItemGroup>
     <Page Include="CheckRooms\CheckRoomsSelectLink.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="GridMarkingWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
