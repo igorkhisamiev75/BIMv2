@@ -362,6 +362,7 @@
     <Compile Include="MakingHolesForFacadeWindowsDoors.cs" />
     <Compile Include="MakingHolesForWindows.cs" />
     <Compile Include="MakingHolesForWindowsCheck.cs" />
+    <Compile Include="MarkElementsByPosition.cs" />
     <Compile Include="MIrrorCheck.cs" />
     <Compile Include="LoadFilesAutoSharedCoordinatesCommand.cs" />
     <Compile Include="NormalIlluminationForLightFix.cs" />
