@@ -21,12 +21,17 @@ namespace RevitAddIn2BIMRU.Commands.AN
     {
         private Document _doc;
         private UIDocument _uiDoc;
-        private const string POSITION_PARAMETER_NAME = "ADSK_Позиция";
 
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             _uiDoc = commandData.Application.ActiveUIDocument;
             _doc = _uiDoc.Document;
+
+            if (_uiDoc == null || _doc == null)
+            {
+                TaskDialog.Show("Ошибка", "Не удалось получить доступ к документу Revit");
+                return Result.Failed;
+            }
 
             try
             {
@@ -52,8 +57,10 @@ namespace RevitAddIn2BIMRU.Commands.AN
                 List<Element> selectedElements = new List<Element>();
                 foreach (Reference reference in references)
                 {
+                    if (reference == null) continue;
+
                     Element element = _doc.GetElement(reference);
-                    if (element != null && HasPositionParameter(element))
+                    if (element != null && element.IsValidObject)
                     {
                         selectedElements.Add(element);
                     }
@@ -62,7 +69,7 @@ namespace RevitAddIn2BIMRU.Commands.AN
                 if (selectedElements.Count == 0)
                 {
                     TaskDialog.Show("Ошибка",
-                        "Среди выбранных элементов нет ни одного с параметром ADSK_Позиция");
+                        "Не выбрано ни одного валидного элемента");
                     return Result.Cancelled;
                 }
 
@@ -80,9 +87,19 @@ namespace RevitAddIn2BIMRU.Commands.AN
 
                     tx.Commit();
 
-                    TaskDialog.Show("Готово",
-                        $"Успешно промаркировано {markedCount} элементов\n" +
-                        $"Порядок: {GetOrderDescription(dialog.Settings)}");
+                    if (markedCount > 0)
+                    {
+                        TaskDialog.Show("Готово",
+                            $"Успешно промаркировано {markedCount} элементов\n" +
+                            $"Параметр: {dialog.Settings.ParameterName}\n" +
+                            $"Порядок: {GetOrderDescription(dialog.Settings)}");
+                    }
+                    else
+                    {
+                        TaskDialog.Show("Предупреждение",
+                            "Ни один элемент не был промаркирован. " +
+                            "Проверьте наличие и доступность параметра.");
+                    }
                 }
 
                 return Result.Succeeded;
@@ -90,71 +107,133 @@ namespace RevitAddIn2BIMRU.Commands.AN
             catch (Exception ex)
             {
                 message = ex.Message;
-                TaskDialog.Show("Ошибка", $"Произошла ошибка: {ex.Message}");
+                TaskDialog.Show("Ошибка",
+                    $"Произошла ошибка: {ex.Message}\n" +
+                    $"StackTrace: {ex.StackTrace}");
                 return Result.Failed;
             }
         }
 
-        private bool HasPositionParameter(Element element)
+        private bool HasPositionParameter(Element element, string parameterName)
         {
-            Parameter param = element.LookupParameter(POSITION_PARAMETER_NAME);
+            if (element == null || !element.IsValidObject)
+                return false;
+
+            if (string.IsNullOrEmpty(parameterName))
+                return false;
+
+            Parameter param = element.LookupParameter(parameterName);
             return param != null && !param.IsReadOnly;
         }
 
         /// <summary>
-        /// Маркировка элементов по сетке X-Y
+        /// Маркировка элементов по сетке X-Y (одна непрерывная последовательность)
         /// </summary>
         private int MarkByGrid(List<Element> elements, GridMarkingSettings settings)
         {
             int markedCount = 0;
-
-            // Группируем элементы по строкам (Y-координата)
-            var groupedByRow = elements
-                .Select(e => new
-                {
-                    Element = e,
-                    Center = GetElementCenter(e)
-                })
-                .GroupBy(item => GetRowKey(item.Center.Y, settings.RowTolerance))
-                .OrderBy(group => settings.YDirection == SortDirection.Ascending
-                    ? group.Average(x => x.Center.Y)
-                    : -group.Average(x => x.Center.Y))
-                .ToList();
-
-            // Нумеруем строки
             int currentNumber = settings.StartNumber;
 
-            foreach (var rowGroup in groupedByRow)
+            // Фильтруем элементы, у которых есть нужный параметр
+            var elementsWithParameter = new List<Element>();
+            foreach (var element in elements)
             {
-                // Сортируем элементы в строке по X
-                var sortedInRow = settings.XDirection == SortDirection.Ascending
-                    ? rowGroup.OrderBy(x => x.Center.X).ToList()
-                    : rowGroup.OrderByDescending(x => x.Center.X).ToList();
-
-                // Маркируем элементы в строке
-                foreach (var item in sortedInRow)
+                if (element != null && element.IsValidObject &&
+                    HasPositionParameter(element, settings.ParameterName))
                 {
-                    if (SetPositionParameter(item.Element, currentNumber))
+                    elementsWithParameter.Add(element);
+                }
+            }
+
+            if (elementsWithParameter.Count == 0)
+            {
+                TaskDialog.Show("Ошибка",
+                    $"Ни у одного из выбранных элементов нет параметра '{settings.ParameterName}' " +
+                    "или параметр недоступен для записи");
+                return 0;
+            }
+
+            // Получаем элементы с их координатами
+            var elementsWithCoords = new List<ElementWithCoords>();
+            foreach (var element in elementsWithParameter)
+            {
+                if (element != null && element.IsValidObject)
+                {
+                    XYZ center = GetElementCenter(element);
+                    if (center != null)
+                    {
+                        elementsWithCoords.Add(new ElementWithCoords
+                        {
+                            Element = element,
+                            Center = center
+                        });
+                    }
+                }
+            }
+
+            if (elementsWithCoords.Count == 0)
+            {
+                TaskDialog.Show("Ошибка",
+                    "Не удалось определить координаты элементов");
+                return 0;
+            }
+
+            // Сортируем все элементы в одну последовательность
+            var sortedElements = SortElementsInOneSequence(elementsWithCoords, settings);
+
+            // Маркируем элементы в полученном порядке
+            foreach (var item in sortedElements)
+            {
+                if (item != null && item.Element != null && item.Element.IsValidObject)
+                {
+                    if (SetPositionParameter(item.Element, currentNumber, settings.ParameterName))
                     {
                         markedCount++;
                         currentNumber++;
                     }
                 }
-
-                // Если включен режим "только по X", продолжаем нумерацию
-                if (!settings.MarkByRows)
-                {
-                    continue;
-                }
-
-                // Если нужно сбрасывать нумерацию для каждой строки
-                if (settings.ResetNumberingPerRow)
-                {
-                    currentNumber = settings.StartNumber;
-                }
             }
 
             return markedCount;
+        }
+
+        /// <summary>
+        /// Сортировка элементов в одну последовательность на основе координат
+        /// </summary>
+        private List<ElementWithCoords> SortElementsInOneSequence(List<ElementWithCoords> elements, GridMarkingSettings settings)
+        {
+            if (elements == null || elements.Count == 0)
+                return new List<ElementWithCoords>();
+
+            // Основная логика: сначала сортируем по Y (строчкам), потом по X внутри строк
+
+            // Группируем элементы по строкам (Y-координата) с учетом допуска
+            var groupedByRow = elements
+                .Where(item => item != null && item.Center != null)
+                .GroupBy(item => GetRowKey(item.Center.Y, settings.RowTolerance))
+                .ToList();
+
+            // Определяем порядок сортировки строк
+            var sortedRows = settings.YDirection == SortDirection.Ascending
+                ? groupedByRow.OrderBy(group => group.Average(x => x.Center.Y)).ToList()
+                : groupedByRow.OrderByDescending(group => group.Average(x => x.Center.Y)).ToList();
+
+            // Собираем все элементы в одну последовательность
+            var result = new List<ElementWithCoords>();
+
+            foreach (var rowGroup in sortedRows)
+            {
+                if (rowGroup == null) continue;
+
+                // Сортируем элементы внутри строки по X
+                var sortedInRow = settings.XDirection == SortDirection.Ascending
+                    ? rowGroup.OrderBy(x => x.Center.X).ToList()
+                    : rowGroup.OrderByDescending(x => x.Center.X).ToList();
+
+                result.AddRange(sortedInRow);
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -171,33 +250,62 @@ namespace RevitAddIn2BIMRU.Commands.AN
 
         private XYZ GetElementCenter(Element element)
         {
-            BoundingBoxXYZ bb = element.get_BoundingBox(null);
-            if (bb != null)
-            {
-                return (bb.Min + bb.Max) * 0.5;
-            }
+            if (element == null || !element.IsValidObject)
+                return XYZ.Zero;
 
-            if (element.Location is LocationPoint locationPoint)
+            try
             {
-                return locationPoint.Point;
+                BoundingBoxXYZ bb = element.get_BoundingBox(null);
+                if (bb != null && bb.Min != null && bb.Max != null)
+                {
+                    return (bb.Min + bb.Max) * 0.5;
+                }
+
+                if (element.Location is LocationPoint locationPoint && locationPoint != null)
+                {
+                    return locationPoint.Point;
+                }
+
+                // Пробуем получить геометрию элемента
+                Options options = new Options();
+                options.ComputeReferences = true;
+                options.DetailLevel = ViewDetailLevel.Fine;
+
+                GeometryElement geomElem = element.get_Geometry(options);
+                if (geomElem != null)
+                {
+                    foreach (GeometryObject geomObj in geomElem)
+                    {
+                        if (geomObj is Solid solid && solid != null && solid.Volume > 0)
+                        {
+                            return solid.ComputeCentroid();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TaskDialog.Show("Предупреждение",
+                    $"Не удалось получить координаты элемента {element.Id}: {ex.Message}");
             }
 
             return XYZ.Zero;
         }
 
-        private bool SetPositionParameter(Element element, int number)
+        private bool SetPositionParameter(Element element, int number, string parameterName)
         {
-            Parameter param = element.LookupParameter(POSITION_PARAMETER_NAME);
+            if (element == null || !element.IsValidObject)
+                return false;
+
+            Parameter param = element.LookupParameter(parameterName);
             if (param == null || param.IsReadOnly)
                 return false;
 
             try
             {
-                string value = number.ToString();
-
                 if (param.StorageType == StorageType.String)
                 {
-                    param.Set(value);
+                    param.Set(number.ToString());
                     return true;
                 }
                 else if (param.StorageType == StorageType.Integer)
@@ -211,9 +319,10 @@ namespace RevitAddIn2BIMRU.Commands.AN
                     return true;
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // Игнорируем ошибки
+                TaskDialog.Show("Ошибка записи параметра",
+                    $"Не удалось записать значение в параметр '{parameterName}' элемента {element.Id}: {ex.Message}");
             }
 
             return false;
@@ -224,14 +333,14 @@ namespace RevitAddIn2BIMRU.Commands.AN
             string xOrder = settings.XDirection == SortDirection.Ascending ? "слева направо" : "справа налево";
             string yOrder = settings.YDirection == SortDirection.Ascending ? "снизу вверх" : "сверху вниз";
 
-            if (settings.MarkByRows)
-            {
-                return $"По строкам ({yOrder}), в строке {xOrder}";
-            }
-            else
-            {
-                return $"Непрерывно {xOrder} и {yOrder}";
-            }
+            return $"Сначала {yOrder} по строкам, в каждой строке {xOrder}";
+        }
+
+        // Вспомогательный класс для хранения элемента с координатами
+        private class ElementWithCoords
+        {
+            public Element Element { get; set; }
+            public XYZ Center { get; set; }
         }
 
         public enum SortDirection { Ascending, Descending }
@@ -242,11 +351,10 @@ namespace RevitAddIn2BIMRU.Commands.AN
     /// </summary>
     public class GridMarkingSettings
     {
+        public string ParameterName { get; set; } = "ADSK_Позиция";
         public int StartNumber { get; set; } = 1;
-        public SortDirection XDirection { get; set; } = SortDirection.Ascending;
-        public SortDirection YDirection { get; set; } = SortDirection.Ascending;
-        public bool MarkByRows { get; set; } = true;
-        public bool ResetNumberingPerRow { get; set; } = false;
+        public MarkElementsByGrid.SortDirection XDirection { get; set; } = MarkElementsByGrid.SortDirection.Ascending;
+        public MarkElementsByGrid.SortDirection YDirection { get; set; } = MarkElementsByGrid.SortDirection.Ascending;
         public double RowTolerance { get; set; } = 0.1; // метров
     }
 }

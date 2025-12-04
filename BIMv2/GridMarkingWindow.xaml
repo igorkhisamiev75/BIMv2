@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:RevitAddIn2BIMRU.Commands.AN"
         mc:Ignorable="d"
         Title="Маркировка по сетке X-Y" 
-        Height="500" 
+        Height="663" 
         Width="450"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
@@ -39,21 +39,23 @@
             <TextBlock Text="Параметр для маркировки:" 
                        FontWeight="SemiBold"
                        Margin="0,0,0,5"/>
-            <ComboBox x:Name="cmbParameterName"
+
+            <TextBox x:Name="txtParameterName"
+                     Text="ADSK_Позиция"
                      Width="250"
                      HorizontalAlignment="Left"
                      Padding="5"
                      BorderBrush="#CCCCCC"
-                     BorderThickness="1">
-                <ComboBoxItem Content="ADSK_Позиция" IsSelected="True"/>
-                <ComboBoxItem Content="ADSK_Марка"/>
-                <ComboBoxItem Content="ADSK_Номер"/>
-                <ComboBoxItem Content="ADSK_Обозначение"/>
-                <ComboBoxItem Content="Марка"/>
-                <ComboBoxItem Content="Обозначение"/>
-                <ComboBoxItem Content="Позиция"/>
-                <ComboBoxItem Content="Номер"/>
-            </ComboBox>
+                     BorderThickness="1"
+                     ToolTip="Введите имя параметра, в который будет записан номер"
+                     TextChanged="TxtParameterName_TextChanged"/>
+
+            <TextBlock Text="Подсказка: ADSK_Позиция, ADSK_Марка, ADSK_Номер, Марка, Обозначение, Позиция"
+                       FontStyle="Italic"
+                       FontSize="11"
+                       Foreground="Gray"
+                       Margin="0,5,0,0"
+                       TextWrapping="Wrap"/>
         </StackPanel>
 
         <!-- Начальный номер -->
@@ -68,7 +70,8 @@
                      Padding="5"
                      BorderBrush="#CCCCCC"
                      BorderThickness="1"
-                     PreviewTextInput="TxtStartNumber_PreviewTextInput"/>
+                     PreviewTextInput="TxtStartNumber_PreviewTextInput"
+                     TextChanged="TxtStartNumber_TextChanged"/>
         </StackPanel>
 
         <!-- Направление по X -->
@@ -153,11 +156,12 @@
 
                 <StackPanel Orientation="Horizontal">
                     <TextBox x:Name="txtTolerance" 
-                             Text="0.1" 
+                             Text="1" 
                              Width="60"
                              Padding="3"
                              VerticalAlignment="Center"
-                             PreviewTextInput="TxtTolerance_PreviewTextInput"/>
+                             PreviewTextInput="TxtTolerance_PreviewTextInput"
+                             TextChanged="TxtTolerance_TextChanged"/>
                     <TextBlock Text=" метров" 
                                VerticalAlignment="Center"
                                Margin="5,0,0,0"/>

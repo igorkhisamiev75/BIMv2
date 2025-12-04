@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -9,156 +8,183 @@ namespace RevitAddIn2BIMRU.Commands.AN
     public partial class GridMarkingWindow : Window
     {
         public GridMarkingSettings Settings { get; private set; }
-        public string SelectedParameterName { get; private set; }
+        private int _selectedElementsCount;
 
-        public GridMarkingWindow(int elementCount)
+        public GridMarkingWindow(int selectedElementsCount)
         {
-            InitializeComponent();
-
-            Settings = new GridMarkingSettings();
-            SelectedParameterName = "ADSK_Позиция"; // значение по умолчанию
-
-            UpdateInfoText();
-            txtInfo.Text = $"Выбрано элементов: {elementCount}\n\n" +
-                          "Элементы будут сгруппированы по строкам (Y),\n" +
-                          "затем в каждой строке отсортированы по X\n" +
-                          "и пронумерованы в выбранном порядке.";
-        }
-
-        private void BtnOk_Click(object sender, RoutedEventArgs e)
-        {
-            // Получаем выбранное имя параметра
-            if (cmbParameterName.SelectedItem is ComboBoxItem selectedItem)
+            try
             {
-                SelectedParameterName = selectedItem.Content.ToString();
+                InitializeComponent();
+                _selectedElementsCount = selectedElementsCount;
+                Settings = new GridMarkingSettings();
+                UpdateInfoText();
             }
-
-            // Проверка начального номера
-            if (!int.TryParse(txtStartNumber.Text, out int startNumber) || startNumber < 1)
+            catch (Exception ex)
             {
-                MessageBox.Show("Введите корректное начальное число (больше 0)",
-                    "Ошибка",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
-                txtStartNumber.Focus();
-                txtStartNumber.SelectAll();
-                return;
+                MessageBox.Show($"Ошибка при создании окна: {ex.Message}", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
             }
-
-            // Проверка точности
-            if (!double.TryParse(txtTolerance.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out double tolerance) || tolerance <= 0)
-            {
-                MessageBox.Show("Введите корректное значение точности (больше 0)",
-                    "Ошибка",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
-                txtTolerance.Focus();
-                txtTolerance.SelectAll();
-                return;
-            }
-
-            // Сохраняем настройки
-            Settings.StartNumber = startNumber;
-            Settings.XDirection = rbXLeftToRight.IsChecked == true
-                ? MarkElementsByGrid.SortDirection.Ascending
-                : MarkElementsByGrid.SortDirection.Descending;
-
-            Settings.YDirection = rbYBottomToTop.IsChecked == true
-                ? MarkElementsByGrid.SortDirection.Ascending
-                : MarkElementsByGrid.SortDirection.Descending;
-
-            Settings.MarkByRows = rbByRows.IsChecked == true;
-            Settings.RowTolerance = tolerance;
-
-            DialogResult = true;
-            Close();
-        }
-
-        private void BtnCancel_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
-            Close();
-        }
-
-        private void RadioButton_Checked(object sender, RoutedEventArgs e)
-        {
-            UpdateInfoText();
         }
 
         private void UpdateInfoText()
         {
-            string parameterName = "ADSK_Позиция";
-            if (cmbParameterName.SelectedItem is ComboBoxItem selectedItem)
+            try
             {
-                parameterName = selectedItem.Content.ToString();
-            }
+                string xDirection = rbXLeftToRight?.IsChecked == true ? "слева направо" : "справа налево";
+                string yDirection = rbYBottomToTop?.IsChecked == true ? "снизу вверх" : "сверху вниз";
+                string mode = rbByRows?.IsChecked == true ? "по строкам" : "непрерывно";
 
-            string xDir = rbXLeftToRight.IsChecked == true ? "слева направо" : "справа налево";
-            string yDir = rbYBottomToTop.IsChecked == true ? "снизу вверх" : "сверху вниз";
-
-            if (rbByRows.IsChecked == true)
-            {
-                txtInfo.Text = $"Параметр: {parameterName}\n" +
-                              $"Порядок маркировки:\n" +
-                              $"1. Группировка по строкам ({yDir})\n" +
-                              $"2. В каждой строке: {xDir}\n" +
-                              $"Начальный номер: {txtStartNumber.Text}";
+                txtInfo.Text = $"Выбрано элементов: {_selectedElementsCount}\n" +
+                              $"Параметр: {txtParameterName?.Text ?? "ADSK_Позиция"}\n" +
+                              $"Начальный номер: {txtStartNumber?.Text ?? "1"}\n" +
+                              $"Направление: {xDirection} по X, {yDirection} по Y\n" +
+                              $"Режим: {mode}\n" +
+                              $"Точность группировки: {txtTolerance?.Text ?? "0.1"} м";
             }
-            else
+            catch (Exception ex)
             {
-                txtInfo.Text = $"Параметр: {parameterName}\n" +
-                              $"Порядок маркировки:\n" +
-                              $"Сначала {xDir}, затем {yDir}\n" +
-                              $"(непрерывная нумерация)\n" +
-                              $"Начальный номер: {txtStartNumber.Text}";
+                txtInfo.Text = $"Ошибка обновления информации: {ex.Message}";
+            }
+        }
+
+        private void BtnOk_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Получаем имя параметра из текстового поля
+                string parameterName = txtParameterName?.Text?.Trim();
+
+                if (string.IsNullOrEmpty(parameterName))
+                {
+                    MessageBox.Show("Введите имя параметра для маркировки", "Ошибка",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                Settings.ParameterName = parameterName;
+
+                // Получаем стартовый номер
+                string startNumberText = txtStartNumber?.Text ?? "1";
+                if (!int.TryParse(startNumberText, out int startNumber) || startNumber < 1)
+                {
+                    MessageBox.Show("Введите корректный стартовый номер (целое число больше 0)", "Ошибка",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                Settings.StartNumber = startNumber;
+
+                // Направление по X
+                Settings.XDirection = (rbXLeftToRight?.IsChecked == true) ?
+                    MarkElementsByGrid.SortDirection.Ascending :
+                    MarkElementsByGrid.SortDirection.Descending;
+
+                // Направление по Y
+                Settings.YDirection = (rbYBottomToTop?.IsChecked == true) ?
+                    MarkElementsByGrid.SortDirection.Ascending :
+                    MarkElementsByGrid.SortDirection.Descending;
+
+                // Точность группировки
+                string toleranceText = txtTolerance?.Text ?? "0.1";
+                if (!double.TryParse(toleranceText.Replace(',', '.'), out double tolerance) || tolerance < 0)
+                {
+                    MessageBox.Show("Введите корректное значение точности (положительное число)", "Ошибка",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                Settings.RowTolerance = tolerance;
+
+                this.DialogResult = true;
+                this.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при сохранении настроек: {ex.Message}", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void BtnCancel_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                this.DialogResult = false;
+                this.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при закрытии окна: {ex.Message}", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                this.Close();
             }
         }
 
         private void TxtStartNumber_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
-            // Разрешаем только цифры
-            foreach (char c in e.Text)
+            try
             {
-                if (!char.IsDigit(c))
-                {
-                    e.Handled = true;
-                    return;
-                }
+                // Разрешаем только цифры
+                e.Handled = !char.IsDigit(e.Text, 0);
             }
+            catch { }
+        }
 
-            // Проверяем, чтобы число не было слишком большим
-            string newText = txtStartNumber.Text.Insert(txtStartNumber.SelectionStart, e.Text);
-            if (newText.Length > 6) // Максимум 6 цифр
+        private void TxtStartNumber_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
             {
-                e.Handled = true;
+                UpdateInfoText();
             }
+            catch { }
         }
 
         private void TxtTolerance_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
-            // Разрешаем цифры и точку/запятую для десятичных чисел
-            string decimalSeparator = CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator;
-
-            foreach (char c in e.Text)
+            try
             {
-                if (!char.IsDigit(c) && c.ToString() != decimalSeparator)
+                TextBox textBox = sender as TextBox;
+                if (textBox == null) return;
+
+                string currentText = textBox.Text;
+                string newText = currentText.Substring(0, textBox.SelectionStart) +
+                               e.Text +
+                               currentText.Substring(textBox.SelectionStart + textBox.SelectionLength);
+
+                // Разрешаем цифры, точку и запятую
+                e.Handled = !(char.IsDigit(e.Text, 0) || e.Text == "." || e.Text == ",");
+
+                // Проверяем, что это корректное число
+                if (!e.Handled)
                 {
-                    e.Handled = true;
-                    return;
+                    e.Handled = !double.TryParse(newText.Replace(',', '.'), out double result);
                 }
             }
-
-            // Проверяем, чтобы не было двух разделителей
-            string newText = txtTolerance.Text.Insert(txtTolerance.SelectionStart, e.Text);
-            if (newText.IndexOf(decimalSeparator) != newText.LastIndexOf(decimalSeparator))
-            {
-                e.Handled = true;
-            }
+            catch { }
         }
 
-        private void InitializeComponent2()
+        private void TxtTolerance_TextChanged(object sender, TextChangedEventArgs e)
         {
-            // Этот метод вызывается автоматически при компиляции XAML
+            try
+            {
+                UpdateInfoText();
+            }
+            catch { }
+        }
+
+        private void TxtParameterName_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                UpdateInfoText();
+            }
+            catch { }
+        }
+
+        private void RadioButton_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                UpdateInfoText();
+            }
+            catch { }
         }
     }
 }
