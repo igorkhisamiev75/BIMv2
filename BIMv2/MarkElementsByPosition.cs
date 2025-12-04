@@ -127,7 +127,7 @@ namespace RevitAddIn2BIMRU.Commands.AN
         }
 
         /// <summary>
-        /// Маркировка элементов по сетке X-Y (одна непрерывная последовательность)
+        /// Маркировка элементов по сетке X-Y
         /// </summary>
         private int MarkByGrid(List<Element> elements, GridMarkingSettings settings)
         {
@@ -178,8 +178,19 @@ namespace RevitAddIn2BIMRU.Commands.AN
                 return 0;
             }
 
-            // Сортируем все элементы в одну последовательность
-            var sortedElements = SortElementsInOneSequence(elementsWithCoords, settings);
+            // Сортируем элементы в зависимости от выбранного режима
+            List<ElementWithCoords> sortedElements;
+
+            if (settings.MarkByRows)
+            {
+                // Режим "По строкам" - сначала Y, затем X
+                sortedElements = SortElementsByRows(elementsWithCoords, settings);
+            }
+            else
+            {
+                // Режим "Непрерывно по X" - сначала X, затем Y
+                sortedElements = SortElementsContinuous(elementsWithCoords, settings);
+            }
 
             // Маркируем элементы в полученном порядке
             foreach (var item in sortedElements)
@@ -198,30 +209,29 @@ namespace RevitAddIn2BIMRU.Commands.AN
         }
 
         /// <summary>
-        /// Сортировка элементов в одну последовательность на основе координат
+        /// Сортировка элементов по строкам (сначала Y, затем X)
         /// </summary>
-        private List<ElementWithCoords> SortElementsInOneSequence(List<ElementWithCoords> elements, GridMarkingSettings settings)
+        private List<ElementWithCoords> SortElementsByRows(List<ElementWithCoords> elements, GridMarkingSettings settings)
         {
             if (elements == null || elements.Count == 0)
                 return new List<ElementWithCoords>();
 
-            // Основная логика: сначала сортируем по Y (строчкам), потом по X внутри строк
+            // Сортируем сначала по Y (строчкам)
+            var sortedByY = settings.YDirection == SortDirection.Ascending
+                ? elements.OrderBy(item => item.Center.Y).ToList()
+                : elements.OrderByDescending(item => item.Center.Y).ToList();
 
-            // Группируем элементы по строкам (Y-координата) с учетом допуска
-            var groupedByRow = elements
+            // Затем группируем по строкам с минимальной точностью (0.001 мм для точной группировки)
+            const double precision = 0.000001; // 0.001 мм - максимально точная группировка
+            var groupedByRow = sortedByY
                 .Where(item => item != null && item.Center != null)
-                .GroupBy(item => GetRowKey(item.Center.Y, settings.RowTolerance))
+                .GroupBy(item => Math.Round(item.Center.Y / precision) * precision)
                 .ToList();
-
-            // Определяем порядок сортировки строк
-            var sortedRows = settings.YDirection == SortDirection.Ascending
-                ? groupedByRow.OrderBy(group => group.Average(x => x.Center.Y)).ToList()
-                : groupedByRow.OrderByDescending(group => group.Average(x => x.Center.Y)).ToList();
 
             // Собираем все элементы в одну последовательность
             var result = new List<ElementWithCoords>();
 
-            foreach (var rowGroup in sortedRows)
+            foreach (var rowGroup in groupedByRow)
             {
                 if (rowGroup == null) continue;
 
@@ -237,15 +247,41 @@ namespace RevitAddIn2BIMRU.Commands.AN
         }
 
         /// <summary>
-        /// Определяет ключ группы для строки на основе Y-координаты
+        /// Непрерывная сортировка (сначала X, затем Y)
         /// </summary>
-        private double GetRowKey(double y, double tolerance)
+        private List<ElementWithCoords> SortElementsContinuous(List<ElementWithCoords> elements, GridMarkingSettings settings)
         {
-            if (tolerance <= 0)
-                return Math.Round(y, 3);
+            if (elements == null || elements.Count == 0)
+                return new List<ElementWithCoords>();
 
-            // Округляем до ближайшего кратного tolerance
-            return Math.Round(y / tolerance) * tolerance;
+            // Сортируем сначала по X
+            var sortedByX = settings.XDirection == SortDirection.Ascending
+                ? elements.OrderBy(item => item.Center.X).ToList()
+                : elements.OrderByDescending(item => item.Center.X).ToList();
+
+            // Группируем по столбцам с минимальной точностью
+            const double precision = 0.000001; // 0.001 мм - максимально точная группировка
+            var groupedByColumn = sortedByX
+                .Where(item => item != null && item.Center != null)
+                .GroupBy(item => Math.Round(item.Center.X / precision) * precision)
+                .ToList();
+
+            // Собираем все элементы в одну последовательность
+            var result = new List<ElementWithCoords>();
+
+            foreach (var columnGroup in groupedByColumn)
+            {
+                if (columnGroup == null) continue;
+
+                // В каждом столбце сортируем по Y
+                var sortedInColumn = settings.YDirection == SortDirection.Ascending
+                    ? columnGroup.OrderBy(x => x.Center.Y).ToList()
+                    : columnGroup.OrderByDescending(x => x.Center.Y).ToList();
+
+                result.AddRange(sortedInColumn);
+            }
+
+            return result;
         }
 
         private XYZ GetElementCenter(Element element)
@@ -333,7 +369,14 @@ namespace RevitAddIn2BIMRU.Commands.AN
             string xOrder = settings.XDirection == SortDirection.Ascending ? "слева направо" : "справа налево";
             string yOrder = settings.YDirection == SortDirection.Ascending ? "снизу вверх" : "сверху вниз";
 
-            return $"Сначала {yOrder} по строкам, в каждой строке {xOrder}";
+            if (settings.MarkByRows)
+            {
+                return $"По строкам: сначала {yOrder}, в каждой строке {xOrder}";
+            }
+            else
+            {
+                return $"Непрерывно по X: сначала {xOrder}, в каждом столбце {yOrder}";
+            }
         }
 
         // Вспомогательный класс для хранения элемента с координатами
@@ -355,6 +398,6 @@ namespace RevitAddIn2BIMRU.Commands.AN
         public int StartNumber { get; set; } = 1;
         public MarkElementsByGrid.SortDirection XDirection { get; set; } = MarkElementsByGrid.SortDirection.Ascending;
         public MarkElementsByGrid.SortDirection YDirection { get; set; } = MarkElementsByGrid.SortDirection.Ascending;
-        public double RowTolerance { get; set; } = 0.1; // метров
+        public bool MarkByRows { get; set; } = true; // true = по строкам, false = непрерывно по X
     }
 }

@@ -32,14 +32,18 @@ namespace RevitAddIn2BIMRU.Commands.AN
             {
                 string xDirection = rbXLeftToRight?.IsChecked == true ? "слева направо" : "справа налево";
                 string yDirection = rbYBottomToTop?.IsChecked == true ? "снизу вверх" : "сверху вниз";
-                string mode = rbByRows?.IsChecked == true ? "по строкам" : "непрерывно";
+                string mode = rbByRows?.IsChecked == true ? "по строкам" : "непрерывно по X";
+
+                string orderDescription = (rbByRows?.IsChecked == true)
+                    ? $"Сначала {yDirection}, в каждой строке {xDirection}"
+                    : $"Сначала {xDirection}, в каждом столбце {yDirection}";
 
                 txtInfo.Text = $"Выбрано элементов: {_selectedElementsCount}\n" +
                               $"Параметр: {txtParameterName?.Text ?? "ADSK_Позиция"}\n" +
                               $"Начальный номер: {txtStartNumber?.Text ?? "1"}\n" +
-                              $"Направление: {xDirection} по X, {yDirection} по Y\n" +
                               $"Режим: {mode}\n" +
-                              $"Точность группировки: {txtTolerance?.Text ?? "0.1"} м";
+                              $"Порядок: {orderDescription}\n" +
+                              $"Точность: максимальная (0.001 мм)";
             }
             catch (Exception ex)
             {
@@ -82,15 +86,8 @@ namespace RevitAddIn2BIMRU.Commands.AN
                     MarkElementsByGrid.SortDirection.Ascending :
                     MarkElementsByGrid.SortDirection.Descending;
 
-                // Точность группировки
-                string toleranceText = txtTolerance?.Text ?? "0.1";
-                if (!double.TryParse(toleranceText.Replace(',', '.'), out double tolerance) || tolerance < 0)
-                {
-                    MessageBox.Show("Введите корректное значение точности (положительное число)", "Ошибка",
-                        MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-                Settings.RowTolerance = tolerance;
+                // Режим маркировки
+                Settings.MarkByRows = (rbByRows?.IsChecked == true);
 
                 this.DialogResult = true;
                 this.Close();
@@ -128,39 +125,6 @@ namespace RevitAddIn2BIMRU.Commands.AN
         }
 
         private void TxtStartNumber_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            try
-            {
-                UpdateInfoText();
-            }
-            catch { }
-        }
-
-        private void TxtTolerance_PreviewTextInput(object sender, TextCompositionEventArgs e)
-        {
-            try
-            {
-                TextBox textBox = sender as TextBox;
-                if (textBox == null) return;
-
-                string currentText = textBox.Text;
-                string newText = currentText.Substring(0, textBox.SelectionStart) +
-                               e.Text +
-                               currentText.Substring(textBox.SelectionStart + textBox.SelectionLength);
-
-                // Разрешаем цифры, точку и запятую
-                e.Handled = !(char.IsDigit(e.Text, 0) || e.Text == "." || e.Text == ",");
-
-                // Проверяем, что это корректное число
-                if (!e.Handled)
-                {
-                    e.Handled = !double.TryParse(newText.Replace(',', '.'), out double result);
-                }
-            }
-            catch { }
-        }
-
-        private void TxtTolerance_TextChanged(object sender, TextChangedEventArgs e)
         {
             try
             {
