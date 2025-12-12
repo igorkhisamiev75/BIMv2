@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -20,88 +21,78 @@ namespace IFCtoRevitDucts
             ref string message,
             ElementSet elements)
         {
-            UIApplication uiapp = commandData.Application;
-            UIDocument uidoc = uiapp.ActiveUIDocument;
+            UIApplication ui = commandData.Application;
+            UIDocument uidoc = ui.ActiveUIDocument;
             Document doc = uidoc.Document;
 
             try
             {
-                // 1. Выбор IFC элементов
-                IList<Reference> selectedRefs = uidoc.Selection.PickObjects(
-                    ObjectType.Element,
-                    new IFCSelectionFilter(),
-                    "Выберите IFC воздуховоды для преобразования");
-
-                if (selectedRefs.Count == 0)
-                {
-                    TaskDialog.Show("Информация", "Не выбрано ни одного элемента");
+                var picked = uidoc.Selection.PickObjects(ObjectType.Element, "Выберите IFC воздуховоды");
+                if (picked == null || picked.Count == 0)
                     return Result.Cancelled;
+
+                ElementId levelId = GetOrCreateLevel(doc);
+                ElementId systemTypeId = GetOrCreateAirSystemType(doc);
+
+                if (levelId == null || systemTypeId == null)
+                {
+                    TaskDialog.Show("Ошибка", "Не удалось подготовить базовые данные (уровень или системный тип).");
+                    return Result.Failed;
                 }
 
-                // 2. Подготовка: находим необходимые семейства и системный тип
-                FamilySymbol roundDuctSymbol = FindDuctFamilySymbol(doc, "круглый");
-                FamilySymbol rectangularDuctSymbol = FindDuctFamilySymbol(doc, "прямоугольный");
-                ElementId systemTypeId = GetSystemTypeId(doc);
+                int ok = 0, fail = 0;
 
-                if (systemTypeId == ElementId.InvalidElementId)
+                using (Transaction tx = new Transaction(doc, "Преобразование IFC воздуховодов"))
                 {
-                    TaskDialog.Show("Ошибка", "В проекте нет системных типов для воздуховодов. Создайте хотя бы один через интерфейс Revit.");
-                    return Result.Cancelled;
-                }
+                    tx.Start();
 
-                // 3. Обработка элементов
-                using (Transaction trans = new Transaction(doc, "Преобразование IFC в воздуховоды"))
-                {
-                    trans.Start();
-
-                    int successCount = 0;
-                    int failedCount = 0;
-                    List<ElementId> processedElements = new List<ElementId>();
-
-                    foreach (Reference reference in selectedRefs)
+                    foreach (var r in picked)
                     {
-                        Element ifcElement = doc.GetElement(reference);
-                        if (ifcElement == null) continue;
+                        Element ifcElem = doc.GetElement(r);
 
                         try
                         {
-                            bool created = ProcessIFCElement(doc, ifcElement,
-                                roundDuctSymbol, rectangularDuctSymbol, systemTypeId);
+                            // 1 — осевая линия
+                            if (!GetIFCAxis(ifcElem, out XYZ p1, out XYZ p2))
+                                throw new Exception("Не удалось определить осевую линию");
 
-                            if (created)
+                            // 2 — чтение MagiCAD параметров IFC
+                            string sizeStr = GetIFCPropertyString(ifcElem, "ConnectionSize_mm");
+                            string partType = GetIFCPropertyString(ifcElem, "PartType");
+
+                            // 3 — парсинг размеров
+                            if (!TryParseMagICADSize(sizeStr, partType,
+                                out double widthMM, out double heightMM, out double diamMM))
                             {
-                                successCount++;
-                                processedElements.Add(ifcElement.Id);
+                                // fallback — определение из bounding box
+                                GetIFCSize(ifcElem, out widthMM, out heightMM, out diamMM);
                             }
-                            else
-                            {
-                                failedCount++;
-                            }
+
+                            // 4 — выбор типа воздуховода (Revit FamilySymbol)
+                            var ductSym = FindOrCreateDuctType(doc, partType);
+                            if (ductSym == null)
+                                throw new Exception("Нет подходящего типа воздуховода Revit");
+
+                            if (!ductSym.IsActive)
+                                ductSym.Activate();
+
+                            // 5 — создание воздуховода
+                            if (!CreateDuct(doc, levelId, systemTypeId, ductSym.Id, p1, p2, widthMM, heightMM, diamMM))
+                                throw new Exception("Ошибка создания воздуховода");
+
+                            ok++;
                         }
                         catch (Exception ex)
                         {
-                            TaskDialog.Show("Ошибка элемента",
-                                $"Ошибка при обработке элемента {ifcElement.Id}: {ex.Message}");
-                            failedCount++;
+                            Debug.Print($"IFC error: {ex.Message}");
+                            fail++;
                         }
                     }
 
-                    // 4. Опционально: скрываем оригинальные IFC элементы
-                    //if (successCount > 0 && TaskDialog.Show("Скрыть оригиналы?",
-                    //    "Скрыть оригинальные IFC элементы?", TaskDialogCommonButtons.YesNo) == TaskDialogResult.Yes)
-                    //{
-                    //    HideElements(doc, processedElements);
-                    //}
-
-                    trans.Commit();
-
-                    // 5. Результат
-                    TaskDialog.Show("Результат",
-                        $"Успешно преобразовано: {successCount}\n" +
-                        $"Не удалось преобразовать: {failedCount}\n" +
-                        $"Всего обработано: {selectedRefs.Count}");
+                    tx.Commit();
                 }
 
+                TaskDialog.Show("Готово", $"Создано: {ok}\nОшибок: {fail}\nВсего: {picked.Count}");
                 return Result.Succeeded;
             }
             catch (Autodesk.Revit.Exceptions.OperationCanceledException)
@@ -116,462 +107,338 @@ namespace IFCtoRevitDucts
             }
         }
 
-        private bool ProcessIFCElement(Document doc, Element ifcElement,
-            FamilySymbol roundSymbol, FamilySymbol rectangularSymbol, ElementId systemTypeId)
+        // -------------------------------------------------------------
+        //  IFC PROPERTY READER
+        // -------------------------------------------------------------
+        private string GetIFCPropertyString(Element e, string propName)
         {
-            // 1. Получаем геометрию IFC элемента
-            GeometryElement geometry = ifcElement.get_Geometry(new Options());
-            if (geometry == null) return false;
+            if (e == null)
+                return "";
 
-            // 2. Ищем кривую (линию) воздуховода
-            Curve ductCurve = ExtractCurveFromGeometry(geometry);
-            if (ductCurve == null) return false;
-
-            // 3. Определяем тип сечения (круглое/прямоугольное)
-            DuctSectionType sectionType = DetermineSectionType(ifcElement, geometry);
-
-            // 4. Получаем размеры
-            double width = 0, height = 0, diameter = 0;
-            GetDuctDimensions(ifcElement, sectionType, out width, out height, out diameter);
-
-            // 5. Создаем воздуховод Revit
-            Duct newDuct = null;
-            if (sectionType == DuctSectionType.Round && roundSymbol != null)
+            // Прямой поиск MagiCAD параметров
+            Parameter p = e.LookupParameter(propName);
+            if (p != null)
             {
-                newDuct = Duct.Create(doc, systemTypeId, roundSymbol.Id,
-                    ifcElement.LevelId, ductCurve.GetEndPoint(0), ductCurve.GetEndPoint(1));
+                if (p.StorageType == StorageType.String)
+                    return p.AsString();
 
-                if (newDuct != null && diameter > 0)
-                {
-                    SetDuctDiameter(newDuct, diameter);
-                }
+                return p.AsValueString();
             }
-            else if (sectionType == DuctSectionType.Rectangular && rectangularSymbol != null)
-            {
-                newDuct = Duct.Create(doc, systemTypeId, rectangularSymbol.Id,
-                    ifcElement.LevelId, ductCurve.GetEndPoint(0), ductCurve.GetEndPoint(1));
 
-                if (newDuct != null && width > 0 && height > 0)
+            // Дополнительный перебор параметров (на случай неточного имени)
+            foreach (Parameter par in e.Parameters)
+            {
+                if (par.Definition?.Name == propName)
                 {
-                    SetRectangularDuctSize(newDuct, width, height);
+                    if (par.StorageType == StorageType.String)
+                        return par.AsString();
+                    return par.AsValueString();
                 }
             }
 
-            if (newDuct == null) return false;
+            return "";
+        }
 
-            // 6. Копируем общие свойства
-            CopyElementProperties(ifcElement, newDuct);
 
+        // -------------------------------------------------------------
+        //  PARSE MAGICAD SIZE
+        // -------------------------------------------------------------
+        private bool TryParseMagICADSize(string s, string partType,
+            out double width, out double height, out double diam)
+        {
+            width = height = diam = 0;
+
+            if (string.IsNullOrWhiteSpace(s))
+                return false;
+
+            s = s.Trim().ToLower();
+
+            // ROUND: "125"
+            if (Regex.IsMatch(s, @"^\d+$"))
+            {
+                diam = double.Parse(s);
+                return true;
+            }
+
+            // RECT: "800x500"
+            if (Regex.IsMatch(s, @"^\d+\s*[xх]\s*\d+$"))
+            {
+                var parts = Regex.Split(s, @"[xх]");
+                width = double.Parse(parts[0]);
+                height = double.Parse(parts[1]);
+                return true;
+            }
+
+            // TRANSITIONS "100/125" — берём первый размер
+            if (s.Contains("/"))
+            {
+                var parts = s.Split('/');
+                if (double.TryParse(parts[0], out double d))
+                {
+                    // круглый переход
+                    diam = d;
+                    return true;
+                }
+            }
+
+            // fallback via PartType
+            if (partType?.ToLower() == "rect")
+            {
+                if (TryExtractTwoNumbers(s, out width, out height))
+                    return true;
+            }
+
+            if (partType?.ToLower() == "round")
+            {
+                if (TryExtractOneNumber(s, out diam))
+                    return true;
+            }
+
+            return false;
+        }
+
+        private bool TryExtractOneNumber(string s, out double n)
+        {
+            n = 0;
+            var m = Regex.Match(s, @"(\d+)");
+            if (m.Success)
+            {
+                n = double.Parse(m.Groups[1].Value);
+                return true;
+            }
+            return false;
+        }
+
+        private bool TryExtractTwoNumbers(string s, out double a, out double b)
+        {
+            a = b = 0;
+            var m = Regex.Matches(s, @"(\d+)");
+            if (m.Count >= 2)
+            {
+                a = double.Parse(m[0].Value);
+                b = double.Parse(m[1].Value);
+                return true;
+            }
+            return false;
+        }
+
+        // -------------------------------------------------------------
+        //  GEOMETRY — axis line
+        // -------------------------------------------------------------
+        private bool GetIFCAxis(Element e, out XYZ p1, out XYZ p2)
+        {
+            p1 = p2 = XYZ.Zero;
+
+            var opts = new Options { ComputeReferences = true, IncludeNonVisibleObjects = true };
+            GeometryElement geom = e.get_Geometry(opts);
+            if (geom == null) return false;
+
+            Solid solid = FindSolid(geom);
+            if (solid == null) return false;
+
+            // берем крайние точки солида
+            var pts = new List<XYZ>();
+            foreach (Edge ed in solid.Edges)
+            {
+                var c = ed.AsCurve();
+                pts.Add(c.GetEndPoint(0));
+                pts.Add(c.GetEndPoint(1));
+            }
+
+            if (pts.Count < 2) return false;
+
+            double maxDist = 0;
+            XYZ A = XYZ.Zero, B = XYZ.Zero;
+
+            for (int i = 0; i < pts.Count; i++)
+                for (int j = i + 1; j < pts.Count; j++)
+                {
+                    double d = pts[i].DistanceTo(pts[j]);
+                    if (d > maxDist)
+                    {
+                        maxDist = d;
+                        A = pts[i];
+                        B = pts[j];
+                    }
+                }
+
+            if (maxDist < 0.01) return false;
+            p1 = A; p2 = B;
             return true;
         }
 
-        private Curve ExtractCurveFromGeometry(GeometryElement geometry)
+        private Solid FindSolid(GeometryElement geom)
         {
-            foreach (GeometryObject geomObj in geometry)
+            foreach (var g in geom)
             {
-                // Ищем кривые в геометрии
-                if (geomObj is Curve curve)
+                if (g is Solid s && s.Volume > 0)
+                    return s;
+
+                if (g is GeometryInstance gi)
                 {
-                    return curve;
-                }
-                else if (geomObj is GeometryInstance geomInst)
-                {
-                    // Ищем кривые в экземплярах геометрии
-                    GeometryElement instGeometry = geomInst.GetSymbolGeometry();
-                    if (instGeometry != null)
+                    foreach (var ig in gi.GetInstanceGeometry())
                     {
-                        foreach (GeometryObject instGeomObj in instGeometry)
-                        {
-                            if (instGeomObj is Curve instCurve)
-                            {
-                                return instCurve;
-                            }
-                        }
-                    }
-                }
-                else if (geomObj is Solid solid)
-                {
-                    // Ищем края у твердого тела
-                    foreach (Edge edge in solid.Edges)
-                    {
-                        Curve edgeCurve = edge.AsCurve();
-                        if (edgeCurve != null && edgeCurve.Length > 0.1) // Игнорируем очень короткие кривые
-                        {
-                            return edgeCurve;
-                        }
+                        if (ig is Solid ss && ss.Volume > 0)
+                            return ss;
                     }
                 }
             }
             return null;
         }
 
-        private DuctSectionType DetermineSectionType(Element element, GeometryElement geometry)
+        // -------------------------------------------------------------
+        //  GEOMETRY — fallback size detection
+        // -------------------------------------------------------------
+        private bool GetIFCSize(Element e, out double w, out double h, out double d)
         {
-            // 1. Пробуем определить по параметрам IFC
-            Parameter param = element.LookupParameter("ConnectionSize_mm");
-            if (param != null && param.HasValue)
+            w = h = d = 0;
+
+            var bb = e.get_BoundingBox(null);
+            if (bb == null) return false;
+
+            double dx = (bb.Max.X - bb.Min.X) * 304.8;
+            double dy = (bb.Max.Y - bb.Min.Y) * 304.8;
+            double dz = (bb.Max.Z - bb.Min.Z) * 304.8;
+
+            var arr = new[] { dx, dy, dz };
+            Array.Sort(arr);
+
+            // круглый?
+            if (Math.Abs(arr[0] - arr[1]) < 3)
             {
-                string sizeValue = param.AsString() ?? param.AsValueString();
-                if (!string.IsNullOrEmpty(sizeValue))
-                {
-                    if (sizeValue.Contains("x")) return DuctSectionType.Rectangular;
-                    else return DuctSectionType.Round;
-                }
+                d = (arr[0] + arr[1]) / 2.0;
+                return true;
             }
 
-            // 2. Пробуем определить по имени типа/семейства
-            string elementInfo = element.Name ?? "";
-            if (elementInfo.Contains("Круглый") || elementInfo.Contains("Round") ||
-                elementInfo.Contains("Круглое") || elementInfo.Contains("Circular"))
-                return DuctSectionType.Round;
-            if (elementInfo.Contains("Прямоугольный") || elementInfo.Contains("Rectangular") ||
-                elementInfo.Contains("Прямоугольное") || elementInfo.Contains("Rect"))
-                return DuctSectionType.Rectangular;
-
-            // 3. Пробуем определить по геометрии
-            foreach (GeometryObject geomObj in geometry)
-            {
-                if (geomObj is Solid solid)
-                {
-                    // Анализируем профиль твердого тела
-                    BoundingBoxXYZ bbox = solid.GetBoundingBox();
-                    if (bbox != null)
-                    {
-                        double width = bbox.Max.X - bbox.Min.X;
-                        double height = bbox.Max.Y - bbox.Min.Y;
-                        double depth = bbox.Max.Z - bbox.Min.Z;
-
-                        // Если сечение примерно круглое (ширина ≈ высоте)
-                        if (Math.Abs(width - height) / Math.Max(width, height) < 0.2)
-                            return DuctSectionType.Round;
-                        else
-                            return DuctSectionType.Rectangular;
-                    }
-                }
-            }
-
-            // По умолчанию считаем круглым
-            return DuctSectionType.Round;
+            w = arr[1];
+            h = arr[0];
+            return true;
         }
 
-        private void GetDuctDimensions(Element element, DuctSectionType sectionType,
-            out double width, out double height, out double diameter)
+        // -------------------------------------------------------------
+        //  LEVEL
+        // -------------------------------------------------------------
+        private ElementId GetOrCreateLevel(Document doc)
         {
-            width = height = diameter = 0;
+            Level lvl = new FilteredElementCollector(doc)
+                .OfClass(typeof(Level))
+                .Cast<Level>()
+                .FirstOrDefault();
 
-            // Ищем параметры с размерами
-            string sizeValue = "";
-            Parameter sizeParam = element.LookupParameter("ConnectionSize_mm");
-            if (sizeParam != null && sizeParam.HasValue)
+            if (lvl != null) return lvl.Id;
+
+            using (var t = new Transaction(doc, "Add Level"))
             {
-                sizeValue = sizeParam.AsString() ?? sizeParam.AsValueString() ?? "";
+                t.Start();
+                lvl = Level.Create(doc, 0);
+                lvl.Name = "IFC Level";
+                t.Commit();
             }
-
-            if (string.IsNullOrEmpty(sizeValue))
-            {
-                // Ищем другие возможные параметры
-                foreach (Parameter param in element.Parameters)
-                {
-                    if (param.Definition.Name.Contains("Size") ||
-                        param.Definition.Name.Contains("Размер") ||
-                        param.Definition.Name.Contains("Diameter") ||
-                        param.Definition.Name.Contains("Диаметр"))
-                    {
-                        if (param.HasValue)
-                        {
-                            sizeValue = param.AsString() ?? param.AsValueString() ?? "";
-                            if (!string.IsNullOrEmpty(sizeValue)) break;
-                        }
-                    }
-                }
-            }
-
-            if (!string.IsNullOrEmpty(sizeValue))
-            {
-                sizeValue = sizeValue.Replace("мм", "").Replace("mm", "").Trim();
-
-                if (sectionType == DuctSectionType.Round)
-                {
-                    // Парсим диаметр
-                    Match match = Regex.Match(sizeValue, @"\d+(\.\d+)?");
-                    if (match.Success && double.TryParse(match.Value, out double dim))
-                    {
-                        diameter = dim / 304.8; // мм в футы
-                    }
-                }
-                else if (sectionType == DuctSectionType.Rectangular)
-                {
-                    // Парсим ширину x высоту
-                    if (sizeValue.Contains("x"))
-                    {
-                        string[] parts = sizeValue.Split('x');
-                        if (parts.Length >= 2)
-                        {
-                            Match widthMatch = Regex.Match(parts[0], @"\d+(\.\d+)?");
-                            Match heightMatch = Regex.Match(parts[1], @"\d+(\.\d+)?");
-
-                            if (widthMatch.Success && double.TryParse(widthMatch.Value, out double w))
-                                width = w / 304.8;
-                            if (heightMatch.Success && double.TryParse(heightMatch.Value, out double h))
-                                height = h / 304.8;
-                        }
-                    }
-                }
-            }
-
-            // Если не нашли в параметрах, пробуем из геометрии
-            if ((sectionType == DuctSectionType.Round && diameter <= 0) ||
-                (sectionType == DuctSectionType.Rectangular && (width <= 0 || height <= 0)))
-            {
-                EstimateDimensionsFromGeometry(element, ref width, ref height, ref diameter);
-            }
+            return lvl.Id;
         }
 
-        private void EstimateDimensionsFromGeometry(Element element, ref double width, ref double height, ref double diameter)
+        // -------------------------------------------------------------
+        //  SYSTEM TYPE
+        // -------------------------------------------------------------
+        private ElementId GetOrCreateAirSystemType(Document doc)
         {
-            Options options = new Options();
-            GeometryElement geometry = element.get_Geometry(options);
+            var st = new FilteredElementCollector(doc)
+                .OfClass(typeof(MechanicalSystemType))
+                .Cast<MechanicalSystemType>()
+                .FirstOrDefault();
 
-            foreach (GeometryObject geomObj in geometry)
+            if (st != null) return st.Id;
+
+            using (var t = new Transaction(doc, "Create System Type"))
             {
-                if (geomObj is Solid solid)
-                {
-                    BoundingBoxXYZ bbox = solid.GetBoundingBox();
-                    if (bbox != null)
-                    {
-                        width = (bbox.Max.X - bbox.Min.X);
-                        height = (bbox.Max.Y - bbox.Min.Y);
-
-                        // Если сечение круглое, диаметр ≈ средней размер
-                        if (Math.Abs(width - height) < 0.1)
-                        {
-                            diameter = (width + height) / 2;
-                        }
-                        break;
-                    }
-                }
+                t.Start();
+                st = MechanicalSystemType.Create(doc, MEPSystemClassification.SupplyAir, "IFC Air System");
+                t.Commit();
             }
+            return st.Id;
         }
 
-        private FamilySymbol FindDuctFamilySymbol(Document doc, string familyType)
+        // -------------------------------------------------------------
+        //  FAMILY SYMBOL DETECTION
+        // -------------------------------------------------------------
+        private FamilySymbol FindOrCreateDuctType(Document doc, string partType)
         {
-            try
-            {
-                // Ищем семейства воздуховодов
-                FilteredElementCollector collector = new FilteredElementCollector(doc)
-                    .OfClass(typeof(FamilySymbol))
-                    .WhereElementIsElementType()
-                    .OfCategory(BuiltInCategory.OST_DuctCurves);
+            var symbols = new FilteredElementCollector(doc)
+                .OfClass(typeof(FamilySymbol))
+                .OfCategory(BuiltInCategory.OST_DuctCurves)
+                .Cast<FamilySymbol>()
+                .ToList();
 
-                List<FamilySymbol> candidates = new List<FamilySymbol>();
-
-                foreach (FamilySymbol symbol in collector)
-                {
-                    if (symbol == null || symbol.Family == null) continue;
-
-                    string name = symbol.Name.ToLower() + " " + symbol.Family.Name.ToLower();
-
-                    if (familyType == "круглый")
-                    {
-                        if (name.Contains("круг") || name.Contains("round") ||
-                            name.Contains("circular") || name.Contains("цилиндр"))
-                        {
-                            candidates.Add(symbol);
-                        }
-                    }
-                    else if (familyType == "прямоугольный")
-                    {
-                        if (name.Contains("прямо") || name.Contains("rectangular") ||
-                            name.Contains("rect") || name.Contains("квадрат"))
-                        {
-                            candidates.Add(symbol);
-                        }
-                    }
-                }
-
-                // Возвращаем первый подходящий или первый вообще
-                if (candidates.Count > 0)
-                {
-                    FamilySymbol selected = candidates.First();
-                    if (!selected.IsActive) selected.Activate();
-                    return selected;
-                }
-                else if (collector.Any())
-                {
-                    FamilySymbol first = collector.First() as FamilySymbol;
-                    if (first != null && !first.IsActive) first.Activate();
-                    return first;
-                }
-
+            if (symbols.Count == 0)
                 return null;
-            }
-            catch
-            {
-                return null;
-            }
+
+            string key = partType?.ToLower();
+
+            if (key == "round")
+                return symbols.FirstOrDefault(s => s.FamilyName.ToLower().Contains("круг") ||
+                                                   s.Name.ToLower().Contains("round"))
+                       ?? symbols.First();
+
+            if (key == "rect")
+                return symbols.FirstOrDefault(s => s.FamilyName.ToLower().Contains("прям") ||
+                                                   s.Name.ToLower().Contains("rect"))
+                       ?? symbols.First();
+
+            return symbols.First();
         }
 
-        private ElementId GetSystemTypeId(Document doc)
-        {
-            // Ищем любой системный тип для воздуховодов
-            FilteredElementCollector collector = new FilteredElementCollector(doc)
-                .OfClass(typeof(MechanicalSystemType));
-
-            MechanicalSystemType systemType = collector.FirstOrDefault() as MechanicalSystemType;
-            return systemType?.Id ?? ElementId.InvalidElementId;
-        }
-
-        private void SetDuctDiameter(Duct duct, double diameter)
-        {
-            if (diameter <= 0) return;
-
-            string[] paramNames = { "Диаметр", "Diameter", "d", "Ø", "Size", "Размер" };
-            foreach (string name in paramNames)
-            {
-                Parameter param = duct.LookupParameter(name);
-                if (param != null)
-                {
-                    try
-                    {
-                        if (param.StorageType == StorageType.Double)
-                            param.Set(diameter);
-                        else if (param.StorageType == StorageType.String)
-                            param.Set(Math.Round(diameter * 304.8).ToString());
-                        break;
-                    }
-                    catch { }
-                }
-            }
-        }
-
-        private void SetRectangularDuctSize(Duct duct, double width, double height)
-        {
-            if (width <= 0 || height <= 0) return;
-
-            // Ширина
-            string[] widthNames = { "Ширина", "Width", "b", "A" };
-            foreach (string name in widthNames)
-            {
-                Parameter param = duct.LookupParameter(name);
-                if (param != null)
-                {
-                    try
-                    {
-                        if (param.StorageType == StorageType.Double)
-                            param.Set(width);
-                        else if (param.StorageType == StorageType.String)
-                            param.Set(Math.Round(width * 304.8).ToString());
-                        break;
-                    }
-                    catch { }
-                }
-            }
-
-            // Высота
-            string[] heightNames = { "Высота", "Height", "h", "B" };
-            foreach (string name in heightNames)
-            {
-                Parameter param = duct.LookupParameter(name);
-                if (param != null)
-                {
-                    try
-                    {
-                        if (param.StorageType == StorageType.Double)
-                            param.Set(height);
-                        else if (param.StorageType == StorageType.String)
-                            param.Set(Math.Round(height * 304.8).ToString());
-                        break;
-                    }
-                    catch { }
-                }
-            }
-        }
-
-        private void CopyElementProperties(Element source, Element target)
+        // -------------------------------------------------------------
+        //  CREATE REVIT DUCT
+        // -------------------------------------------------------------
+        private bool CreateDuct(
+            Document doc,
+            ElementId level,
+            ElementId systemType,
+            ElementId ductType,
+            XYZ p1,
+            XYZ p2,
+            double widthMM,
+            double heightMM,
+            double diamMM)
         {
             try
             {
-                //// Копируем уровень
-                //if (source.LevelId != null && source.LevelId != ElementId.InvalidElementId)
-                //{
-                //    target.LevelId = source.LevelId;
-                //}
+                var duct = Duct.Create(doc, systemType, ductType, level, p1, p2);
+                if (duct == null)
+                    return false;
 
-                // Копируем комментарии
-                Parameter sourceComment = source.LookupParameter("Комментарии");
-                Parameter targetComment = target.LookupParameter("Комментарии");
-                if (sourceComment != null && targetComment != null && sourceComment.HasValue)
+                if (diamMM > 1)
                 {
-                    targetComment.Set(sourceComment.AsString());
+                    double ft = diamMM / 304.8;
+                    SetParam(duct, "Диаметр", ft);
+                    SetParam(duct, "Diameter", ft);
+                }
+                else
+                {
+                    double wf = widthMM / 304.8;
+                    double hf = heightMM / 304.8;
+                    SetParam(duct, "Ширина", wf);
+                    SetParam(duct, "Высота", hf);
+                    SetParam(duct, "Width", wf);
+                    SetParam(duct, "Height", hf);
                 }
 
-                // Копируем марку
-                Parameter sourceMark = source.LookupParameter("Марка");
-                Parameter targetMark = target.LookupParameter("Марка");
-                if (sourceMark != null && targetMark != null && sourceMark.HasValue)
-                {
-                    targetMark.Set(sourceMark.AsString());
-                }
+                return true;
             }
-            catch { }
-        }
-
-        private void HideElements(Document doc, List<ElementId> elementIds)
-        {
-            try
+            catch (Exception ex)
             {
-                foreach (ElementId id in elementIds)
-                {
-                    Element element = doc.GetElement(id);
-                    if (element != null)
-                    {
-                        // Прячем элемент
-                        //element.get_Parameter(BuiltInParameter.ELEM_CATEGORY_HIDDEN)?.Set(1);
-                    }
-                }
+                Debug.Print($"Duct error: {ex.Message}");
+                return false;
             }
-            catch { }
         }
 
-        private enum DuctSectionType
+        private void SetParam(Element e, string name, double v)
         {
-            Round,
-            Rectangular
-        }
-    }
-
-    // Фильтр для выбора только IFC элементов
-    public class IFCSelectionFilter : ISelectionFilter
-    {
-        public bool AllowElement(Element elem)
-        {
-            if (elem == null) return false;
-
-            // Разрешаем элементы, которые могут быть IFC импортом
-            // IFC элементы обычно имеют специфические категории или являются семействами
-            if (elem.Category != null)
+            Parameter p = e.LookupParameter(name);
+            if (p != null && p.StorageType == StorageType.Double)
             {
-                // Воздуховоды или трубы
-                if (elem.Category.Id.IntegerValue == (int)BuiltInCategory.OST_DuctCurves ||
-                    elem.Category.Id.IntegerValue == (int)BuiltInCategory.OST_PipeCurves ||
-                    elem.Category.Id.IntegerValue == (int)BuiltInCategory.OST_GenericModel)
-                {
-                    // Проверяем, не является ли это уже нативным элементом Revit
-                    if (elem is FamilyInstance || elem is MEPCurve)
-                    {
-                        // Это уже Revit элемент, пропускаем
-                        return false;
-                    }
-                    return true;
-                }
+                try { p.Set(v); } catch { }
             }
-
-            return false;
-        }
-
-        public bool AllowReference(Reference reference, XYZ position)
-        {
-            return false;
         }
     }
 }
