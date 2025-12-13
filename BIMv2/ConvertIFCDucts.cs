@@ -39,7 +39,6 @@ namespace IFCtoRevitDucts
                 return Result.Cancelled;
 
             ElementId levelId = GetOrCreateLevel(doc);
-            ElementId systemTypeId = GetOrCreateAirSystemType(doc);
 
             int ok = 0;
             int fail = 0;
@@ -54,7 +53,6 @@ namespace IFCtoRevitDucts
 
                     try
                     {
-                        // ---------- РАЗМЕРЫ И ФОРМА ----------
                         GetSizeFromIFCParam(
                             ifcElem,
                             out bool isRound,
@@ -68,22 +66,24 @@ namespace IFCtoRevitDucts
                         if (!isRound && (widthMM <= 0 || heightMM <= 0))
                             throw new Exception("Некорректные размеры");
 
-                        // ---------- ОСЬ ----------
-                        if (!GetAxis(
+                        double lengthMM = GetIfcLengthMM(ifcElem);
+                        if (lengthMM <= 1)
+                            throw new Exception("Некорректная длина IFC");
+
+                        if (!GetAxisFromEdge(
                             ifcElem,
-                            isRound,
-                            widthMM,
-                            heightMM,
+                            lengthMM,
                             out XYZ p1,
                             out XYZ p2))
                             throw new Exception("Не удалось определить ось");
 
-                        // ---------- ТИП ----------
                         DuctType ductType = FindDuctType(doc, isRound);
                         if (ductType == null)
-                            throw new Exception("Нет подходящего типа воздуховода");
+                            throw new Exception("Нет типа воздуховода");
 
-                        // ---------- СОЗДАНИЕ ----------
+                        ElementId systemTypeId =
+                            GetSystemTypeByIfcSystem(doc, GetIfcSystem(ifcElem));
+
                         Duct duct = Duct.Create(
                             doc,
                             systemTypeId,
@@ -93,9 +93,8 @@ namespace IFCtoRevitDucts
                             p2);
 
                         if (duct == null)
-                            throw new Exception("Duct.Create вернул null");
+                            throw new Exception("Duct.Create == null");
 
-                        // ---------- РАЗМЕРЫ ----------
                         if (isRound)
                         {
                             duct.get_Parameter(
@@ -127,134 +126,121 @@ namespace IFCtoRevitDucts
 
             TaskDialog.Show(
                 "Готово",
-                $"Создано: {ok}\nОшибок: {fail}\nВсего: {picked.Count}");
+                $"Создан1о: {ok}\nОшибок: {fail}\nВсего: {picked.Count}");
 
             return Result.Succeeded;
         }
 
-        // =========================================================
-        // ОСЬ ВОЗДУХОВОДА (ФИНАЛЬНАЯ ВЕРСИЯ)
-        // =========================================================
+        // ======================================================
+        // ОСЬ ИЗ EDGE ПО IFC LENGTH
+        // ======================================================
 
-        private bool GetAxis(
+        private bool GetAxisFromEdge(
     Element e,
-    bool isRound,
-    double widthMM,
-    double heightMM,
+    double lengthMM,
     out XYZ p1,
     out XYZ p2)
         {
             p1 = p2 = XYZ.Zero;
 
-            Curve axis = GetLongestCurve(e);
-            if (axis == null)
+            double targetLen = lengthMM / 304.8;
+
+            BoundingBoxXYZ bb = e.get_BoundingBox(null);
+            if (bb == null)
                 return false;
 
-            XYZ a = axis.GetEndPoint(0);
-            XYZ b = axis.GetEndPoint(1);
-            XYZ dir = (b - a).Normalize();
+            XYZ center = (bb.Min + bb.Max) * 0.5;
 
-            // ======================================================
-            // КРУГЛЫЕ
-            // ======================================================
-            if (isRound)
+            Solid solid = GetSolid(e);
+
+            // -------------------------------
+            // 1. ПЫТАЕМСЯ ЧЕРЕЗ EDGE
+            // -------------------------------
+            if (solid != null)
             {
-                Solid solid = GetSolid(e);
-                if (solid == null || solid.Volume < 1e-6)
+                double tol = targetLen * 0.2;
+                Edge bestEdge = null;
+                double bestDelta = double.MaxValue;
+
+                foreach (Edge edge in solid.Edges)
                 {
-                    p1 = a;
-                    p2 = b;
-                    return true;
+                    double len = edge.ApproximateLength;
+                    double delta = Math.Abs(len - targetLen);
+
+                    if (delta < tol && delta < bestDelta)
+                    {
+                        bestDelta = delta;
+                        bestEdge = edge;
+                    }
                 }
 
-                XYZ centroid = solid.ComputeCentroid();
-                XYZ proj = a + dir * ((centroid - a).DotProduct(dir));
-                XYZ offset = centroid - proj;
-
-                p1 = a + offset;
-                p2 = b + offset;
-                return true;
+                if (bestEdge != null)
+                {
+                    IList<XYZ> pts = bestEdge.Tessellate();
+                    if (pts.Count >= 2)
+                    {
+                        XYZ dir = (pts.Last() - pts.First()).Normalize();
+                        p1 = center - dir * targetLen / 2;
+                        p2 = center + dir * targetLen / 2;
+                        return true;
+                    }
+                }
             }
 
-            // ======================================================
-            // ПРЯМОУГОЛЬНЫЕ — ЕДИНСТВЕННО ВЕРНЫЙ СПОСОБ
-            // ======================================================
-            Solid rectSolid = GetSolid(e);
-            if (rectSolid == null || rectSolid.Volume < 1e-6)
+            // -------------------------------
+            // 2. FALLBACK: ПО FACE NORMAL
+            // -------------------------------
+            if (solid != null)
             {
-                // fallback — без смещения
-                p1 = a;
-                p2 = b;
-                return true;
+                Face bestFace = null;
+                double maxArea = 0;
+
+                foreach (Face f in solid.Faces)
+                {
+                    if (f.Area > maxArea)
+                    {
+                        maxArea = f.Area;
+                        bestFace = f;
+                    }
+                }
+
+                if (bestFace != null)
+                {
+                    XYZ normal = bestFace.ComputeNormal(new UV(0.5, 0.5));
+                    XYZ dir = normal.CrossProduct(XYZ.BasisZ);
+
+                    if (dir.GetLength() < 1e-6)
+                        dir = normal.CrossProduct(XYZ.BasisX);
+
+                    dir = dir.Normalize();
+
+                    p1 = center - dir * targetLen / 2;
+                    p2 = center + dir * targetLen / 2;
+                    return true;
+                }
             }
 
-            XYZ centroidR = rectSolid.ComputeCentroid();
-            XYZ projR = a + dir * ((centroidR - a).DotProduct(dir));
-            XYZ realOffset = centroidR - projR;
+            // -------------------------------
+            // 3. LAST FALLBACK: BOUNDING BOX
+            // -------------------------------
+            XYZ size = bb.Max - bb.Min;
 
-            // ⚠️ НИКАКОЙ МАТЕМАТИКИ С WIDTH / HEIGHT
-            // используем реальный вектор смещения профиля
+            XYZ fallbackDir =
+                size.X >= size.Y && size.X >= size.Z ? XYZ.BasisX :
+                size.Y >= size.X && size.Y >= size.Z ? XYZ.BasisY :
+                XYZ.BasisZ;
 
-            p1 = a + realOffset;
-            p2 = b + realOffset;
+            p1 = center - fallbackDir * targetLen / 2;
+            p2 = center + fallbackDir * targetLen / 2;
 
             return true;
         }
 
 
 
-
-
-        // =========================================================
-        // НАПРАВЛЕНИЕ = САМАЯ ДЛИННАЯ CURVE
-        // =========================================================
-
-        private Curve GetLongestCurve(Element e)
-        {
-            Options opt = new Options
-            {
-                IncludeNonVisibleObjects = true,
-                DetailLevel = ViewDetailLevel.Fine
-            };
-
-            GeometryElement geom = e.get_Geometry(opt);
-            if (geom == null)
-                return null;
-
-            Curve longest = null;
-            double maxLen = 0;
-
-            void Collect(GeometryObject go)
-            {
-                if (go is Curve c)
-                {
-                    if (c.Length > maxLen)
-                    {
-                        maxLen = c.Length;
-                        longest = c;
-                    }
-                }
-                else if (go is Solid s)
-                {
-                    foreach (Edge ed in s.Edges)
-                        Collect(ed.AsCurve());
-                }
-                else if (go is GeometryInstance gi)
-                {
-                    foreach (GeometryObject igo in gi.GetInstanceGeometry())
-                        Collect(igo);
-                }
-            }
-
-            foreach (GeometryObject go in geom)
-                Collect(go);
-
-            return longest;
-        }
-
-        // =========================================================
-        // SOLID (ТОЛЬКО ДЛЯ КРУГЛЫХ)
-        // =========================================================
+        // ======================================================
+        // SOLID
+        // ======================================================
 
         private Solid GetSolid(Element e)
         {
@@ -282,13 +268,30 @@ namespace IFCtoRevitDucts
                     }
                 }
             }
-
             return null;
         }
 
-        // =========================================================
-        // РАЗМЕРЫ MAGiCAD
-        // =========================================================
+        // ======================================================
+        // IFC LENGTH
+        // ======================================================
+
+        private double GetIfcLengthMM(Element e)
+        {
+            Parameter p = e.LookupParameter("Length(MagiCAD Pset_Duct)");
+            if (p == null) return 0;
+
+            double.TryParse(
+                p.AsValueString()?.Replace(",", "."),
+                System.Globalization.NumberStyles.Any,
+                System.Globalization.CultureInfo.InvariantCulture,
+                out double v);
+
+            return v;
+        }
+
+        // ======================================================
+        // SIZE
+        // ======================================================
 
         private void GetSizeFromIFCParam(
             Element e,
@@ -324,9 +327,49 @@ namespace IFCtoRevitDucts
             }
         }
 
-        // =========================================================
-        // ТИП ВОЗДУХОВОДА
-        // =========================================================
+        // ======================================================
+        // SYSTEM
+        // ======================================================
+
+        private string GetIfcSystem(Element e)
+        {
+            Parameter p = e.LookupParameter("IfcSystem");
+            return p?.AsString() ?? p?.AsValueString() ?? "";
+        }
+
+        private ElementId GetSystemTypeByIfcSystem(
+            Document doc,
+            string ifcSystem)
+        {
+            string s = (ifcSystem ?? "").ToLower();
+            string target =
+                s.Contains("приток") ? "ADSK_М_Приток" :
+                s.Contains("вытяж") ? "ADSK_М_Вытяжка" :
+                null;
+
+            if (target != null)
+            {
+                var mst = new FilteredElementCollector(doc)
+                    .OfClass(typeof(MechanicalSystemType))
+                    .Cast<MechanicalSystemType>()
+                    .FirstOrDefault(t =>
+                        t.Name.Equals(target,
+                        StringComparison.OrdinalIgnoreCase));
+
+                if (mst != null)
+                    return mst.Id;
+            }
+
+            return new FilteredElementCollector(doc)
+                .OfClass(typeof(MechanicalSystemType))
+                .Cast<MechanicalSystemType>()
+                .FirstOrDefault()
+                ?.Id;
+        }
+
+        // ======================================================
+        // DUCT TYPE
+        // ======================================================
 
         private DuctType FindDuctType(Document doc, bool isRound)
         {
@@ -339,31 +382,20 @@ namespace IFCtoRevitDucts
                         : t.Shape == ConnectorProfileType.Rectangular);
         }
 
-        // =========================================================
-        // SERVICE
-        // =========================================================
+        // ======================================================
+        // LEVEL
+        // ======================================================
 
         private ElementId GetOrCreateLevel(Document doc)
         {
-            return new FilteredElementCollector(doc)
+            Level lvl = new FilteredElementCollector(doc)
                 .OfClass(typeof(Level))
                 .Cast<Level>()
-                .FirstOrDefault()?.Id
-                ?? Level.Create(doc, 0).Id;
-        }
+                .FirstOrDefault();
 
-        private ElementId GetOrCreateAirSystemType(Document doc)
-        {
-            return new FilteredElementCollector(doc)
-                .OfClass(typeof(MechanicalSystemType))
-                .Cast<MechanicalSystemType>()
-                .FirstOrDefault(t =>
-                    t.SystemClassification == MEPSystemClassification.SupplyAir)
-                ?.Id
-                ?? MechanicalSystemType.Create(
-                    doc,
-                    MEPSystemClassification.SupplyAir,
-                    "IFC Air System").Id;
+            return lvl != null
+                ? lvl.Id
+                : Level.Create(doc, 0).Id;
         }
     }
 }
