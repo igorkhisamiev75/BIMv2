@@ -390,6 +390,8 @@ namespace IFCtoRevitDucts
 
             if (s.Contains("приток")) target = "ADSK_М_Приток";
             else if (s.Contains("вытяж")) target = "ADSK_М_Вытяжка";
+            else if (s.Contains("пду")) target = "ADSK_М_Подпор";
+            else if (s.Contains("ду")) target = "ADSK_М_Дымоудаление";
 
             if (target != null)
             {
