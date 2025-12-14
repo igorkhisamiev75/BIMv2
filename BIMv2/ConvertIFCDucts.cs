@@ -53,6 +53,7 @@ namespace IFCtoRevitDucts
 
                     try
                     {
+                        // ---------- РАЗМЕРЫ ----------
                         GetSizeFromIFCParam(
                             ifcElem,
                             out bool isRound,
@@ -66,24 +67,24 @@ namespace IFCtoRevitDucts
                         if (!isRound && (widthMM <= 0 || heightMM <= 0))
                             throw new Exception("Некорректные размеры");
 
-                        double lengthMM = GetIfcLengthMM(ifcElem);
-                        if (lengthMM <= 1)
-                            throw new Exception("Некорректная длина IFC");
-
-                        if (!GetAxisFromEdge(
+                        // ---------- ОСЬ ----------
+                        if (!GetAxis(
                             ifcElem,
-                            lengthMM,
                             out XYZ p1,
                             out XYZ p2))
                             throw new Exception("Не удалось определить ось");
 
+                        // ---------- ТИП ВОЗДУХОВОДА ----------
                         DuctType ductType = FindDuctType(doc, isRound);
                         if (ductType == null)
-                            throw new Exception("Нет типа воздуховода");
+                            throw new Exception("Нет подходящего типа воздуховода");
 
+                        // ---------- ТИП СИСТЕМЫ ----------
+                        string ifcSystem = GetIfcSystem(ifcElem);
                         ElementId systemTypeId =
-                            GetSystemTypeByIfcSystem(doc, GetIfcSystem(ifcElem));
+                            GetSystemTypeByIfcSystem(doc, ifcSystem);
 
+                        // ---------- СОЗДАНИЕ ----------
                         Duct duct = Duct.Create(
                             doc,
                             systemTypeId,
@@ -93,8 +94,9 @@ namespace IFCtoRevitDucts
                             p2);
 
                         if (duct == null)
-                            throw new Exception("Duct.Create == null");
+                            throw new Exception("Duct.Create вернул null");
 
+                        // ---------- РАЗМЕРЫ ----------
                         if (isRound)
                         {
                             duct.get_Parameter(
@@ -110,6 +112,14 @@ namespace IFCtoRevitDucts
                             duct.get_Parameter(
                                 BuiltInParameter.RBS_CURVE_HEIGHT_PARAM)
                                 ?.Set(heightMM / 304.8);
+
+                            // 🔑 ФИКС ПОВОРОТА ПРОФИЛЯ
+                            FixRectangularProfileOrientation(
+    duct,
+    widthMM,
+    heightMM,
+    Math.Abs((p2 - p1).GetLength()) * 304.8); // длина в мм
+
                         }
 
                         ok++;
@@ -126,123 +136,55 @@ namespace IFCtoRevitDucts
 
             TaskDialog.Show(
                 "Готово",
-                $"Создан1о: {ok}\nОшибок: {fail}\nВсего: {picked.Count}");
+                $"Создано: {ok}\nОшибок: {fail}\nВсего: {picked.Count}");
 
             return Result.Succeeded;
         }
 
         // ======================================================
-        // ОСЬ ИЗ EDGE ПО IFC LENGTH
+        // ОСЬ (через самую длинную геом. линию + центр BB)
         // ======================================================
 
-        private bool GetAxisFromEdge(
-    Element e,
-    double lengthMM,
-    out XYZ p1,
-    out XYZ p2)
+        private bool GetAxis(
+     Element e,
+     out XYZ p1,
+     out XYZ p2)
         {
             p1 = p2 = XYZ.Zero;
 
-            double targetLen = lengthMM / 304.8;
+            // ---------- ДЛИНА ИЗ IFC ----------
+            double lengthMM = 0;
+            Parameter lp = e.LookupParameter("Length(MagiCAD Pset_Duct)");
+            if (lp != null)
+                double.TryParse(
+                    lp.AsValueString()?.Replace(",", "."),
+                    System.Globalization.NumberStyles.Any,
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    out lengthMM);
 
+            if (lengthMM <= 1)
+                return false;
+
+            double halfLen = (lengthMM / 304.8) / 2.0;
+
+            // ---------- НАПРАВЛЕНИЕ ----------
+            XYZ dir = GetAxisDirection(e);
+            if (dir == null)
+                return false;
+
+            // ---------- ЦЕНТР ----------
             BoundingBoxXYZ bb = e.get_BoundingBox(null);
             if (bb == null)
                 return false;
 
             XYZ center = (bb.Min + bb.Max) * 0.5;
 
-            Solid solid = GetSolid(e);
-
-            // -------------------------------
-            // 1. ПЫТАЕМСЯ ЧЕРЕЗ EDGE
-            // -------------------------------
-            if (solid != null)
-            {
-                double tol = targetLen * 0.2;
-                Edge bestEdge = null;
-                double bestDelta = double.MaxValue;
-
-                foreach (Edge edge in solid.Edges)
-                {
-                    double len = edge.ApproximateLength;
-                    double delta = Math.Abs(len - targetLen);
-
-                    if (delta < tol && delta < bestDelta)
-                    {
-                        bestDelta = delta;
-                        bestEdge = edge;
-                    }
-                }
-
-                if (bestEdge != null)
-                {
-                    IList<XYZ> pts = bestEdge.Tessellate();
-                    if (pts.Count >= 2)
-                    {
-                        XYZ dir = (pts.Last() - pts.First()).Normalize();
-                        p1 = center - dir * targetLen / 2;
-                        p2 = center + dir * targetLen / 2;
-                        return true;
-                    }
-                }
-            }
-
-            // -------------------------------
-            // 2. FALLBACK: ПО FACE NORMAL
-            // -------------------------------
-            if (solid != null)
-            {
-                Face bestFace = null;
-                double maxArea = 0;
-
-                foreach (Face f in solid.Faces)
-                {
-                    if (f.Area > maxArea)
-                    {
-                        maxArea = f.Area;
-                        bestFace = f;
-                    }
-                }
-
-                if (bestFace != null)
-                {
-                    XYZ normal = bestFace.ComputeNormal(new UV(0.5, 0.5));
-                    XYZ dir = normal.CrossProduct(XYZ.BasisZ);
-
-                    if (dir.GetLength() < 1e-6)
-                        dir = normal.CrossProduct(XYZ.BasisX);
-
-                    dir = dir.Normalize();
-
-                    p1 = center - dir * targetLen / 2;
-                    p2 = center + dir * targetLen / 2;
-                    return true;
-                }
-            }
-
-            // -------------------------------
-            // 3. LAST FALLBACK: BOUNDING BOX
-            // -------------------------------
-            XYZ size = bb.Max - bb.Min;
-
-            XYZ fallbackDir =
-                size.X >= size.Y && size.X >= size.Z ? XYZ.BasisX :
-                size.Y >= size.X && size.Y >= size.Z ? XYZ.BasisY :
-                XYZ.BasisZ;
-
-            p1 = center - fallbackDir * targetLen / 2;
-            p2 = center + fallbackDir * targetLen / 2;
-
+            p1 = center - dir * halfLen;
+            p2 = center + dir * halfLen;
             return true;
         }
 
-
-
-        // ======================================================
-        // SOLID
-        // ======================================================
-
-        private Solid GetSolid(Element e)
+        private XYZ GetAxisDirection(Element e)
         {
             Options opt = new Options
             {
@@ -254,43 +196,145 @@ namespace IFCtoRevitDucts
             if (geom == null)
                 return null;
 
-            foreach (GeometryObject go in geom)
-            {
-                if (go is Solid s && s.Volume > 0)
-                    return s;
+            XYZ best = null;
+            double bestLen = 0;
 
-                if (go is GeometryInstance gi)
+            void Collect(GeometryObject go)
+            {
+                if (go is Solid s)
                 {
-                    foreach (GeometryObject igo in gi.GetInstanceGeometry())
+                    foreach (Edge ed in s.Edges)
                     {
-                        if (igo is Solid ss && ss.Volume > 0)
-                            return ss;
+                        IList<XYZ> pts = ed.Tessellate();
+                        if (pts.Count < 2) continue;
+
+                        XYZ v = pts[1] - pts[0];
+                        double len = v.GetLength();
+                        if (len > bestLen)
+                        {
+                            bestLen = len;
+                            best = v.Normalize();
+                        }
                     }
                 }
+                else if (go is GeometryInstance gi)
+                {
+                    foreach (GeometryObject igo in gi.GetInstanceGeometry())
+                        Collect(igo);
+                }
             }
-            return null;
+
+            foreach (GeometryObject go in geom)
+                Collect(go);
+
+            return best;
         }
 
+
         // ======================================================
-        // IFC LENGTH
+        // САМАЯ ДЛИННАЯ CURVE
         // ======================================================
 
-        private double GetIfcLengthMM(Element e)
+        private Curve GetLongestCurve(Element e)
         {
-            Parameter p = e.LookupParameter("Length(MagiCAD Pset_Duct)");
-            if (p == null) return 0;
+            Options opt = new Options
+            {
+                IncludeNonVisibleObjects = true,
+                DetailLevel = ViewDetailLevel.Fine
+            };
 
-            double.TryParse(
-                p.AsValueString()?.Replace(",", "."),
-                System.Globalization.NumberStyles.Any,
-                System.Globalization.CultureInfo.InvariantCulture,
-                out double v);
+            GeometryElement geom = e.get_Geometry(opt);
+            if (geom == null)
+                return null;
 
-            return v;
+            Curve longest = null;
+            double maxLen = 0;
+
+            void Collect(GeometryObject go)
+            {
+                if (go is Curve c)
+                {
+                    if (c.Length > maxLen)
+                    {
+                        maxLen = c.Length;
+                        longest = c;
+                    }
+                }
+                else if (go is Solid s)
+                {
+                    foreach (Edge ed in s.Edges)
+                        Collect(ed.AsCurve());
+                }
+                else if (go is GeometryInstance gi)
+                {
+                    foreach (GeometryObject igo in gi.GetInstanceGeometry())
+                        Collect(igo);
+                }
+            }
+
+            foreach (GeometryObject go in geom)
+                Collect(go);
+
+            return longest;
         }
 
         // ======================================================
-        // SIZE
+        // ФИКС ПОВОРОТА ПРЯМОУГОЛЬНОГО ПРОФИЛЯ
+        // ======================================================
+
+        // ======================================================
+        // ФИКС ПОВОРОТА ПРЯМОУГОЛЬНОГО ПРОФИЛЯ (ГОРИЗОНТАЛЬНЫЕ)
+        // ======================================================
+
+        // ======================================================
+        // ФИКС ПОВОРОТА ПРЯМОУГОЛЬНОГО ПРОФИЛЯ
+        // ПОВОРОТ В ПЛОСКОСТИ XY (ВОКРУГ ОСИ Z)
+        // ======================================================
+
+        private void FixRectangularProfileOrientation(
+            Duct duct,
+            double widthMM,
+            double heightMM,
+            double lengthMM)
+        {
+            LocationCurve lc = duct.Location as LocationCurve;
+            if (lc == null)
+                return;
+
+            Line ductLine = lc.Curve as Line;
+            if (ductLine == null)
+                return;
+
+            XYZ dir = ductLine.Direction.Normalize();
+
+            // ❌ вертикальные НЕ ТРОГАЕМ
+            if (Math.Abs(dir.DotProduct(XYZ.BasisZ)) > 0.9)
+                return;
+
+            // ✅ только если длина меньше ширины или высоты
+            if (lengthMM >= widthMM && lengthMM >= heightMM)
+                return;
+
+            // ---------- центр воздуховода ----------
+            XYZ center = (ductLine.GetEndPoint(0) + ductLine.GetEndPoint(1)) * 0.5;
+
+            // ---------- ОСЬ ВРАЩЕНИЯ: Z ----------
+            Line rotationAxis = Line.CreateUnbound(center, XYZ.BasisZ);
+
+            try
+            {
+                duct.Location.Rotate(rotationAxis, Math.PI / 2);
+            }
+            catch
+            {
+                // Revit иногда отказывается — игнорируем
+            }
+        }
+
+
+
+        // ======================================================
+        // РАЗМЕРЫ ИЗ MAGiCAD
         // ======================================================
 
         private void GetSizeFromIFCParam(
@@ -328,7 +372,7 @@ namespace IFCtoRevitDucts
         }
 
         // ======================================================
-        // SYSTEM
+        // IFC SYSTEM → MECHANICAL SYSTEM TYPE
         // ======================================================
 
         private string GetIfcSystem(Element e)
@@ -342,10 +386,10 @@ namespace IFCtoRevitDucts
             string ifcSystem)
         {
             string s = (ifcSystem ?? "").ToLower();
-            string target =
-                s.Contains("приток") ? "ADSK_М_Приток" :
-                s.Contains("вытяж") ? "ADSK_М_Вытяжка" :
-                null;
+            string target = null;
+
+            if (s.Contains("приток")) target = "ADSK_М_Приток";
+            else if (s.Contains("вытяж")) target = "ADSK_М_Вытяжка";
 
             if (target != null)
             {
@@ -368,7 +412,7 @@ namespace IFCtoRevitDucts
         }
 
         // ======================================================
-        // DUCT TYPE
+        // ТИП ВОЗДУХОВОДА
         // ======================================================
 
         private DuctType FindDuctType(Document doc, bool isRound)
@@ -399,3 +443,6 @@ namespace IFCtoRevitDucts
         }
     }
 }
+
+
+
