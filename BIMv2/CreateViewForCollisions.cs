@@ -170,8 +170,9 @@ namespace BIMv2
             }
         }
 
+      
         /// <summary>
-        /// 2. Создаем базу данных обобщенных моделей, дверей, окон, импостов витража, панелей витража и соединительных деталей
+        /// 2. Создаем базу данных обобщенных моделей, дверей, окон, импостов витража, панелей витража, соединительных деталей, воздуховодов и труб
         /// </summary>
         private void BuildExtendedElementsDatabase()
         {
@@ -220,6 +221,30 @@ namespace BIMv2
                 .WhereElementIsNotElementType()
                 .ToList();
 
+            // Собираем воздуховоды
+            var ducts = new FilteredElementCollector(_doc)
+                .OfCategory(BuiltInCategory.OST_DuctCurves)
+                .WhereElementIsNotElementType()
+                .ToList();
+
+            // Собираем трубы
+            var pipes = new FilteredElementCollector(_doc)
+                .OfCategory(BuiltInCategory.OST_PipeCurves)
+                .WhereElementIsNotElementType()
+                .ToList();
+
+            // Собираем арматуру воздуховодов (дополнительные компоненты)
+            var ductAccessories = new FilteredElementCollector(_doc)
+                .OfCategory(BuiltInCategory.OST_DuctAccessory)
+                .WhereElementIsNotElementType()
+                .ToList();
+
+            // Собираем арматуру труб (дополнительные компоненты)
+            var pipeAccessories = new FilteredElementCollector(_doc)
+                .OfCategory(BuiltInCategory.OST_PipeAccessory)
+                .WhereElementIsNotElementType()
+                .ToList();
+
             Debug.WriteLine($"=== ПОСТРОЕНИЕ БАЗЫ ДАННЫХ ===");
             Debug.WriteLine($"Найдено обобщенных моделей: {genericModels.Count}");
             Debug.WriteLine($"Найдено дверей: {doors.Count}");
@@ -228,6 +253,10 @@ namespace BIMv2
             Debug.WriteLine($"Найдено панелей витража: {curtainPanels.Count}");
             Debug.WriteLine($"Найдено соединительных деталей воздуховодов: {ductFittings.Count}");
             Debug.WriteLine($"Найдено соединительных деталей труб: {pipeFittings.Count}");
+            Debug.WriteLine($"Найдено воздуховодов: {ducts.Count}");
+            Debug.WriteLine($"Найдено труб: {pipes.Count}");
+            Debug.WriteLine($"Найдено арматуры воздуховодов: {ductAccessories.Count}");
+            Debug.WriteLine($"Найдено арматуры труб: {pipeAccessories.Count}");
 
             // Обрабатываем обобщенные модели
             ProcessElementsCollection(genericModels, "Обобщенная модель");
@@ -249,6 +278,18 @@ namespace BIMv2
 
             // Обрабатываем соединительные детали труб
             ProcessElementsCollection(pipeFittings, "Соединительная деталь трубы");
+
+            // Обрабатываем воздуховоды
+            ProcessElementsCollection(ducts, "Воздуховод");
+
+            // Обрабатываем трубы
+            ProcessElementsCollection(pipes, "Труба");
+
+            // Обрабатываем арматуру воздуховодов
+            ProcessElementsCollection(ductAccessories, "Арматура воздуховода");
+
+            // Обрабатываем арматуру труб
+            ProcessElementsCollection(pipeAccessories, "Арматура трубы");
 
             Debug.WriteLine($"База построена: {_symbolToElementsMap.Count} FamilySymbolId, {_elementToSymbolMap.Count} элементов");
         }
@@ -753,7 +794,7 @@ namespace BIMv2
         }
     }
 
-    // Остальные классы форм остаются без изменений...
+    
     public partial class CollisionSettingsForm : System.Windows.Forms.Form
     {
         public System.Drawing.Color Collision1Color { get; set; }
