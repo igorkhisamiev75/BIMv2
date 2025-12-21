@@ -9,7 +9,7 @@ using Autodesk.Revit.UI;
 
 using ComboBox = System.Windows.Forms.ComboBox;
 
-namespace WallExtensionAddin
+namespace RevitAddIn2BIMRU.Commands.AR
 {
     [Transaction(TransactionMode.Manual)]
     [Regeneration(RegenerationOption.Manual)]
@@ -46,7 +46,7 @@ namespace WallExtensionAddin
                     return Result.Failed;
                 }
 
-                // Открываем форму для выбора параметров
+                // Открываем формы для выбора параметров
                 using (var form = new WallExtensionForm(wallTypes, levels, doc))
                 {
                     if (form.ShowDialog() == DialogResult.OK)
@@ -149,6 +149,9 @@ namespace WallExtensionAddin
                 // Получаем высоту базовой стены
                 double baseWallHeight = GetWallUnconnectedHeight(baseWall);
 
+                // Получаем базовое смещение базовой стены
+                double baseWallBaseOffset = GetWallBaseOffset(baseWall);
+
                 // Получаем отметку верха базовой стены
                 double baseWallTopElevation = GetWallTopElevation(baseWall);
 
@@ -160,7 +163,7 @@ namespace WallExtensionAddin
                     return (false, "Не найдено перекрытие над стеной");
                 }
 
-                // Получаем уровень и отметку низа перекрытия
+                // Получаем отметку низа перекрытия
                 double floorBottomElevation = GetFloorBottomElevation(floorAbove);
 
                 // Проверяем, что перекрытие выше верха стены
@@ -181,9 +184,9 @@ namespace WallExtensionAddin
                     return (false, $"Высота новой стены слишком мала: {Math.Round(newWallHeightMm, 1)} мм (минимум {minWallHeightMm} мм)");
                 }
 
-                // ВЫЧИСЛЯЕМ БАЗОВОЕ СМЕЩЕНИЕ - это высота базовой стены
-                // Новая стена должна начинаться на верху базовой стены
-                double baseOffset = baseWallHeight;
+                // ВЫЧИСЛЯЕМ БАЗОВОЕ СМЕЩЕНИЕ ДЛЯ НОВОЙ СТЕНЫ
+                // Высота базовой стены + ее базовое смещение = общее смещение от уровня
+                double newWallBaseOffset = baseWallHeight + baseWallBaseOffset;
 
                 // Создаем новую стену
                 Wall newWall = null;
@@ -191,13 +194,13 @@ namespace WallExtensionAddin
                 if (wallCurve is Line)
                 {
                     Line line = wallCurve as Line;
-                    // Создаем стену с базовым смещением = высоте базовой стены
-                    newWall = Wall.Create(doc, line, newWallType.Id, baseLevel.Id, baseOffset, newWallHeight, false, false);
+                    // Создаем стену с рассчитанным базовым смещением
+                    newWall = Wall.Create(doc, line, newWallType.Id, baseLevel.Id, newWallBaseOffset, newWallHeight, false, false);
                 }
                 else if (wallCurve is Arc)
                 {
                     Arc arc = wallCurve as Arc;
-                    newWall = Wall.Create(doc, arc, newWallType.Id, baseLevel.Id, baseOffset, newWallHeight, false, false);
+                    newWall = Wall.Create(doc, arc, newWallType.Id, baseLevel.Id, newWallBaseOffset, newWallHeight, false, false);
                 }
                 else
                 {
@@ -216,7 +219,7 @@ namespace WallExtensionAddin
                     }
 
                     Line simplifiedLine = Line.CreateBound(startPoint, endPoint);
-                    newWall = Wall.Create(doc, simplifiedLine, newWallType.Id, baseLevel.Id, baseOffset, newWallHeight, false, false);
+                    newWall = Wall.Create(doc, simplifiedLine, newWallType.Id, baseLevel.Id, newWallBaseOffset, newWallHeight, false, false);
                 }
 
                 if (newWall != null)
@@ -226,9 +229,9 @@ namespace WallExtensionAddin
                     if (baseOffsetParam != null && !baseOffsetParam.IsReadOnly)
                     {
                         double currentOffset = baseOffsetParam.AsDouble();
-                        if (Math.Abs(currentOffset - baseOffset) > 0.001)
+                        if (Math.Abs(currentOffset - newWallBaseOffset) > 0.001)
                         {
-                            baseOffsetParam.Set(baseOffset);
+                            baseOffsetParam.Set(newWallBaseOffset);
                         }
                     }
 
@@ -247,6 +250,17 @@ namespace WallExtensionAddin
             {
                 return (false, $"Ошибка создания: {ex.Message}");
             }
+        }
+
+        private double GetWallBaseOffset(Wall wall)
+        {
+            // Получаем базовое смещение стены
+            Parameter baseOffsetParam = wall.get_Parameter(BuiltInParameter.WALL_BASE_OFFSET);
+            if (baseOffsetParam != null && baseOffsetParam.HasValue)
+            {
+                return baseOffsetParam.AsDouble();
+            }
+            return 0.0;
         }
 
         private Floor FindFloorAboveWall(Document doc, Wall wall)
