@@ -320,11 +320,11 @@
     <Compile Include="DelUnplacedArea.cs" />
     <Compile Include="DelUnplacedRoom.cs" />
     <Compile Include="DisconnectWallsOptimized.cs" />
-    <Compile Include="DoorsInformationTransfer.cs" />
-    <Compile Include="DoorsInformationTransferBim.cs" />
-    <Compile Include="DoorsInformationTransferColorFurniture.cs" />
-    <Compile Include="DoorsInformationTransferComplectation.cs" />
-    <Compile Include="DoorsInformationTransferFinishDoor.cs" />
+    <Compile Include="archive\DoorsInformationTransfer.cs" />
+    <Compile Include="archive\DoorsInformationTransferBim.cs" />
+    <Compile Include="archive\DoorsInformationTransferColorFurniture.cs" />
+    <Compile Include="archive\DoorsInformationTransferComplectation.cs" />
+    <Compile Include="archive\DoorsInformationTransferFinishDoor.cs" />
     <Compile Include="DuplicateSheets.cs" />
     <Compile Include="EditDimentionsForPlans.cs" />
     <Compile Include="EnhancedStairFinishing .cs" />
