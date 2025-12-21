@@ -88,13 +88,6 @@ namespace WallExtensionAddin
                 throw new Exception($"На уровне '{baseLevel.Name}' не найдены стены типа '{baseWallType.Name}'");
             }
 
-            // Получаем следующий уровень
-            Level nextLevel = GetNextLevel(doc, baseLevel);
-            if (nextLevel == null)
-            {
-                throw new Exception("Не найден следующий уровень выше выбранного");
-            }
-
             int createdWallsCount = 0;
             int skippedWallsCount = 0;
             List<string> skippedWallsInfo = new List<string>();
@@ -105,7 +98,7 @@ namespace WallExtensionAddin
 
                 foreach (Wall baseWall in walls)
                 {
-                    var result = CreateExtendedWall(doc, baseWall, newWallType, baseLevel, nextLevel);
+                    var result = CreateExtendedWall(doc, baseWall, newWallType, baseLevel);
                     if (result.Success)
                     {
                         createdWallsCount++;
@@ -124,7 +117,7 @@ namespace WallExtensionAddin
             }
 
             // Показываем результат с информацией о пропущенных стенах
-            string resultMessage = $"Создано {createdWallsCount} новых стен от верха стен уровня '{baseLevel.Name}' до уровня '{nextLevel.Name}'";
+            string resultMessage = $"Создано {createdWallsCount} новых стен";
 
             if (skippedWallsCount > 0)
             {
@@ -142,7 +135,7 @@ namespace WallExtensionAddin
             TaskDialog.Show("Результат", resultMessage);
         }
 
-        private (bool Success, string Message) CreateExtendedWall(Document doc, Wall baseWall, WallType newWallType, Level baseLevel, Level nextLevel)
+        private (bool Success, string Message) CreateExtendedWall(Document doc, Wall baseWall, WallType newWallType, Level baseLevel)
         {
             try
             {
@@ -153,22 +146,32 @@ namespace WallExtensionAddin
 
                 Curve wallCurve = locationCurve.Curve;
 
-                // Получаем неприсоединенную высоту базовой стены (WALL_USER_HEIGHT_PARAM)
-                double baseWallUnconnectedHeight = GetWallUnconnectedHeight(baseWall);
+                // Получаем высоту базовой стены
+                double baseWallHeight = GetWallUnconnectedHeight(baseWall);
 
                 // Получаем отметку верха базовой стены
-                double baseWallTop = GetWallTopElevation(baseWall);
-                double nextLevelElevation = nextLevel.Elevation;
+                double baseWallTopElevation = GetWallTopElevation(baseWall);
 
-                // Проверяем, что следующий уровень выше верха текущей стены
-                if (nextLevelElevation <= baseWallTop)
+                // Ищем перекрытие над стеной
+                Floor floorAbove = FindFloorAboveWall(doc, baseWall);
+
+                if (floorAbove == null)
                 {
-                    double difference = (baseWallTop - nextLevelElevation) * FeetToMm;
-                    return (false, $"Следующий уровень ({nextLevel.Name}) ниже или на том же уровне, что и верх стены. Разница: {Math.Round(difference, 1)} мм");
+                    return (false, "Не найдено перекрытие над стеной");
                 }
 
-                // Вычисляем высоту новой стены (до следующего уровня)
-                double newWallHeight = nextLevelElevation - (baseLevel.Elevation + baseWallUnconnectedHeight);
+                // Получаем уровень и отметку низа перекрытия
+                double floorBottomElevation = GetFloorBottomElevation(floorAbove);
+
+                // Проверяем, что перекрытие выше верха стены
+                if (floorBottomElevation <= baseWallTopElevation)
+                {
+                    double difference = (baseWallTopElevation - floorBottomElevation) * FeetToMm;
+                    return (false, $"Перекрытие ниже или на том же уровне, что и верх стены. Разница: {Math.Round(difference, 1)} мм");
+                }
+
+                // Вычисляем высоту новой стены (от верха базовой стены до низа перекрытия)
+                double newWallHeight = floorBottomElevation - baseWallTopElevation;
                 double newWallHeightMm = newWallHeight * FeetToMm;
 
                 // Проверяем минимальную допустимую высоту стены (100 мм)
@@ -178,19 +181,23 @@ namespace WallExtensionAddin
                     return (false, $"Высота новой стены слишком мала: {Math.Round(newWallHeightMm, 1)} мм (минимум {minWallHeightMm} мм)");
                 }
 
-                // Создаем новую стену на том же уровне, что и базовая
+                // ВЫЧИСЛЯЕМ БАЗОВОЕ СМЕЩЕНИЕ - это высота базовой стены
+                // Новая стена должна начинаться на верху базовой стены
+                double baseOffset = baseWallHeight;
+
+                // Создаем новую стену
                 Wall newWall = null;
 
                 if (wallCurve is Line)
                 {
                     Line line = wallCurve as Line;
-                    // Создаем стену на базовом уровне с базовым смещением = неприсоединенной высоте базовой стены
-                    newWall = Wall.Create(doc, line, newWallType.Id, baseLevel.Id, baseWallUnconnectedHeight, newWallHeight, false, false);
+                    // Создаем стену с базовым смещением = высоте базовой стены
+                    newWall = Wall.Create(doc, line, newWallType.Id, baseLevel.Id, baseOffset, newWallHeight, false, false);
                 }
                 else if (wallCurve is Arc)
                 {
                     Arc arc = wallCurve as Arc;
-                    newWall = Wall.Create(doc, arc, newWallType.Id, baseLevel.Id, baseWallUnconnectedHeight, newWallHeight, false, false);
+                    newWall = Wall.Create(doc, arc, newWallType.Id, baseLevel.Id, baseOffset, newWallHeight, false, false);
                 }
                 else
                 {
@@ -209,33 +216,32 @@ namespace WallExtensionAddin
                     }
 
                     Line simplifiedLine = Line.CreateBound(startPoint, endPoint);
-                    newWall = Wall.Create(doc, simplifiedLine, newWallType.Id, baseLevel.Id, baseWallUnconnectedHeight, newWallHeight, false, false);
+                    newWall = Wall.Create(doc, simplifiedLine, newWallType.Id, baseLevel.Id, baseOffset, newWallHeight, false, false);
                 }
 
                 if (newWall != null)
                 {
-                    // ПРОВЕРЯЕМ: Смещение низа должно быть равно неприсоединенной высоте базовой стены
+                    // ПРОВЕРЯЕМ И КОРРЕКТИРУЕМ БАЗОВОЕ СМЕЩЕНИЕ
                     Parameter baseOffsetParam = newWall.get_Parameter(BuiltInParameter.WALL_BASE_OFFSET);
                     if (baseOffsetParam != null && !baseOffsetParam.IsReadOnly)
                     {
                         double currentOffset = baseOffsetParam.AsDouble();
-                        if (Math.Abs(currentOffset - baseWallUnconnectedHeight) > 0.001)
+                        if (Math.Abs(currentOffset - baseOffset) > 0.001)
                         {
-                            baseOffsetParam.Set(baseWallUnconnectedHeight);
+                            baseOffsetParam.Set(baseOffset);
                         }
                     }
 
-                    // Присоединяем верх новой стены к перекрытию сверху
-                    bool attached = AttachWallTopToFloor(doc, newWall, nextLevel);
-                    if (!attached)
-                    {
-                        // Если не удалось присоединить к перекрытию, привязываем к уровню
-                        SetWallTopConstraint(newWall, nextLevel);
-                    }
+                    // Присоединяем стену к перекрытию
+                    AttachWallToFloor(doc, newWall, floorAbove);
+
+                    // Устанавливаем верхнее ограничение как несвязанное
+                    SetWallTopUnconnected(newWall, newWallHeight);
+
                     return (true, null);
                 }
 
-                return (false, "Не удалось создать стену (неизвестная ошибка)");
+                return (false, "Не удалось создать стену");
             }
             catch (Exception ex)
             {
@@ -243,90 +249,184 @@ namespace WallExtensionAddin
             }
         }
 
-        private bool AttachWallTopToFloor(Document doc, Wall wall, Level upperLevel)
+        private Floor FindFloorAboveWall(Document doc, Wall wall)
         {
             try
             {
-                // Находим перекрытия на верхнем уровне
+                // Получаем BoundingBox стены
+                BoundingBoxXYZ wallBBox = wall.get_BoundingBox(null);
+                if (wallBBox == null)
+                    return null;
+
+                // Расширяем BoundingBox на 2 метра вверх для поиска перекрытия
+                double searchHeight = 2.0 / 0.3048; // 2 метра в футах
+                XYZ minPoint = wallBBox.Min;
+                XYZ maxPoint = new XYZ(wallBBox.Max.X, wallBBox.Max.Y, wallBBox.Max.Z + searchHeight);
+
+                // Создаем Outline для поиска
+                Outline outline = new Outline(minPoint, maxPoint);
+                BoundingBoxIntersectsFilter bboxFilter = new BoundingBoxIntersectsFilter(outline);
+
+                // Находим все перекрытия, пересекающиеся с расширенным BoundingBox
                 var floors = new FilteredElementCollector(doc)
                     .OfClass(typeof(Floor))
+                    .WherePasses(bboxFilter)
                     .Cast<Floor>()
-                    .Where(f => GetElementLevel(f)?.Id == upperLevel.Id)
+                    .Where(f => IsFloorAboveWall(f, wall))
+                    .OrderBy(f => GetFloorBottomElevation(f)) // Сортируем по ближайшему снизу
                     .ToList();
 
-                if (!floors.Any())
-                    return false;
-
-                // Используем метод JoinGeometryUtils для присоединения стены к перекрытию
-                bool joinedSuccessfully = false;
-
-                foreach (Floor floor in floors)
-                {
-                    try
-                    {
-                        // Пытаемся присоединить стену к перекрытию
-                        // JoinGeometryUtils.JoinGeometry возвращает void, поэтому используем try-catch
-                        JoinGeometryUtils.JoinGeometry(doc, wall, floor);
-
-                        // Если дошли до этой точки без исключения, присоединение успешно
-                        joinedSuccessfully = true;
-
-                        // После присоединения, устанавливаем верхнее ограничение на "Несвязанное"
-                        SetWallTopUnconnected(wall);
-                        break; // Выходим из цикла после успешного присоединения
-                    }
-                    catch (Exception ex)
-                    {
-                        // Пропускаем ошибки присоединения и пробуем следующее перекрытие
-                        System.Diagnostics.Debug.WriteLine($"Ошибка присоединения к перекрытию: {ex.Message}");
-                        continue;
-                    }
-                }
-
-                return joinedSuccessfully;
+                return floors.FirstOrDefault();
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Не удалось присоединить стену к перекрытию: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Ошибка поиска перекрытия: {ex.Message}");
+                return null;
+            }
+        }
+
+        private bool IsFloorAboveWall(Floor floor, Wall wall)
+        {
+            try
+            {
+                // Проверяем, что перекрытие находится над стеной
+                BoundingBoxXYZ floorBBox = floor.get_BoundingBox(null);
+                BoundingBoxXYZ wallBBox = wall.get_BoundingBox(null);
+
+                if (floorBBox == null || wallBBox == null)
+                    return false;
+
+                // Проверяем пересечение по X и Y
+                bool xIntersection = !(floorBBox.Max.X < wallBBox.Min.X || floorBBox.Min.X > wallBBox.Max.X);
+                bool yIntersection = !(floorBBox.Max.Y < wallBBox.Min.Y || floorBBox.Min.Y > wallBBox.Max.Y);
+
+                // Проверяем, что перекрытие выше стены
+                bool isAbove = floorBBox.Min.Z > wallBBox.Max.Z;
+
+                return xIntersection && yIntersection && isAbove;
+            }
+            catch
+            {
                 return false;
             }
         }
 
-        private void SetWallTopUnconnected(Wall wall)
+        private void AttachWallToFloor(Document doc, Wall wall, Floor floor)
         {
             try
             {
-                // Устанавливаем верхнее ограничение на "Несвязанное"
-                Parameter topConstraintParam = wall.get_Parameter(BuiltInParameter.WALL_HEIGHT_TYPE);
-                if (topConstraintParam != null && !topConstraintParam.IsReadOnly)
-                {
-                    // Устанавливаем несвязанное ограничение (ElementId.InvalidElementId)
-                    topConstraintParam.Set(ElementId.InvalidElementId);
-                }
-
-                // Автоматически вычисляем и устанавливаем высоту после присоединения
-                double wallHeight = GetWallActualHeight(wall);
-                Parameter heightParam = wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM);
-                if (heightParam != null && !heightParam.IsReadOnly)
-                {
-                    heightParam.Set(wallHeight);
-                }
+                // Присоединяем стену к перекрытию
+                JoinGeometryUtils.JoinGeometry(doc, wall, floor);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Ошибка установки несвязанного верха: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Ошибка присоединения стены к перекрытию: {ex.Message}");
+                // Продолжаем выполнение даже если не удалось присоединить
             }
         }
 
-        private double GetWallActualHeight(Wall wall)
+        private double GetFloorBottomElevation(Floor floor)
         {
             try
             {
-                // Получаем фактическую высоту стены через BoundingBox
-                BoundingBoxXYZ bbox = wall.get_BoundingBox(null);
+                // Пытаемся получить BoundingBox перекрытия
+                BoundingBoxXYZ bbox = floor.get_BoundingBox(null);
                 if (bbox != null)
                 {
-                    return bbox.Max.Z - bbox.Min.Z;
+                    return bbox.Min.Z;
+                }
+            }
+            catch
+            {
+                // Игнорируем ошибки BoundingBox
+            }
+
+            // Альтернативный способ через уровень и смещение
+            try
+            {
+                Parameter levelParam = floor.get_Parameter(BuiltInParameter.LEVEL_PARAM);
+                Parameter offsetParam = floor.get_Parameter(BuiltInParameter.FLOOR_HEIGHTABOVELEVEL_PARAM);
+
+                if (levelParam != null && levelParam.HasValue && offsetParam != null && offsetParam.HasValue)
+                {
+                    ElementId levelId = levelParam.AsElementId();
+                    if (levelId != ElementId.InvalidElementId)
+                    {
+                        Level level = floor.Document.GetElement(levelId) as Level;
+                        if (level != null)
+                        {
+                            return level.Elevation + offsetParam.AsDouble();
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Игнорируем ошибки параметров
+            }
+
+            // Fallback: через геометрию
+            try
+            {
+                Options options = new Options();
+                options.ComputeReferences = true;
+                options.DetailLevel = ViewDetailLevel.Fine;
+
+                GeometryElement geom = floor.get_Geometry(options);
+                if (geom != null)
+                {
+                    double minZ = double.MaxValue;
+
+                    foreach (GeometryObject obj in geom)
+                    {
+                        if (obj is Solid solid && solid.Faces.Size > 0)
+                        {
+                            foreach (Face face in solid.Faces)
+                            {
+                                try
+                                {
+                                    // Получаем BoundingBoxUV грани
+                                    BoundingBoxUV bboxUV = face.GetBoundingBox();
+
+                                    // Берем среднюю точку UV для оценки
+                                    UV midPointUV = new UV(
+                                        (bboxUV.Min.U + bboxUV.Max.U) / 2,
+                                        (bboxUV.Min.V + bboxUV.Max.V) / 2);
+
+                                    // Оцениваем точку на поверхности грани
+                                    XYZ pointOnFace = face.Evaluate(midPointUV);
+
+                                    if (pointOnFace != null && pointOnFace.Z < minZ)
+                                    {
+                                        minZ = pointOnFace.Z;
+                                    }
+                                }
+                                catch
+                                {
+                                    // Пропускаем ошибки на отдельных гранях
+                                }
+                            }
+                        }
+                    }
+
+                    if (minZ < double.MaxValue)
+                    {
+                        return minZ;
+                    }
+                }
+            }
+            catch
+            {
+                // Игнорируем ошибки геометрии
+            }
+
+            // Если ничего не сработало, пытаемся получить отметку из уровня перекрытия
+            try
+            {
+                Level floorLevel = GetElementLevel(floor);
+                if (floorLevel != null)
+                {
+                    return floorLevel.Elevation;
                 }
             }
             catch
@@ -334,37 +434,30 @@ namespace WallExtensionAddin
                 // Игнорируем ошибки
             }
 
-            // Возвращаем высоту из параметра как fallback
-            Parameter heightParam = wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM);
-            if (heightParam != null && heightParam.HasValue)
-            {
-                return heightParam.AsDouble();
-            }
-
-            return 3.0; // Значение по умолчанию 3 метра
+            return 0.0;
         }
 
-        private void SetWallTopConstraint(Wall wall, Level topLevel)
+        private void SetWallTopUnconnected(Wall wall, double height)
         {
             try
             {
-                // Устанавливаем верхнее ограничение - уровень
+                // Устанавливаем верхнее ограничение на "Несвязанное"
                 Parameter topConstraintParam = wall.get_Parameter(BuiltInParameter.WALL_HEIGHT_TYPE);
                 if (topConstraintParam != null && !topConstraintParam.IsReadOnly)
                 {
-                    topConstraintParam.Set(topLevel.Id);
+                    topConstraintParam.Set(ElementId.InvalidElementId);
                 }
 
-                // Устанавливаем несвязанную высоту на 0, так как высота определяется уровнем
+                // Устанавливаем высоту стены
                 Parameter heightParam = wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM);
                 if (heightParam != null && !heightParam.IsReadOnly)
                 {
-                    heightParam.Set(0.0);
+                    heightParam.Set(height);
                 }
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Ошибка установки ограничения верха: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Ошибка установки параметров стены: {ex.Message}");
             }
         }
 
@@ -379,6 +472,13 @@ namespace WallExtensionAddin
                     return element.Document.GetElement(levelId) as Level;
                 }
             }
+
+            // Альтернативный способ для стен
+            if (element is Wall wall)
+            {
+                return GetWallLevel(wall);
+            }
+
             return null;
         }
 
@@ -391,7 +491,7 @@ namespace WallExtensionAddin
                 return heightParam.AsDouble();
             }
 
-            // Альтернативный способ - вычисляем разницу между верхом и низом
+            // Вычисляем разницу между верхом и низом
             return GetWallTopElevation(wall) - GetWallBaseElevation(wall);
         }
 
@@ -413,18 +513,15 @@ namespace WallExtensionAddin
 
         private double GetWallTopElevation(Wall wall)
         {
-            // Пытаемся получить высоту через параметр высоты
+            // Способ 1: через параметр высоты
             Parameter heightParam = wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM);
             if (heightParam != null && heightParam.HasValue)
             {
-                Level baseLevel = GetWallLevel(wall);
-                if (baseLevel != null)
-                {
-                    return baseLevel.Elevation + heightParam.AsDouble();
-                }
+                double baseElevation = GetWallBaseElevation(wall);
+                return baseElevation + heightParam.AsDouble();
             }
 
-            // Альтернативный способ - через ограничение верха
+            // Способ 2: через ограничение верха
             Parameter topConstraint = wall.get_Parameter(BuiltInParameter.WALL_HEIGHT_TYPE);
             if (topConstraint != null && topConstraint.HasValue)
             {
@@ -439,11 +536,36 @@ namespace WallExtensionAddin
                 }
             }
 
-            // Третий способ - через BoundingBox
+            // Способ 3: через BoundingBox
             BoundingBoxXYZ bbox = wall.get_BoundingBox(null);
             if (bbox != null)
             {
                 return bbox.Max.Z;
+            }
+
+            // Способ 4: через LocationCurve для линейных стен
+            LocationCurve locationCurve = wall.Location as LocationCurve;
+            if (locationCurve != null)
+            {
+                Curve curve = locationCurve.Curve;
+                XYZ startPoint = curve.GetEndPoint(0);
+                XYZ endPoint = curve.GetEndPoint(1);
+
+                // Берем максимальную Z-координату из точек кривой
+                double maxZ = Math.Max(startPoint.Z, endPoint.Z);
+
+                // Добавляем половину толщины стены (предполагаем вертикальную стену)
+                WallType wallType = wall.Document.GetElement(wall.GetTypeId()) as WallType;
+                if (wallType != null)
+                {
+                    Parameter widthParam = wallType.get_Parameter(BuiltInParameter.WALL_ATTR_WIDTH_PARAM);
+                    if (widthParam != null && widthParam.HasValue)
+                    {
+                        maxZ += widthParam.AsDouble() / 2;
+                    }
+                }
+
+                return maxZ;
             }
 
             throw new Exception("Не удалось определить высоту стены");
@@ -461,19 +583,6 @@ namespace WallExtensionAddin
                 }
             }
             return null;
-        }
-
-        private Level GetNextLevel(Document doc, Level currentLevel)
-        {
-            FilteredElementCollector levelCollector = new FilteredElementCollector(doc);
-            var levels = levelCollector
-                .OfClass(typeof(Level))
-                .Cast<Level>()
-                .Where(l => l.Elevation > currentLevel.Elevation)
-                .OrderBy(l => l.Elevation)
-                .ToList();
-
-            return levels.FirstOrDefault();
         }
     }
 
@@ -603,13 +712,13 @@ namespace WallExtensionAddin
             this.lblInfo.AutoSize = true;
             this.lblInfo.Location = new System.Drawing.Point(12, 105);
             this.lblInfo.Name = "lblInfo";
-            this.lblInfo.Size = new System.Drawing.Size(456, 26);
-            this.lblInfo.Text = "Новая стена будет создана на том же уровне, что и базовая.\r\nНиз новой стены - на верху базовой, верх - присоединен к перекрытию сверху.";
+            this.lblInfo.Size = new System.Drawing.Size(456, 39);
+            this.lblInfo.Text = "Новая стена будет создана от верха выбранных стен до низа перекрытия над ними.\r\nПрограмма найдет ближайшее перекрытие над каждой стеной и установит высоту новой стены до его низа.\r\nСтена будет присоединена к перекрытию.";
             this.lblInfo.ForeColor = System.Drawing.Color.Blue;
 
             // btnOk
             this.btnOk.DialogResult = DialogResult.OK;
-            this.btnOk.Location = new System.Drawing.Point(312, 140);
+            this.btnOk.Location = new System.Drawing.Point(312, 150);
             this.btnOk.Name = "btnOk";
             this.btnOk.Size = new System.Drawing.Size(75, 23);
             this.btnOk.TabIndex = 3;
@@ -619,7 +728,7 @@ namespace WallExtensionAddin
 
             // btnCancel
             this.btnCancel.DialogResult = DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(393, 140);
+            this.btnCancel.Location = new System.Drawing.Point(393, 150);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(75, 23);
             this.btnCancel.TabIndex = 4;
@@ -629,7 +738,7 @@ namespace WallExtensionAddin
             // Form
             this.AcceptButton = this.btnOk;
             this.CancelButton = this.btnCancel;
-            this.ClientSize = new System.Drawing.Size(480, 175);
+            this.ClientSize = new System.Drawing.Size(480, 185);
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnOk);
             this.Controls.Add(this.lblInfo);
