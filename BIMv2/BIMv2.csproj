@@ -368,6 +368,7 @@
     <Compile Include="MarkElementsByPosition.cs" />
     <Compile Include="MIrrorCheck.cs" />
     <Compile Include="LoadFilesAutoSharedCoordinatesCommand.cs" />
+    <Compile Include="MoveRoomTagsToBottomRightCorner.cs" />
     <Compile Include="NormalIlluminationForLightFix.cs" />
     <Compile Include="PlaceElementsAboveDoors.cs" />
     <Compile Include="PluginFinish2BIM\CeilingFinish.cs" />
