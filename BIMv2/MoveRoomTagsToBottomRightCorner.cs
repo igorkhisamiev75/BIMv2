@@ -4,14 +4,24 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Windows.Forms;
-using System.Drawing; // Добавляем это
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
 
 using Autodesk.Revit.ApplicationServices;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
+
+using ComboBox = System.Windows.Controls.ComboBox;
+using Grid = System.Windows.Controls.Grid;
+using TextBox = System.Windows.Controls.TextBox;
 
 #endregion
 
@@ -30,18 +40,19 @@ namespace BIMv2
             Document doc = uiDoc.Document;
             Autodesk.Revit.DB.View view = doc.ActiveView;
 
-            // Показываем форму для настройки отступов
-            using (OffsetSettingsForm settingsForm = new OffsetSettingsForm(_offsetXmm, _offsetYmm))
+            // Показываем WPF окно для настройки отступов
+            var settingsWindow = new OffsetSettingsWindow(_offsetXmm, _offsetYmm);
+            settingsWindow.Owner = System.Windows.Application.Current?.MainWindow;
+            settingsWindow.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+
+            if (settingsWindow.ShowDialog() == true)
             {
-                if (settingsForm.ShowDialog() == DialogResult.OK)
-                {
-                    _offsetXmm = settingsForm.OffsetX;
-                    _offsetYmm = settingsForm.OffsetY;
-                }
-                else
-                {
-                    return Result.Cancelled; // Пользователь отменил
-                }
+                _offsetXmm = settingsWindow.OffsetX;
+                _offsetYmm = settingsWindow.OffsetY;
+            }
+            else
+            {
+                return Result.Cancelled; // Пользователь отменил
             }
 
             // Конвертация мм в футы
@@ -304,254 +315,319 @@ namespace BIMv2
     }
 
     /// <summary>
-    /// Форма для настройки отступов (упрощенная без графики)
+    /// WPF окно для настройки отступов
     /// </summary>
-    public class OffsetSettingsForm : System.Windows.Forms.Form
+    public partial class OffsetSettingsWindow : Window
     {
-        private NumericUpDown _numOffsetX;
-        private NumericUpDown _numOffsetY;
-        private Button _btnOk;
-        private Button _btnCancel;
-        private Label _lblPreviewX;
-        private Label _lblPreviewY;
-
         public double OffsetX { get; private set; }
         public double OffsetY { get; private set; }
 
-        public OffsetSettingsForm(double defaultOffsetX, double defaultOffsetY)
+        public OffsetSettingsWindow(double defaultOffsetX, double defaultOffsetY)
         {
             InitializeComponent();
             OffsetX = defaultOffsetX;
             OffsetY = defaultOffsetY;
 
-            _numOffsetX.Value = (decimal)defaultOffsetX;
-            _numOffsetY.Value = (decimal)defaultOffsetY;
+            txtOffsetX.Text = defaultOffsetX.ToString();
+            txtOffsetY.Text = defaultOffsetY.ToString();
 
             UpdatePreview();
         }
 
         private void InitializeComponent()
         {
-            this.Text = "Настройка отступов марки";
-            this.Size = new System.Drawing.Size(1000, 650);
-            this.StartPosition = FormStartPosition.CenterScreen;
-            this.FormBorderStyle = FormBorderStyle.FixedDialog;
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
+            this.Title = "Настройка отступов марки";
+            this.Width = 500;
+            this.Height = 400;
+            this.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            this.ResizeMode = ResizeMode.NoResize;
+            this.WindowStyle = WindowStyle.SingleBorderWindow;
+
+            // Основной контейнер
+            var mainGrid = new System.Windows.Controls.Grid();
+            mainGrid.Margin = new Thickness(10);
+
+            // Определение строк
+            mainGrid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto }); // Заголовок
+            mainGrid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto }); // Описание
+            mainGrid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto }); // Отступ X
+            mainGrid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto }); // Отступ Y
+            mainGrid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto }); // Рекомендации
+            mainGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) }); // Пространство
+            mainGrid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto }); // Кнопки
 
             // Заголовок
-            Label lblTitle = new Label
+            var lblTitle = new TextBlock
             {
                 Text = "Укажите отступы марки от правого нижнего угла помещения:",
-                Location = new System.Drawing.Point(20, 20),
-                Size = new System.Drawing.Size(450, 30),
-                Font = new System.Drawing.Font("Arial", 10, FontStyle.Bold),
-                TextAlign = ContentAlignment.MiddleLeft
+                FontWeight = FontWeights.Bold,
+                FontSize = 12,
+                TextWrapping = TextWrapping.Wrap,
+                Margin = new Thickness(0, 0, 0, 10)
             };
+            System.Windows.Controls.Grid.SetRow(lblTitle, 0);
 
             // Пояснение
-            Label lblExplanation = new Label
+            var lblExplanation = new TextBlock
             {
                 Text = "X - отступ влево от правой границы\nY - отступ вверх от нижней границы",
-                Location = new System.Drawing.Point(20, 60),
-                Size = new System.Drawing.Size(450, 40),
-                Font = new System.Drawing.Font("Arial", 9),
-                TextAlign = ContentAlignment.MiddleLeft
+                FontSize = 11,
+                TextWrapping = TextWrapping.Wrap,
+                Margin = new Thickness(0, 0, 0, 20)
             };
+            System.Windows.Controls.Grid.SetRow(lblExplanation, 1);
 
             // Отступ по X
-            Label lblOffsetX = new Label
+            var xGrid = new System.Windows.Controls.Grid();
+            xGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+            xGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+            xGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+            xGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+            xGrid.Margin = new Thickness(0, 0, 0, 10);
+
+            var lblOffsetX = new TextBlock
             {
                 Text = "Отступ по X (горизонтальный):",
-                Location = new System.Drawing.Point(20, 120),
-                Size = new System.Drawing.Size(200, 25),
-                Font = new System.Drawing.Font("Arial", 9)
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(0, 0, 10, 0)
             };
+            System.Windows.Controls.Grid.SetColumn(lblOffsetX, 0);
 
-            _numOffsetX = new NumericUpDown
+            txtOffsetX = new System.Windows.Controls.TextBox
             {
-                Minimum = 0,
-                Maximum = 10000,
-                Value = 1500,
-                Location = new System.Drawing.Point(230, 120),
-                Size = new System.Drawing.Size(100, 20),
-                DecimalPlaces = 0,
-                Increment = 100
+                Text = "1500",
+                Width = 80,
+                HorizontalAlignment = HorizontalAlignment.Left
             };
+            System.Windows.Controls.Grid.SetColumn(txtOffsetX, 1);
 
-            Label lblMmX = new Label
+            var lblMmX = new TextBlock
             {
                 Text = "мм",
-                Location = new System.Drawing.Point(340, 122),
-                Size = new System.Drawing.Size(30, 20),
-                Font = new System.Drawing.Font("Arial", 9)
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(5, 0, 10, 0)
             };
+            System.Windows.Controls.Grid.SetColumn(lblMmX, 2);
 
-            _lblPreviewX = new Label
+            lblPreviewX = new TextBlock
             {
                 Text = "",
-                Location = new System.Drawing.Point(380, 122),
-                Size = new System.Drawing.Size(100, 20),
-                Font = new System.Drawing.Font("Arial", 9),
-                ForeColor = System.Drawing.Color.Blue
+                VerticalAlignment = VerticalAlignment.Center,
+                Foreground = Brushes.Blue,
+                Margin = new Thickness(5, 0, 0, 0)
             };
+            System.Windows.Controls.Grid.SetColumn(lblPreviewX, 3);
+
+            xGrid.Children.Add(lblOffsetX);
+            xGrid.Children.Add(txtOffsetX);
+            xGrid.Children.Add(lblMmX);
+            xGrid.Children.Add(lblPreviewX);
+            System.Windows.Controls.Grid.SetRow(xGrid, 2);
 
             // Отступ по Y
-            Label lblOffsetY = new Label
+            var yGrid = new System.Windows.Controls.Grid();
+            yGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+            yGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+            yGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+            yGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+            yGrid.Margin = new Thickness(0, 0, 0, 20);
+
+            var lblOffsetY = new TextBlock
             {
                 Text = "Отступ по Y (вертикальный):",
-                Location = new System.Drawing.Point(20, 160),
-                Size = new System.Drawing.Size(200, 25),
-                Font = new System.Drawing.Font("Arial", 9)
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(0, 0, 10, 0)
             };
+            System.Windows.Controls.Grid.SetColumn(lblOffsetY, 0);
 
-            _numOffsetY = new NumericUpDown
+            txtOffsetY = new System.Windows.Controls.TextBox
             {
-                Minimum = 0,
-                Maximum = 10000,
-                Value = 1500,
-                Location = new System.Drawing.Point(230, 160),
-                Size = new System.Drawing.Size(100, 20),
-                DecimalPlaces = 0,
-                Increment = 100
+                Text = "1500",
+                Width = 80,
+                HorizontalAlignment = HorizontalAlignment.Left
             };
+            Grid.SetColumn(txtOffsetY, 1);
 
-            Label lblMmY = new Label
+            var lblMmY = new TextBlock
             {
                 Text = "мм",
-                Location = new System.Drawing.Point(340, 162),
-                Size = new System.Drawing.Size(30, 20),
-                Font = new System.Drawing.Font("Arial", 9)
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(5, 0, 10, 0)
             };
+            Grid.SetColumn(lblMmY, 2);
 
-            _lblPreviewY = new Label
+            lblPreviewY = new TextBlock
             {
                 Text = "",
-                Location = new System.Drawing.Point(380, 162),
-                Size = new System.Drawing.Size(100, 20),
-                Font = new System.Drawing.Font("Arial", 9),
-                ForeColor = System.Drawing.Color.Blue
+                VerticalAlignment = VerticalAlignment.Center,
+                Foreground = Brushes.Blue,
+                Margin = new Thickness(5, 0, 0, 0)
             };
+            Grid.SetColumn(lblPreviewY, 3);
+
+            yGrid.Children.Add(lblOffsetY);
+            yGrid.Children.Add(txtOffsetY);
+            yGrid.Children.Add(lblMmY);
+            yGrid.Children.Add(lblPreviewY);
+            System.Windows.Controls.Grid.SetRow(yGrid, 3);
 
             // Рекомендации
-            Label lblRecommendations = new Label
+            var border = new Border
+            {
+                BorderBrush = Brushes.Gray,
+                BorderThickness = new Thickness(1),
+                Background = Brushes.LightYellow,
+                Padding = new Thickness(10),
+                Margin = new Thickness(0, 0, 0, 20)
+            };
+
+            var recommendations = new TextBlock
             {
                 Text = "Рекомендации для масштаба 1:100:\n" +
                        "• 1500 мм = 1.5 м (стандартный)\n" +
                        "• 1000 мм = 1.0 м (маленький)\n" +
                        "• 2000 мм = 2.0 м (большой)\n" +
                        "•  500 мм = 0.5 м (очень маленький)",
-                Location = new System.Drawing.Point(20, 200),
-                Size = new System.Drawing.Size(300, 100),
-                Font = new System.Drawing.Font("Arial", 9),
-                BorderStyle = BorderStyle.FixedSingle,
-                BackColor = System.Drawing.Color.LightYellow
+                FontSize = 11,
+                TextWrapping = TextWrapping.Wrap
             };
+
+            border.Child = recommendations;
+            System.Windows.Controls.Grid.SetRow(border, 4);
 
             // Кнопки
-            _btnOk = new Button
+            var buttonGrid = new Grid();
+            buttonGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+            buttonGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+            buttonGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+            buttonGrid.Margin = new Thickness(0, 20, 0, 0);
+
+            var btnOk = new Button
             {
-                Text = "Применить",
-                Location = new System.Drawing.Point(300, 280),
-                Size = new System.Drawing.Size(90, 30),
-                DialogResult = DialogResult.OK,
-                Font = new System.Drawing.Font("Arial", 9)
+                Content = "Применить",
+                Width = 100,
+                Height = 30,
+                Margin = new Thickness(0, 0, 10, 0),
+                IsDefault = true
             };
+            Grid.SetColumn(btnOk, 1);
 
-            _btnCancel = new Button
+            var btnCancel = new Button
             {
-                Text = "Отмена",
-                Location = new System.Drawing.Point(400, 280),
-                Size = new System.Drawing.Size(90, 30),
-                DialogResult = DialogResult.Cancel,
-                Font = new System.Drawing.Font("Arial", 9)
+                Content = "Отмена",
+                Width = 100,
+                Height = 30,
+                IsCancel = true
             };
+            Grid.SetColumn(btnCancel, 2);
 
-            // Добавляем элементы на форму
-            this.Controls.Add(lblTitle);
-            this.Controls.Add(lblExplanation);
-            this.Controls.Add(lblOffsetX);
-            this.Controls.Add(_numOffsetX);
-            this.Controls.Add(lblMmX);
-            this.Controls.Add(_lblPreviewX);
-            this.Controls.Add(lblOffsetY);
-            this.Controls.Add(_numOffsetY);
-            this.Controls.Add(lblMmY);
-            this.Controls.Add(_lblPreviewY);
-            this.Controls.Add(lblRecommendations);
-            this.Controls.Add(_btnOk);
-            this.Controls.Add(_btnCancel);
+            buttonGrid.Children.Add(btnOk);
+            buttonGrid.Children.Add(btnCancel);
+            System.Windows.Controls.Grid.SetRow(buttonGrid, 6);
 
-            // Назначаем кнопки по умолчанию
-            this.AcceptButton = _btnOk;
-            this.CancelButton = _btnCancel;
+            // Добавляем все элементы в основной грид
+            mainGrid.Children.Add(lblTitle);
+            mainGrid.Children.Add(lblExplanation);
+            mainGrid.Children.Add(xGrid);
+            mainGrid.Children.Add(yGrid);
+            mainGrid.Children.Add(border);
+            mainGrid.Children.Add(buttonGrid);
+
+            this.Content = mainGrid;
 
             // Обработчики событий
-            _btnOk.Click += BtnOk_Click;
-            _numOffsetX.ValueChanged += NumOffset_ValueChanged;
-            _numOffsetY.ValueChanged += NumOffset_ValueChanged;
+            btnOk.Click += BtnOk_Click;
+            btnCancel.Click += BtnCancel_Click;
+            txtOffsetX.TextChanged += TxtOffset_TextChanged;
+            txtOffsetY.TextChanged += TxtOffset_TextChanged;
         }
 
-        private void BtnOk_Click(object sender, EventArgs e)
+        private TextBox txtOffsetX;
+        private TextBox txtOffsetY;
+        private TextBlock lblPreviewX;
+        private TextBlock lblPreviewY;
+
+        private void BtnOk_Click(object sender, RoutedEventArgs e)
         {
-            OffsetX = (double)_numOffsetX.Value;
-            OffsetY = (double)_numOffsetY.Value;
+            if (double.TryParse(txtOffsetX.Text, out double offsetX) &&
+                double.TryParse(txtOffsetY.Text, out double offsetY))
+            {
+                OffsetX = offsetX;
+                OffsetY = offsetY;
+                this.DialogResult = true;
+            }
+            else
+            {
+                MessageBox.Show("Пожалуйста, введите числовые значения для отступов.", "Ошибка ввода",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
-        private void NumOffset_ValueChanged(object sender, EventArgs e)
+        private void BtnCancel_Click(object sender, RoutedEventArgs e)
+        {
+            this.DialogResult = false;
+        }
+
+        private void TxtOffset_TextChanged(object sender, TextChangedEventArgs e)
         {
             UpdatePreview();
         }
 
         private void UpdatePreview()
         {
-            double offsetXmm = (double)_numOffsetX.Value;
-            double offsetYmm = (double)_numOffsetY.Value;
+            if (double.TryParse(txtOffsetX.Text, out double offsetXmm))
+            {
+                lblPreviewX.Text = $"({offsetXmm / 1000.0:F2} м)";
+            }
+            else
+            {
+                lblPreviewX.Text = "";
+            }
 
-            _lblPreviewX.Text = $"({offsetXmm / 1000.0:F2} м)";
-            _lblPreviewY.Text = $"({offsetYmm / 1000.0:F2} м)";
+            if (double.TryParse(txtOffsetY.Text, out double offsetYmm))
+            {
+                lblPreviewY.Text = $"({offsetYmm / 1000.0:F2} м)";
+            }
+            else
+            {
+                lblPreviewY.Text = "";
+            }
         }
     }
 
     /// <summary>
-    /// Форма для настройки отступов с предустановками
+    /// Расширенное WPF окно для настройки отступов с предустановками
     /// </summary>
-    public class AdvancedOffsetSettingsForm : System.Windows.Forms.Form
+    public partial class AdvancedOffsetSettingsWindow : Window
     {
-        private NumericUpDown _numOffsetX;
-        private NumericUpDown _numOffsetY;
-        private Button _btnOk;
-        private Button _btnCancel;
-        private System.Windows.Forms.ComboBox _cmbPresets;
-        private Label _lblPreviewX;
-        private Label _lblPreviewY;
-        private Label _lblDescription;
+        public double OffsetX { get; private set; }
+        public double OffsetY { get; private set; }
 
         // Предустановленные значения
         private Dictionary<string, (double X, double Y, string Description)> _presets =
             new Dictionary<string, (double X, double Y, string Description)>
-        {
-            {"Очень маленький", (500, 500, "500 мм = 0.5 м")},
-            {"Маленький", (1000, 1000, "1000 мм = 1.0 м")},
-            {"Стандартный", (1500, 1500, "1500 мм = 1.5 м")},
-            {"Большой", (2000, 2000, "2000 мм = 2.0 м")},
-            {"Очень большой", (3000, 3000, "3000 мм = 3.0 м")},
-            {"Только по X", (1500, 0, "X: 1500 мм, Y: 0 мм")},
-            {"Только по Y", (0, 1500, "X: 0 мм, Y: 1500 мм")},
-            {"Пользовательский", (1500, 1500, "Задать свои значения")}
-        };
+            {
+                {"Очень маленький", (500, 500, "500 мм = 0.5 м")},
+                {"Маленький", (1000, 1000, "1000 мм = 1.0 м")},
+                {"Стандартный", (1500, 1500, "1500 мм = 1.5 м")},
+                {"Большой", (2000, 2000, "2000 мм = 2.0 м")},
+                {"Очень большой", (3000, 3000, "3000 мм = 3.0 м")},
+                {"Только по X", (1500, 0, "X: 1500 мм, Y: 0 мм")},
+                {"Только по Y", (0, 1500, "X: 0 мм, Y: 1500 мм")},
+                {"Пользовательский", (1500, 1500, "Задать свои значения")}
+            };
 
-        public double OffsetX { get; private set; }
-        public double OffsetY { get; private set; }
-
-        public AdvancedOffsetSettingsForm(double defaultOffsetX, double defaultOffsetY)
+        public AdvancedOffsetSettingsWindow(double defaultOffsetX, double defaultOffsetY)
         {
             InitializeComponent();
             OffsetX = defaultOffsetX;
             OffsetY = defaultOffsetY;
 
-            _numOffsetX.Value = (decimal)defaultOffsetX;
-            _numOffsetY.Value = (decimal)defaultOffsetY;
+            txtOffsetX.Text = defaultOffsetX.ToString();
+            txtOffsetY.Text = defaultOffsetY.ToString();
+
+            // Заполняем комбобокс предустановками
+            cmbPresets.ItemsSource = _presets.Keys;
 
             // Ищем подходящую предустановку
             string matchedPreset = "Пользовательский";
@@ -565,217 +641,280 @@ namespace BIMv2
                 }
             }
 
-            _cmbPresets.SelectedItem = matchedPreset;
+            cmbPresets.SelectedItem = matchedPreset;
             UpdatePreview();
             UpdateDescription();
         }
 
         private void InitializeComponent()
         {
-            this.Text = "Настройка отступов марки";
-            this.Size = new System.Drawing.Size(500, 400);
-            this.StartPosition = FormStartPosition.CenterScreen;
-            this.FormBorderStyle = FormBorderStyle.FixedDialog;
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
+            this.Title = "Настройка отступов марки";
+            this.Width = 500;
+            this.Height = 450;
+            this.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            this.ResizeMode = ResizeMode.NoResize;
+            this.WindowStyle = WindowStyle.SingleBorderWindow;
+
+            // Основной контейнер
+            var mainGrid = new Grid();
+            mainGrid.Margin = new Thickness(10);
+
+            // Определение строк
+            mainGrid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto }); // Заголовок
+            mainGrid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto }); // Предустановки
+            mainGrid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto }); // Описание предустановки
+            mainGrid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto }); // Отступ X
+            mainGrid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto }); // Отступ Y
+            mainGrid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto }); // Примечание
+            mainGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) }); // Пространство
+            mainGrid.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto }); // Кнопки
 
             // Заголовок
-            Label lblTitle = new Label
+            var lblTitle = new TextBlock
             {
                 Text = "Настройка отступов от правого нижнего угла помещения",
-                Location = new System.Drawing.Point(20, 20),
-                Size = new System.Drawing.Size(450, 30),
-                Font = new System.Drawing.Font("Arial", 11, FontStyle.Bold),
-                TextAlign = ContentAlignment.MiddleLeft
+                FontWeight = FontWeights.Bold,
+                FontSize = 12,
+                TextWrapping = TextWrapping.Wrap,
+                Margin = new Thickness(0, 0, 0, 10)
             };
+            System.Windows.Controls.Grid.SetRow(lblTitle, 0);
 
             // Предустановки
-            Label lblPresets = new Label
+            var presetGrid = new Grid();
+            presetGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+            presetGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+            presetGrid.Margin = new Thickness(0, 0, 0, 5);
+
+            var lblPresets = new TextBlock
             {
                 Text = "Предустановки:",
-                Location = new System.Drawing.Point(20, 70),
-                Size = new System.Drawing.Size(100, 25),
-                Font = new System.Drawing.Font("Arial", 9)
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(0, 0, 10, 0)
             };
+            Grid.SetColumn(lblPresets, 0);
 
-            _cmbPresets = new System.Windows.Forms.ComboBox
+            cmbPresets = new ComboBox
             {
-                Location = new System.Drawing.Point(130, 70),
-                Size = new System.Drawing.Size(200, 20),
-                DropDownStyle = ComboBoxStyle.DropDownList,
-                Font = new System.Drawing.Font("Arial", 9)
+                VerticalAlignment = VerticalAlignment.Center,
+                MinWidth = 150
             };
+            Grid.SetColumn(cmbPresets, 1);
 
-            _cmbPresets.Items.AddRange(_presets.Keys.ToArray());
+            presetGrid.Children.Add(lblPresets);
+            presetGrid.Children.Add(cmbPresets);
+            System.Windows.Controls.Grid.SetRow(presetGrid, 1);
 
             // Описание предустановки
-            _lblDescription = new Label
+            lblDescription = new TextBlock
             {
                 Text = "",
-                Location = new System.Drawing.Point(130, 100),
-                Size = new System.Drawing.Size(300, 20),
-                Font = new System.Drawing.Font("Arial", 8),
-                ForeColor = System.Drawing.Color.DarkGreen
+                FontSize = 11,
+                Foreground = Brushes.DarkGreen,
+                Margin = new Thickness(0, 0, 0, 15)
             };
+            System.Windows.Controls.Grid.SetRow(lblDescription, 2);
 
             // Отступ по X
-            Label lblOffsetX = new Label
+            var xGrid = new Grid();
+            xGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+            xGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+            xGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+            xGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+            xGrid.Margin = new Thickness(0, 0, 0, 10);
+
+            var lblOffsetX = new TextBlock
             {
                 Text = "Отступ по X (влево):",
-                Location = new System.Drawing.Point(20, 140),
-                Size = new System.Drawing.Size(150, 25),
-                Font = new System.Drawing.Font("Arial", 9)
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(0, 0, 10, 0)
             };
+            Grid.SetColumn(lblOffsetX, 0);
 
-            _numOffsetX = new NumericUpDown
+            txtOffsetX = new System.Windows.Controls.TextBox
             {
-                Minimum = 0,
-                Maximum = 10000,
-                Value = 1500,
-                Location = new System.Drawing.Point(180, 140),
-                Size = new System.Drawing.Size(100, 20),
-                DecimalPlaces = 0,
-                Increment = 100,
-                Font = new System.Drawing.Font("Arial", 9)
+                Text = "1500",
+                Width = 80,
+                HorizontalAlignment = HorizontalAlignment.Left
             };
+            Grid.SetColumn(txtOffsetX, 1);
 
-            Label lblMmX = new Label
+            var lblMmX = new TextBlock
             {
                 Text = "мм",
-                Location = new System.Drawing.Point(290, 142),
-                Size = new System.Drawing.Size(30, 20),
-                Font = new System.Drawing.Font("Arial", 9)
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(5, 0, 10, 0)
             };
+            Grid.SetColumn(lblMmX, 2);
 
-            _lblPreviewX = new Label
+            lblPreviewX = new TextBlock
             {
                 Text = "",
-                Location = new System.Drawing.Point(330, 142),
-                Size = new System.Drawing.Size(100, 20),
-                Font = new System.Drawing.Font("Arial", 9),
-                ForeColor = System.Drawing.Color.Blue
+                VerticalAlignment = VerticalAlignment.Center,
+                Foreground = Brushes.Blue,
+                Margin = new Thickness(5, 0, 0, 0)
             };
+            System.Windows.Controls.Grid.SetColumn(lblPreviewX, 3);
+
+            xGrid.Children.Add(lblOffsetX);
+            xGrid.Children.Add(txtOffsetX);
+            xGrid.Children.Add(lblMmX);
+            xGrid.Children.Add(lblPreviewX);
+            System.Windows.Controls.Grid.SetRow(xGrid, 3);
 
             // Отступ по Y
-            Label lblOffsetY = new Label
+            var yGrid = new System.Windows.Controls.Grid();
+            yGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+            yGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+            yGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+            yGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+            yGrid.Margin = new Thickness(0, 0, 0, 15);
+
+            var lblOffsetY = new TextBlock
             {
                 Text = "Отступ по Y (вверх):",
-                Location = new System.Drawing.Point(20, 180),
-                Size = new System.Drawing.Size(150, 25),
-                Font = new System.Drawing.Font("Arial", 9)
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(0, 0, 10, 0)
             };
+            System.Windows.Controls.Grid.SetColumn(lblOffsetY, 0);
 
-            _numOffsetY = new NumericUpDown
+            txtOffsetY = new System.Windows.Controls.TextBox
             {
-                Minimum = 0,
-                Maximum = 10000,
-                Value = 1500,
-                Location = new System.Drawing.Point(180, 180),
-                Size = new System.Drawing.Size(100, 20),
-                DecimalPlaces = 0,
-                Increment = 100,
-                Font = new System.Drawing.Font("Arial", 9)
+                Text = "1500",
+                Width = 80,
+                HorizontalAlignment = HorizontalAlignment.Left
             };
+            Grid.SetColumn(txtOffsetY, 1);
 
-            Label lblMmY = new Label
+            var lblMmY = new TextBlock
             {
                 Text = "мм",
-                Location = new System.Drawing.Point(290, 182),
-                Size = new System.Drawing.Size(30, 20),
-                Font = new System.Drawing.Font("Arial", 9)
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(5, 0, 10, 0)
             };
+            Grid.SetColumn(lblMmY, 2);
 
-            _lblPreviewY = new Label
+            lblPreviewY = new TextBlock
             {
                 Text = "",
-                Location = new System.Drawing.Point(330, 182),
-                Size = new System.Drawing.Size(100, 20),
-                Font = new System.Drawing.Font("Arial", 9),
-                ForeColor = System.Drawing.Color.Blue
+                VerticalAlignment = VerticalAlignment.Center,
+                Foreground = Brushes.Blue,
+                Margin = new Thickness(5, 0, 0, 0)
             };
+            Grid.SetColumn(lblPreviewY, 3);
 
-            // Пояснение
-            Label lblNote = new Label
+            yGrid.Children.Add(lblOffsetY);
+            yGrid.Children.Add(txtOffsetY);
+            yGrid.Children.Add(lblMmY);
+            yGrid.Children.Add(lblPreviewY);
+            System.Windows.Controls.Grid.SetRow(yGrid, 4);
+
+            // Примечание
+            var noteText = new TextBlock
             {
                 Text = "Примечание:\n" +
                        "• Для маленьких помещений отступ может быть автоматически уменьшен\n" +
                        "• X - отступ влево от правой границы\n" +
                        "• Y - отступ вверх от нижней границы",
-                Location = new System.Drawing.Point(20, 220),
-                Size = new System.Drawing.Size(450, 80),
-                Font = new System.Drawing.Font("Arial", 9),
-                ForeColor = System.Drawing. Color.DarkGray
+                FontSize = 11,
+                TextWrapping = TextWrapping.Wrap,
+                Foreground = Brushes.DarkGray,
+                Margin = new Thickness(0, 0, 0, 20)
             };
+            System.Windows.Controls.Grid.SetRow(noteText, 5);
 
             // Кнопки
-            _btnOk = new Button
+            var buttonGrid = new Grid();
+            buttonGrid.HorizontalAlignment = HorizontalAlignment.Right;
+            buttonGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+            buttonGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = GridLength.Auto });
+
+            var btnOk = new Button
             {
-                Text = "Применить",
-                Location = new System.Drawing.Point(300, 320),
-                Size = new System.Drawing.Size(90, 30),
-                DialogResult = DialogResult.OK,
-                Font = new System.Drawing.Font("Arial", 9)
+                Content = "Применить",
+                Width = 100,
+                Height = 30,
+                Margin = new Thickness(0, 0, 10, 0),
+                IsDefault = true
             };
+            System.Windows.Controls.Grid.SetColumn(btnOk, 0);
 
-            _btnCancel = new Button
+            var btnCancel = new Button
             {
-                Text = "Отмена",
-                Location = new System.Drawing.Point(400, 320),
-                Size = new System.Drawing.Size(90, 30),
-                DialogResult = DialogResult.Cancel,
-                Font = new System.Drawing.Font("Arial", 9)
+                Content = "Отмена",
+                Width = 100,
+                Height = 30,
+                IsCancel = true
             };
+            System.Windows.Controls.Grid.SetColumn(btnCancel, 1);
 
-            // Добавляем элементы на форму
-            this.Controls.Add(lblTitle);
-            this.Controls.Add(lblPresets);
-            this.Controls.Add(_cmbPresets);
-            this.Controls.Add(_lblDescription);
-            this.Controls.Add(lblOffsetX);
-            this.Controls.Add(_numOffsetX);
-            this.Controls.Add(lblMmX);
-            this.Controls.Add(_lblPreviewX);
-            this.Controls.Add(lblOffsetY);
-            this.Controls.Add(_numOffsetY);
-            this.Controls.Add(lblMmY);
-            this.Controls.Add(_lblPreviewY);
-            this.Controls.Add(lblNote);
-            this.Controls.Add(_btnOk);
-            this.Controls.Add(_btnCancel);
+            buttonGrid.Children.Add(btnOk);
+            buttonGrid.Children.Add(btnCancel);
+            System.Windows.Controls.Grid.SetRow(buttonGrid, 7);
 
-            // Назначаем кнопки по умолчанию
-            this.AcceptButton = _btnOk;
-            this.CancelButton = _btnCancel;
+            // Добавляем все элементы в основной грид
+            mainGrid.Children.Add(lblTitle);
+            mainGrid.Children.Add(presetGrid);
+            mainGrid.Children.Add(lblDescription);
+            mainGrid.Children.Add(xGrid);
+            mainGrid.Children.Add(yGrid);
+            mainGrid.Children.Add(noteText);
+            mainGrid.Children.Add(buttonGrid);
+
+            this.Content = mainGrid;
 
             // Обработчики событий
-            _btnOk.Click += BtnOk_Click;
-            _numOffsetX.ValueChanged += NumOffset_ValueChanged;
-            _numOffsetY.ValueChanged += NumOffset_ValueChanged;
-            _cmbPresets.SelectedIndexChanged += CmbPresets_SelectedIndexChanged;
+            btnOk.Click += BtnOk_Click;
+            btnCancel.Click += BtnCancel_Click;
+            txtOffsetX.TextChanged += TxtOffset_TextChanged;
+            txtOffsetY.TextChanged += TxtOffset_TextChanged;
+            cmbPresets.SelectionChanged += CmbPresets_SelectionChanged;
         }
 
-        private void BtnOk_Click(object sender, EventArgs e)
+        private TextBox txtOffsetX;
+        private TextBox txtOffsetY;
+        private ComboBox cmbPresets;
+        private TextBlock lblPreviewX;
+        private TextBlock lblPreviewY;
+        private TextBlock lblDescription;
+
+        private void BtnOk_Click(object sender, RoutedEventArgs e)
         {
-            OffsetX = (double)_numOffsetX.Value;
-            OffsetY = (double)_numOffsetY.Value;
+            if (double.TryParse(txtOffsetX.Text, out double offsetX) &&
+                double.TryParse(txtOffsetY.Text, out double offsetY))
+            {
+                OffsetX = offsetX;
+                OffsetY = offsetY;
+                this.DialogResult = true;
+            }
+            else
+            {
+                MessageBox.Show("Пожалуйста, введите числовые значения для отступов.", "Ошибка ввода",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
-        private void NumOffset_ValueChanged(object sender, EventArgs e)
+        private void BtnCancel_Click(object sender, RoutedEventArgs e)
+        {
+            this.DialogResult = false;
+        }
+
+        private void TxtOffset_TextChanged(object sender, TextChangedEventArgs e)
         {
             UpdatePreview();
             UpdatePresetSelection();
         }
 
-        private void CmbPresets_SelectedIndexChanged(object sender, EventArgs e)
+        private void CmbPresets_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (_cmbPresets.SelectedItem != null)
+            if (cmbPresets.SelectedItem != null)
             {
-                string presetName = _cmbPresets.SelectedItem.ToString();
+                string presetName = cmbPresets.SelectedItem.ToString();
                 if (_presets.ContainsKey(presetName))
                 {
                     var preset = _presets[presetName];
-                    _numOffsetX.Value = (decimal)preset.X;
-                    _numOffsetY.Value = (decimal)preset.Y;
+                    txtOffsetX.Text = preset.X.ToString();
+                    txtOffsetY.Text = preset.Y.ToString();
                     UpdatePreview();
                     UpdateDescription();
                 }
@@ -784,44 +923,62 @@ namespace BIMv2
 
         private void UpdatePreview()
         {
-            double offsetXmm = (double)_numOffsetX.Value;
-            double offsetYmm = (double)_numOffsetY.Value;
+            if (double.TryParse(txtOffsetX.Text, out double offsetXmm))
+            {
+                lblPreviewX.Text = $"({offsetXmm / 1000.0:F2} м)";
+            }
+            else
+            {
+                lblPreviewX.Text = "";
+            }
 
-            _lblPreviewX.Text = $"({offsetXmm / 1000.0:F2} м)";
-            _lblPreviewY.Text = $"({offsetYmm / 1000.0:F2} м)";
+            if (double.TryParse(txtOffsetY.Text, out double offsetYmm))
+            {
+                lblPreviewY.Text = $"({offsetYmm / 1000.0:F2} м)";
+            }
+            else
+            {
+                lblPreviewY.Text = "";
+            }
         }
 
         private void UpdateDescription()
         {
-            double offsetXmm = (double)_numOffsetX.Value;
-            double offsetYmm = (double)_numOffsetY.Value;
-
-            _lblDescription.Text = $"X: {offsetXmm} мм, Y: {offsetYmm} мм  ({offsetXmm / 1000:F1} м × {offsetYmm / 1000:F1} м)";
+            if (double.TryParse(txtOffsetX.Text, out double offsetXmm) &&
+                double.TryParse(txtOffsetY.Text, out double offsetYmm))
+            {
+                lblDescription.Text = $"X: {offsetXmm} мм, Y: {offsetYmm} мм  ({offsetXmm / 1000:F1} м × {offsetYmm / 1000:F1} м)";
+            }
+            else
+            {
+                lblDescription.Text = "";
+            }
         }
 
         private void UpdatePresetSelection()
         {
-            double offsetXmm = (double)_numOffsetX.Value;
-            double offsetYmm = (double)_numOffsetY.Value;
-
-            // Ищем совпадение с предустановками
-            string matchedPreset = "Пользовательский";
-            foreach (var preset in _presets)
+            if (double.TryParse(txtOffsetX.Text, out double offsetXmm) &&
+                double.TryParse(txtOffsetY.Text, out double offsetYmm))
             {
-                if (preset.Key != "Пользовательский" &&
-                    Math.Abs(preset.Value.X - offsetXmm) < 1 &&
-                    Math.Abs(preset.Value.Y - offsetYmm) < 1)
+                // Ищем совпадение с предустановками
+                string matchedPreset = "Пользовательский";
+                foreach (var preset in _presets)
                 {
-                    matchedPreset = preset.Key;
-                    break;
+                    if (preset.Key != "Пользовательский" &&
+                        Math.Abs(preset.Value.X - offsetXmm) < 1 &&
+                        Math.Abs(preset.Value.Y - offsetYmm) < 1)
+                    {
+                        matchedPreset = preset.Key;
+                        break;
+                    }
                 }
-            }
 
-            // Обновляем выбранную предустановку
-            if (_cmbPresets.SelectedItem == null || _cmbPresets.SelectedItem.ToString() != matchedPreset)
-            {
-                _cmbPresets.SelectedItem = matchedPreset;
-                UpdateDescription();
+                // Обновляем выбранную предустановку
+                if (cmbPresets.SelectedItem == null || cmbPresets.SelectedItem.ToString() != matchedPreset)
+                {
+                    cmbPresets.SelectedItem = matchedPreset;
+                    UpdateDescription();
+                }
             }
         }
     }
