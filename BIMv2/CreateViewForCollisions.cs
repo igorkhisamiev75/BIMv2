@@ -6,12 +6,25 @@ using System.Xml;
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.UI;
-using System.Windows.Forms;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 using System.Reflection;
-using System.Drawing;
+using System.Windows;
+using System.Windows.Forms;
+using System.Windows.Media;
+using Microsoft.Win32;
+using WpfLabel = System.Windows.Controls.Label;
+using WpfTextBox = System.Windows.Controls.TextBox;
+using WpfButton = System.Windows.Controls.Button;
+using WpfProgressBar = System.Windows.Controls.ProgressBar;
+using WpfSlider = System.Windows.Controls.Slider;
+using WpfBorder = System.Windows.Controls.Border;
+using WpfStackPanel = System.Windows.Controls.StackPanel;
+using WpfGrid = System.Windows.Controls.Grid;
+using WpfColumnDefinition = System.Windows.Controls.ColumnDefinition;
+using Application = System.Windows.Application;
+using Color = System.Windows.Media.Color;
+using MessageBox = System.Windows.MessageBox;
 #endregion
 
 namespace BIMv2
@@ -30,8 +43,8 @@ namespace BIMv2
         private Dictionary<int, int> _elementToSymbolMap = new Dictionary<int, int>();
 
         // Настройки цветов и прозрачности
-        private System.Drawing.Color _collision1Color = System.Drawing.Color.Orange;
-        private System.Drawing.Color _collision2Color = System.Drawing.Color.Green;
+        private Color _collision1Color = Colors.Orange;
+        private Color _collision2Color = Colors.Green;
         private int _transparency = 80;
         private string _reportFilePath = string.Empty;
 
@@ -42,137 +55,136 @@ namespace BIMv2
 
             try
             {
-                // Показываем форму настроек
-                using (var settingsForm = new CollisionSettingsForm())
+                // Показываем WPF форму настроек
+                var settingsForm = new CollisionSettingsWpfWindow();
+
+                // Устанавливаем начальные значения
+                settingsForm.Collision1Color = _collision1Color;
+                settingsForm.Collision2Color = _collision2Color;
+                settingsForm.Transparency = _transparency;
+
+                if (settingsForm.ShowDialog() != true)
+                    return Result.Cancelled;
+
+                // Получаем настройки из формы
+                _collision1Color = settingsForm.Collision1Color;
+                _collision2Color = settingsForm.Collision2Color;
+                _transparency = settingsForm.Transparency;
+                _reportFilePath = settingsForm.ReportFilePath;
+
+                if (string.IsNullOrEmpty(_reportFilePath))
                 {
-                    // Устанавливаем начальные значения
-                    settingsForm.Collision1Color = _collision1Color;
-                    settingsForm.Collision2Color = _collision2Color;
-                    settingsForm.Transparency = _transparency;
+                    MessageBox.Show("Файл отчета не выбран.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return Result.Cancelled;
+                }
 
-                    if (settingsForm.ShowDialog() != DialogResult.OK)
-                        return Result.Cancelled;
+                ViewFamilyType viewFamilyType = new FilteredElementCollector(_doc)
+                    .OfClass(typeof(ViewFamilyType))
+                    .Cast<ViewFamilyType>()
+                    .First(v => v.ViewFamily == ViewFamily.ThreeDimensional);
 
-                    // Получаем настройки из формы через свойства
-                    _collision1Color = settingsForm.Collision1Color;
-                    _collision2Color = settingsForm.Collision2Color;
-                    _transparency = settingsForm.Transparency;
-                    _reportFilePath = settingsForm.ReportFilePath;
+                ElementId solidFillPatternId = GetSolidFillPatternId();
 
-                    if (string.IsNullOrEmpty(_reportFilePath))
+                // Загружаем отчет
+                XmlDocument xml = new XmlDocument();
+                xml.Load(_reportFilePath);
+                var clashResults = xml.SelectNodes("//clashresult");
+
+                if (clashResults == null || clashResults.Count == 0)
+                {
+                    MessageBox.Show("В отчёте не найдено коллизий.", "Информация",
+                        MessageBoxButton.OK, MessageBoxImage.Information);
+                    return Result.Cancelled;
+                }
+
+                // Создаем и показываем WPF форму прогресса
+                var progressForm = new ProgressWpfWindow();
+                progressForm.Show();
+
+                // Обновляем интерфейс
+                progressForm.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.Render);
+
+                // 2. Создаем базу данных обобщенных моделей, дверей, окон, импостов витража, панелей витража и соединительных деталей
+                progressForm.StatusText = "Построение базы данных элементов...";
+                progressForm.ProgressValue = 10;
+                progressForm.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.Render);
+
+                BuildExtendedElementsDatabase();
+
+                int viewCount = 0;
+                int totalClashes = clashResults.Count;
+                int currentClash = 0;
+
+                using (Transaction t = new Transaction(_doc, "Создание видов коллизий"))
+                {
+                    t.Start();
+
+                    // 3. Проверяем каждый конфликт из отчета
+                    foreach (XmlNode clash in clashResults)
                     {
-                        TaskDialog.Show("Ошибка", "Файл отчета не выбран.");
-                        return Result.Cancelled;
-                    }
-
-                    ViewFamilyType viewFamilyType = new FilteredElementCollector(_doc)
-                        .OfClass(typeof(ViewFamilyType))
-                        .Cast<ViewFamilyType>()
-                        .First(v => v.ViewFamily == ViewFamily.ThreeDimensional);
-
-                    ElementId solidFillPatternId = GetSolidFillPatternId();
-
-                    // Загружаем отчет
-                    XmlDocument xml = new XmlDocument();
-                    xml.Load(_reportFilePath);
-                    var clashResults = xml.SelectNodes("//clashresult");
-
-                    if (clashResults == null || clashResults.Count == 0)
-                    {
-                        TaskDialog.Show("Информация", "В отчёте не найдено коллизий.");
-                        return Result.Cancelled;
-                    }
-
-                    // Создаем и показываем форму прогресса
-                    using (var progressForm = new ProgressForm2())
-                    {
-                        progressForm.Show();
-                        Application.DoEvents();
-
-                        // 2. Создаем базу данных обобщенных моделей, дверей, окон, импостов витража, панелей витража и соединительных деталей
-                        progressForm.StatusLabel.Text = "Построение базы данных элементов...";
-                        progressForm.ProgressBar.Value = 10;
-                        Application.DoEvents();
-
-                        BuildExtendedElementsDatabase();
-
-                        int viewCount = 0;
-                        int totalClashes = clashResults.Count;
-                        int currentClash = 0;
-
-                        using (Transaction t = new Transaction(_doc, "Создание видов коллизий"))
+                        if (progressForm.CancelRequested)
                         {
-                            t.Start();
-
-                            // 3. Проверяем каждый конфликт из отчета
-                            foreach (XmlNode clash in clashResults)
-                            {
-                                if (progressForm.CancelRequested)
-                                {
-                                    t.RollBack();
-                                    TaskDialog.Show("Отменено", "Операция отменена пользователем.");
-                                    return Result.Cancelled;
-                                }
-
-                                currentClash++;
-                                string name = clash.Attributes["name"]?.Value ?? "Без_имени";
-
-                                progressForm.StatusLabel.Text = $"Обработка коллизии {currentClash} из {totalClashes}: {name}";
-                                progressForm.ProgressBar.Value = 10 + (int)((double)currentClash / totalClashes * 80);
-                                Application.DoEvents();
-
-                                // Ищем элементы для этой коллизии с разделением на две группы
-                                List<Element> collision1Elements;
-                                List<Element> collision2Elements;
-                                List<Element> allCollisionElements = FindElementsForCollision(clash, out collision1Elements, out collision2Elements);
-
-                                if (allCollisionElements.Count > 0)
-                                {
-                                    Debug.WriteLine($"Найдено элементов: {allCollisionElements.Count}");
-                                    Debug.WriteLine($"Коллизия 1: {collision1Elements.Count} элементов");
-                                    Debug.WriteLine($"Коллизия 2: {collision2Elements.Count} элементов");
-
-                                    // Получаем ID для имени вида
-                                    List<int> collision1Ids, collision2Ids;
-                                    GetCollisionIdsFromXml(clash, out collision1Ids, out collision2Ids);
-                                    List<int> allReportIds = collision1Ids.Concat(collision2Ids).ToList();
-
-                                    if (CreateCollisionView(name, allCollisionElements, collision1Elements, collision2Elements, allReportIds, viewFamilyType, solidFillPatternId))
-                                    {
-                                        viewCount++;
-                                    }
-                                }
-                                else
-                                {
-                                    Debug.WriteLine($"Элементы не найдены");
-                                }
-                            }
-
-                            t.Commit();
+                            t.RollBack();
+                            MessageBox.Show("Операция отменена пользователем.", "Отменено",
+                                MessageBoxButton.OK, MessageBoxImage.Information);
+                            return Result.Cancelled;
                         }
 
-                        progressForm.StatusLabel.Text = "Завершено!";
-                        progressForm.ProgressBar.Value = 100;
-                        progressForm.Close();
-                        Application.DoEvents();
-                        System.Threading.Thread.Sleep(500);
+                        currentClash++;
+                        string name = clash.Attributes["name"]?.Value ?? "Без_имени";
 
-                        TaskDialog.Show("Результат", $"Создано {viewCount} 3D видов для коллизий");
+                        progressForm.StatusText = $"Обработка коллизии {currentClash} из {totalClashes}: {name}";
+                        progressForm.ProgressValue = 10 + (int)((double)currentClash / totalClashes * 80);
+                        progressForm.Dispatcher.Invoke(() => { }, System.Windows.Threading.DispatcherPriority.Render);
 
-                        return Result.Succeeded;
+                        // Ищем элементы для этой коллизии с разделением на две группы
+                        List<Element> collision1Elements;
+                        List<Element> collision2Elements;
+                        List<Element> allCollisionElements = FindElementsForCollision(clash, out collision1Elements, out collision2Elements);
+
+                        if (allCollisionElements.Count > 0)
+                        {
+                            Debug.WriteLine($"Найдено элементов: {allCollisionElements.Count}");
+                            Debug.WriteLine($"Коллизия 1: {collision1Elements.Count} элементов");
+                            Debug.WriteLine($"Коллизия 2: {collision2Elements.Count} элементов");
+
+                            // Получаем ID для имени вида
+                            List<int> collision1Ids, collision2Ids;
+                            GetCollisionIdsFromXml(clash, out collision1Ids, out collision2Ids);
+                            List<int> allReportIds = collision1Ids.Concat(collision2Ids).ToList();
+
+                            if (CreateCollisionView(name, allCollisionElements, collision1Elements, collision2Elements, allReportIds, viewFamilyType, solidFillPatternId))
+                            {
+                                viewCount++;
+                            }
+                        }
+                        else
+                        {
+                            Debug.WriteLine($"Элементы не найдены");
+                        }
                     }
+
+                    t.Commit();
                 }
+
+                progressForm.StatusText = "Завершено!";
+                progressForm.ProgressValue = 100;
+                progressForm.Close();
+
+                MessageBox.Show($"Создано {viewCount} 3D видов для коллизий", "Результат",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+
+                return Result.Succeeded;
             }
             catch (Exception ex)
             {
-                TaskDialog.Show("Ошибка", ex.Message);
+                MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 return Result.Failed;
             }
         }
 
-      
         /// <summary>
-        /// 2. Создаем базу данных обобщенных моделей, дверей, окон, импостов витража, панелей витража, соединительных деталей, воздуховодов и труб
+        /// 2. Создаем базу данных обобщенных моделей, дверей, окон, импостов витража, панелей витража и соединительных деталей
         /// </summary>
         private void BuildExtendedElementsDatabase()
         {
@@ -221,30 +233,6 @@ namespace BIMv2
                 .WhereElementIsNotElementType()
                 .ToList();
 
-            // Собираем воздуховоды
-            var ducts = new FilteredElementCollector(_doc)
-                .OfCategory(BuiltInCategory.OST_DuctCurves)
-                .WhereElementIsNotElementType()
-                .ToList();
-
-            // Собираем трубы
-            var pipes = new FilteredElementCollector(_doc)
-                .OfCategory(BuiltInCategory.OST_PipeCurves)
-                .WhereElementIsNotElementType()
-                .ToList();
-
-            // Собираем арматуру воздуховодов (дополнительные компоненты)
-            var ductAccessories = new FilteredElementCollector(_doc)
-                .OfCategory(BuiltInCategory.OST_DuctAccessory)
-                .WhereElementIsNotElementType()
-                .ToList();
-
-            // Собираем арматуру труб (дополнительные компоненты)
-            var pipeAccessories = new FilteredElementCollector(_doc)
-                .OfCategory(BuiltInCategory.OST_PipeAccessory)
-                .WhereElementIsNotElementType()
-                .ToList();
-
             Debug.WriteLine($"=== ПОСТРОЕНИЕ БАЗЫ ДАННЫХ ===");
             Debug.WriteLine($"Найдено обобщенных моделей: {genericModels.Count}");
             Debug.WriteLine($"Найдено дверей: {doors.Count}");
@@ -253,10 +241,6 @@ namespace BIMv2
             Debug.WriteLine($"Найдено панелей витража: {curtainPanels.Count}");
             Debug.WriteLine($"Найдено соединительных деталей воздуховодов: {ductFittings.Count}");
             Debug.WriteLine($"Найдено соединительных деталей труб: {pipeFittings.Count}");
-            Debug.WriteLine($"Найдено воздуховодов: {ducts.Count}");
-            Debug.WriteLine($"Найдено труб: {pipes.Count}");
-            Debug.WriteLine($"Найдено арматуры воздуховодов: {ductAccessories.Count}");
-            Debug.WriteLine($"Найдено арматуры труб: {pipeAccessories.Count}");
 
             // Обрабатываем обобщенные модели
             ProcessElementsCollection(genericModels, "Обобщенная модель");
@@ -278,18 +262,6 @@ namespace BIMv2
 
             // Обрабатываем соединительные детали труб
             ProcessElementsCollection(pipeFittings, "Соединительная деталь трубы");
-
-            // Обрабатываем воздуховоды
-            ProcessElementsCollection(ducts, "Воздуховод");
-
-            // Обрабатываем трубы
-            ProcessElementsCollection(pipes, "Труба");
-
-            // Обрабатываем арматуру воздуховодов
-            ProcessElementsCollection(ductAccessories, "Арматура воздуховода");
-
-            // Обрабатываем арматуру труб
-            ProcessElementsCollection(pipeAccessories, "Арматура трубы");
 
             Debug.WriteLine($"База построена: {_symbolToElementsMap.Count} FamilySymbolId, {_elementToSymbolMap.Count} элементов");
         }
@@ -663,7 +635,6 @@ namespace BIMv2
                 // Формируем имя вида с ID
                 string ids = string.Join("_", reportIds.Take(3));
                 string collisionInfo = "Коллизия ";
-                //string collisionInfo = $"Коллизия-{collision1Elements.Count}_Коллизия-{collision2Elements.Count}";
 
                 string viewName = $"{clashName}_{collisionInfo}_{ids}";
                 if (viewName.Length > 200)
@@ -699,20 +670,29 @@ namespace BIMv2
         /// </summary>
         private void ApplyColorOverrides(View3D view, List<Element> collision1Elements, List<Element> collision2Elements, ElementId solidFillPatternId)
         {
+            // Конвертируем WPF цвета в Revit цвета
+            byte r1 = _collision1Color.R;
+            byte g1 = _collision1Color.G;
+            byte b1 = _collision1Color.B;
+
+            byte r2 = _collision2Color.R;
+            byte g2 = _collision2Color.G;
+            byte b2 = _collision2Color.B;
+
             // Настройки для элементов первой коллизии
             OverrideGraphicSettings collision1Ogs = new OverrideGraphicSettings();
-            collision1Ogs.SetProjectionLineColor(new Autodesk.Revit.DB.Color(_collision1Color.R, _collision1Color.G, _collision1Color.B));
+            collision1Ogs.SetProjectionLineColor(new Autodesk.Revit.DB.Color(r1, g1, b1));
             collision1Ogs.SetProjectionLineWeight(5);
             collision1Ogs.SetSurfaceForegroundPatternId(solidFillPatternId);
-            collision1Ogs.SetSurfaceForegroundPatternColor(new Autodesk.Revit.DB.Color(_collision1Color.R, _collision1Color.G, _collision1Color.B));
+            collision1Ogs.SetSurfaceForegroundPatternColor(new Autodesk.Revit.DB.Color(r1, g1, b1));
             collision1Ogs.SetSurfaceTransparency(0);
 
             // Настройки для элементов второй коллизии
             OverrideGraphicSettings collision2Ogs = new OverrideGraphicSettings();
-            collision2Ogs.SetProjectionLineColor(new Autodesk.Revit.DB.Color(_collision2Color.R, _collision2Color.G, _collision2Color.B));
+            collision2Ogs.SetProjectionLineColor(new Autodesk.Revit.DB.Color(r2, g2, b2));
             collision2Ogs.SetProjectionLineWeight(5);
             collision2Ogs.SetSurfaceForegroundPatternId(solidFillPatternId);
-            collision2Ogs.SetSurfaceForegroundPatternColor(new Autodesk.Revit.DB.Color(_collision2Color.R, _collision2Color.G, _collision2Color.B));
+            collision2Ogs.SetSurfaceForegroundPatternColor(new Autodesk.Revit.DB.Color(r2, g2, b2));
             collision2Ogs.SetSurfaceTransparency(0);
 
             // Настройки для остальных элементов (прозрачность)
@@ -794,324 +774,382 @@ namespace BIMv2
         }
     }
 
-    
-    public partial class CollisionSettingsForm : System.Windows.Forms.Form
+    // WPF окно настроек
+    public partial class CollisionSettingsWpfWindow : Window
     {
-        public System.Drawing.Color Collision1Color { get; set; }
-        public System.Drawing.Color Collision2Color { get; set; }
+        public Color Collision1Color { get; set; }
+        public Color Collision2Color { get; set; }
         public int Transparency { get; set; }
         public string ReportFilePath { get; set; }
 
-        private Button btnOpenReport;
-        private Button btnColor1;
-        private Button btnColor2;
-        private Button btnTransparency;
-        private Button btnOK;
-        private Button btnCancel;
-        private Label lblReport;
-        private Label lblColor1;
-        private Label lblColor2;
-        private Label lblTransparency;
-        private ColorDialog colorDialog;
+        private WpfLabel _lblTransparency;
 
-        public CollisionSettingsForm()
+        public CollisionSettingsWpfWindow()
         {
             InitializeComponent();
-            // Устанавливаем цвета по умолчанию: оранжевый и зеленый
-            Collision1Color = System.Drawing.Color.Orange;
-            Collision2Color = System.Drawing.Color.Green;
+
+            // Устанавливаем значения по умолчанию
+            Collision1Color = Colors.Orange;
+            Collision2Color = Colors.Green;
             Transparency = 80;
             ReportFilePath = string.Empty;
+
+            // Обновляем визуальные элементы
+            UpdateColorDisplays();
+            _lblTransparency.Content = $"Прозрачность: {100 - Transparency}%";
         }
 
         private void InitializeComponent()
         {
-            this.btnOpenReport = new Button();
-            this.btnColor1 = new Button();
-            this.btnColor2 = new Button();
-            this.btnTransparency = new Button();
-            this.btnOK = new Button();
-            this.btnCancel = new Button();
-            this.lblReport = new Label();
-            this.lblColor1 = new Label();
-            this.lblColor2 = new Label();
-            this.lblTransparency = new Label();
-            this.colorDialog = new ColorDialog();
+            this.Title = "Настройки коллизий";
+            this.Width = 400;
+            this.Height = 300;
+            this.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            this.ResizeMode = ResizeMode.NoResize;
 
-            this.btnOpenReport.Location = new System.Drawing.Point(120, 20);
-            this.btnOpenReport.Name = "btnOpenReport";
-            this.btnOpenReport.Size = new System.Drawing.Size(150, 30);
-            this.btnOpenReport.Text = "Открыть отчет";
-            this.btnOpenReport.Click += new EventHandler(this.btnOpenReport_Click);
+            // Основной контейнер
+            WpfStackPanel mainPanel = new WpfStackPanel();
+            mainPanel.Margin = new Thickness(20);
+            // Используем Margin вместо Spacing для .NET Framework 3.5
+            // mainPanel.Spacing = 10; // Только для .NET Framework 4.0+
 
-            this.btnColor1.Location = new System.Drawing.Point(120, 60);
-            this.btnColor1.Name = "btnColor1";
-            this.btnColor1.Size = new System.Drawing.Size(150, 30);
-            this.btnColor1.BackColor = Collision1Color;
-            this.btnColor1.Text = "Выбрать цвет";
-            this.btnColor1.Click += new EventHandler(this.btnColor1_Click);
+            // 1. Выбор файла отчета
+            WpfGrid reportGrid = new WpfGrid();
+            reportGrid.ColumnDefinitions.Add(new WpfColumnDefinition() { Width = GridLength.Auto });
+            reportGrid.ColumnDefinitions.Add(new WpfColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+            reportGrid.ColumnDefinitions.Add(new WpfColumnDefinition() { Width = GridLength.Auto });
+            reportGrid.Margin = new Thickness(0, 0, 0, 10); // Заменяем Spacing
 
-            this.btnColor2.Location = new System.Drawing.Point(120, 100);
-            this.btnColor2.Name = "btnColor2";
-            this.btnColor2.Size = new System.Drawing.Size(150, 30);
-            this.btnColor2.BackColor = Collision2Color;
-            this.btnColor2.Text = "Выбрать цвет";
-            this.btnColor2.Click += new EventHandler(this.btnColor2_Click);
+            WpfLabel lblReport = new WpfLabel() { Content = "Отчет:", VerticalAlignment = VerticalAlignment.Center };
+            WpfGrid.SetColumn(lblReport, 0);
 
-            this.btnTransparency.Location = new System.Drawing.Point(120, 140);
-            this.btnTransparency.Name = "btnTransparency";
-            this.btnTransparency.Size = new System.Drawing.Size(150, 30);
-            this.btnTransparency.Text = "Настроить прозрачность";
-            this.btnTransparency.Click += new EventHandler(this.btnTransparency_Click);
-
-            this.btnOK.Location = new System.Drawing.Point(50, 190);
-            this.btnOK.Name = "btnOK";
-            this.btnOK.Size = new System.Drawing.Size(100, 30);
-            this.btnOK.Text = "OK";
-            this.btnOK.Click += new EventHandler(this.btnOK_Click);
-
-            this.btnCancel.Location = new System.Drawing.Point(170, 190);
-            this.btnCancel.Name = "btnCancel";
-            this.btnCancel.Size = new System.Drawing.Size(100, 30);
-            this.btnCancel.Text = "Отмена";
-            this.btnCancel.Click += new EventHandler(this.btnCancel_Click);
-
-            this.lblReport.Location = new System.Drawing.Point(20, 25);
-            this.lblReport.Name = "lblReport";
-            this.lblReport.Size = new System.Drawing.Size(90, 30);
-            this.lblReport.Text = "Отчет:";
-
-            this.lblColor1.Location = new System.Drawing.Point(20, 65);
-            this.lblColor1.Name = "lblColor1";
-            this.lblColor1.Size = new System.Drawing.Size(90, 20);
-            this.lblColor1.Text = "Коллизия 1:";
-
-            this.lblColor2.Location = new System.Drawing.Point(20, 105);
-            this.lblColor2.Name = "lblColor2";
-            this.lblColor2.Size = new System.Drawing.Size(90, 20);
-            this.lblColor2.Text = "Коллизия 2:";
-
-            this.lblTransparency.Location = new System.Drawing.Point(20, 145);
-            this.lblTransparency.Name = "lblTransparency";
-            this.lblTransparency.Size = new System.Drawing.Size(90, 30);
-            this.lblTransparency.Text = "Прозрачность:";
-
-            this.ClientSize = new System.Drawing.Size(320, 240);
-            this.Controls.Add(this.btnOpenReport);
-            this.Controls.Add(this.btnColor1);
-            this.Controls.Add(this.btnColor2);
-            this.Controls.Add(this.btnTransparency);
-            this.Controls.Add(this.btnOK);
-            this.Controls.Add(this.btnCancel);
-            this.Controls.Add(this.lblReport);
-            this.Controls.Add(this.lblColor1);
-            this.Controls.Add(this.lblColor2);
-            this.Controls.Add(this.lblTransparency);
-            this.FormBorderStyle = FormBorderStyle.FixedDialog;
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
-            this.Text = "Настройки коллизий";
-            this.StartPosition = FormStartPosition.CenterScreen;
-        }
-
-        private void btnOpenReport_Click(object sender, EventArgs e)
-        {
-            OpenFileDialog ofd = new OpenFileDialog
+            WpfTextBox txtReportPath = new WpfTextBox()
             {
-                Title = "Выберите XML отчет Navisworks",
-                Filter = "XML files|*.xml"
+                IsReadOnly = true,
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(5, 0, 5, 0)
             };
+            txtReportPath.TextChanged += (s, e) => ReportFilePath = txtReportPath.Text;
+            WpfGrid.SetColumn(txtReportPath, 1);
 
-            if (ofd.ShowDialog() == DialogResult.OK)
+            WpfButton btnBrowse = new WpfButton()
             {
-                ReportFilePath = ofd.FileName;
-                lblReport.Text = $"Отчет: {System.IO.Path.GetFileName(ReportFilePath)}";
-            }
-        }
-
-        private void btnColor1_Click(object sender, EventArgs e)
-        {
-            colorDialog.Color = Collision1Color;
-            if (colorDialog.ShowDialog() == DialogResult.OK)
+                Content = "Обзор...",
+                Padding = new Thickness(10, 2, 10, 2),
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            btnBrowse.Click += (s, e) =>
             {
-                Collision1Color = colorDialog.Color;
-                btnColor1.BackColor = Collision1Color;
-            }
-        }
-
-        private void btnColor2_Click(object sender, EventArgs e)
-        {
-            colorDialog.Color = Collision2Color;
-            if (colorDialog.ShowDialog() == DialogResult.OK)
-            {
-                Collision2Color = colorDialog.Color;
-                btnColor2.BackColor = Collision2Color;
-            }
-        }
-
-        private void btnTransparency_Click(object sender, EventArgs e)
-        {
-            using (var transparencyForm = new TransparencySettingsForm(Transparency))
-            {
-                if (transparencyForm.ShowDialog() == DialogResult.OK)
+                // Используем WPF OpenFileDialog
+                Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
                 {
-                    Transparency = transparencyForm.TransparencyValue;
-                    lblTransparency.Text = $"Прозрачность: {100 - Transparency}%";
+                    Title = "Выберите XML отчет Navisworks",
+                    Filter = "XML files|*.xml",
+                    Multiselect = false
+                };
+
+                if (openFileDialog.ShowDialog() == true)
+                {
+                    ReportFilePath = openFileDialog.FileName;
+                    txtReportPath.Text = System.IO.Path.GetFileName(ReportFilePath);
+                }
+            };
+            WpfGrid.SetColumn(btnBrowse, 2);
+
+            reportGrid.Children.Add(lblReport);
+            reportGrid.Children.Add(txtReportPath);
+            reportGrid.Children.Add(btnBrowse);
+
+            // 2. Настройка цвета коллизии 1
+            WpfGrid color1Grid = new WpfGrid();
+            color1Grid.ColumnDefinitions.Add(new WpfColumnDefinition() { Width = GridLength.Auto });
+            color1Grid.ColumnDefinitions.Add(new WpfColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+            color1Grid.ColumnDefinitions.Add(new WpfColumnDefinition() { Width = GridLength.Auto });
+            color1Grid.Margin = new Thickness(0, 0, 0, 10); // Заменяем Spacing
+
+            WpfLabel lblColor1 = new WpfLabel() { Content = "Коллизия 1:", VerticalAlignment = VerticalAlignment.Center };
+            WpfGrid.SetColumn(lblColor1, 0);
+
+            WpfBorder color1Display = new WpfBorder()
+            {
+                Height = 25,
+                CornerRadius = new CornerRadius(3),
+                BorderBrush = Brushes.LightGray,
+                BorderThickness = new Thickness(1),
+                Margin = new Thickness(5, 0, 5, 0),
+                Background = new SolidColorBrush(Collision1Color)
+            };
+            color1Display.Tag = "color1";
+            WpfGrid.SetColumn(color1Display, 1);
+
+            WpfButton btnColor1 = new WpfButton()
+            {
+                Content = "Выбрать...",
+                Padding = new Thickness(10, 2, 10, 2),
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            btnColor1.Tag = "color1";
+            btnColor1.Click += ColorButton_Click;
+            WpfGrid.SetColumn(btnColor1, 2);
+
+            color1Grid.Children.Add(lblColor1);
+            color1Grid.Children.Add(color1Display);
+            color1Grid.Children.Add(btnColor1);
+
+            // 3. Настройка цвета коллизии 2
+            WpfGrid color2Grid = new WpfGrid();
+            color2Grid.ColumnDefinitions.Add(new WpfColumnDefinition() { Width = GridLength.Auto });
+            color2Grid.ColumnDefinitions.Add(new WpfColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+            color2Grid.ColumnDefinitions.Add(new WpfColumnDefinition() { Width = GridLength.Auto });
+            color2Grid.Margin = new Thickness(0, 0, 0, 10); // Заменяем Spacing
+
+            WpfLabel lblColor2 = new WpfLabel() { Content = "Коллизия 2:", VerticalAlignment = VerticalAlignment.Center };
+            WpfGrid.SetColumn(lblColor2, 0);
+
+            WpfBorder color2Display = new WpfBorder()
+            {
+                Height = 25,
+                CornerRadius = new CornerRadius(3),
+                BorderBrush = Brushes.LightGray,
+                BorderThickness = new Thickness(1),
+                Margin = new Thickness(5, 0, 5, 0),
+                Background = new SolidColorBrush(Collision2Color)
+            };
+            color2Display.Tag = "color2";
+            WpfGrid.SetColumn(color2Display, 1);
+
+            WpfButton btnColor2 = new WpfButton()
+            {
+                Content = "Выбрать...",
+                Padding = new Thickness(10, 2, 10, 2),
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            btnColor2.Tag = "color2";
+            btnColor2.Click += ColorButton_Click;
+            WpfGrid.SetColumn(btnColor2, 2);
+
+            color2Grid.Children.Add(lblColor2);
+            color2Grid.Children.Add(color2Display);
+            color2Grid.Children.Add(btnColor2);
+
+            // 4. Настройка прозрачности
+            WpfGrid transparencyGrid = new WpfGrid();
+            transparencyGrid.ColumnDefinitions.Add(new WpfColumnDefinition() { Width = GridLength.Auto });
+            transparencyGrid.ColumnDefinitions.Add(new WpfColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+            transparencyGrid.ColumnDefinitions.Add(new WpfColumnDefinition() { Width = GridLength.Auto });
+            transparencyGrid.Margin = new Thickness(0, 0, 0, 10); // Заменяем Spacing
+
+            _lblTransparency = new WpfLabel() { Content = "Прозрачность:", VerticalAlignment = VerticalAlignment.Center };
+            WpfGrid.SetColumn(_lblTransparency, 0);
+
+            WpfSlider transparencySlider = new WpfSlider()
+            {
+                Minimum = 0,
+                Maximum = 100,
+                Value = Transparency,
+                Margin = new Thickness(5, 0, 5, 0),
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            transparencySlider.ValueChanged += (s, e) =>
+            {
+                Transparency = (int)transparencySlider.Value;
+                _lblTransparency.Content = $"Прозрачность: {100 - Transparency}%";
+            };
+            WpfGrid.SetColumn(transparencySlider, 1);
+
+            WpfButton btnTransparency = new WpfButton()
+            {
+                Content = "Сброс",
+                Padding = new Thickness(10, 2, 10, 2),
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            btnTransparency.Click += (s, e) =>
+            {
+                Transparency = 80;
+                transparencySlider.Value = Transparency;
+                _lblTransparency.Content = $"Прозрачность: {100 - Transparency}%";
+            };
+            WpfGrid.SetColumn(btnTransparency, 2);
+
+            transparencyGrid.Children.Add(_lblTransparency);
+            transparencyGrid.Children.Add(transparencySlider);
+            transparencyGrid.Children.Add(btnTransparency);
+
+            // 5. Кнопки OK и Отмена
+            WpfGrid buttonGrid = new WpfGrid();
+            buttonGrid.ColumnDefinitions.Add(new WpfColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
+            buttonGrid.ColumnDefinitions.Add(new WpfColumnDefinition() { Width = GridLength.Auto });
+            buttonGrid.ColumnDefinitions.Add(new WpfColumnDefinition() { Width = GridLength.Auto });
+            buttonGrid.Margin = new Thickness(0, 20, 0, 0);
+
+            WpfButton btnOK = new WpfButton()
+            {
+                Content = "OK",
+                Padding = new Thickness(20, 5, 20, 5),
+                Margin = new Thickness(0, 0, 10, 0),
+                IsDefault = true
+            };
+            btnOK.Click += (s, e) =>
+            {
+                if (string.IsNullOrEmpty(ReportFilePath))
+                {
+                    MessageBox.Show("Пожалуйста, выберите файл отчета с коллизиями.", "Внимание",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                DialogResult = true;
+                Close();
+            };
+            WpfGrid.SetColumn(btnOK, 1);
+
+            WpfButton btnCancel = new WpfButton()
+            {
+                Content = "Отмена",
+                Padding = new Thickness(20, 5, 20, 5),
+                IsCancel = true
+            };
+            btnCancel.Click += (s, e) =>
+            {
+                DialogResult = false;
+                Close();
+            };
+            WpfGrid.SetColumn(btnCancel, 2);
+
+            buttonGrid.Children.Add(btnOK);
+            buttonGrid.Children.Add(btnCancel);
+
+            // Добавляем все элементы в основной панель
+            mainPanel.Children.Add(reportGrid);
+            mainPanel.Children.Add(color1Grid);
+            mainPanel.Children.Add(color2Grid);
+            mainPanel.Children.Add(transparencyGrid);
+            mainPanel.Children.Add(buttonGrid);
+
+            this.Content = mainPanel;
+        }
+
+        private void ColorButton_Click(object sender, RoutedEventArgs e)
+        {
+            string colorType = ((WpfButton)sender).Tag as string;
+
+            // Используем WinForms ColorDialog для выбора цвета
+            var colorDialog = new System.Windows.Forms.ColorDialog();
+            if (colorType == "color1")
+                colorDialog.Color = System.Drawing.Color.FromArgb(Collision1Color.R, Collision1Color.G, Collision1Color.B);
+            else
+                colorDialog.Color = System.Drawing.Color.FromArgb(Collision2Color.R, Collision2Color.G, Collision2Color.B);
+
+            if (colorDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                var newColor = Color.FromArgb(colorDialog.Color.A, colorDialog.Color.R, colorDialog.Color.G, colorDialog.Color.B);
+
+                if (colorType == "color1")
+                    Collision1Color = newColor;
+                else
+                    Collision2Color = newColor;
+
+                UpdateColorDisplays();
+            }
+        }
+
+        private void UpdateColorDisplays()
+        {
+            // Находим элементы Border по тегам и обновляем их цвет
+            var mainPanel = this.Content as WpfStackPanel;
+            if (mainPanel != null)
+            {
+                foreach (var grid in mainPanel.Children.OfType<WpfGrid>())
+                {
+                    foreach (var border in grid.Children.OfType<WpfBorder>())
+                    {
+                        if (border.Tag as string == "color1")
+                            border.Background = new SolidColorBrush(Collision1Color);
+                        else if (border.Tag as string == "color2")
+                            border.Background = new SolidColorBrush(Collision2Color);
+                    }
                 }
             }
         }
-
-        private void btnOK_Click(object sender, EventArgs e)
-        {
-            if (string.IsNullOrEmpty(ReportFilePath))
-            {
-                MessageBox.Show("Пожалуйста, выберите файл отчета с коллизиями.", "Внимание",
-                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            this.DialogResult = DialogResult.OK;
-            this.Close();
-        }
-
-        private void btnCancel_Click(object sender, EventArgs e)
-        {
-            this.DialogResult = DialogResult.Cancel;
-            this.Close();
-        }
     }
 
-    public class TransparencySettingsForm : System.Windows.Forms.Form
+    // WPF окно прогресса
+    public class ProgressWpfWindow : Window
     {
-        public int TransparencyValue { get; private set; }
-
-        private TrackBar trackBar;
-        private Label lblValue;
-        private Button btnOK;
-        private Button btnCancel;
-
-        public TransparencySettingsForm(int currentTransparency)
-        {
-            TransparencyValue = currentTransparency;
-            InitializeComponent();
-        }
-
-        private void InitializeComponent()
-        {
-            this.trackBar = new TrackBar();
-            this.lblValue = new Label();
-            this.btnOK = new Button();
-            this.btnCancel = new Button();
-
-            // trackBar
-            this.trackBar.Location = new System.Drawing.Point(20, 20);
-            this.trackBar.Size = new System.Drawing.Size(250, 45);
-            this.trackBar.Minimum = 0;
-            this.trackBar.Maximum = 100;
-            this.trackBar.Value = TransparencyValue;
-            this.trackBar.TickFrequency = 10;
-            this.trackBar.ValueChanged += new EventHandler(this.trackBar_ValueChanged);
-
-            // lblValue
-            this.lblValue.Location = new System.Drawing.Point(280, 25);
-            this.lblValue.Size = new System.Drawing.Size(50, 20);
-            this.lblValue.Text = $"{100 - TransparencyValue}%";
-
-            // btnOK
-            this.btnOK.Location = new System.Drawing.Point(70, 80);
-            this.btnOK.Size = new System.Drawing.Size(75, 25);
-            this.btnOK.Text = "OK";
-            this.btnOK.Click += new EventHandler(this.btnOK_Click);
-
-            // btnCancel
-            this.btnCancel.Location = new System.Drawing.Point(155, 80);
-            this.btnCancel.Size = new System.Drawing.Size(75, 25);
-            this.btnCancel.Text = "Отмена";
-            this.btnCancel.Click += new EventHandler(this.btnCancel_Click);
-
-            // Form
-            this.ClientSize = new System.Drawing.Size(350, 120);
-            this.Controls.Add(this.trackBar);
-            this.Controls.Add(this.lblValue);
-            this.Controls.Add(this.btnOK);
-            this.Controls.Add(this.btnCancel);
-            this.FormBorderStyle = FormBorderStyle.FixedDialog;
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
-            this.Text = "Настройка прозрачности";
-            this.StartPosition = FormStartPosition.CenterScreen;
-        }
-
-        private void trackBar_ValueChanged(object sender, EventArgs e)
-        {
-            TransparencyValue = trackBar.Value;
-            lblValue.Text = $"{100 - TransparencyValue}%";
-        }
-
-        private void btnOK_Click(object sender, EventArgs e)
-        {
-            this.DialogResult = DialogResult.OK;
-            this.Close();
-        }
-
-        private void btnCancel_Click(object sender, EventArgs e)
-        {
-            this.DialogResult = DialogResult.Cancel;
-            this.Close();
-        }
-    }
-
-    public partial class ProgressForm2 : System.Windows.Forms.Form
-    {
-        public ProgressBar ProgressBar => progressBar;
-        public Label StatusLabel => labelStatus;
         public bool CancelRequested { get; private set; }
+        private WpfProgressBar _progressBar;
+        private WpfLabel _statusLabel;
+        private WpfButton _cancelButton;
 
-        public ProgressForm2()
+        public double ProgressValue
+        {
+            get => _progressBar.Value;
+            set => _progressBar.Dispatcher.Invoke(() => _progressBar.Value = value);
+        }
+
+        public string StatusText
+        {
+            get => _statusLabel.Content as string;
+            set => _statusLabel.Dispatcher.Invoke(() => _statusLabel.Content = value);
+        }
+
+        public ProgressWpfWindow()
         {
             InitializeComponent();
         }
 
         private void InitializeComponent()
         {
-            this.progressBar = new ProgressBar();
-            this.labelStatus = new Label();
-            this.buttonCancel = new Button();
+            this.Title = "Обработка коллизий";
+            this.Width = 400;
+            this.Height = 150;
+            this.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            this.ResizeMode = ResizeMode.NoResize;
+            this.Topmost = true;
 
-            this.SuspendLayout();
+            // Основной контейнер
+            WpfStackPanel mainPanel = new WpfStackPanel();
+            mainPanel.Margin = new Thickness(20);
+            // Используем Margin вместо Spacing для .NET Framework 3.5
+            // mainPanel.Spacing = 15; // Только для .NET Framework 4.0+
 
-            // progressBar
-            this.progressBar.Location = new System.Drawing.Point(15, 30);
-            this.progressBar.Size = new System.Drawing.Size(350, 23);
-            this.progressBar.Style = ProgressBarStyle.Continuous;
+            // Текст статуса
+            _statusLabel = new WpfLabel()
+            {
+                Content = "Подготовка...",
+                HorizontalAlignment = System.Windows.HorizontalAlignment.Left,
+                Margin = new Thickness(0, 0, 0, 15) // Заменяем Spacing
+            };
 
-            // labelStatus
-            this.labelStatus.AutoSize = true;
-            this.labelStatus.Location = new System.Drawing.Point(15, 10);
-            this.labelStatus.Text = "Подготовка...";
+            // Прогресс-бар
+            _progressBar = new WpfProgressBar()
+            {
+                Height = 20,
+                Minimum = 0,
+                Maximum = 100,
+                Value = 0,
+                Margin = new Thickness(0, 0, 0, 15) // Заменяем Spacing
+            };
 
-            // buttonCancel
-            this.buttonCancel.Location = new System.Drawing.Point(290, 60);
-            this.buttonCancel.Size = new System.Drawing.Size(75, 23);
-            this.buttonCancel.Text = "Отмена";
-            this.buttonCancel.Click += (s, e) => { CancelRequested = true; };
+            // Кнопка отмены
+            _cancelButton = new WpfButton()
+            {
+                Content = "Отмена",
+                Width = 80,
+                HorizontalAlignment = System.Windows.HorizontalAlignment.Right,
+                Padding = new Thickness(10, 5, 10, 5)
+            };
+            _cancelButton.Click += (s, e) =>
+            {
+                CancelRequested = true;
+                _cancelButton.IsEnabled = false;
+                _cancelButton.Content = "Отмена...";
+            };
 
-            // ProgressForm
-            this.ClientSize = new System.Drawing.Size(380, 95);
-            this.Controls.Add(this.progressBar);
-            this.Controls.Add(this.labelStatus);
-            this.Controls.Add(this.buttonCancel);
-            this.FormBorderStyle = FormBorderStyle.FixedDialog;
-            this.StartPosition = FormStartPosition.CenterScreen;
-            this.Text = "Обработка коллизий";
-            this.TopMost = true;
-            this.ResumeLayout(false);
-            this.PerformLayout();
+            mainPanel.Children.Add(_statusLabel);
+            mainPanel.Children.Add(_progressBar);
+            mainPanel.Children.Add(_cancelButton);
+
+            this.Content = mainPanel;
         }
-
-        private ProgressBar progressBar;
-        private Label labelStatus;
-        private Button buttonCancel;
     }
 }
-
