@@ -311,6 +311,7 @@
     <Compile Include="CreateRoomUnfolds.cs" />
     <Compile Include="CreateScheduleRooms.cs" />
     <Compile Include="CreateSectionInSelectedRooms.cs" />
+    <Compile Include="CreateSingleSystemViews.cs" />
     <Compile Include="CreateViewByLinkedFiles.cs" />
     <Compile Include="CreateViewForCollisions.cs" />
     <Compile Include="CreateViewForLevels.cs" />
