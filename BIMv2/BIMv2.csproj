@@ -391,6 +391,7 @@
     <Compile Include="TitleblockSelectionWindow.xaml.cs">
       <DependentUpon>TitleblockSelectionWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="TransferLGParameters.cs" />
     <Compile Include="TransferParamRoonToWalls.cs" />
     <Compile Include="VarificationCeiling.cs" />
     <Compile Include="VarificationFloors.cs" />
