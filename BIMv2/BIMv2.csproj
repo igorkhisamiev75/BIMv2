@@ -329,6 +329,7 @@
     <Compile Include="DuplicateSheets.cs" />
     <Compile Include="EditDimentionsForPlans.cs" />
     <Compile Include="EnhancedStairFinishing .cs" />
+    <Compile Include="ExportKS2Command.cs" />
     <Compile Include="FindDoorsMirror.cs" />
     <Compile Include="archive\FindDuctFiting.cs" />
     <Compile Include="FindFloorParametr.cs" />
