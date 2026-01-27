@@ -1,27 +1,37 @@
 ﻿#region Namespaces
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Windows.Controls;
-
 using OperationCanceledException = Autodesk.Revit.Exceptions.OperationCanceledException;
 #endregion
 
-namespace DoorAreaCalculator
+namespace DoorWindowAreaCalculator
 {
     [Transaction(TransactionMode.Manual)]
-    public class CalculateOpeningAreas : IExternalCommand
+    public class CalculateDoorWindowAreas : IExternalCommand
     {
         // Имена параметров для помещений
         private const string PARAM_DOOR_AREA = "ПлощадьПроемов_Двери";
         private const string PARAM_WINDOW_AREA = "ПлощадьПроемов_Окна";
-        private const string PARAM_CURTAIN_AREA = "ПлощадьПроемов_Витражи";
         private const string PARAM_PARTITION_AREA = "ПлощадьПроемов_РазделителиПомещений";
+        private const string PARAM_CURTAIN_AREA = "ПлощадьПроемов_Витражи";
+
+        // GUID параметров из файла ФОП_v1.txt
+        private readonly Dictionary<string, string> parameterGuids = new Dictionary<string, string>()
+        {
+            { PARAM_DOOR_AREA, "738a3f70-6719-4208-aa05-220a0473f6cb" },
+            { PARAM_WINDOW_AREA, "f68ac920-41ca-4c34-a7b5-92113f55cac8" },
+            { PARAM_PARTITION_AREA, "208be939-133a-4d21-81ff-d55e8ac6a644" },
+            { PARAM_CURTAIN_AREA, "47bc1af3-9fcf-46a6-9e4e-2505f33ecf5b" }
+        };
+
+        private Document doc;
 
         public Result Execute(
             ExternalCommandData commandData,
@@ -30,10 +40,45 @@ namespace DoorAreaCalculator
         {
             UIApplication uiapp = commandData.Application;
             UIDocument uidoc = uiapp.ActiveUIDocument;
-            Document doc = uidoc.Document;
+            doc = uidoc.Document;
 
             try
             {
+                // Проверяем наличие общих параметров в проекте
+                bool parametersExist = CheckParametersExist();
+
+                if (!parametersExist)
+                {
+                    TaskDialogResult dialogResult = TaskDialog.Show("Параметры не найдены",
+                        "Не найдены необходимые общие параметры в проекте.\n\n" +
+                        "Возможные причины:\n" +
+                        "1. Файл общих параметров ФОП_v1.txt не подключен к проекту\n" +
+                        "2. Параметры не привязаны к категории 'Помещения'\n\n" +
+                        "Создать параметры?",
+                        TaskDialogCommonButtons.Yes | TaskDialogCommonButtons.No);
+
+                    if (dialogResult == TaskDialogResult.Yes)
+                    {
+                        if (!CreateSharedParametersInProject())
+                        {
+                            TaskDialog.Show("Ошибка", "Не удалось создать параметры.");
+                            return Result.Cancelled;
+                        }
+                    }
+                    else
+                    {
+                        TaskDialog.Show("Информация", "Расчет площадей отменен.");
+                        return Result.Cancelled;
+                    }
+                }
+
+                parametersExist = CheckParametersExist();
+                if (!parametersExist)
+                {
+                    TaskDialog.Show("Ошибка", "Параметры не найдены. Завершение работы.");
+                    return Result.Cancelled;
+                }
+
                 using (Transaction trans = new Transaction(doc, "Расчет площадей проемов"))
                 {
                     trans.Start();
@@ -51,18 +96,6 @@ namespace DoorAreaCalculator
                         return Result.Cancelled;
                     }
 
-                    // Проверяем наличие необходимых параметров и устанавливаем 0
-                    foreach (Room room in rooms)
-                    {
-                        InitializeRoomParameters(room);
-                    }
-
-                    // Словари для хранения суммарных площадей по помещениям
-                    Dictionary<ElementId, double> roomDoorAreas = new Dictionary<ElementId, double>();
-                    Dictionary<ElementId, double> roomWindowAreas = new Dictionary<ElementId, double>();
-                    Dictionary<ElementId, double> roomCurtainWallAreas = new Dictionary<ElementId, double>();
-                    Dictionary<ElementId, double> roomPartitionAreas = new Dictionary<ElementId, double>();
-
                     // 2. Собираем все двери
                     List<FamilyInstance> doors = new FilteredElementCollector(doc)
                         .OfCategory(BuiltInCategory.OST_Doors)
@@ -77,67 +110,47 @@ namespace DoorAreaCalculator
                         .Cast<FamilyInstance>()
                         .ToList();
 
-                    // 4. Собираем все витражи (занавесные стены)
+                    // 4. Собираем все витражи (стены с "Витраж" в имени типа)
                     List<Wall> curtainWalls = new FilteredElementCollector(doc)
                         .OfCategory(BuiltInCategory.OST_Walls)
                         .WhereElementIsNotElementType()
                         .OfClass(typeof(Wall))
                         .Cast<Wall>()
-                        .Where(w => w.WallType.Kind == WallKind.Curtain)
+                        .Where(w => w.WallType != null &&
+                                   w.WallType.Name != null &&
+                                   w.WallType.Name.IndexOf("Витраж", StringComparison.OrdinalIgnoreCase) >= 0)
                         .ToList();
 
-                    // 5. Собираем занавесные панели
-                    List<FamilyInstance> curtainPanels = new FilteredElementCollector(doc)
-                        .OfCategory(BuiltInCategory.OST_CurtainWallPanels)
-                        .WhereElementIsNotElementType()
-                        .Cast<FamilyInstance>()
-                        .ToList();
-
-                    if (doors.Count == 0 && windows.Count == 0 && curtainWalls.Count == 0 && curtainPanels.Count == 0)
+                    if (doors.Count == 0 && windows.Count == 0 && curtainWalls.Count == 0)
                     {
                         TaskDialog.Show("Информация", "В проекте не найдено дверей, окон и витражей.");
                         return Result.Cancelled;
                     }
 
+                    // Словари для хранения суммарных площадей по помещениям
+                    Dictionary<ElementId, double> roomDoorAreas = new Dictionary<ElementId, double>();
+                    Dictionary<ElementId, double> roomWindowAreas = new Dictionary<ElementId, double>();
+                    Dictionary<ElementId, double> roomPartitionAreas = new Dictionary<ElementId, double>();
+                    Dictionary<ElementId, double> roomCurtainAreas = new Dictionary<ElementId, double>();
+
                     int processedDoors = 0;
                     int processedWindows = 0;
-                    int processedCurtainWalls = 0;
-                    int processedCurtainPanels = 0;
 
-                    // Обрабатываем двери
+                    // Обрабатываем двери - используем геометрический подход для определения помещений
                     foreach (FamilyInstance door in doors)
                     {
-                        // Определяем в каких помещениях находится дверь
-                        Room fromRoom = door.FromRoom;
-                        Room toRoom = door.ToRoom;
+                        List<Room> doorRooms = FindRoomsForDoor(door, rooms);
 
-                        // Получаем площадь проема из параметров типа
                         double doorArea = GetDoorArea(door);
 
-                        if (doorArea > 0)
+                        if (doorArea > 0.001 && doorRooms.Count > 0)
                         {
                             processedDoors++;
 
-                            // Распределяем площадь между помещениями
-                            if (fromRoom != null && toRoom != null)
+                            // Распределяем площадь между всеми найденными помещениями
+                            foreach (Room room in doorRooms)
                             {
-                                // Дверь между двумя помещениями - полная площадь для каждого помещения
-                                AddAreaToRoom(roomDoorAreas, fromRoom.Id, doorArea);
-                                AddAreaToRoom(roomDoorAreas, toRoom.Id, doorArea);
-
-                                // Также добавляем в разделители помещений
-                                AddAreaToRoom(roomPartitionAreas, fromRoom.Id, doorArea);
-                                AddAreaToRoom(roomPartitionAreas, toRoom.Id, doorArea);
-                            }
-                            else if (fromRoom != null)
-                            {
-                                // Дверь только в одном помещении
-                                AddAreaToRoom(roomDoorAreas, fromRoom.Id, doorArea);
-                            }
-                            else if (toRoom != null)
-                            {
-                                // Дверь только в одном помещении
-                                AddAreaToRoom(roomDoorAreas, toRoom.Id, doorArea);
+                                AddAreaToRoom(roomDoorAreas, room.Id, doorArea);
                             }
                         }
                     }
@@ -145,86 +158,47 @@ namespace DoorAreaCalculator
                     // Обрабатываем окна
                     foreach (FamilyInstance window in windows)
                     {
-                        // Определяем в каком помещении находится окно
-                        Room windowRoom = window.Room;
+                        double windowArea = GetWindowArea(window);
 
-                        if (windowRoom != null)
+                        if (windowArea > 0.001)
                         {
-                            // Получаем площадь окна из параметров типа
-                            double windowArea = GetWindowArea(window);
+                            processedWindows++;
 
-                            if (windowArea > 0)
+                            List<Room> windowRooms = FindRoomsForWindow(window, rooms);
+
+                            if (windowRooms.Count > 0)
                             {
-                                processedWindows++;
-                                AddAreaToRoom(roomWindowAreas, windowRoom.Id, windowArea);
+                                foreach (Room room in windowRooms)
+                                {
+                                    AddAreaToRoom(roomWindowAreas, room.Id, windowArea);
+                                }
                             }
                         }
                     }
 
-                    // Обрабатываем витражи (занавесные стены)
-                    foreach (Wall curtainWall in curtainWalls)
-                    {
-                        // Получаем помещение, в котором находится витраж
-                        Room curtainWallRoom = GetRoomContainingElement(curtainWall, rooms);
+                    // 5. Рассчитываем площади разделителей помещений
+                    CalculatePartitionAreas(rooms, roomPartitionAreas);
 
-                        if (curtainWallRoom != null)
-                        {
-                            // Получаем площадь витража
-                            double curtainWallArea = GetCurtainWallArea(curtainWall);
+                    // 6. Рассчитываем площади витражей
+                    CalculateCurtainAreas(rooms, curtainWalls, roomCurtainAreas);
 
-                            if (curtainWallArea > 0)
-                            {
-                                processedCurtainWalls++;
-                                AddAreaToRoom(roomCurtainWallAreas, curtainWallRoom.Id, curtainWallArea);
-                            }
-                        }
-                    }
-
-                    // Обрабатываем занавесные панели
-                    foreach (FamilyInstance curtainPanel in curtainPanels)
-                    {
-                        // Получаем помещение, в котором находится панель
-                        Room panelRoom = curtainPanel.Room;
-
-                        if (panelRoom == null)
-                        {
-                            // Если у панели нет комнаты, ищем через расположение
-                            panelRoom = GetRoomContainingElement(curtainPanel, rooms);
-                        }
-
-                        if (panelRoom != null)
-                        {
-                            // Получаем площадь панели
-                            double panelArea = GetCurtainPanelArea(curtainPanel);
-
-                            if (panelArea > 0)
-                            {
-                                processedCurtainPanels++;
-                                AddAreaToRoom(roomCurtainWallAreas, panelRoom.Id, panelArea);
-                            }
-                        }
-                    }
-
-                    // 6. Анализируем границы помещений для поиска разделителей
-                    AnalyzeRoomBoundaries(rooms, roomPartitionAreas, doors, doc);
-
-                    // 7. Записываем результаты в параметры помещений и в комментарии
+                    // 7. Записываем результаты в параметры помещений
                     int roomsWithDoors = 0;
                     int roomsWithWindows = 0;
-                    int roomsWithCurtains = 0;
                     int roomsWithPartitions = 0;
+                    int roomsWithCurtains = 0;
 
                     foreach (Room room in rooms)
                     {
                         bool hasDoorArea = roomDoorAreas.ContainsKey(room.Id);
                         bool hasWindowArea = roomWindowAreas.ContainsKey(room.Id);
-                        bool hasCurtainWallArea = roomCurtainWallAreas.ContainsKey(room.Id);
                         bool hasPartitionArea = roomPartitionAreas.ContainsKey(room.Id);
+                        bool hasCurtainArea = roomCurtainAreas.ContainsKey(room.Id);
 
                         double totalDoorArea = hasDoorArea ? roomDoorAreas[room.Id] : 0;
                         double totalWindowArea = hasWindowArea ? roomWindowAreas[room.Id] : 0;
-                        double totalCurtainWallArea = hasCurtainWallArea ? roomCurtainWallAreas[room.Id] : 0;
                         double totalPartitionArea = hasPartitionArea ? roomPartitionAreas[room.Id] : 0;
+                        double totalCurtainArea = hasCurtainArea ? roomCurtainAreas[room.Id] : 0;
 
                         // Записываем площадь дверей
                         if (SetRoomParameter(room, PARAM_DOOR_AREA, totalDoorArea) && hasDoorArea)
@@ -238,438 +212,433 @@ namespace DoorAreaCalculator
                             roomsWithWindows++;
                         }
 
-                        // Записываем площадь витражей
-                        if (SetRoomParameter(room, PARAM_CURTAIN_AREA, totalCurtainWallArea) && hasCurtainWallArea)
-                        {
-                            roomsWithCurtains++;
-                        }
-
                         // Записываем площадь разделителей помещений
                         if (SetRoomParameter(room, PARAM_PARTITION_AREA, totalPartitionArea) && hasPartitionArea)
                         {
                             roomsWithPartitions++;
                         }
 
-                        // Также записываем в комментарии для проверки
-                        UpdateRoomComments(room, totalDoorArea, totalWindowArea, totalCurtainWallArea, totalPartitionArea);
+                        // Записываем площадь витражей
+                        if (SetRoomParameter(room, PARAM_CURTAIN_AREA, totalCurtainArea) && hasCurtainArea)
+                        {
+                            roomsWithCurtains++;
+                        }
                     }
 
                     trans.Commit();
-
-                    // Статистика
-                    int doorsInTwoRooms = doors.Count(d => d.FromRoom != null && d.ToRoom != null);
-                    int doorsInOneRoom = doors.Count(d => (d.FromRoom != null && d.ToRoom == null) ||
-                                                         (d.FromRoom == null && d.ToRoom != null));
-                    int doorsWithoutRooms = doors.Count(d => d.FromRoom == null && d.ToRoom == null);
-
-                    int windowsWithRoom = windows.Count(w => w.Room != null);
-                    int windowsWithoutRoom = windows.Count(w => w.Room == null);
 
                     TaskDialog.Show("Результаты расчета",
                         $"ОБРАБОТАНО:\n" +
                         $"• Всего помещений: {rooms.Count}\n" +
                         $"• Помещений с дверями: {roomsWithDoors}\n" +
                         $"• Помещений с окнами: {roomsWithWindows}\n" +
-                        $"• Помещений с витражами: {roomsWithCurtains}\n" +
-                        $"• Помещений с разделителями: {roomsWithPartitions}\n\n" +
+                        $"• Помещений с разделителями: {roomsWithPartitions}\n" +
+                        $"• Помещений с витражами: {roomsWithCurtains}\n\n" +
                         $"ДВЕРИ:\n" +
                         $"• Всего дверей: {doors.Count}\n" +
-                        $"• Дверей с площадью: {processedDoors}\n" +
-                        $"• Дверей между 2 помещениями: {doorsInTwoRooms}\n" +
-                        $"• Дверей в 1 помещении: {doorsInOneRoom}\n" +
-                        $"• Дверей без помещения: {doorsWithoutRooms}\n\n" +
+                        $"• Дверей обработано: {processedDoors}\n\n" +
                         $"ОКНА:\n" +
                         $"• Всего окон: {windows.Count}\n" +
-                        $"• Окон с площадью: {processedWindows}\n" +
-                        $"• Окон с помещением: {windowsWithRoom}\n" +
-                        $"• Окон без помещения: {windowsWithoutRoom}\n\n" +
-                        $"ВИТРАЖИ:\n" +
-                        $"• Занавесных стен: {curtainWalls.Count}\n" +
-                        $"• С площадью: {processedCurtainWalls}\n" +
-                        $"• Панелей: {curtainPanels.Count}\n" +
-                        $"• Панелей с площадью: {processedCurtainPanels}\n\n" +
-                        $"Площади записаны в параметры помещений и в комментарии для проверки.");
+                        $"• Окон обработано: {processedWindows}");
                 }
 
                 return Result.Succeeded;
             }
             catch (OperationCanceledException)
             {
-                // Пользователь отменил операцию
                 return Result.Cancelled;
             }
             catch (Exception ex)
             {
                 message = ex.Message;
-                TaskDialog.Show("Ошибка",
-                    $"Произошла ошибка:\n{ex.Message}\n\n" +
-                    $"StackTrace:\n{ex.StackTrace}");
+                TaskDialog.Show("Ошибка", $"Произошла ошибка:\n{ex.Message}");
                 return Result.Failed;
             }
         }
 
-        // Метод для анализа границ помещений
-        private void AnalyzeRoomBoundaries(List<Room> rooms, Dictionary<ElementId, double> roomPartitionAreas, List<FamilyInstance> doors, Document doc)
+        // Метод для поиска помещений, в которых находится дверь
+        private List<Room> FindRoomsForDoor(FamilyInstance door, List<Room> allRooms)
+        {
+            List<Room> doorRooms = new List<Room>();
+
+            try
+            {
+                // Метод 1: Используем геометрический подход (аналогично окнам)
+                BoundingBoxXYZ doorBbox = door.get_BoundingBox(null);
+                if (doorBbox == null) return doorRooms;
+
+                List<XYZ> testPoints = new List<XYZ>();
+                XYZ center = (doorBbox.Min + doorBbox.Max) / 2.0;
+                testPoints.Add(center);
+
+                // Точки внутри дверного проема
+                testPoints.Add(new XYZ(doorBbox.Min.X, doorBbox.Min.Y, center.Z));
+                testPoints.Add(new XYZ(doorBbox.Max.X, doorBbox.Min.Y, center.Z));
+                testPoints.Add(new XYZ(doorBbox.Min.X, doorBbox.Max.Y, center.Z));
+                testPoints.Add(new XYZ(doorBbox.Max.X, doorBbox.Max.Y, center.Z));
+
+                // Точки посередине
+                testPoints.Add(new XYZ(center.X, doorBbox.Min.Y, center.Z));
+                testPoints.Add(new XYZ(center.X, doorBbox.Max.Y, center.Z));
+                testPoints.Add(new XYZ(doorBbox.Min.X, center.Y, center.Z));
+                testPoints.Add(new XYZ(doorBbox.Max.X, center.Y, center.Z));
+
+                // Точки с небольшим смещением
+                double offset = 0.05;
+                testPoints.Add(new XYZ(center.X + offset, center.Y, center.Z));
+                testPoints.Add(new XYZ(center.X - offset, center.Y, center.Z));
+                testPoints.Add(new XYZ(center.X, center.Y + offset, center.Z));
+                testPoints.Add(new XYZ(center.X, center.Y - offset, center.Z));
+
+                // Проверяем каждую точку
+                foreach (XYZ point in testPoints)
+                {
+                    foreach (Room room in allRooms)
+                    {
+                        if (room.IsPointInRoom(point) && !doorRooms.Contains(room))
+                        {
+                            doorRooms.Add(room);
+                        }
+                    }
+                }
+
+                // Метод 2: Если геометрический метод не нашел помещений, пробуем найти через host (стену)
+                if (doorRooms.Count == 0 && door.Host != null)
+                {
+                    Wall hostWall = door.Host as Wall;
+                    if (hostWall != null)
+                    {
+                        doorRooms = GetRoomsAdjacentToWall(hostWall, allRooms);
+                    }
+                }
+
+                // Метод 3: Если все еще не нашли, используем стандартный Room (для проектов с одной фазой)
+                if (doorRooms.Count == 0)
+                {
+                    try
+                    {
+                        Room doorRoom = door.Room;
+                        if (doorRoom != null && !doorRooms.Contains(doorRoom))
+                        {
+                            doorRooms.Add(doorRoom);
+                        }
+                    }
+                    catch
+                    {
+                        // Игнорируем ошибку
+                    }
+                }
+            }
+            catch
+            {
+                // В случае ошибки пробуем стандартный метод
+                try
+                {
+                    Room doorRoom = door.Room;
+                    if (doorRoom != null && !doorRooms.Contains(doorRoom))
+                    {
+                        doorRooms.Add(doorRoom);
+                    }
+                }
+                catch
+                {
+                    // Игнорируем ошибку
+                }
+            }
+
+            return doorRooms;
+        }
+
+        // Метод для получения помещений, прилегающих к стене
+        private List<Room> GetRoomsAdjacentToWall(Wall wall, List<Room> allRooms)
+        {
+            List<Room> adjacentRooms = new List<Room>();
+
+            try
+            {
+                // Получаем геометрию стены
+                LocationCurve locationCurve = wall.Location as LocationCurve;
+                if (locationCurve == null) return adjacentRooms;
+
+                Curve curve = locationCurve.Curve;
+                XYZ startPoint = curve.GetEndPoint(0);
+                XYZ endPoint = curve.GetEndPoint(1);
+                XYZ midPoint = (startPoint + endPoint) / 2.0;
+
+                // Получаем направление стены
+                XYZ wallDirection = (endPoint - startPoint).Normalize();
+                XYZ wallNormal = new XYZ(-wallDirection.Y, wallDirection.X, 0).Normalize();
+
+                // Создаем точки с обеих сторон стены
+                double offset = 0.1; // 10 см в футах
+                XYZ point1 = midPoint + wallNormal * offset;
+                XYZ point2 = midPoint - wallNormal * offset;
+
+                // Добавляем дополнительные точки вдоль стены
+                List<XYZ> testPoints = new List<XYZ>();
+                testPoints.Add(point1);
+                testPoints.Add(point2);
+
+                // Точки на четвертях длины стены
+                XYZ quarterPoint1 = startPoint + (endPoint - startPoint) * 0.25;
+                XYZ quarterPoint2 = startPoint + (endPoint - startPoint) * 0.75;
+
+                testPoints.Add(quarterPoint1 + wallNormal * offset);
+                testPoints.Add(quarterPoint1 - wallNormal * offset);
+                testPoints.Add(quarterPoint2 + wallNormal * offset);
+                testPoints.Add(quarterPoint2 - wallNormal * offset);
+
+                // Проверяем точки на принадлежность помещениям
+                foreach (XYZ point in testPoints)
+                {
+                    foreach (Room room in allRooms)
+                    {
+                        try
+                        {
+                            if (room.IsPointInRoom(point) && !adjacentRooms.Contains(room))
+                            {
+                                adjacentRooms.Add(room);
+                            }
+                        }
+                        catch
+                        {
+                            // Пропускаем ошибки
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Пропускаем ошибки
+            }
+
+            return adjacentRooms;
+        }
+
+        // Метод для проверки наличия общих параметров в проекте
+        private bool CheckParametersExist()
         {
             try
             {
-                // Создаем словарь для хранения соседних помещений и их общих границ
-                Dictionary<string, List<Room>> roomPairs = new Dictionary<string, List<Room>>();
-                Dictionary<string, List<Curve>> sharedSegments = new Dictionary<string, List<Curve>>();
+                List<Room> testRooms = new FilteredElementCollector(doc)
+                    .OfCategory(BuiltInCategory.OST_Rooms)
+                    .WhereElementIsNotElementType()
+                    .Take(1)
+                    .Cast<Room>()
+                    .ToList();
 
-                // Собираем границы всех помещений
-                foreach (Room room in rooms)
+                if (testRooms.Count == 0)
                 {
-                    // Получаем границы помещения
-                    SpatialElementBoundaryOptions options = new SpatialElementBoundaryOptions();
-                    options.SpatialElementBoundaryLocation = SpatialElementBoundaryLocation.Center;
+                    return false;
+                }
 
-                    IList<IList<BoundarySegment>> boundaries = room.GetBoundarySegments(options);
+                Room testRoom = testRooms.First();
 
-                    if (boundaries == null) continue;
-
-                    // Анализируем каждый сегмент границы
-                    foreach (IList<BoundarySegment> boundaryLoop in boundaries)
+                foreach (var paramName in parameterGuids.Keys)
+                {
+                    Parameter param = testRoom.LookupParameter(paramName);
+                    if (param == null)
                     {
-                        foreach (BoundarySegment segment in boundaryLoop)
+                        foreach (Parameter p in testRoom.Parameters)
                         {
-                            Element boundaryElement = doc.GetElement(segment.ElementId);
-                            if (boundaryElement == null) continue;
-
-                            Curve curve = segment.GetCurve();
-                            if (curve == null) continue;
-
-                            // Ищем соседнее помещение для этого сегмента
-                            Room adjacentRoom = FindAdjacentRoomForSegment(room, curve, rooms);
-
-                            if (adjacentRoom != null)
+                            if (p.Definition.Name == paramName)
                             {
-                                // Создаем ключ для пары помещений (упорядоченный)
-                                string roomPairKey = GetRoomPairKey(room, adjacentRoom);
+                                param = p;
+                                break;
+                            }
+                        }
+                    }
 
-                                if (!roomPairs.ContainsKey(roomPairKey))
+                    if (param == null)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        // Метод для создания общих параметров в проекте
+        private bool CreateSharedParametersInProject()
+        {
+            try
+            {
+                DefinitionFile definitionFile = doc.Application.OpenSharedParameterFile();
+                if (definitionFile == null)
+                {
+                    TaskDialog.Show("Файл параметров не подключен",
+                        "Файл общих параметров не подключен к проекту.\n\n" +
+                        "Пожалуйста:\n" +
+                        "1. Перейдите в Управление → Параметры проекта\n" +
+                        "2. Во вкладке 'Общие параметры' нажмите 'Выбрать'\n" +
+                        "3. Выберите файл ФОП_v1.txt\n" +
+                        "4. Запустите команду снова");
+                    return false;
+                }
+
+                using (Transaction trans = new Transaction(doc, "Добавление параметров к помещениям"))
+                {
+                    trans.Start();
+
+                    int parametersAdded = 0;
+                    Category roomCategory = doc.Settings.Categories.get_Item(BuiltInCategory.OST_Rooms);
+
+                    if (roomCategory == null)
+                    {
+                        return false;
+                    }
+
+                    BindingMap bindingMap = doc.ParameterBindings;
+                    List<ExternalDefinition> parametersToAdd = new List<ExternalDefinition>();
+
+                    foreach (DefinitionGroup group in definitionFile.Groups)
+                    {
+                        foreach (ExternalDefinition definition in group.Definitions)
+                        {
+                            string paramName = definition.Name;
+                            if (parameterGuids.ContainsKey(paramName))
+                            {
+                                parametersToAdd.Add(definition);
+                            }
+                        }
+                    }
+
+                    if (parametersToAdd.Count == 0)
+                    {
+                        return false;
+                    }
+
+                    foreach (ExternalDefinition definition in parametersToAdd)
+                    {
+                        string paramName = definition.Name;
+
+                        bool isBound = false;
+                        DefinitionBindingMapIterator it = bindingMap.ForwardIterator();
+                        while (it.MoveNext())
+                        {
+                            Definition def = it.Key;
+                            if (def.Name == paramName)
+                            {
+                                isBound = true;
+                                break;
+                            }
+                        }
+
+                        if (!isBound)
+                        {
+                            try
+                            {
+                                CategorySet categorySet = new CategorySet();
+                                categorySet.Insert(roomCategory);
+                                InstanceBinding instanceBinding = new InstanceBinding(categorySet);
+
+                                if (bindingMap.Insert(definition, instanceBinding))
                                 {
-                                    roomPairs[roomPairKey] = new List<Room> { room, adjacentRoom };
-                                    sharedSegments[roomPairKey] = new List<Curve>();
+                                    parametersAdded++;
                                 }
-
-                                sharedSegments[roomPairKey].Add(curve);
                             }
-                        }
-                    }
-                }
-
-                // Теперь анализируем каждую пару соседних помещений
-                foreach (var roomPair in roomPairs)
-                {
-                    List<Room> adjacentRooms = roomPair.Value;
-                    if (adjacentRooms.Count != 2) continue;
-
-                    Room room1 = adjacentRooms[0];
-                    Room room2 = adjacentRooms[1];
-
-                    // Находим двери между этими помещениями
-                    double totalDoorArea = FindDoorsBetweenRooms(room1, room2, doors);
-
-                    if (totalDoorArea > 0)
-                    {
-                        // Распределяем площадь между обоими помещениями
-                        AddAreaToRoom(roomPartitionAreas, room1.Id, totalDoorArea);
-                        AddAreaToRoom(roomPartitionAreas, room2.Id, totalDoorArea);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Ошибка анализа границ: {ex.Message}");
-            }
-        }
-
-        // Метод для поиска соседнего помещения для сегмента границы
-        private Room FindAdjacentRoomForSegment(Room currentRoom, Curve segmentCurve, List<Room> allRooms)
-        {
-            try
-            {
-                // Получаем середину сегмента
-                XYZ midPoint = segmentCurve.Evaluate(0.5, true);
-
-                // Ищем нормаль к сегменту
-                XYZ tangent = segmentCurve.ComputeDerivatives(0.5, true).BasisX;
-                if (tangent == null || tangent.IsZeroLength()) return null;
-
-                // Перпендикуляр к касательной в плоскости XY
-                XYZ normal = new XYZ(-tangent.Y, tangent.X, 0).Normalize();
-                if (normal == null || normal.IsZeroLength()) return null;
-
-                // Проверяем точки с обеих сторон сегмента
-                XYZ testPoint1 = midPoint + normal * 0.1;
-                XYZ testPoint2 = midPoint - normal * 0.1;
-
-                // Определяем, с какой стороны текущее помещение
-                bool roomIsOnSide1 = currentRoom.IsPointInRoom(testPoint1);
-                bool roomIsOnSide2 = currentRoom.IsPointInRoom(testPoint2);
-
-                // Ищем соседнее помещение на противоположной стороне
-                XYZ searchPoint = roomIsOnSide1 ? testPoint2 : testPoint1;
-
-                foreach (Room otherRoom in allRooms)
-                {
-                    if (otherRoom.Id == currentRoom.Id) continue;
-
-                    if (otherRoom.IsPointInRoom(searchPoint))
-                    {
-                        return otherRoom;
-                    }
-                }
-            }
-            catch { }
-
-            return null;
-        }
-
-        // Метод для создания ключа для пары помещений
-        private string GetRoomPairKey(Room room1, Room room2)
-        {
-            // Упорядочиваем ID помещений для создания уникального ключа
-            ElementId id1 = room1.Id;
-            ElementId id2 = room2.Id;
-
-            if (id1.IntegerValue < id2.IntegerValue)
-            {
-                return $"{id1.IntegerValue}_{id2.IntegerValue}";
-            }
-            else
-            {
-                return $"{id2.IntegerValue}_{id1.IntegerValue}";
-            }
-        }
-
-        // Метод для поиска дверей между двумя помещениями
-        private double FindDoorsBetweenRooms(Room room1, Room room2, List<FamilyInstance> doors)
-        {
-            double totalArea = 0;
-
-            try
-            {
-                foreach (FamilyInstance door in doors)
-                {
-                    Room fromRoom = door.FromRoom;
-                    Room toRoom = door.ToRoom;
-
-                    if (fromRoom != null && toRoom != null)
-                    {
-                        // Проверяем, соединяет ли дверь эти два помещения
-                        if ((fromRoom.Id == room1.Id && toRoom.Id == room2.Id) ||
-                            (fromRoom.Id == room2.Id && toRoom.Id == room1.Id))
-                        {
-                            double doorArea = GetDoorArea(door);
-                            if (doorArea > 0)
+                            catch
                             {
-                                totalArea += doorArea;
+                                // Пропускаем ошибку
                             }
                         }
                     }
-                }
-            }
-            catch { }
 
-            return totalArea;
-        }
+                    trans.Commit();
 
-        // Метод для обновления комментариев помещения
-        private void UpdateRoomComments(Room room, double doorArea, double windowArea, double curtainArea, double partitionArea)
-        {
-            try
-            {
-                Parameter commentsParam = room.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS);
-                if (commentsParam != null && !commentsParam.IsReadOnly)
-                {
-                    string resultText = "";
-
-                    if (doorArea > 0)
+                    if (parametersAdded > 0)
                     {
-                        string doorAreaValue = doorArea.ToString("F3");
-                        resultText += $"Двери: {doorAreaValue} м²";
-                    }
-
-                    if (windowArea > 0)
-                    {
-                        if (!string.IsNullOrEmpty(resultText))
-                            resultText += ", ";
-                        string windowAreaValue = windowArea.ToString("F3");
-                        resultText += $"Окна: {windowAreaValue} м²";
-                    }
-
-                    if (curtainArea > 0)
-                    {
-                        if (!string.IsNullOrEmpty(resultText))
-                            resultText += ", ";
-                        string curtainAreaValue = curtainArea.ToString("F3");
-                        resultText += $"Витражи: {curtainAreaValue} м²";
-                    }
-
-                    if (partitionArea > 0)
-                    {
-                        if (!string.IsNullOrEmpty(resultText))
-                            resultText += ", ";
-                        string partitionAreaValue = partitionArea.ToString("F3");
-                        resultText += $"Разделители: {partitionAreaValue} м²";
-                    }
-
-                    if (string.IsNullOrEmpty(resultText))
-                    {
-                        resultText = "Нет проемов";
-                    }
-
-                    commentsParam.Set(resultText);
-                }
-            }
-            catch { }
-        }
-
-        // Метод для инициализации параметров помещения (установка 0)
-        private void InitializeRoomParameters(Room room)
-        {
-            SetRoomParameter(room, PARAM_DOOR_AREA, 0);
-            SetRoomParameter(room, PARAM_WINDOW_AREA, 0);
-            SetRoomParameter(room, PARAM_CURTAIN_AREA, 0);
-            SetRoomParameter(room, PARAM_PARTITION_AREA, 0);
-        }
-
-        // Метод для записи значения в параметр помещения
-        private bool SetRoomParameter(Room room, string paramName, double value)
-        {
-            try
-            {
-                // Ищем параметр по имени
-                Parameter param = room.LookupParameter(paramName);
-
-                if (param == null)
-                {
-                    // Пытаемся найти среди всех параметров (включая shared parameters)
-                    foreach (Parameter p in room.Parameters)
-                    {
-                        if (p.Definition.Name == paramName)
-                        {
-                            param = p;
-                            break;
-                        }
-                    }
-                }
-
-                if (param != null && !param.IsReadOnly)
-                {
-                    // Для параметров площади обычно используется тип Double
-                    if (param.StorageType == StorageType.Double)
-                    {
-                        // Конвертируем в квадратные футы (внутренние единицы Revit)
-                        double valueInInternalUnits = UnitUtils.ConvertToInternalUnits(value, UnitTypeId.SquareMeters);
-                        param.Set(valueInInternalUnits);
+                        TaskDialog.Show("Успех",
+                            $"Успешно добавлено {parametersAdded} параметров к категории помещений.");
                         return true;
                     }
-                    else if (param.StorageType == StorageType.String)
+                    else
                     {
-                        param.Set(value.ToString("F3"));
+                        TaskDialog.Show("Информация",
+                            "Все параметры уже привязаны к проекту.");
                         return true;
                     }
                 }
-
-                return false;
             }
-            catch (Exception ex)
+            catch
             {
-                System.Diagnostics.Debug.WriteLine($"Ошибка записи параметра {paramName}: {ex.Message}");
                 return false;
             }
         }
 
-        // Метод для определения помещения, в котором находится элемент
-        private Room GetRoomContainingElement(Element element, List<Room> rooms)
+        // Метод для расчета площадей витражей
+        private void CalculateCurtainAreas(List<Room> rooms, List<Wall> curtainWalls,
+                                         Dictionary<ElementId, double> roomCurtainAreas)
         {
             try
             {
-                // Получаем BoundingBox элемента
-                BoundingBoxXYZ bbox = element.get_BoundingBox(null);
-                if (bbox == null) return null;
+                double offsetFeet = UnitUtils.ConvertToInternalUnits(0.2, UnitTypeId.Meters);
 
-                // Центральная точка элемента
-                XYZ center = (bbox.Min + bbox.Max) / 2.0;
-
-                // Ищем помещение, содержащее эту точку
                 foreach (Room room in rooms)
                 {
-                    if (room.IsPointInRoom(center))
+                    double totalCurtainArea = 0;
+
+                    try
                     {
-                        return room;
+                        BoundingBoxXYZ roomBbox = room.get_BoundingBox(null);
+                        if (roomBbox == null) continue;
+
+                        BoundingBoxXYZ expandedBbox = new BoundingBoxXYZ();
+                        expandedBbox.Min = new XYZ(roomBbox.Min.X - offsetFeet, roomBbox.Min.Y - offsetFeet, roomBbox.Min.Z - offsetFeet);
+                        expandedBbox.Max = new XYZ(roomBbox.Max.X + offsetFeet, roomBbox.Max.Y + offsetFeet, roomBbox.Max.Z + offsetFeet);
+
+                        foreach (Wall curtainWall in curtainWalls)
+                        {
+                            BoundingBoxXYZ curtainBbox = curtainWall.get_BoundingBox(null);
+                            if (curtainBbox == null) continue;
+
+                            if (BoundingBoxesIntersect(expandedBbox, curtainBbox))
+                            {
+                                double curtainArea = GetCurtainWallArea(curtainWall);
+                                if (curtainArea > 0)
+                                {
+                                    totalCurtainArea += curtainArea;
+                                }
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+
+                    if (totalCurtainArea > 0)
+                    {
+                        AddAreaToRoom(roomCurtainAreas, room.Id, totalCurtainArea);
                     }
                 }
-
-                return null;
             }
             catch
             {
-                return null;
+                // Пропускаем ошибку
             }
         }
 
-        // Метод для получения площади двери из параметров типа
-        private double GetDoorArea(FamilyInstance door)
+        // Метод для проверки пересечения BoundingBox
+        private bool BoundingBoxesIntersect(BoundingBoxXYZ bbox1, BoundingBoxXYZ bbox2)
         {
-            try
-            {
-                // Получаем тип двери
-                ElementId doorTypeId = door.GetTypeId();
-                if (doorTypeId == null || doorTypeId == ElementId.InvalidElementId)
-                    return 0;
+            if (bbox1 == null || bbox2 == null) return false;
 
-                Element doorType = door.Document.GetElement(doorTypeId);
-                if (doorType == null) return 0;
-
-                // Сначала попробуем найти параметр с готовой площадью
-                double area = GetAreaFromDirectParameter(doorType, new[] { "Площадь", "Area", "Площадь проема", "Проем" });
-                if (area > 0) return area;
-
-                // Если нет параметра площади, вычисляем из ширины и высоты
-                return GetAreaFromWidthHeight(doorType, "Ширина", "Высота", BuiltInParameter.DOOR_WIDTH, BuiltInParameter.DOOR_HEIGHT);
-            }
-            catch
-            {
-                return 0;
-            }
+            return (bbox1.Min.X <= bbox2.Max.X && bbox1.Max.X >= bbox2.Min.X &&
+                    bbox1.Min.Y <= bbox2.Max.Y && bbox1.Max.Y >= bbox2.Min.Y &&
+                    bbox1.Min.Z <= bbox2.Max.Z && bbox1.Max.Z >= bbox2.Min.Z);
         }
 
-        // Метод для получения площади окна из параметров типа
-        private double GetWindowArea(FamilyInstance window)
-        {
-            try
-            {
-                // Получаем тип окна
-                ElementId windowTypeId = window.GetTypeId();
-                if (windowTypeId == null || windowTypeId == ElementId.InvalidElementId)
-                    return 0;
-
-                Element windowType = window.Document.GetElement(windowTypeId);
-                if (windowType == null) return 0;
-
-                // Сначала попробуем найти параметр с готовой площадью
-                double area = GetAreaFromDirectParameter(windowType, new[] { "Площадь", "Area", "Площадь проема", "Проем", "Площадь остекления" });
-                if (area > 0) return area;
-
-                // Если нет параметра площади, вычисляем из ширины и высоты
-                return GetAreaFromWidthHeight(windowType, "Ширина", "Высота", BuiltInParameter.WINDOW_WIDTH, BuiltInParameter.WINDOW_HEIGHT);
-            }
-            catch
-            {
-                return 0;
-            }
-        }
-
-        // Метод для получения площади занавесной стены (витража)
+        // Метод для получения площади витража
         private double GetCurtainWallArea(Wall curtainWall)
         {
             try
             {
-                // Параметр "Площадь"
                 Parameter areaParam = curtainWall.get_Parameter(BuiltInParameter.HOST_AREA_COMPUTED);
                 if (areaParam != null && areaParam.HasValue)
                 {
@@ -690,34 +659,320 @@ namespace DoorAreaCalculator
             }
         }
 
-        // Метод для получения площади занавесной панели
-        private double GetCurtainPanelArea(FamilyInstance curtainPanel)
+        // Метод для расчета площадей разделителей помещений
+        private void CalculatePartitionAreas(List<Room> rooms,
+                                           Dictionary<ElementId, double> roomPartitionAreas)
         {
             try
             {
-                // Параметр "Площадь"
-                Parameter areaParam = curtainPanel.get_Parameter(BuiltInParameter.HOST_AREA_COMPUTED);
-                if (areaParam == null || !areaParam.HasValue)
-                {
-                    areaParam = curtainPanel.LookupParameter("Area");
-                }
-                if (areaParam == null || !areaParam.HasValue)
-                {
-                    areaParam = curtainPanel.LookupParameter("Площадь");
-                }
+                SpatialElementBoundaryOptions options = new SpatialElementBoundaryOptions();
+                options.SpatialElementBoundaryLocation = SpatialElementBoundaryLocation.Center;
 
-                if (areaParam != null && areaParam.HasValue)
+                foreach (Room room in rooms)
                 {
-                    double area = areaParam.AsDouble();
-                    area = UnitUtils.ConvertFromInternalUnits(area, UnitTypeId.SquareMeters);
+                    double totalPartitionArea = 0;
+                    double roomHeightMeters = 0;
 
-                    if (area > 0 && area < 100)
+                    try
                     {
-                        return area;
+                        roomHeightMeters = GetRoomHeightInMeters(room);
+
+                        if (roomHeightMeters > 0)
+                        {
+                            IList<IList<BoundarySegment>> boundaries = room.GetBoundarySegments(options);
+
+                            if (boundaries != null)
+                            {
+                                foreach (IList<BoundarySegment> boundaryLoop in boundaries)
+                                {
+                                    foreach (BoundarySegment segment in boundaryLoop)
+                                    {
+                                        Curve curve = segment.GetCurve();
+                                        if (curve != null)
+                                        {
+                                            double segmentLengthMeters = GetCurveLengthInMeters(curve);
+
+                                            if (IsPartitionSegment(segment, room))
+                                            {
+                                                double segmentArea = segmentLengthMeters * roomHeightMeters;
+
+                                                if (segmentArea > 0 && segmentArea < 1000)
+                                                {
+                                                    totalPartitionArea += segmentArea;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+
+                    if (totalPartitionArea > 0)
+                    {
+                        AddAreaToRoom(roomPartitionAreas, room.Id, totalPartitionArea);
+                    }
+                }
+            }
+            catch
+            {
+                // Пропускаем ошибку
+            }
+        }
+
+        // Метод для получения длины кривой в метрах
+        private double GetCurveLengthInMeters(Curve curve)
+        {
+            try
+            {
+                double lengthFeet = curve.Length;
+                double lengthMeters = UnitUtils.ConvertFromInternalUnits(lengthFeet, UnitTypeId.Meters);
+                return lengthMeters;
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+
+        // Метод для определения высоты помещения в метрах
+        private double GetRoomHeightInMeters(Room room)
+        {
+            try
+            {
+                double heightFeet = 0;
+
+                Parameter heightParam = room.get_Parameter(BuiltInParameter.ROOM_HEIGHT);
+                if (heightParam != null && heightParam.HasValue)
+                {
+                    heightFeet = heightParam.AsDouble();
+                }
+                else
+                {
+                    heightParam = room.LookupParameter("Высота");
+                    if (heightParam != null && heightParam.HasValue)
+                    {
+                        heightFeet = heightParam.AsDouble();
+                    }
+                    else
+                    {
+                        heightParam = room.LookupParameter("Height");
+                        if (heightParam != null && heightParam.HasValue)
+                        {
+                            heightFeet = heightParam.AsDouble();
+                        }
+                        else
+                        {
+                            BoundingBoxXYZ bbox = room.get_BoundingBox(null);
+                            if (bbox != null)
+                            {
+                                heightFeet = bbox.Max.Z - bbox.Min.Z;
+                            }
+                            else
+                            {
+                                return 3.0;
+                            }
+                        }
                     }
                 }
 
+                double heightMeters = UnitUtils.ConvertFromInternalUnits(heightFeet, UnitTypeId.Meters);
+                return heightMeters;
+            }
+            catch
+            {
+                return 3.0;
+            }
+        }
+
+        // Метод для определения, является ли сегмент разделителем помещений
+        private bool IsPartitionSegment(BoundarySegment segment, Room currentRoom)
+        {
+            try
+            {
+                Element boundaryElement = doc.GetElement(segment.ElementId);
+                if (boundaryElement == null) return false;
+
+                BuiltInCategory category = (BuiltInCategory)boundaryElement.Category.Id.IntegerValue;
+                return category == BuiltInCategory.OST_RoomSeparationLines;
+            }
+            catch { }
+
+            return false;
+        }
+
+        // Метод для поиска помещений, в которых находится окно
+        private List<Room> FindRoomsForWindow(FamilyInstance window, List<Room> allRooms)
+        {
+            List<Room> windowRooms = new List<Room>();
+
+            try
+            {
+                BoundingBoxXYZ windowBbox = window.get_BoundingBox(null);
+                if (windowBbox == null) return windowRooms;
+
+                List<XYZ> testPoints = new List<XYZ>();
+                XYZ center = (windowBbox.Min + windowBbox.Max) / 2.0;
+                testPoints.Add(center);
+
+                testPoints.Add(new XYZ(windowBbox.Min.X, windowBbox.Min.Y, center.Z));
+                testPoints.Add(new XYZ(windowBbox.Max.X, windowBbox.Min.Y, center.Z));
+                testPoints.Add(new XYZ(windowBbox.Min.X, windowBbox.Max.Y, center.Z));
+                testPoints.Add(new XYZ(windowBbox.Max.X, windowBbox.Max.Y, center.Z));
+
+                testPoints.Add(new XYZ(center.X, windowBbox.Min.Y, center.Z));
+                testPoints.Add(new XYZ(center.X, windowBbox.Max.Y, center.Z));
+                testPoints.Add(new XYZ(windowBbox.Min.X, center.Y, center.Z));
+                testPoints.Add(new XYZ(windowBbox.Max.X, center.Y, center.Z));
+
+                double offset = 0.05;
+                testPoints.Add(new XYZ(center.X + offset, center.Y, center.Z));
+                testPoints.Add(new XYZ(center.X - offset, center.Y, center.Z));
+                testPoints.Add(new XYZ(center.X, center.Y + offset, center.Z));
+                testPoints.Add(new XYZ(center.X, center.Y - offset, center.Z));
+
+                foreach (XYZ point in testPoints)
+                {
+                    foreach (Room room in allRooms)
+                    {
+                        if (room.IsPointInRoom(point) && !windowRooms.Contains(room))
+                        {
+                            windowRooms.Add(room);
+                        }
+                    }
+                }
+
+                if (windowRooms.Count == 0)
+                {
+                    Room windowRoom = window.Room;
+                    if (windowRoom != null && !windowRooms.Contains(windowRoom))
+                    {
+                        windowRooms.Add(windowRoom);
+                    }
+                }
+            }
+            catch
+            {
+                Room windowRoom = window.Room;
+                if (windowRoom != null && !windowRooms.Contains(windowRoom))
+                {
+                    windowRooms.Add(windowRoom);
+                }
+            }
+
+            return windowRooms;
+        }
+
+        // Метод для записи значения в параметр помещения
+        private bool SetRoomParameter(Room room, string paramName, double value)
+        {
+            try
+            {
+                if (value <= 0.001)
+                {
+                    return false;
+                }
+
+                Parameter param = room.LookupParameter(paramName);
+
+                if (param == null)
+                {
+                    foreach (Parameter p in room.Parameters)
+                    {
+                        if (p.Definition.Name == paramName)
+                        {
+                            param = p;
+                            break;
+                        }
+                    }
+                }
+
+                if (param == null || param.IsReadOnly)
+                {
+                    return false;
+                }
+
+                if (param.StorageType == StorageType.Double)
+                {
+                    double valueInInternalUnits = UnitUtils.ConvertToInternalUnits(value, UnitTypeId.SquareMeters);
+                    return param.Set(valueInInternalUnits);
+                }
+                else if (param.StorageType == StorageType.String)
+                {
+                    string stringValue = value.ToString("F3");
+                    return param.Set(stringValue);
+                }
+                else if (param.StorageType == StorageType.Integer)
+                {
+                    int intValue = (int)Math.Round(value);
+                    return param.Set(intValue);
+                }
+
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        // Метод для получения площади двери из параметров типа
+        private double GetDoorArea(FamilyInstance door)
+        {
+            try
+            {
+                ElementId doorTypeId = door.GetTypeId();
+                if (doorTypeId == null || doorTypeId == ElementId.InvalidElementId)
+                {
+                    return 0;
+                }
+
+                Element doorType = doc.GetElement(doorTypeId);
+                if (doorType == null) return 0;
+
+                double area = GetAreaFromDirectParameter(doorType, new[] { "Площадь", "Area", "Площадь проема", "Проем", "Площадь двери", "Door Area" });
+                if (area > 0)
+                {
+                    return area;
+                }
+
+                area = GetAreaFromDirectParameter(door, new[] { "Площадь", "Area", "Площадь проема", "Проем", "Площадь двери", "Door Area" });
+                if (area > 0)
+                {
+                    return area;
+                }
+
+                return GetAreaFromWidthHeight(door, "Ширина", "Высота", BuiltInParameter.DOOR_WIDTH, BuiltInParameter.DOOR_HEIGHT);
+            }
+            catch
+            {
                 return 0;
+            }
+        }
+
+        // Метод для получения площади окна из параметров типа
+        private double GetWindowArea(FamilyInstance window)
+        {
+            try
+            {
+                ElementId windowTypeId = window.GetTypeId();
+                if (windowTypeId == null || windowTypeId == ElementId.InvalidElementId)
+                    return 0;
+
+                Element windowType = doc.GetElement(windowTypeId);
+                if (windowType == null) return 0;
+
+                double area = GetAreaFromDirectParameter(windowType, new[] { "Площадь", "Area", "Площадь проема", "Проем", "Площадь остекления", "Window Area" });
+                if (area > 0) return area;
+
+                area = GetAreaFromDirectParameter(window, new[] { "Площадь", "Area", "Площадь проема", "Проем", "Площадь остекления", "Window Area" });
+                if (area > 0) return area;
+
+                return GetAreaFromWidthHeight(window, "Ширина", "Высота", BuiltInParameter.WINDOW_WIDTH, BuiltInParameter.WINDOW_HEIGHT);
             }
             catch
             {
@@ -731,16 +986,40 @@ namespace DoorAreaCalculator
             foreach (string paramName in paramNames)
             {
                 Parameter areaParam = element.LookupParameter(paramName);
+
                 if (areaParam != null && areaParam.HasValue)
                 {
-                    double area = areaParam.AsDouble();
-                    // Конвертируем из внутренних единиц (квадратные футы) в квадратные метры
-                    area = UnitUtils.ConvertFromInternalUnits(area, UnitTypeId.SquareMeters);
-
-                    // Проверяем на разумные значения
-                    if (area > 0 && area < 100)
+                    try
                     {
-                        return area;
+                        double area = areaParam.AsDouble();
+
+                        if (Math.Abs(area) > 0.0001)
+                        {
+                            area = UnitUtils.ConvertFromInternalUnits(area, UnitTypeId.SquareMeters);
+
+                            if (area > 0.01 && area < 100)
+                            {
+                                return area;
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        try
+                        {
+                            string areaStr = areaParam.AsString();
+                            if (double.TryParse(areaStr, out double area))
+                            {
+                                if (area > 0.01 && area < 100)
+                                {
+                                    return area;
+                                }
+                            }
+                        }
+                        catch
+                        {
+                            // Пропускаем ошибку
+                        }
                     }
                 }
             }
@@ -752,53 +1031,47 @@ namespace DoorAreaCalculator
         private double GetAreaFromWidthHeight(Element element, string widthParamName, string heightParamName,
                                             BuiltInParameter builtInWidthParam, BuiltInParameter builtInHeightParam)
         {
-            // Ищем параметры ширины
             double width = 0;
+            double height = 0;
+
             Parameter widthParam = element.LookupParameter(widthParamName);
             if (widthParam == null || !widthParam.HasValue)
                 widthParam = element.get_Parameter(builtInWidthParam);
             if (widthParam == null || !widthParam.HasValue)
                 widthParam = element.LookupParameter("Ширина проема");
+            if (widthParam == null || !widthParam.HasValue)
+                widthParam = element.LookupParameter("Width");
 
             if (widthParam != null && widthParam.HasValue)
             {
                 width = widthParam.AsDouble();
-                // Конвертируем из внутренних единиц (футы) в метры
                 width = UnitUtils.ConvertFromInternalUnits(width, UnitTypeId.Meters);
             }
-            else
-            {
-                return 0; // Не можем вычислить без ширины
-            }
 
-            // Ищем параметры высоты
-            double height = 0;
             Parameter heightParam = element.LookupParameter(heightParamName);
             if (heightParam == null || !heightParam.HasValue)
             {
                 heightParam = element.LookupParameter("Высота проема");
                 if (heightParam == null || !heightParam.HasValue)
                     heightParam = element.get_Parameter(builtInHeightParam);
+                if (heightParam == null || !heightParam.HasValue)
+                    heightParam = element.LookupParameter("Height");
             }
 
             if (heightParam != null && heightParam.HasValue)
             {
                 height = heightParam.AsDouble();
-                // Конвертируем из внутренних единиц (футы) в метры
                 height = UnitUtils.ConvertFromInternalUnits(height, UnitTypeId.Meters);
             }
-            else
-            {
-                return 0; // Не можем вычислить без высоты
-            }
 
-            // Вычисляем площадь
-            double area = width * height;
-
-            // Проверяем на разумные значения (например, не больше 100 м²)
-            if (area > 0 && area < 100)
+            if (width > 0.01 && height > 0.01)
             {
-                return area;
+                double area = width * height;
+
+                if (area > 0.01 && area < 100)
+                {
+                    return area;
+                }
             }
 
             return 0;
