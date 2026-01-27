@@ -1,17 +1,19 @@
 ﻿#region Namespaces
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 using Autodesk.Revit.Attributes;
 using Autodesk.Revit.DB;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI;
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Xml.Linq;
+
 using OperationCanceledException = Autodesk.Revit.Exceptions.OperationCanceledException;
 #endregion
 
-namespace DoorWindowAreaCalculator
+namespace RevitAddIn2BIMRU.Commands
 {
     [Transaction(TransactionMode.Manual)]
     public class CalculateDoorWindowAreas : IExternalCommand
@@ -233,7 +235,7 @@ namespace DoorWindowAreaCalculator
                         $"• Помещений с дверями: {roomsWithDoors}\n" +
                         $"• Помещений с окнами: {roomsWithWindows}\n" +
                         $"• Помещений с разделителями: {roomsWithPartitions}\n" +
-                        $"• Помещений с витражами: {roomsWithCurtains}\n\n" +
+                        $"• Помещений с витражаи: {roomsWithCurtains}\n\n" +
                         $"ДВЕРИ:\n" +
                         $"• Всего дверей: {doors.Count}\n" +
                         $"• Дверей обработано: {processedDoors}\n\n" +
@@ -797,12 +799,68 @@ namespace DoorWindowAreaCalculator
                 Element boundaryElement = doc.GetElement(segment.ElementId);
                 if (boundaryElement == null) return false;
 
-                BuiltInCategory category = (BuiltInCategory)boundaryElement.Category.Id.IntegerValue;
-                return category == BuiltInCategory.OST_RoomSeparationLines;
+                Category category = boundaryElement.Category;
+                if (category == null) return false;
+
+                ElementId roomSeparationId = new ElementId(BuiltInCategory.OST_RoomSeparationLines);
+
+                // Универсальный способ для всех версий Revit
+                // Способ 1: Прямое сравнение ElementId (работает во всех версиях)
+                if (category.Id == roomSeparationId)
+                {
+                    return true;
+                }
+
+                // Способ 2: Через числовое значение с условной компиляцией
+#if REVIT2026_OR_GREATER
+                // Для Revit 2026 и выше используем Value
+                if (category.Id.Value == (long)BuiltInCategory.OST_RoomSeparationLines)
+                {
+                    return true;
+                }
+#elif REVIT2020_OR_GREATER
+                // Для Revit 2020-2025 используем IntegerValue
+                if (category.Id.IntegerValue == (int)BuiltInCategory.OST_RoomSeparationLines)
+                {
+                    return true;
+                }
+#else
+                // Для более старых версий также используем IntegerValue
+                if (category.Id.IntegerValue == (int)BuiltInCategory.OST_RoomSeparationLines)
+                {
+                    return true;
+                }
+#endif
+
+                // Способ 3: Проверка через имя категории (резервный вариант)
+                string categoryName = category.Name ?? "";
+                if (categoryName.Contains("Room Separation") ||
+                    categoryName.Contains("Разделитель помещений") ||
+                    categoryName.Contains("RoomSeparation"))
+                {
+                    return true;
+                }
             }
             catch { }
 
             return false;
+        }
+
+        // Вспомогательный метод для получения числового значения ElementId (универсальный)
+        private long GetElementIdValue(ElementId elementId)
+        {
+            if (elementId == null) return -1;
+
+#if REVIT2026_OR_GREATER
+            // Для Revit 2026 и выше используем Value
+            return elementId.Value;
+#elif REVIT2020_OR_GREATER
+            // Для Revit 2020-2025 используем IntegerValue
+            return elementId.IntegerValue;
+#else
+            // Для более старых версий также используем IntegerValue
+            return elementId.IntegerValue;
+#endif
         }
 
         // Метод для поиска помещений, в которых находится окно
