@@ -313,6 +313,7 @@
     <Compile Include="CreateViewByLinkedFiles.cs" />
     <Compile Include="CreateViewForCollisions.cs" />
     <Compile Include="CreateViewForLevels.cs" />
+    <Compile Include="CreateViewsForDuctSystems.cs" />
     <Compile Include="CreateWindowsForFinish.cs" />
     <Compile Include="CreateWorksets.cs" />
     <Compile Include="DeletedFilter.cs" />
