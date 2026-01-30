@@ -281,6 +281,7 @@
     <Compile Include="CopyRoomsFromLinkCommand.cs" />
     <Compile Include="archive\CountFinishWall.cs" />
     <Compile Include="Create3DViewFromSpace.cs" />
+    <Compile Include="Create3DViewsForAllWorksets.cs" />
     <Compile Include="CreateAnyElementsInRooms.cs" />
     <Compile Include="CreateCeiling.cs" />
     <Compile Include="CreateClashElements.cs" />
@@ -383,6 +384,7 @@
     <Compile Include="PluginFinish2BIM\Test\WallFinishAlliance.cs" />
     <Compile Include="PluginFinish2BIM\Test\WallFinishComposition.cs" />
     <Compile Include="PluginFinish2BIM\WallFinishing.cs" />
+    <Compile Include="RemoveDuplicateProjectParameters.cs" />
     <Compile Include="RenameParameterCommand.cs" />
     <Compile Include="RoomExportPlugin.cs" />
     <Compile Include="RoomsByFloorFinishType.cs" />
