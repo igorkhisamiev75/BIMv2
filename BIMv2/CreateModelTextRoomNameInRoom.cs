@@ -412,7 +412,7 @@ namespace RevitAddIn2BIMRU.Commands.BIM
 
         public int GetId(ICollection<ElementId> newElement)
         {
-#if R2021 || R2022 || REVIT2023 || REVIT2024 || REVIT2025
+#if R2021 || R2022 || !R2023 || REVIT2024 || REVIT2025
             return newElement.FirstOrDefault()?.IntegerValue ?? 0;
 #else
             return (int)(newElement.FirstOrDefault()?.Value ?? 0);

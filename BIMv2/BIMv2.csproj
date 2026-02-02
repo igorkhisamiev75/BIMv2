@@ -278,6 +278,7 @@
     <Compile Include="ConvertGrids3Dto2D.cs" />
     <Compile Include="archive\CopyRoomsFromLink.cs" />
     <Compile Include="ConvertIFCDucts.cs" />
+    <Compile Include="ConvertIFCPipes.cs" />
     <Compile Include="CopyRoomsFromLinkCommand.cs" />
     <Compile Include="archive\CountFinishWall.cs" />
     <Compile Include="Create3DViewFromSpace.cs" />
