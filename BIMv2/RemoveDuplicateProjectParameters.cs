@@ -89,6 +89,6 @@ namespace RevitAddIn2BIMRU.Commands.Parameters
             }
 
             return toRemove.Count;
-        }
+        } 
     }
 }
