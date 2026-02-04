@@ -294,6 +294,7 @@
     <Compile Include="CreateFloorUnderStairRun.cs" />
     <Compile Include="archive\CreateFromDWG.cs" />
     <Compile Include="archive\CreateFromDWGPipe.cs" />
+    <Compile Include="CreateGridDimensions.cs" />
     <Compile Include="CreateLightingInRoom.cs" />
     <Compile Include="archive\CreateModelText.cs" />
     <Compile Include="CreateModelTextRoomNameInRoom.cs" />
@@ -317,6 +318,7 @@
     <Compile Include="CreateViewForCollisions.cs" />
     <Compile Include="CreateViewForLevels.cs" />
     <Compile Include="CreateViewsForDuctSystems.cs" />
+    <Compile Include="CreateVVitrazhSections.cs" />
     <Compile Include="CreateWindowsForFinish.cs" />
     <Compile Include="CreateWorksets.cs" />
     <Compile Include="DeletedFilter.cs" />
