@@ -406,8 +406,8 @@ namespace RevitAddIn2BIMRU.Commands.Views
             // Размещаем каждый вид
             for (int i = 0; i < views.Count; i++)
             {
-                int row = i / columns;
-                int col = i % columns;
+                int row = i / columns ;
+                int col = i % columns ;
 
                 double x = startX + col * (viewWidth + spacing);
                 double y = startY - row * (viewHeight + spacing);
