@@ -256,6 +256,9 @@
     </When>
   </Choose>
   <ItemGroup>
+    <Compile Include="ApartmentDebug.cs" />
+    <Compile Include="ApartmentProcessor.cs" />
+    <Compile Include="ApartmentProcessorAlternative.cs" />
     <Compile Include="archive\AdjustDimensionLeaders.cs" />
     <Compile Include="BatchNWDExporter.cs" />
     <Compile Include="archive\BeamsFinish.cs" />
@@ -333,6 +336,7 @@
     <Compile Include="archive\DoorsInformationTransferFinishDoor.cs" />
     <Compile Include="DuplicateSheets.cs" />
     <Compile Include="EditDimentionsForPlans.cs" />
+    <Compile Include="EnhancedApartmentProcessor.cs" />
     <Compile Include="EnhancedStairFinishing .cs" />
     <Compile Include="ExportKS2Command.cs" />
     <Compile Include="FindDoorsMirror.cs" />
