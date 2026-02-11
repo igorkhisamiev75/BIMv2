@@ -354,6 +354,7 @@
     <Compile Include="GetPerimeterForFloorWithoutDoor.cs" />
     <Compile Include="GetRoomForElementsFinishing.cs" />
     <Compile Include="GetRoomNameForSelectElement.cs" />
+    <Compile Include="GetTrimmedPanelSize.cs" />
     <Compile Include="GridMarkingWindow.xaml.cs">
       <DependentUpon>GridMarkingWindow.xaml</DependentUpon>
     </Compile>
