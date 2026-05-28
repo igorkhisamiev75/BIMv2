@@ -255,9 +255,7 @@ namespace BIMv2
                         listWall.Add(wall2);
                     }
 
-                    //TaskDialog.Show("Сделано", $"{listWall.Count} стен"); //90
-
-                    //listWall.Distinct();
+                 
 
                     List<Wall> newList = listWall
                         .GroupBy(x => x.get_Parameter(BuiltInParameter.ELEM_TYPE_PARAM)
@@ -423,7 +421,7 @@ namespace BIMv2
 
         public IList<Element> GetAllWallElements(Document document)
         {
-            // List all Floor's
+            // List all 
             var floor_collector = new FilteredElementCollector(document)
                 .OfCategory(BuiltInCategory.OST_Walls)
                 .WhereElementIsNotElementType();

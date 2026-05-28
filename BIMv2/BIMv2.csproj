@@ -131,11 +131,11 @@
       <HintPath>..\packages\RBush.Signed.4.0.0\lib\net47\RBush.dll</HintPath>
     </Reference>
     <Reference Include="RevitAPI">
-      <HintPath>..\..\..\..\..\..\..\Program Files\Autodesk\Revit 2022\RevitAPI.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\Program Files\Autodesk\Revit 2023\RevitAPI.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="RevitAPIUI">
-      <HintPath>..\..\..\..\..\..\..\Program Files\Autodesk\Revit 2022\RevitAPIUI.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\..\Program Files\Autodesk\Revit 2023\RevitAPIUI.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
@@ -290,6 +290,7 @@
     <Compile Include="CreateCeiling.cs" />
     <Compile Include="CreateClashElements.cs" />
     <Compile Include="archive\CreateDoorsForFinish.cs" />
+    <Compile Include="CreateDuctSystemFilters.cs" />
     <Compile Include="CreateFinishWallinRooms.cs" />
     <Compile Include="CreateFinishWallinSelectedRoom.cs" />
     <Compile Include="CreateFloorFromRoom.cs" />
@@ -328,6 +329,7 @@
     <Compile Include="DeletingCollisions.cs" />
     <Compile Include="DelUnplacedArea.cs" />
     <Compile Include="DelUnplacedRoom.cs" />
+    <Compile Include="DimensionCurtainWallOnSection.cs" />
     <Compile Include="DisconnectWallsOptimized.cs" />
     <Compile Include="archive\DoorsInformationTransfer.cs" />
     <Compile Include="archive\DoorsInformationTransferBim.cs" />
@@ -382,6 +384,7 @@
     <Compile Include="LoadFilesAutoSharedCoordinatesCommand.cs" />
     <Compile Include="MoveRoomTagsToBottomRightCorner.cs" />
     <Compile Include="NormalIlluminationForLightFix.cs" />
+    <Compile Include="PanelInfoToWallParameter.cs" />
     <Compile Include="PlaceElementsAboveDoors.cs" />
     <Compile Include="PluginFinish2BIM\CeilingFinish.cs" />
     <Compile Include="PluginFinish2BIM\CreateWallFiltersByRoomNumber.cs" />
@@ -395,9 +398,12 @@
     <Compile Include="PluginFinish2BIM\WallFinishing.cs" />
     <Compile Include="RemoveDuplicateProjectParameters.cs" />
     <Compile Include="RenameParameterCommand.cs" />
+    <Compile Include="Room3DViewCreator.cs" />
     <Compile Include="RoomExportPlugin.cs" />
     <Compile Include="RoomsByFloorFinishType.cs" />
+    <Compile Include="ScheduleCreator.cs" />
     <Compile Include="ScheduleToExcelExporter.cs" />
+    <Compile Include="SectionFromCurtainWall.cs" />
     <Compile Include="SolarSystemFunProject.cs" />
     <Compile Include="SumAllLightingFixtureInRoom.cs" />
     <Compile Include="Test.cs" />
@@ -412,6 +418,7 @@
     <Compile Include="WallExtensionCommand.cs" />
     <Compile Include="WallFinishing.cs" />
     <Compile Include="WallSection.cs" />
+    <Compile Include="WallTablePlugin.cs" />
     <Compile Include="WriteNameRoomInFurniture.cs" />
     <Compile Include="WriteNameRoomInMechanicalEquipment.cs" />
     <Compile Include="WriteNameRoomInPlumbingFixtures.cs" />

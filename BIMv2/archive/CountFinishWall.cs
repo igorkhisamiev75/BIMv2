@@ -83,7 +83,7 @@ namespace BIMv2
 
             }
 
-            //group by room
+            //group by room //adsk_примечание
             IEnumerable<IGrouping<string, Wall>> groups = AllFinishWall.GroupBy(p2 =>
                 p2.get_Parameter(new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3")).AsString());
 
@@ -236,11 +236,14 @@ namespace BIMv2
                     //TaskDialog.Show("Сделано", "Зашли сюда");
                     foreach (Wall wall in grouping)
                     {
+                        //MRGT_ВидОтделкиСтены
                         pirog = wall.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).AsString();
-
+                        //
+                       //wall.get_Parameter(new Guid("6533b173-94cb-465e-964c-ed1e0dfce339")).Set(pirog);
                         wall.get_Parameter(new Guid("6533b173-94cb-465e-964c-ed1e0dfce339")).Set(pirog);
 
                         //square in each wall
+                        // //MRGT_ПлощадьОбъединенная
                         wall.get_Parameter(new Guid("1e2bf482-d000-4acd-a903-17caa723e563")).Set(square);
                     }
 
@@ -413,7 +416,9 @@ namespace BIMv2
                 foreach (var room in allRooms)
                 {
                     //Walls
+                    //MRGT_ПлощадьОбъединенная
                     room.get_Parameter(new Guid("1e2bf482-d000-4acd-a903-17caa723e563")).Set(" ");
+                    //MRGT_ВидОтделкиСтены
                     room.get_Parameter(new Guid("68cc39f3-189c-4992-8c72-d7bfc4bec9ae")).Set("Нет отделки");
                     
 

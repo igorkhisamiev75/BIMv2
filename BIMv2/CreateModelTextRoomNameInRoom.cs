@@ -121,6 +121,9 @@ namespace RevitAddIn2BIMRU.Commands.BIM
                     var roomName = room.get_Parameter(BuiltInParameter.ROOM_NAME)?.AsString() ?? "Без имени";
                     var roomNumber = room.get_Parameter(BuiltInParameter.ROOM_NUMBER)?.AsString() ?? "Без номера";
 
+                    // Получаем площадь помещения и форматируем её
+                    string areaFormatted = GetFormattedRoomArea(room);
+
                     // Получаем уровень помещения из модели-источника
                     var levelId = room.LevelId;
                     Level sourceLevel = sourceDocument.GetElement(levelId) as Level;
@@ -165,6 +168,9 @@ namespace RevitAddIn2BIMRU.Commands.BIM
                     SetParameterIfExists(familyInstance, new Guid("e6e0f5cd-3e26-485b-9342-23882b20eb43"), roomNumber);
                     SetParameterIfExists(familyInstance, new Guid("9c98831b-9450-412d-b072-7d69b39f4029"), roomName);
 
+                    // Устанавливаем параметр площади помещения
+                    SetParameterIfExists(familyInstance, new Guid("a85b7661-26b0-412f-979c-66af80b4b2c3"), areaFormatted);
+
                     // Устанавливаем отметку от уровня в 100 мм
                     SetOffsetFromLevel(familyInstance, 100); // 100 мм
 
@@ -180,6 +186,46 @@ namespace RevitAddIn2BIMRU.Commands.BIM
             }
 
             return (createdCount, errorCount);
+        }
+
+        /// <summary>
+        /// Получает площадь помещения и форматирует её в виде "S=125,25 м²"
+        /// </summary>
+        /// <param name="room">Помещение</param>
+        /// <returns>Отформатированная строка с площадью</returns>
+        private string GetFormattedRoomArea(Element room)
+        {
+            try
+            {
+                // Получаем параметр площади помещения (во внутренних единицах Revit - квадратные футы)
+                Parameter areaParam = room.get_Parameter(BuiltInParameter.ROOM_AREA);
+
+                if (areaParam == null || !areaParam.HasValue)
+                {
+                    return "S=0,00 м²";
+                }
+
+                // Получаем значение площади в квадратных футах
+                double areaInSquareFeet = areaParam.AsDouble();
+
+                // Конвертируем квадратные футы в квадратные метры
+                // 1 квадратный фут = 0.092903 квадратных метра
+                double areaInSquareMeters = areaInSquareFeet * 0.092903;
+
+                // Округляем до 2 десятичных знаков
+                areaInSquareMeters = Math.Round(areaInSquareMeters, 2);
+
+                // Форматируем строку с заменой точки на запятую (для российского формата)
+                string areaString = areaInSquareMeters.ToString("F2").Replace('.', ',');
+
+                // Возвращаем отформатированную строку
+                return $"S={areaString} м²";
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка при получении площади помещения: {ex.Message}");
+                return "S=0,00 м²";
+            }
         }
 
         /// <summary>
@@ -271,6 +317,7 @@ namespace RevitAddIn2BIMRU.Commands.BIM
 
             message.AppendLine($"📁 Источник: {sourceModelName}");
             message.AppendLine($"📏 Отметка от уровня: 100 мм");
+            message.AppendLine($"📐 Площадь: формат \"S=XXX,XX м²\"");
             message.AppendLine();
 
             if (createdCount == 0 && errorCount == 0)
@@ -412,11 +459,11 @@ namespace RevitAddIn2BIMRU.Commands.BIM
 
         public int GetId(ICollection<ElementId> newElement)
         {
-#if R2021 || R2022 || !R2023 || REVIT2024 || REVIT2025
+            //#if REVIT2021 || REVIT2022 || REVIT2023 || REVIT2024 || REVIT2025
             return newElement.FirstOrDefault()?.IntegerValue ?? 0;
-#else
-            return (int)(newElement.FirstOrDefault()?.Value ?? 0);
-#endif
+            //#else
+            //            return (int)(newElement.FirstOrDefault()?.Value ?? 0);
+            //#endif
         }
 
         public FamilySymbol GetSymbol(Document document, string familyName, string symbolName)
