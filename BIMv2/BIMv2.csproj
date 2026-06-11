@@ -77,6 +77,9 @@
     <AssemblyName>$(AssemblyName)</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="clipper, Version=0.0.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\clipper_standard.0.0.1\lib\netstandard2.0\clipper.dll</HintPath>
+    </Reference>
     <Reference Include="ClosedXML, Version=0.100.3.0, Culture=neutral, PublicKeyToken=fd1eb21b62ae805b, processorArchitecture=MSIL">
       <HintPath>..\packages\ClosedXML.0.100.3\lib\netstandard2.0\ClosedXML.dll</HintPath>
     </Reference>
@@ -130,12 +133,14 @@
     <Reference Include="RBush, Version=4.0.0.0, Culture=neutral, PublicKeyToken=c77e27b81f4d0187, processorArchitecture=MSIL">
       <HintPath>..\packages\RBush.Signed.4.0.0\lib\net47\RBush.dll</HintPath>
     </Reference>
-    <Reference Include="RevitAPI">
-      <HintPath>..\..\..\..\..\..\..\Program Files\Autodesk\Revit 2023\RevitAPI.dll</HintPath>
+    <Reference Include="RevitAPI, Version=21.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\..\Program Files\Autodesk\Revit 2022\RevitAPI.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="RevitAPIUI">
-      <HintPath>..\..\..\..\..\..\..\Program Files\Autodesk\Revit 2023\RevitAPIUI.dll</HintPath>
+    <Reference Include="RevitAPIUI, Version=21.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\..\Program Files\Autodesk\Revit 2022\RevitAPIUI.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
@@ -260,6 +265,8 @@
     <Compile Include="ApartmentProcessor.cs" />
     <Compile Include="ApartmentProcessorAlternative.cs" />
     <Compile Include="archive\AdjustDimensionLeaders.cs" />
+    <Compile Include="archive\CountFinishCeiling.cs" />
+    <Compile Include="archive\CountFinishFloor.cs" />
     <Compile Include="BatchNWDExporter.cs" />
     <Compile Include="archive\BeamsFinish.cs" />
     <Compile Include="archive\BIMStandart.cs" />
@@ -287,6 +294,7 @@
     <Compile Include="Create3DViewFromSpace.cs" />
     <Compile Include="Create3DViewsForAllWorksets.cs" />
     <Compile Include="CreateAnyElementsInRooms.cs" />
+    <Compile Include="CreateApartmentPlans.cs" />
     <Compile Include="CreateCeiling.cs" />
     <Compile Include="CreateClashElements.cs" />
     <Compile Include="archive\CreateDoorsForFinish.cs" />
@@ -385,6 +393,7 @@
     <Compile Include="MoveRoomTagsToBottomRightCorner.cs" />
     <Compile Include="NormalIlluminationForLightFix.cs" />
     <Compile Include="PanelInfoToWallParameter.cs" />
+    <Compile Include="ParameterGuids.cs" />
     <Compile Include="PlaceElementsAboveDoors.cs" />
     <Compile Include="PluginFinish2BIM\CeilingFinish.cs" />
     <Compile Include="PluginFinish2BIM\CreateWallFiltersByRoomNumber.cs" />

@@ -104,8 +104,6 @@ namespace CreateFinishWallinRooms
             _app = uiApp.Application;
             _doc = uiDoc.Document;
 
-            //m_wallTypeCollection = new IList<WallType>();
-
             // Search all level
             FilteredElementCollector filteredLevelCollector = new FilteredElementCollector(_doc);
             filteredLevelCollector.OfClass(typeof(Level));
@@ -153,7 +151,6 @@ namespace CreateFinishWallinRooms
             vpViewWpf.WindowStartupLocation = WindowStartupLocation.CenterScreen;
             vpViewWpf.ShowDialog();
 
-
             //смещение от уровня
             wallOffset = Convert.ToDouble(vpViewWpf.ofsetWallS);
 
@@ -162,10 +159,8 @@ namespace CreateFinishWallinRooms
 #if R2019 || R2020 || R2021 || R2022
             wallOffset = UnitUtils.Convert(wallOffset, DisplayUnitType.DUT_MILLIMETERS, DisplayUnitType.DUT_DECIMAL_FEET);
 #else
-            wallOffset = UnitUtils.ConvertFromInternalUnits(wallOffset, UnitTypeId.Millimeters);
+            wallOffset = UnitUtils.ConvertToInternalUnits(wallOffset, UnitTypeId.Millimeters);
 #endif
-
-            //TaskDialog.Show("3Смещение от уровня", $"{wallOffset}");
 
             if (vpViewWpf.heighWallUser != "")
             {
@@ -174,12 +169,11 @@ namespace CreateFinishWallinRooms
 #if R2019 || R2020 || R2021 || R2022
                 wallHeight = UnitUtils.Convert(wallHeight, DisplayUnitType.DUT_MILLIMETERS, DisplayUnitType.DUT_DECIMAL_FEET);
 #else
-                wallHeight = UnitUtils.ConvertFromInternalUnits(wallHeight, UnitTypeId.Millimeters);
+                wallHeight = UnitUtils.ConvertToInternalUnits(wallHeight, UnitTypeId.Millimeters);
 
 #endif
                 //TaskDialog.Show("2bim.ru", $"Высота стен {wallHeight.ToString()}");
             }
-
 
             //room boarding cheack box
 
@@ -197,19 +191,12 @@ namespace CreateFinishWallinRooms
             //get selected ceilingtype
             CeilingType selectedCeilingType = vpViewWpf.typeCeilingSelected;
 
-            //TaskDialog.Show("2bim.ru", $" selected {selectedCeilingType.Name}");
-
             //get rooms checked
             List<String> checkRoomsString = vpViewWpf.checkRooms;
 
             //get selected level
 
             selectedLevelInForms = vpViewWpf.selectedLevel;
-            //if(selectedLevelInForms != null)
-            //{
-            //    TaskDialog.Show("2bim.ru", $"Level name selected {selectedLevelInForms.Name}");
-            //}
-
 
             List<Room> checkRooms = new List<Room>();
 
@@ -234,8 +221,6 @@ namespace CreateFinishWallinRooms
 
             using (Transaction t = new Transaction(_doc))
             {
-
-
                 t.Start("Create a finish");
 
                 FailureHandlingOptions options = t.GetFailureHandlingOptions();
@@ -258,17 +243,14 @@ namespace CreateFinishWallinRooms
 
                     if (R2 != null)
                     {
-
                         foreach (var e in R2)
                         {
                             Element elem2 = uiDoc.Document.GetElement(e);
                             elements1.Add(elem2);
                         }
 
-
                     }
 
-                    //Element elem = SelectedElement(_doc); //select room
                     try
                     {
                         foreach (var elem in elements1)
@@ -281,8 +263,7 @@ namespace CreateFinishWallinRooms
 
                     catch
                     {
-                        //TaskDialog.Show("2bim.ru", "Отделка стен создана ☺☺☺");
-                        //
+
                     }
                     t.Commit(options);
                 }
@@ -303,8 +284,7 @@ namespace CreateFinishWallinRooms
 
                         catch
                         {
-                            //TaskDialog.Show("2bim.ru", "Ошибка");
-                            //TaskDialog.Show("2bim.ru", "Не сработало");
+
                         }
                     }
                     t.Commit(options);
@@ -331,7 +311,6 @@ namespace CreateFinishWallinRooms
 
 
                     }
-                    //Element elem = SelectedElement(_doc); //select room
 
                     try
                     {
@@ -351,24 +330,7 @@ namespace CreateFinishWallinRooms
                     }
 
                     t.Commit(options);
-                    //_doc.Regenerate();
 
-                    //try
-                    //{
-
-                    //    t.Start();
-                    //    foreach (var elem in elements1)
-                    //    {
-                    //        CreateFloorOpenings(elem);
-                    //    }
-                    //    TransactionStatus res = t.Commit(options);
-                    //}
-
-                    //catch (Exception ex)
-                    //{
-                    //    TaskDialog.Show("2bim.ru", $"{ex} ");
-
-                    //}
 
 
 
@@ -387,8 +349,6 @@ namespace CreateFinishWallinRooms
                         {
                             CreateFloorInRooms(elem, selectedFloorType);
 
-                            //TaskDialog.Show("2bim.ru", "Пол создан ☺☺☺");
-                            //_doc.Regenerate();
 
                         }
 
@@ -398,12 +358,6 @@ namespace CreateFinishWallinRooms
                         }
 
                         t.Commit(options);
-
-                        //if (failureHandler.ErrorMessage != "")
-                        //{
-                        //    MessageBox.Show(failureHandler.ErrorSeverity + " || "
-                        //      + failureHandler.ErrorMessage);
-                        //}
 
                         try
                         {
@@ -448,17 +402,17 @@ namespace CreateFinishWallinRooms
 
                     }
 
-                    //Element elem = SelectedElement(_doc); //select room
-
                     try
                     {
                         foreach (var elem in elements1)
                         {
-#if R2023
+#if R2019 || R2020 || R2021 || R2022
+                        TaskDialog.Show("2bim.ru", "Потолки научились создавать в Revit 2023");
+#endif
 
                             CreateCeilingInRooms(elem, selectedCeilingType);
                             //CreateCeilingOpenings(elem);
-#endif
+
                         }
 
 
@@ -488,7 +442,9 @@ namespace CreateFinishWallinRooms
 
                         try
                         {
-#if R2023
+#if R2019 || R2020 || R2021 || R2022
+
+#else
 
                             CreateCeilingInRooms(elem, selectedCeilingType);
 #endif
@@ -564,7 +520,9 @@ namespace CreateFinishWallinRooms
 
             level = r1.Level;
 
-            string ADSK_Primechanie = "a85b7661-26b0-412f-979c-66af80b4b2c3";
+            string ADSK_Primechanie = "d7624888-6b1d-4398-9ea3-ed7cffc064ad"; //2BIMRU_НомерПомещения
+            string ADSK_Primechanie2 = "04c45af8-45a4-41cc-a03b-0468a454ab51"; //2BIMRU_ИмяПомещения
+
             string numberRoom = r1.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();
             string nameRoom = r1.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
 
@@ -596,14 +554,14 @@ namespace CreateFinishWallinRooms
 #if R2019 || R2020 || R2021 || R2022
                  floor = _doc.Create.NewFloor(newSortCurve, floorType3, r1.Level, false);
                 floor.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
-                floor.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
+                floor.get_Parameter(new Guid(ADSK_Primechanie2)).Set(nameRoom);
 #else
 
                 floor = Floor.Create(_doc, new List<CurveLoop> { profile }, floorType3.Id, level.Id);
 #endif
                 //set room name and number
                 floor.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
-                floor.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
+                floor.get_Parameter(new Guid(ADSK_Primechanie2)).Set(nameRoom);
 
                 createdFloor = floor;
                 _doc.Regenerate();
@@ -705,7 +663,9 @@ namespace CreateFinishWallinRooms
 
         public void CreateWallInRoom(Element elem, UIDocument uiDoc, int _roomBoardingWall, WallType wallType)
         {
-            string ADSK_Primechanie = "a85b7661-26b0-412f-979c-66af80b4b2c3";
+            string ADSK_Primechanie = "d7624888-6b1d-4398-9ea3-ed7cffc064ad"; //2BIMRU_НомерПомещения
+            string ADSK_Primechanie2 = "04c45af8-45a4-41cc-a03b-0468a454ab51"; //2BIMRU_ИмяПомещения
+
 
             IList<Wall> walls = new List<Wall>();
 
@@ -776,7 +736,7 @@ namespace CreateFinishWallinRooms
 
                     //set room name and number
                     wall.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
-                    wall.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
+                    wall.get_Parameter(new Guid(ADSK_Primechanie2)).Set(nameRoom);
 
                     //set height
                     wall.get_Parameter(BuiltInParameter.WALL_USER_HEIGHT_PARAM).Set(heightRoom);
@@ -790,14 +750,6 @@ namespace CreateFinishWallinRooms
 
                     _doc.Regenerate();
 
-                    //IList<Reference> sideFaces = HostObjectUtils.GetSideFaces(wall, ShellLayerType.Interior);
-
-                    //// MOVE WALL
-                    //Face face = uiDoc.Document.GetElement(sideFaces[0])
-                    //    .GetGeometryObjectFromReference(sideFaces[0]) as Face;
-                    //PlanarFace pf = face as PlanarFace;
-                    //XYZ normal_reverted = pf.FaceNormal;
-                    //wall.Location.Move(-normal_reverted * (wall.WallType.Width / 2.0));
 
                     walls.Add(wall);
                     continue;
@@ -816,7 +768,7 @@ namespace CreateFinishWallinRooms
                     wall.get_Parameter(BuiltInParameter.WALL_BASE_OFFSET).Set(offsetWallInRoom);
 
                     wall.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
-                    wall.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
+                    wall.get_Parameter(new Guid(ADSK_Primechanie2)).Set(nameRoom);
 
                     _doc.Regenerate();
 
@@ -994,24 +946,16 @@ namespace CreateFinishWallinRooms
 
         //создание потолка
 
-
         public void CreateCeilingInRooms(Element elem, CeilingType ceilingType)
         {
-
-
-            //FloorType floorType2 = GetFloorTypeInProject(_doc);
-
-            //TaskDialog.Show("У тебя получилось", $"{ceilingType.GetType()} Пол создан ☺☺☺");
             Ceiling ceiling;
 
-            //IList<Element> rooms;
-
-            //CurveArray roomsCurves = new CurveArray();
             Room room = (Room)elem;
 
             level = room.Level;
 
-            string ADSK_Primechanie = "a85b7661-26b0-412f-979c-66af80b4b2c3";
+            string ADSK_Primechanie = "d7624888-6b1d-4398-9ea3-ed7cffc064ad";
+            string ADSK_Primechanie2 = "04c45af8-45a4-41cc-a03b-0468a454ab51";
             string numberRoom = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();
             string nameRoom = room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();
 
@@ -1040,20 +984,15 @@ namespace CreateFinishWallinRooms
 
             //создаем ньюморт
 
-            CurveArray newSortCurve = new CurveArray(); 
+            CurveArray newSortCurve = new CurveArray();
 
-            //TaskDialog.Show("Всего бондарей", $"{segments2.Count}"); //3
 
             if (null != segments2)
             {
                 foreach (IList<BoundarySegment> segment in segments2)
                 {
-                    //TaskDialog.Show("Зашли в BondarySegments", $"{segment.Count}"); //1 -4 2 -2
-
-                    //IList<BoundarySegment> segmentList = segments2[0];
                     profile = new CurveLoop();
                     tempCurveArray = new CurveArray();
-                    //if( segment != null )
 
                     foreach (BoundarySegment boundarySegment in segment)
                     {
@@ -1062,36 +1001,25 @@ namespace CreateFinishWallinRooms
                     }
                     newSortCurve = SortCurves(tempCurveArray);
 
-                    //TaskDialog.Show("newSortCurve", $"{newSortCurve.Size}"); // 1 - 4 2 - 2
-
                     foreach (var c in newSortCurve)
                     {
 
                         try
                         {
                             Line line = c as Line;
-                            //TaskDialog.Show("Line", $"{c.ToString()}");//1
                             profile.Append(line);
                         }
                         catch
                         {
                             Arc line = c as Arc;
-                            //TaskDialog.Show("Arc", $"{c.ToString()}");
                             profile.Append(line);
                         }
 
                     }
 
-                    //TaskDialog.Show("В профиль добавили", $"{profile.Count()}");//4 2
-
-
                     looplist.Add(profile);
-                    //TaskDialog.Show("looplist", $"{looplist.Count()}");//1 2
 
                 }
-
-
-
 
             }
 
@@ -1100,33 +1028,26 @@ namespace CreateFinishWallinRooms
             //TaskDialog.Show("looplist", $"{v}");
 
 #if R2019 || R2020 || R2021 || R2022
+
+#else
             //var floor = _doc.Create.NewFloor(newSortCurve, floorType3, r1.Level, false);
             //floor.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
-            //floor.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
-#else
+            //floor.get_Parameter(new Guid(ADSK_Primechanie2)).Set(nameRoom);
+
             //TaskDialog.Show("У тебя получилось", $"{profile.GetType()} Потолок создается ☺☺☺");
 
-            ceiling = Ceiling.Create(_doc,  looplist , ceilingType.Id, level.Id);
+            ceiling = Ceiling.Create(_doc, looplist, ceilingType.Id, level.Id);
+            //var heightRoom2 = UnitUtils.Convert(heightRoom, DisplayUnitType.DUT_MILLIMETERS, DisplayUnitType.DUT_DECIMAL_FEET);
+            ceiling.get_Parameter(BuiltInParameter.CEILING_HEIGHTABOVELEVEL_PARAM).Set(heightRoom);
 
-                ceiling.get_Parameter(BuiltInParameter.CEILING_HEIGHTABOVELEVEL_PARAM).Set(heightRoom);
-
-
-#endif
-
-#if R2023
             //set room name and number
             ceiling.get_Parameter(new Guid(ADSK_Primechanie)).Set(numberRoom);
-            ceiling.get_Parameter(BuiltInParameter.ALL_MODEL_INSTANCE_COMMENTS).Set(nameRoom);
+            ceiling.get_Parameter(new Guid(ADSK_Primechanie2)).Set(nameRoom);
 #endif
-            // createdFloor = floor;
+
             _doc.Regenerate();
 
-
-
-
         }
-
-
 
     }
 }
