@@ -78,6 +78,9 @@ namespace BIMv2
                             if (apartmentBoundary != null && apartmentBoundary.Any())
                             {
                                 ApplyCropToView(newView, apartmentBoundary);
+                                HideInternalGrids(doc, newView, apartmentBoundary);
+                                // НОВЫЙ ВЫЗОВ: добавить текстовую аннотацию
+                                AddApartmentLabel(doc, newView, rooms, apartmentBoundary);
                             }
                             else
                             {
@@ -108,7 +111,7 @@ namespace BIMv2
         }
 
         // ======================================================================
-        // ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ (без изменений)
+        // ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ
         // ======================================================================
 
         private ICollection<Element> GetAllRoomsInView(Document doc, ViewPlan view)
@@ -164,7 +167,6 @@ namespace BIMv2
 
         private ElementId SelectTemplate(Document doc)
         {
-            // Собираем все шаблоны видов для планов этажей
             List<Autodesk.Revit.DB.View> templates = new FilteredElementCollector(doc)
                 .OfClass(typeof(View))
                 .Cast<Autodesk.Revit.DB.View>()
@@ -176,15 +178,15 @@ namespace BIMv2
                 TaskDialog.Show("Информация", "В проекте нет шаблонов для планов этажей. Планы будут созданы без шаблона.");
                 return ElementId.InvalidElementId;
             }
-                
+
             using (System.Windows.Forms.Form dialog = new System.Windows.Forms.Form())
             {
                 dialog.Text = "Выбор шаблона для новых видов";
-                dialog.Width = 400;
-                dialog.Height = 150;
+                dialog.Width = 900;
+                dialog.Height = 550;
                 dialog.StartPosition = FormStartPosition.CenterScreen;
 
-                System.Windows.Forms.ComboBox comboBox = new    System.Windows.Forms.ComboBox();
+                System.Windows.Forms.ComboBox comboBox = new System.Windows.Forms.ComboBox();
                 comboBox.DropDownStyle = ComboBoxStyle.DropDownList;
                 comboBox.Width = 300;
                 comboBox.Left = 20;
@@ -257,8 +259,7 @@ namespace BIMv2
 
             ViewPlan newView = ViewPlan.Create(doc, viewFamilyType.Id, levelId);
 
-            // Формируем имя: ИсходныйВид_НомерКвартиры_ИмяШаблона
-            string viewName = $"{sourceView.Name}_{apartmentNumber}";
+            string viewName = $"{sourceView.Name}_кв_{apartmentNumber}";
             if (templateId != ElementId.InvalidElementId)
             {
                 Autodesk.Revit.DB.View template = doc.GetElement(templateId) as View;
@@ -269,7 +270,6 @@ namespace BIMv2
             newView.Name = viewName;
             newView.Scale = sourceView.Scale;
 
-            // Применяем шаблон
             if (templateId != ElementId.InvalidElementId)
                 newView.ViewTemplateId = templateId;
             else
@@ -291,7 +291,7 @@ namespace BIMv2
             options.SpatialElementBoundaryLocation = SpatialElementBoundaryLocation.Finish;
 
             List<Solid> solids = new List<Solid>();
-            double offsetDistance = 1.15; // смещение для перекрытия стен (в футах)
+            double offsetDistance = 1.2;
 
             foreach (Room room in rooms)
             {
@@ -332,7 +332,6 @@ namespace BIMv2
                 if (!loop.Any())
                     continue;
 
-                // Смещаем контур наружу
                 CurveLoop offsetLoop = null;
                 try
                 {
@@ -362,7 +361,6 @@ namespace BIMv2
             if (solids.Count == 0)
                 return null;
 
-            // Объединение всех тел
             Solid unionSolid = solids[0];
             for (int i = 1; i < solids.Count; i++)
             {
@@ -377,7 +375,6 @@ namespace BIMv2
                 catch { }
             }
 
-            // Находим верхнюю грань
             Face topFace = null;
             double maxArea = 0;
             foreach (Face face in unionSolid.Faces)
@@ -397,7 +394,6 @@ namespace BIMv2
             if (topFace == null)
                 return null;
 
-            // Получаем внешний контур через GetEdgesAsCurveLoops()
             IList<CurveLoop> edgeLoops = topFace.GetEdgesAsCurveLoops();
             if (edgeLoops == null || edgeLoops.Count == 0)
                 return null;
@@ -437,7 +433,6 @@ namespace BIMv2
             if (outerLoop == null || !outerLoop.Any())
                 return null;
 
-            // Возвращаем контур с применённым смещением (без обратного смещения)
             return outerLoop;
         }
 
@@ -565,6 +560,158 @@ namespace BIMv2
             bounds.Max = new XYZ(maxX, maxY, 100);
 
             return bounds;
+        }
+
+        // ======================================================================
+        // СКРЫТИЕ ВНУТРЕННИХ ОСЕЙ НА ВИДЕ
+        // ======================================================================
+
+        private void HideInternalGrids(Document doc, ViewPlan view, CurveLoop apartmentBoundary)
+        {
+            try
+            {
+                // Собираем все оси, видимые на данном плане этажа
+                List<Grid> visibleGrids = new FilteredElementCollector(doc, view.Id)
+                    .OfCategory(BuiltInCategory.OST_Grids)
+                    .WhereElementIsNotElementType()
+                    .Cast<Grid>()
+                    .ToList();
+
+                List<Grid> intersectingVerticals = new List<Grid>();
+                List<Grid> intersectingHorizontals = new List<Grid>();
+
+                foreach (Grid grid in visibleGrids)
+                {
+                    Line gridLine = grid.Curve as Line;
+                    if (gridLine == null) continue;
+
+                    XYZ gP0 = gridLine.GetEndPoint(0);
+                    XYZ gP1 = gridLine.GetEndPoint(1);
+                    XYZ gDir = (gP1 - gP0).Normalize();
+
+                    XYZ gP0Flat = new XYZ(gP0.X, gP0.Y, 0);
+                    XYZ flatDir = new XYZ(gDir.X, gDir.Y, 0).Normalize();
+
+                    // Создаем искусственную длинную линию для проверки пересечения (5000 футов в обе стороны)
+                    Line extendedGridLine = Line.CreateBound(gP0Flat - flatDir * 5000, gP0Flat + flatDir * 5000);
+
+                    bool intersects = false;
+                    foreach (Curve bCurve in apartmentBoundary)
+                    {
+                        if (extendedGridLine.Intersect(bCurve) == SetComparisonResult.Overlap)
+                        {
+                            intersects = true;
+                            break;
+                        }
+                    }
+
+                    // Если ось пересекает контур квартиры, распределяем её по направлению
+                    if (intersects)
+                    {
+                        // Если координата Y меняется сильнее, чем X — ось преимущественно вертикальная
+                        if (Math.Abs(flatDir.Y) > Math.Abs(flatDir.X))
+                        {
+                            intersectingVerticals.Add(grid);
+                        }
+                        else // Иначе преимущественно горизонтальная
+                        {
+                            intersectingHorizontals.Add(grid);
+                        }
+                    }
+                }
+
+                List<ElementId> gridsToHide = new List<ElementId>();
+
+                // Обрабатываем вертикальные оси (ищем самую левую и самую правую)
+                if (intersectingVerticals.Count > 2)
+                {
+                    // Сортируем по координате X
+                    var sortedVerts = intersectingVerticals.OrderBy(g => g.Curve.GetEndPoint(0).X).ToList();
+
+                    // Пропускаем первую и последнюю, остальные скрываем
+                    for (int i = 1; i < sortedVerts.Count - 1; i++)
+                    {
+                        gridsToHide.Add(sortedVerts[i].Id);
+                    }
+                }
+
+                // Обрабатываем горизонтальные оси (ищем самую нижнюю и самую верхнюю)
+                if (intersectingHorizontals.Count > 2)
+                {
+                    // Сортируем по координате Y
+                    var sortedHoriz = intersectingHorizontals.OrderBy(g => g.Curve.GetEndPoint(0).Y).ToList();
+
+                    // Пропускаем первую и последнюю, остальные скрываем
+                    for (int i = 1; i < sortedHoriz.Count - 1; i++)
+                    {
+                        gridsToHide.Add(sortedHoriz[i].Id);
+                    }
+                }
+
+                // Скрываем элементы на текущем виде, если список не пуст
+                if (gridsToHide.Count > 0)
+                {
+                    view.HideElements(gridsToHide);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Не прерываем общий процесс, если на каком-то из видов скрытие сбойнуло
+                System.Diagnostics.Debug.WriteLine($"Ошибка при скрытии внутренних осей: {ex.Message}");
+            }
+        }
+
+        // ======================================================================
+        // НОВЫЙ МЕТОД: ДОБАВЛЕНИЕ ТЕКСТОВОЙ АННОТАЦИИ НАД ПЛАНОМ
+        // ======================================================================
+
+        private void AddApartmentLabel(Document doc, ViewPlan view, List<Room> rooms, CurveLoop boundary)
+        {
+            if (rooms == null || rooms.Count == 0 || boundary == null || !boundary.Any())
+                return;
+
+            Room room = rooms[0];
+
+            string корпус = GetParameterValue(room, "LG_Номер корпуса");
+            string секция = GetParameterValue(room, "LG_Секция");
+            string этаж = GetParameterValue(room, "LG_Номер этажа");
+            string квартира = GetParameterValue(room, "LG_МаркаКвартирыФРС");
+
+            // Если ни один параметр не заполнен – ничего не создаём
+            if (string.IsNullOrEmpty(корпус) && string.IsNullOrEmpty(секция) &&
+                string.IsNullOrEmpty(этаж) && string.IsNullOrEmpty(квартира))
+                return;
+
+            // Формируем текст, заменяя null на пустую строку
+            string text = $"Корпус {корпус ?? ""}, секция {секция ?? ""}, этаж {этаж ?? ""}, кв. {квартира ?? ""}";
+
+            // Находим центр и верхнюю границу контура
+            BoundingBoxXYZ bbox = GetBoundsFromCurveLoop(boundary);
+            if (bbox == null)
+                return;
+
+            double centerX = (bbox.Min.X + bbox.Max.X) / 2.0;
+            double topY = bbox.Max.Y + 2.0; // отступ 2 фута вверх
+            XYZ position = new XYZ(centerX, topY, 0);
+
+            // Получаем первый попавшийся тип текстовой заметки
+            TextNoteType textType = new FilteredElementCollector(doc)
+                .OfClass(typeof(TextNoteType))
+                .Cast<TextNoteType>()
+                .FirstOrDefault();
+
+            if (textType == null)
+                return;
+
+            try
+            {
+                TextNote.Create(doc, view.Id, position, text, textType.Id);
+            }
+            catch (Exception ex)
+            {
+                // Логируем ошибку, но не прерываем выполнение
+                System.Diagnostics.Debug.WriteLine($"Не удалось создать текстовую аннотацию: {ex.Message}");
+            }
         }
     }
 }
