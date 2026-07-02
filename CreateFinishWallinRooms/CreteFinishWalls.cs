@@ -954,7 +954,7 @@ namespace CreateFinishWallinRooms
 
             level = room.Level;
 
-            string ADSK_Primechanie = "d7624888-6b1d-4398-9ea3-ed7cffc064ad";
+            string ADSK_Primechanie = "d7624888-6b1d-4398-9ea3-ed7cffc064ad";  //2BIMRU_НомерПомещения
             string ADSK_Primechanie2 = "04c45af8-45a4-41cc-a03b-0468a454ab51";
             string numberRoom = room.get_Parameter(BuiltInParameter.ROOM_NUMBER).AsString();
             string nameRoom = room.get_Parameter(BuiltInParameter.ROOM_NAME).AsString();

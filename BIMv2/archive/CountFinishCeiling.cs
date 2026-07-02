@@ -31,17 +31,19 @@ namespace BIMv2
                 {
                     // Записываем суммарную площадь
                     WriteToCeilingSquare(doc);
-
+                    doc.Regenerate();
                     // Записываем из типа в параметр экземпляра
                     WriteFinishToCeiling(doc);
+                    doc.Regenerate();
 
                     // Объединяем отделку и площадь где это нужно
                     WriteToCeilingFinishAlliance(doc);
+                    doc.Regenerate();
 
                     // Записываем информацию в помещения
                     WriteToRoomsCeilingSquare(doc);
 
-                    TaskDialog.Show("Сделано ", "Отделка посчитана для потолков");
+                    TaskDialog.Show("Сделано ", "Отделка посчитана для потолков 3");
                 }
                 #endregion
 
@@ -64,7 +66,7 @@ namespace BIMv2
                 {
                     var ceiling = (Ceiling)element;
                     var typeGetCeiling = doc.GetElement(ceiling.GetTypeId());
-                    var descriptionCeilingType = typeGetCeiling.LookupParameter("ADSK_Наименование краткое").AsString();
+                    var descriptionCeilingType = typeGetCeiling.LookupParameter("2BIMRU_Тип_ОТДЕЛКА").AsString();
 
                     if (descriptionCeilingType == "Отделка")
                     {

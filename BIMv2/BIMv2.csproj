@@ -133,14 +133,12 @@
     <Reference Include="RBush, Version=4.0.0.0, Culture=neutral, PublicKeyToken=c77e27b81f4d0187, processorArchitecture=MSIL">
       <HintPath>..\packages\RBush.Signed.4.0.0\lib\net47\RBush.dll</HintPath>
     </Reference>
-    <Reference Include="RevitAPI, Version=21.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\..\Program Files\Autodesk\Revit 2022\RevitAPI.dll</HintPath>
+    <Reference Include="RevitAPI">
+      <HintPath>..\..\..\..\..\..\..\Program Files\Autodesk\Revit 2023\RevitAPI.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="RevitAPIUI, Version=21.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\..\Program Files\Autodesk\Revit 2022\RevitAPIUI.dll</HintPath>
+    <Reference Include="RevitAPIUI">
+      <HintPath>..\..\..\..\..\..\..\Program Files\Autodesk\Revit 2023\RevitAPIUI.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
@@ -349,6 +347,8 @@
     <Compile Include="EnhancedApartmentProcessor.cs" />
     <Compile Include="EnhancedStairFinishing .cs" />
     <Compile Include="ExportKS2Command.cs" />
+    <Compile Include="ExportPlansToJPEG.cs" />
+    <Compile Include="ExportPlansToPDF.cs" />
     <Compile Include="FindDoorsMirror.cs" />
     <Compile Include="archive\FindDuctFiting.cs" />
     <Compile Include="FindFloorParametr.cs" />
@@ -364,6 +364,7 @@
     <Compile Include="GetPerimeterForFloorWithoutDoor.cs" />
     <Compile Include="GetRoomForElementsFinishing.cs" />
     <Compile Include="GetRoomNameForSelectElement.cs" />
+    <Compile Include="GetSelectedRoomsGeometry.cs" />
     <Compile Include="GetTrimmedPanelSize.cs" />
     <Compile Include="GridMarkingWindow.xaml.cs">
       <DependentUpon>GridMarkingWindow.xaml</DependentUpon>

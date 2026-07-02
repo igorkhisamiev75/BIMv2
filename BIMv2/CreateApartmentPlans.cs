@@ -6,18 +6,23 @@ using Autodesk.Revit.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Forms;
+
+using View = Autodesk.Revit.DB.View;
 
 namespace BIMv2
 {
     [Transaction(TransactionMode.Manual)]
     public class CreateApartmentPlans : IExternalCommand
     {
+        private const double Eps = 0.01; // допуск 1 см
+
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
             UIApplication uiApp = commandData.Application;
             UIDocument uiDoc = uiApp.ActiveUIDocument;
             Document doc = uiDoc.Document;
-            View activeView = doc.ActiveView;
+            Autodesk.Revit.DB.View activeView = doc.ActiveView;
 
             if (!(activeView is ViewPlan))
             {
@@ -26,6 +31,11 @@ namespace BIMv2
             }
 
             ViewPlan activeViewPlan = activeView as ViewPlan;
+
+            // Выбор шаблона
+            ElementId templateId = SelectTemplate(doc);
+            if (templateId == ElementId.InvalidElementId && !ShowContinueWithoutTemplate())
+                return Result.Cancelled;
 
             try
             {
@@ -61,14 +71,17 @@ namespace BIMv2
 
                         try
                         {
-                            ViewPlan newView = CreateViewCopy(doc, activeViewPlan, apartmentNumber);
+                            ViewPlan newView = CreateViewCopy(doc, activeViewPlan, apartmentNumber, templateId);
 
-                            // Получаем объединенный контур квартиры
                             CurveLoop apartmentBoundary = GetMergedApartmentBoundary(rooms);
 
                             if (apartmentBoundary != null && apartmentBoundary.Any())
                             {
                                 ApplyCropToView(newView, apartmentBoundary);
+                            }
+                            else
+                            {
+                                TaskDialog.Show("Предупреждение", $"Для квартиры {apartmentNumber} не удалось построить контур");
                             }
 
                             createdCount++;
@@ -93,6 +106,10 @@ namespace BIMv2
 
             return Result.Succeeded;
         }
+
+        // ======================================================================
+        // ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ (без изменений)
+        // ======================================================================
 
         private ICollection<Element> GetAllRoomsInView(Document doc, ViewPlan view)
         {
@@ -141,7 +158,86 @@ namespace BIMv2
             return groups;
         }
 
-        private ViewPlan CreateViewCopy(Document doc, ViewPlan sourceView, string apartmentNumber)
+        // ======================================================================
+        // ДИАЛОГ ВЫБОРА ШАБЛОНА И СОЗДАНИЕ ВИДА
+        // ======================================================================
+
+        private ElementId SelectTemplate(Document doc)
+        {
+            // Собираем все шаблоны видов для планов этажей
+            List<Autodesk.Revit.DB.View> templates = new FilteredElementCollector(doc)
+                .OfClass(typeof(View))
+                .Cast<Autodesk.Revit.DB.View>()
+                .Where(v => v.IsTemplate && v.ViewType == ViewType.FloorPlan)
+                .ToList();
+
+            if (templates.Count == 0)
+            {
+                TaskDialog.Show("Информация", "В проекте нет шаблонов для планов этажей. Планы будут созданы без шаблона.");
+                return ElementId.InvalidElementId;
+            }
+                
+            using (System.Windows.Forms.Form dialog = new System.Windows.Forms.Form())
+            {
+                dialog.Text = "Выбор шаблона для новых видов";
+                dialog.Width = 400;
+                dialog.Height = 150;
+                dialog.StartPosition = FormStartPosition.CenterScreen;
+
+                System.Windows.Forms.ComboBox comboBox = new    System.Windows.Forms.ComboBox();
+                comboBox.DropDownStyle = ComboBoxStyle.DropDownList;
+                comboBox.Width = 300;
+                comboBox.Left = 20;
+                comboBox.Top = 20;
+
+                comboBox.Items.Add("(Без шаблона)");
+                foreach (var vt in templates)
+                {
+                    comboBox.Items.Add(vt.Name);
+                }
+                comboBox.SelectedIndex = 0;
+
+                Button btnOk = new Button();
+                btnOk.Text = "OK";
+                btnOk.Width = 80;
+                btnOk.Left = 80;
+                btnOk.Top = 60;
+                btnOk.DialogResult = DialogResult.OK;
+
+                Button btnCancel = new Button();
+                btnCancel.Text = "Отмена";
+                btnCancel.Width = 80;
+                btnCancel.Left = 180;
+                btnCancel.Top = 60;
+                btnCancel.DialogResult = DialogResult.Cancel;
+
+                dialog.Controls.Add(comboBox);
+                dialog.Controls.Add(btnOk);
+                dialog.Controls.Add(btnCancel);
+                dialog.AcceptButton = btnOk;
+                dialog.CancelButton = btnCancel;
+
+                DialogResult result = dialog.ShowDialog();
+                if (result == DialogResult.Cancel)
+                    return ElementId.InvalidElementId;
+
+                int idx = comboBox.SelectedIndex;
+                if (idx == 0)
+                    return ElementId.InvalidElementId;
+                else
+                    return templates[idx - 1].Id;
+            }
+        }
+
+        private bool ShowContinueWithoutTemplate()
+        {
+            TaskDialog taskDialog = new TaskDialog("Подтверждение");
+            taskDialog.MainInstruction = "Вы не выбрали шаблон. Продолжить без шаблона?";
+            taskDialog.CommonButtons = TaskDialogCommonButtons.Yes | TaskDialogCommonButtons.No;
+            return taskDialog.Show() == TaskDialogResult.Yes;
+        }
+
+        private ViewPlan CreateViewCopy(Document doc, ViewPlan sourceView, string apartmentNumber, ElementId templateId)
         {
             ElementId levelId = sourceView.GenLevel.Id;
 
@@ -160,119 +256,270 @@ namespace BIMv2
             }
 
             ViewPlan newView = ViewPlan.Create(doc, viewFamilyType.Id, levelId);
-            newView.Name = $"{sourceView.Name}_{apartmentNumber}";
+
+            // Формируем имя: ИсходныйВид_НомерКвартиры_ИмяШаблона
+            string viewName = $"{sourceView.Name}_{apartmentNumber}";
+            if (templateId != ElementId.InvalidElementId)
+            {
+                Autodesk.Revit.DB.View template = doc.GetElement(templateId) as View;
+                if (template != null)
+                    viewName += $"_{template.Name}";
+            }
+
+            newView.Name = viewName;
             newView.Scale = sourceView.Scale;
 
-            if (sourceView.ViewTemplateId != ElementId.InvalidElementId)
-                newView.ViewTemplateId = sourceView.ViewTemplateId;
+            // Применяем шаблон
+            if (templateId != ElementId.InvalidElementId)
+                newView.ViewTemplateId = templateId;
+            else
+                newView.ViewTemplateId = ElementId.InvalidElementId;
 
             return newView;
         }
 
-        /// <summary>
-        /// Получает объединенный контур квартиры из всех помещений
-        /// </summary>
+        // ======================================================================
+        // ОБЪЕДИНЕНИЕ ПОМЕЩЕНИЙ ЧЕРЕЗ БУЛЕВУ ОПЕРАЦИЮ UNION
+        // ======================================================================
+
         private CurveLoop GetMergedApartmentBoundary(List<Room> rooms)
         {
-            if (rooms.Count == 0) return null;
+            if (rooms == null || rooms.Count == 0)
+                return null;
 
-            // Собираем все точки границ помещений
-            List<XYZ> allPoints = new List<XYZ>();
+            SpatialElementBoundaryOptions options = new SpatialElementBoundaryOptions();
+            options.SpatialElementBoundaryLocation = SpatialElementBoundaryLocation.Finish;
+
+            List<Solid> solids = new List<Solid>();
+            double offsetDistance = 1.15; // смещение для перекрытия стен (в футах)
 
             foreach (Room room in rooms)
             {
-                SpatialElementBoundaryOptions options = new SpatialElementBoundaryOptions();
-                options.SpatialElementBoundaryLocation = SpatialElementBoundaryLocation.Finish;
-
                 IList<IList<BoundarySegment>> boundaries = room.GetBoundarySegments(options);
+                if (boundaries == null || boundaries.Count == 0)
+                    continue;
 
-                if (boundaries == null) continue;
+                IList<BoundarySegment> outerBoundary = boundaries[0];
+                CurveLoop loop = new CurveLoop();
 
-                foreach (IList<BoundarySegment> boundary in boundaries)
+                foreach (BoundarySegment seg in outerBoundary)
                 {
-                    foreach (BoundarySegment segment in boundary)
+                    Curve curve = seg.GetCurve();
+                    XYZ p0 = curve.GetEndPoint(0);
+                    XYZ p1 = curve.GetEndPoint(1);
+                    XYZ p0Flat = new XYZ(p0.X, p0.Y, 0);
+                    XYZ p1Flat = new XYZ(p1.X, p1.Y, 0);
+
+                    if (curve is Line)
+                        loop.Append(Line.CreateBound(p0Flat, p1Flat));
+                    else if (curve is Arc arc)
                     {
-                        Curve curve = segment.GetCurve();
-                        allPoints.Add(curve.GetEndPoint(0));
-                        allPoints.Add(curve.GetEndPoint(1));
+                        XYZ center = new XYZ(arc.Center.X, arc.Center.Y, 0);
+                        XYZ xDir = new XYZ(arc.XDirection.X, arc.XDirection.Y, 0);
+                        XYZ yDir = new XYZ(arc.YDirection.X, arc.YDirection.Y, 0);
+                        double startParam = arc.GetEndParameter(0);
+                        double endParam = arc.GetEndParameter(1);
+                        loop.Append(Arc.Create(center, arc.Radius, startParam, endParam, xDir, yDir));
+                    }
+                }
+
+                if (loop.Any() && !PointsAreEqual(loop.First().GetEndPoint(0), loop.Last().GetEndPoint(1)))
+                {
+                    Line closing = Line.CreateBound(loop.Last().GetEndPoint(1), loop.First().GetEndPoint(0));
+                    loop.Append(closing);
+                }
+
+                if (!loop.Any())
+                    continue;
+
+                // Смещаем контур наружу
+                CurveLoop offsetLoop = null;
+                try
+                {
+                    XYZ normal = new XYZ(0, 0, 1);
+                    offsetLoop = CurveLoop.CreateViaOffset(loop, offsetDistance, normal);
+                }
+                catch
+                {
+                    offsetLoop = loop;
+                }
+
+                if (offsetLoop == null || !offsetLoop.Any())
+                    continue;
+
+                try
+                {
+                    Solid solid = GeometryCreationUtilities.CreateExtrusionGeometry(
+                        new List<CurveLoop> { offsetLoop },
+                        XYZ.BasisZ,
+                        0.1
+                    );
+                    solids.Add(solid);
+                }
+                catch { }
+            }
+
+            if (solids.Count == 0)
+                return null;
+
+            // Объединение всех тел
+            Solid unionSolid = solids[0];
+            for (int i = 1; i < solids.Count; i++)
+            {
+                try
+                {
+                    unionSolid = BooleanOperationsUtils.ExecuteBooleanOperation(
+                        unionSolid,
+                        solids[i],
+                        BooleanOperationsType.Union
+                    );
+                }
+                catch { }
+            }
+
+            // Находим верхнюю грань
+            Face topFace = null;
+            double maxArea = 0;
+            foreach (Face face in unionSolid.Faces)
+            {
+                PlanarFace planarFace = face as PlanarFace;
+                if (planarFace != null && Math.Abs(planarFace.FaceNormal.Z) > 0.99)
+                {
+                    double area = planarFace.Area;
+                    if (area > maxArea)
+                    {
+                        maxArea = area;
+                        topFace = planarFace;
                     }
                 }
             }
 
-            if (allPoints.Count < 3)
+            if (topFace == null)
                 return null;
 
-            // Удаляем дубликаты точек с округлением
-            var distinctPoints = allPoints
-                .Select(p => new XYZ(Math.Round(p.X, 4), Math.Round(p.Y, 4), 0))
-                .GroupBy(p => new { p.X, p.Y })
-                .Select(g => g.First())
-                .ToList();
+            // Получаем внешний контур через GetEdgesAsCurveLoops()
+            IList<CurveLoop> edgeLoops = topFace.GetEdgesAsCurveLoops();
+            if (edgeLoops == null || edgeLoops.Count == 0)
+                return null;
 
-            // Находим минимальные и максимальные координаты для создания bounding box
-            double minX = distinctPoints.Min(p => p.X);
-            double minY = distinctPoints.Min(p => p.Y);
-            double maxX = distinctPoints.Max(p => p.X);
-            double maxY = distinctPoints.Max(p => p.Y);
+            CurveLoop outerLoop = null;
+            double maxLoopArea = 0;
+            foreach (CurveLoop candidate in edgeLoops)
+            {
+                CurveLoop flatLoop = new CurveLoop();
+                foreach (Curve curve in candidate)
+                {
+                    XYZ p0 = curve.GetEndPoint(0);
+                    XYZ p1 = curve.GetEndPoint(1);
+                    XYZ p0Flat = new XYZ(p0.X, p0.Y, 0);
+                    XYZ p1Flat = new XYZ(p1.X, p1.Y, 0);
 
-            // Создаем прямоугольный контур с отступом
-            // Это гарантированно создаст непрерывный CurveLoop
-            double offset = 0.3; // Отступ 30 см
+                    if (curve is Line)
+                        flatLoop.Append(Line.CreateBound(p0Flat, p1Flat));
+                    else if (curve is Arc arc)
+                    {
+                        XYZ center = new XYZ(arc.Center.X, arc.Center.Y, 0);
+                        XYZ xDir = new XYZ(arc.XDirection.X, arc.XDirection.Y, 0);
+                        XYZ yDir = new XYZ(arc.YDirection.X, arc.YDirection.Y, 0);
+                        double startParam = arc.GetEndParameter(0);
+                        double endParam = arc.GetEndParameter(1);
+                        flatLoop.Append(Arc.Create(center, arc.Radius, startParam, endParam, xDir, yDir));
+                    }
+                }
+                double area = GetCurveLoopArea(flatLoop);
+                if (area > maxLoopArea)
+                {
+                    maxLoopArea = area;
+                    outerLoop = flatLoop;
+                }
+            }
 
-            CurveLoop boundaryLoop = new CurveLoop();
+            if (outerLoop == null || !outerLoop.Any())
+                return null;
 
-            // Создаем 4 точки прямоугольника
-            XYZ p1 = new XYZ(minX - offset, minY - offset, 0);
-            XYZ p2 = new XYZ(maxX + offset, minY - offset, 0);
-            XYZ p3 = new XYZ(maxX + offset, maxY + offset, 0);
-            XYZ p4 = new XYZ(minX - offset, maxY + offset, 0);
-
-            // Создаем линии (последовательно, конец одной = начало следующей)
-            Line line1 = Line.CreateBound(p1, p2);
-            Line line2 = Line.CreateBound(p2, p3);
-            Line line3 = Line.CreateBound(p3, p4);
-            Line line4 = Line.CreateBound(p4, p1);
-
-            boundaryLoop.Append(line1);
-            boundaryLoop.Append(line2);
-            boundaryLoop.Append(line3);
-            boundaryLoop.Append(line4);
-
-            return boundaryLoop;
+            // Возвращаем контур с применённым смещением (без обратного смещения)
+            return outerLoop;
         }
 
-        /// <summary>
-        /// Применяет обрезку к виду
-        /// </summary>
+        // ======================================================================
+        // ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ДЛЯ РАБОТЫ С КРИВЫМИ
+        // ======================================================================
+
+        private bool PointsAreEqual(XYZ a, XYZ b)
+        {
+            return Math.Abs(a.X - b.X) < Eps && Math.Abs(a.Y - b.Y) < Eps && Math.Abs(a.Z - b.Z) < Eps;
+        }
+
+        private double GetCurveLoopArea(CurveLoop loop)
+        {
+            if (loop == null || !loop.Any()) return 0;
+            List<XYZ> pts = new List<XYZ>();
+            foreach (Curve c in loop)
+            {
+                pts.Add(c.GetEndPoint(0));
+                if (!(c is Line))
+                {
+                    double step = 1.0 / 10;
+                    for (int i = 1; i < 10; i++)
+                    {
+                        double param = c.GetEndParameter(0) + step * i * (c.GetEndParameter(1) - c.GetEndParameter(0));
+                        pts.Add(c.Evaluate(param, true));
+                    }
+                }
+            }
+            pts.Add(loop.Last().GetEndPoint(1));
+            var distinct = pts.Distinct(new XYZComparer()).ToList();
+            if (distinct.Count < 3) return 0;
+            double area = 0;
+            for (int i = 0; i < distinct.Count - 1; i++)
+                area += distinct[i].X * distinct[i + 1].Y - distinct[i + 1].X * distinct[i].Y;
+            return Math.Abs(area) / 2.0;
+        }
+
+        private class XYZComparer : IEqualityComparer<XYZ>
+        {
+            private double eps = 0.01;
+            public bool Equals(XYZ a, XYZ b)
+            {
+                return Math.Abs(a.X - b.X) < eps && Math.Abs(a.Y - b.Y) < eps && Math.Abs(a.Z - b.Z) < eps;
+            }
+            public int GetHashCode(XYZ obj)
+            {
+                int x = (int)Math.Round(obj.X / eps);
+                int y = (int)Math.Round(obj.Y / eps);
+                int z = (int)Math.Round(obj.Z / eps);
+                return x ^ y ^ z;
+            }
+        }
+
+        // ======================================================================
+        // ПРИМЕНЕНИЕ ОБРЕЗКИ К ВИДУ
+        // ======================================================================
+
         private void ApplyCropToView(ViewPlan view, CurveLoop cropBoundary)
         {
             if (cropBoundary == null || !cropBoundary.Any())
                 return;
 
-            // Активируем обрезку
             view.CropBoxActive = true;
             view.CropBoxVisible = true;
 
-            // Получаем менеджер формы обрезки
             ViewCropRegionShapeManager cropManager = view.GetCropRegionShapeManager();
 
-            // Проверяем поддержку произвольной формы
             if (cropManager.CanHaveShape)
             {
                 try
                 {
-                    // Пробуем установить форму обрезки
                     cropManager.SetCropShape(cropBoundary);
                     view.CropBoxVisible = false;
                 }
                 catch (Exception ex)
                 {
-                    // Если не удалось установить сложную форму, используем прямоугольную обрезку
-                    TaskDialog.Show("Информация",
-                        $"Не удалось установить сложную форму обрезки для квартиры, используется прямоугольная обрезка: {ex.Message}");
+                    TaskDialog.Show("Ошибка обрезки",
+                        $"Не удалось установить форму обрезки: {ex.Message}\n" +
+                        $"Будет использована прямоугольная обрезка.");
 
-                    // Устанавливаем прямоугольную обрезку через CropBox
-                    BoundingBoxXYZ bounds = view.CropBox;
+                    BoundingBoxXYZ bounds = GetBoundsFromCurveLoop(cropBoundary);
                     if (bounds != null)
                     {
                         view.CropBox = bounds;
@@ -283,10 +530,6 @@ namespace BIMv2
             }
             else
             {
-                // Если вид не поддерживает сложную форму, используем прямоугольную обрезку
-                TaskDialog.Show("Информация", "Вид не поддерживает непрямоугольную форму обрезки, используется прямоугольная обрезка");
-
-                // Устанавливаем прямоугольную обрезку через габариты
                 BoundingBoxXYZ bounds = GetBoundsFromCurveLoop(cropBoundary);
                 if (bounds != null)
                 {
@@ -297,9 +540,6 @@ namespace BIMv2
             }
         }
 
-        /// <summary>
-        /// Получает BoundingBox из CurveLoop
-        /// </summary>
         private BoundingBoxXYZ GetBoundsFromCurveLoop(CurveLoop loop)
         {
             if (loop == null || !loop.Any())
