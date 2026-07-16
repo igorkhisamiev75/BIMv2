@@ -9,7 +9,6 @@ using Application = Autodesk.Revit.ApplicationServices.Application;
 using Autodesk.Revit.DB.Architecture;
 using Autodesk.Revit.UI.Selection;
 using System.Diagnostics;
-//using Floor = Autodesk.Revit.DB.Floor;
 
 
 namespace CreateFinishWallinRooms
